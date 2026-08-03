@@ -1,0 +1,53 @@
+# Propiedad de archivos
+
+Un archivo, un dueno. Nadie modifica la carpeta de otra persona. Si necesitas un
+cambio fuera de tu carpeta, se pide, no se hace.
+
+## Carpetas con dueno unico
+
+| Carpeta | Dueno | Contenido |
+|---|---|---|
+| backend/api | Cesar | Endpoints, enrutamiento, dependencias de FastAPI |
+| backend/etl | Cesar | Extractores, limpieza, carga |
+| basedatos | Cesar | DDL, seguridad, procedimientos, respaldos, consultas |
+| backend/senales | Alejandro | Filtrado, remuestreo, espectro, SPI, anomalias |
+| backend/modelado | Alejandro | Etiquetado, linea base, entrenamiento, evaluacion, SHAP |
+| infra | Alejandro | Docker, manifiestos de Kubernetes |
+| docs/adr | Alejandro | Registros de decisiones de arquitectura |
+| backend/calidad | Luna | Reporte de calidad de datos, perfilado |
+| backend/tests | Luna | Suite de pruebas |
+| docs/investigacion | Luna | Referencias, estado del arte, catalogo de eventos, plan de pruebas |
+| docs (resto) | Alejandro | Documento IEEE, bitacoras, matrices, roadmap, manuales |
+| frontend | Avril | Visor, tablero, componentes, estilos |
+
+## Archivos compartidos
+
+Se tocan solo por solicitud de cambio aprobada por Alejandro y por el dueno del
+modulo afectado:
+
+- contratos/ (todo el contenido)
+- docker-compose.yml
+- .env.example
+- requirements.txt
+- frontend/package.json
+- .github/workflows/
+
+## Por que esta regla
+
+Con cuatro personas trabajando en paralelo sobre el mismo repositorio, los
+conflictos de fusion son el mayor consumidor silencioso de tiempo. Un dueno por
+carpeta los reduce casi a cero y hace que las revisiones sean rapidas, porque
+cada quien revisa territorio que conoce.
+
+
+## Nota sobre la documentacion
+
+Alejandro es el dueno de `docs/` porque tiene el contexto completo del proyecto y
+es quien puede sostener la coherencia entre arquitectura, resultados y redaccion.
+
+Luna es duena de `docs/investigacion/`, que alimenta al documento IEEE con
+insumos que no requieren contexto arquitectonico: referencias, estado del arte,
+catalogo de eventos historicos y plan de pruebas.
+
+La division existe para que el documento tenga una sola voz sin convertir a
+Alejandro en cuello de botella para todo lo escrito.

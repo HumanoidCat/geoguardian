@@ -1,0 +1,76 @@
+# Tareas de Luis
+
+**Luis Alejandro Luna Garcia**  
+**Carpetas propias:** `backend/calidad, backend/tests, docs/investigacion`
+
+> Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
+
+> Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+
+**Total asignado:** 82 puntos · 137 horas · 13.7 h por semana en promedio
+
+## Carga por sprint
+
+| Sprint | Semanas | Horas | Capacidad | Estado |
+|---|---|---|---|---|
+| S0 | semanas 2-3 | 21.1 | 26 | ajustado |
+| S1 | semanas 4-5 | 29.3 | 26 | SOBRECARGA +3 h |
+| S2 | semanas 6-7 | 40.6 | 26 | SOBRECARGA +15 h |
+| S3 | semanas 8-9 | 22.2 | 26 | ajustado |
+| S4 | semanas 10-11 | 24.2 | 26 | ajustado |
+
+## Sprint 0 (semanas 2-3) — 21.1 h
+
+- [ ] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido
+  - `E10` · 8 pts · 21.1 h · rubrica: IEEE · **bloquea a: H10.5b**
+
+## Sprint 1 (semanas 4-5) — 29.3 h
+
+- [ ] **H10.5b** · Estado del arte de Costa Rica
+  - `E10` · 5 pts · 13.2 h · rubrica: IEEE · depende de: H10.5a · **bloquea a: H10.5c**
+- [ ] **H2.1** · Filtrar ruido de las series con justificacion del filtro
+  - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H1.4 · **bloquea a: H2.2, H2.3, H2.4**
+- [ ] **H4.3** · Catalogo de 8 o mas eventos historicos del canton con fuente
+  - `E4` · 5 pts · 13.2 h · rubrica: OE3 · **bloquea a: H4.4, H7.3**
+
+## Sprint 2 (semanas 6-7) — 40.6 h
+
+- [ ] **H1.5** · Reporte formal de calidad de datos: faltantes, atipicos, sesgos
+  - `E1` · 8 pts · 12.5 h · rubrica: OE1 · depende de: H1.1
+- [ ] **H10.1** · Plan de pruebas con casos por modulo
+  - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: contratos
+- [ ] **H2.2** · Analisis espectral de la lluvia e interpretacion fisica
+  - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1
+- [ ] **H2.3** · SPI de 1 y 3 meses por convolucion de ventana movil
+  - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H2.5, H3.0**
+- [ ] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020
+  - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
+- [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
+  - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2**
+
+## Sprint 3 (semanas 8-9) — 22.2 h
+
+- [ ] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio
+  - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: H6.2
+- [ ] **H10.8** · Carpeta de evidencias organizada por materia con indice
+  - `E10` · 5 pts · 4.8 h · rubrica: SO-4
+- [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
+  - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
+- [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
+  - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
+
+## Sprint 4 (semanas 10-11) — 24.2 h
+
+- [ ] **H9.2** · Sesion con 3 a 5 participantes y calculo del puntaje SUS
+  - `E9` · 5 pts · 13.2 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.3, H9.4**
+- [ ] **H9.3** · Someter los umbrales de incendio a criterio de los participantes
+  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2
+- [ ] **H9.4** · Incorporar un cambio derivado de la retroalimentacion
+  - `E9` · 2 pts · 3.1 h · rubrica: OE4 · depende de: H9.2
+
+## Al terminar cada historia
+
+1. Verificar ejecutando, no leyendo. Si dice que pasa, correlo.
+2. Guardar la evidencia en `docs/evidencias/<materia>/` el mismo dia.
+3. Abrir el Pull Request hacia `dev` enlazado a la issue.
+4. Marcar `[x]` aqui y cerrar la issue en GitHub.

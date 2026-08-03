@@ -1,0 +1,35 @@
+# Entorno
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.Python
+
+# Datos: nunca se versionan
+datos/crudos/*
+datos/procesados/*
+!datos/**/.gitkeep
+
+# Artefactos de modelos
+*.pkl
+*.joblib
+modelos/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Respaldos de base de datos
+*.dump
+*.backup

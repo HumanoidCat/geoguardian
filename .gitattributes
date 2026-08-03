@@ -1,0 +1,23 @@
+# Normaliza los finales de linea. Sin esto, cada integrante con una
+# configuracion distinta de Windows o Linux genera diffs fantasma donde el
+# archivo completo aparece como modificado y la revision se vuelve ilegible.
+
+* text=auto eol=lf
+
+*.sh    text eol=lf
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.docx  binary
+*.xlsx  binary
+*.pptx  binary
+*.tif   binary
+*.tiff  binary
+*.zip   binary
+*.pkl   binary
+*.joblib binary
