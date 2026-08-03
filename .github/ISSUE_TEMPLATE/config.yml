@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Tus tareas asignadas
+    url: https://github.com/HumanoidCat/geoguardian/blob/dev/docs/tareas
+    about: El backlog repartido por persona, con sprints, horas y dependencias
+  - name: Guia de arranque
+    url: https://github.com/HumanoidCat/geoguardian/blob/dev/docs/ARRANQUE.md
+    about: Instalar Docker, clonar el repositorio y levantar la base de datos
