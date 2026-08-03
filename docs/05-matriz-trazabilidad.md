@@ -24,7 +24,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H5.3 | Coropletas de riesgo por distrito | frontend | prueba visual | docs/evidencias/computacion-grafica/ | CG-1 | Avril | Pendiente |
 | H5.6 | Transformacion de coordenadas | frontend | test_proyeccion | docs/evidencias/computacion-grafica/ | CG-1 | Avril | Pendiente |
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/ | Arq | Cesar | Pendiente |
-| H8.1 | Despliegue reproducible | infra | levantado en maquina limpia | docs/evidencias/sistemas-operativos/ | SO-1 | Alejandro | Pendiente |
+| H8.1 | Despliegue reproducible | docker-compose.yml, infra/docker/init-db | levantado en maquina limpia | docs/evidencias/sistemas-operativos/H8.1-despliegue.md | SO-1 | Alejandro | **Con evidencia** |
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Alejandro | Pendiente |
 | H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/ | OE4 | Luna | Pendiente |
 

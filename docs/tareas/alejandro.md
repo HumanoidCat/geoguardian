@@ -21,7 +21,7 @@
 
 ## Sprint 0 (semanas 2-3) — 10.7 h
 
-- [ ] **H8.1** · docker compose up levanta todo en maquina limpia
+- [x] **H8.1** · docker compose up levanta todo en maquina limpia (2026-08-03)
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · **bloquea a: H8.6, H10.4**
 - [ ] **H8.5** · Credenciales por variables de entorno, fuera del repositorio
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1
