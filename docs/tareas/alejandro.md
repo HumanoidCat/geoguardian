@@ -21,7 +21,7 @@
 
 ## Sprint 0 (semanas 2-3) — 10.7 h
 
-- [ ] **H8.1** · docker compose up levanta todo en maquina limpia
+- [x] **H8.1** · docker compose up levanta todo en maquina limpia (2026-08-03)
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · **bloquea a: H8.6, H10.4**
 - [ ] **H8.5** · Credenciales por variables de entorno, fuera del repositorio
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1
@@ -68,9 +68,28 @@
 - [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
 
+
+## Regla: lo hecho no se borra
+
+Una historia terminada se marca `[x]` y **se queda donde esta**. Nunca se borra
+ni se mueve a otro archivo.
+
+Este archivo es el registro de lo que hiciste durante el trimestre. En la semana
+12 hay que demostrar contribucion individual: la rubrica de Computacion Grafica
+lo evalua explicitamente. Si vas borrando lo terminado para "ver mejor lo que
+falta", en noviembre no vas a tener con que respaldar tu aporte.
+
+Al marcar una historia, agregale la fecha entre parentesis:
+
+    - [x] **H1.1** · Descargar 10 anios de series climaticas diarias (2026-08-14)
+
+Lo mismo aplica a las issues de GitHub: se cierran, no se eliminan. Una issue
+cerrada conserva la discusion, los commits enlazados y el Pull Request. Una issue
+borrada no deja nada.
+
 ## Al terminar cada historia
 
 1. Verificar ejecutando, no leyendo. Si dice que pasa, correlo.
 2. Guardar la evidencia en `docs/evidencias/<materia>/` el mismo dia.
 3. Abrir el Pull Request hacia `dev` enlazado a la issue.
-4. Marcar `[x]` aqui y cerrar la issue en GitHub.
+4. Marcar `[x]` aqui con la fecha, y **cerrar** la issue en GitHub. No borrar ninguna de las dos.

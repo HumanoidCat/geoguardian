@@ -1,0 +1,21 @@
+# Archivo compartido. Se modifica solo por solicitud de cambio aprobada.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["notebooks", "datos", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",
+    "B008",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["contratos", "backend"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+python_files = ["test_*.py"]
+addopts = "-ra"

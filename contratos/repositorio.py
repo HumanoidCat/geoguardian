@@ -9,7 +9,7 @@ Repository.
 from __future__ import annotations
 
 from datetime import date
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from .enums import TipoEvento
 from .esquemas import (
@@ -34,7 +34,7 @@ class Repositorio(Protocol):
         """Todos los distritos del canton con su geometria en GeoJSON."""
         ...
 
-    def obtener_distrito(self, codigo: str) -> Optional[Distrito]:
+    def obtener_distrito(self, codigo: str) -> Distrito | None:
         """None si el codigo no existe. No lanza excepcion: la ausencia es un caso valido."""
         ...
 
@@ -78,26 +78,23 @@ class Repositorio(Protocol):
 
     # -- Derivados y riesgo ------------------------------------------------- #
 
-    def guardar_indices(self, indices: list[IndiceDerivado]) -> int:
-        ...
+    def guardar_indices(self, indices: list[IndiceDerivado]) -> int: ...
 
     def obtener_indices(
         self,
         codigo_distrito: str,
         desde: date,
         hasta: date,
-    ) -> list[IndiceDerivado]:
-        ...
+    ) -> list[IndiceDerivado]: ...
 
-    def guardar_riesgos(self, riesgos: list[Riesgo]) -> int:
-        ...
+    def guardar_riesgos(self, riesgos: list[Riesgo]) -> int: ...
 
     def obtener_riesgo(
         self,
         codigo_distrito: str,
         fecha: date,
         tipo_evento: TipoEvento,
-    ) -> Optional[Riesgo]:
+    ) -> Riesgo | None:
         """None si no hay estimacion para esa combinacion. No se inventa una."""
         ...
 
@@ -109,18 +106,14 @@ class Repositorio(Protocol):
 
     def listar_eventos(
         self,
-        tipo_evento: Optional[TipoEvento] = None,
-    ) -> list[EventoHistorico]:
-        ...
+        tipo_evento: TipoEvento | None = None,
+    ) -> list[EventoHistorico]: ...
 
-    def guardar_reporte_calidad(self, reporte: ReporteCalidad) -> None:
-        ...
+    def guardar_reporte_calidad(self, reporte: ReporteCalidad) -> None: ...
 
-    def listar_reportes_calidad(self) -> list[ReporteCalidad]:
-        ...
+    def listar_reportes_calidad(self) -> list[ReporteCalidad]: ...
 
-    def guardar_metricas(self, metricas: MetricasModelo) -> None:
-        ...
+    def guardar_metricas(self, metricas: MetricasModelo) -> None: ...
 
     def listar_metricas(self) -> list[MetricasModelo]:
         """Alimenta la tabla comparativa de los tres algoritmos contra la linea base."""

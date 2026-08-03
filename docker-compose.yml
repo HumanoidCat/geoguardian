@@ -1,0 +1,41 @@
+# Levanta el entorno completo de GeoGuardian.
+#
+#   docker compose up -d
+#
+# Los servicios se agregan conforme se construyen. Hoy solo la base de datos:
+# la API y el frontend entran cuando existan sus Dockerfile (historias H6.1 y H5.1).
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: geoguardian-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-geoguardian}
+      POSTGRES_USER: ${POSTGRES_USER:-geoguardian}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el archivo .env}
+      # UTF8 con ordenamiento independiente del idioma del sistema.
+      # No se usa --locale=es_ES.UTF-8: esa configuracion regional no viene
+      # generada en la imagen base y initdb falla, dejando el contenedor en
+      # bucle de reinicio. Ver incidencia I-02.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale-provider=icu --icu-locale=es-CR"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - datos_db:/var/lib/postgresql/data
+      # Los scripts de init-db corren UNA sola vez, cuando el volumen esta vacio.
+      # Si se modifican, hay que borrar el volumen para que vuelvan a ejecutarse.
+      - ./infra/docker/init-db:/docker-entrypoint-initdb.d:ro
+      # Carpeta para respaldos: la usa la historia H1.10
+      - ./infra/docker/respaldos:/respaldos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-geoguardian} -d ${POSTGRES_DB:-geoguardian}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    shm_size: 256mb
+
+volumes:
+  datos_db:
+    name: geoguardian_datos_db

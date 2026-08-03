@@ -9,7 +9,7 @@ la comparacion sea justa por construccion y no por convencion.
 from __future__ import annotations
 
 from datetime import date
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from .enums import Algoritmo, NivelRiesgo, TipoEvento
 from .esquemas import ContribucionVariable, MetricasModelo
@@ -36,7 +36,7 @@ class Estimador(Protocol):
 
     def entrenar(
         self,
-        caracteristicas: list[dict[str, Optional[float]]],
+        caracteristicas: list[dict[str, float | None]],
         etiquetas: list[NivelRiesgo],
     ) -> None:
         """
@@ -49,7 +49,7 @@ class Estimador(Protocol):
 
     def predecir(
         self,
-        caracteristicas: list[dict[str, Optional[float]]],
+        caracteristicas: list[dict[str, float | None]],
     ) -> list[tuple[NivelRiesgo, float]]:
         """
         Devuelve (nivel, probabilidad) por observacion.
@@ -61,8 +61,8 @@ class Estimador(Protocol):
 
     def explicar(
         self,
-        caracteristicas: dict[str, Optional[float]],
-    ) -> Optional[list[ContribucionVariable]]:
+        caracteristicas: dict[str, float | None],
+    ) -> list[ContribucionVariable] | None:
         """
         Aporte de cada variable a una prediccion concreta, via SHAP.
 
@@ -79,7 +79,7 @@ class Evaluador(Protocol):
     def validar_ventana_expansiva(
         self,
         estimador: Estimador,
-        caracteristicas: list[dict[str, Optional[float]]],
+        caracteristicas: list[dict[str, float | None]],
         etiquetas: list[NivelRiesgo],
         fechas: list[date],
         n_cortes: int,

@@ -1,0 +1,40 @@
+# Archivo compartido. Se modifica solo por solicitud de cambio aprobada.
+# Toda dependencia nueva debe justificarse: que problema resuelve y que se descarto.
+
+# Datos
+pandas==2.2.3
+numpy==2.1.3
+scipy==1.14.1
+
+# Geoespacial
+geopandas==1.0.1
+shapely==2.0.6
+rasterio==1.4.3
+pyproj==3.7.0
+
+# Imagenes
+scikit-image==0.25.0
+
+# Modelado
+scikit-learn==1.6.0
+xgboost==2.1.3
+shap==0.46.0
+
+# API y validacion
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+
+# Base de datos
+psycopg[binary]==3.2.3
+sqlalchemy==2.0.36
+geoalchemy2==0.16.0
+
+# Utilidades
+python-dotenv==1.0.1
+httpx==0.28.1
+
+# Desarrollo
+pytest==8.3.4
+pytest-cov==6.0.0
+ruff==0.8.4
