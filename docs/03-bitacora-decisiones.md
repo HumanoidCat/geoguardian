@@ -42,8 +42,9 @@ tiempo de entrenamiento sin ganancia esperada para este volumen de datos.
 
 ## D-03 · PostgreSQL con PostGIS
 
-**Contexto.** El proyecto es geoespacial. La rubrica de base de datos estaba
-redactada en sintaxis T-SQL.
+**Contexto.** El proyecto es geoespacial: polígonos distritales, puntos de focos
+de calor e imágenes satelitales. La eleccion de motor condiciona todo el modulo
+de datos.
 
 **Decision.** PostgreSQL con PostGIS, autorizado por el profesor del curso.
 
@@ -52,8 +53,9 @@ criterios de la rubrica se cumplen: esquemas y roles para seguridad, bloques
 EXCEPTION en PL/pgSQL para manejo de errores, y pg_dump con archivado de WAL para
 respaldo y recuperacion a un punto en el tiempo.
 
-**Alternativa descartada.** SQL Server. Soporte espacial suficiente pero sin tipo
-raster y con mas friccion para escribir geometrias desde Python.
+**Alternativa descartada.** Un motor relacional sin extension geoespacial nativa.
+Habria obligado a convertir geometrias a mano desde Python, sin tipo raster y sin
+compatibilidad directa con GeoPandas ni QGIS.
 
 ---
 
