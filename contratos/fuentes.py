@@ -51,8 +51,7 @@ class ExtractorFocosCalor(Protocol):
 
     nombre: str
 
-    def disponible(self) -> bool:
-        ...
+    def disponible(self) -> bool: ...
 
     def extraer(self, desde: date, hasta: date) -> list[FocoCalor]:
         """

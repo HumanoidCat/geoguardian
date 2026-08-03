@@ -84,6 +84,15 @@ Sin emojis en el codigo ni en los mensajes de commit.
 - [ ] Identificado a que criterio de que rubrica contribuye
 - [ ] Responsable asignado
 
+## Registro de lo hecho
+
+Las historias terminadas se marcan `[x]` con la fecha en `docs/tareas/<persona>.md`
+y **no se borran nunca**. Las issues se cierran, no se eliminan.
+
+Es el rastro de contribucion individual de cada quien, y hay rubricas que lo
+evaluan de forma explicita en la semana 12. Ademas, una issue cerrada conserva la
+discusion y los commits enlazados; una borrada no deja nada.
+
 ## Definition of Done
 
 - [ ] En `dev`, con revision de al menos una persona

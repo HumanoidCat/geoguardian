@@ -11,7 +11,7 @@ modelo y nadie lo detecta hasta que es tarde.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,6 +26,7 @@ class _Base(BaseModel):
 # Territorio                                                                    #
 # --------------------------------------------------------------------------- #
 
+
 class Distrito(_Base):
     """
     Distrito del canton de Tilaran.
@@ -37,13 +38,16 @@ class Distrito(_Base):
     codigo: str = Field(description="Codigo oficial del distrito", examples=["50501"])
     nombre: str
     area_km2: float = Field(gt=0)
-    poblacion: Optional[int] = Field(default=None, ge=0, description="None si no hay dato censal")
-    geometria: dict[str, Any] = Field(description="Poligono GeoJSON en EPSG:4326, listo para Leaflet")
+    poblacion: int | None = Field(default=None, ge=0, description="None si no hay dato censal")
+    geometria: dict[str, Any] = Field(
+        description="Poligono GeoJSON en EPSG:4326, listo para Leaflet"
+    )
 
 
 # --------------------------------------------------------------------------- #
 # Mediciones                                                                    #
 # --------------------------------------------------------------------------- #
+
 
 class MedicionDiaria(_Base):
     """
@@ -53,13 +57,13 @@ class MedicionDiaria(_Base):
 
     codigo_distrito: str
     fecha: date
-    temp_max_c: Optional[float] = None
-    temp_min_c: Optional[float] = None
-    temp_media_c: Optional[float] = None
-    precipitacion_mm: Optional[float] = Field(default=None, ge=0)
-    humedad_relativa_pct: Optional[float] = Field(default=None, ge=0, le=100)
-    viento_ms: Optional[float] = Field(default=None, ge=0)
-    radiacion_mj_m2: Optional[float] = Field(default=None, ge=0)
+    temp_max_c: float | None = None
+    temp_min_c: float | None = None
+    temp_media_c: float | None = None
+    precipitacion_mm: float | None = Field(default=None, ge=0)
+    humedad_relativa_pct: float | None = Field(default=None, ge=0, le=100)
+    viento_ms: float | None = Field(default=None, ge=0)
+    radiacion_mj_m2: float | None = Field(default=None, ge=0)
     imputado: bool = Field(default=False, description="True si algun valor fue imputado")
     metodo_imputacion: MetodoImputacion = MetodoImputacion.SIN_IMPUTAR
 
@@ -69,10 +73,10 @@ class IndiceDerivado(_Base):
 
     codigo_distrito: str
     fecha: date
-    spi_1m: Optional[float] = None
-    spi_3m: Optional[float] = None
-    anomalia_temp_c: Optional[float] = None
-    dias_sin_lluvia: Optional[int] = Field(default=None, ge=0)
+    spi_1m: float | None = None
+    spi_3m: float | None = None
+    anomalia_temp_c: float | None = None
+    dias_sin_lluvia: int | None = Field(default=None, ge=0)
 
 
 class FocoCalor(_Base):
@@ -81,15 +85,18 @@ class FocoCalor(_Base):
     fecha: date
     latitud: float = Field(ge=-90, le=90)
     longitud: float = Field(ge=-180, le=180)
-    confianza: Optional[int] = Field(default=None, ge=0, le=100)
-    brillo_k: Optional[float] = None
-    satelite: Optional[str] = None
-    codigo_distrito: Optional[str] = Field(default=None, description="None si cae fuera de todo distrito")
+    confianza: int | None = Field(default=None, ge=0, le=100)
+    brillo_k: float | None = None
+    satelite: str | None = None
+    codigo_distrito: str | None = Field(
+        default=None, description="None si cae fuera de todo distrito"
+    )
 
 
 # --------------------------------------------------------------------------- #
 # Riesgo                                                                        #
 # --------------------------------------------------------------------------- #
+
 
 class ContribucionVariable(_Base):
     """Aporte de una variable a una prediccion concreta, segun SHAP."""
@@ -110,11 +117,11 @@ class Riesgo(_Base):
     codigo_distrito: str
     fecha: date
     tipo_evento: TipoEvento
-    nivel: Optional[NivelRiesgo] = None
-    probabilidad: Optional[float] = Field(default=None, ge=0, le=1)
-    algoritmo: Optional[Algoritmo] = None
-    version_modelo: Optional[str] = None
-    explicacion: Optional[list[ContribucionVariable]] = None
+    nivel: NivelRiesgo | None = None
+    probabilidad: float | None = Field(default=None, ge=0, le=1)
+    algoritmo: Algoritmo | None = None
+    version_modelo: str | None = None
+    explicacion: list[ContribucionVariable] | None = None
 
 
 class EventoHistorico(_Base):
@@ -123,21 +130,22 @@ class EventoHistorico(_Base):
     codigo_distrito: str
     tipo_evento: TipoEvento
     fecha_inicio: date
-    fecha_fin: Optional[date] = Field(default=None, description="None si el evento sigue abierto")
-    severidad: Optional[NivelRiesgo] = None
+    fecha_fin: date | None = Field(default=None, description="None si el evento sigue abierto")
+    severidad: NivelRiesgo | None = None
     fuente: str
-    descripcion: Optional[str] = None
+    descripcion: str | None = None
 
 
 # --------------------------------------------------------------------------- #
 # Series y calidad                                                              #
 # --------------------------------------------------------------------------- #
 
+
 class PuntoSerie(_Base):
     """Un punto de una serie temporal. `valor` es None donde falta el dato."""
 
     fecha: date
-    valor: Optional[float] = None
+    valor: float | None = None
 
 
 class SerieTemporal(_Base):
@@ -164,7 +172,7 @@ class ReporteCalidad(_Base):
     total_presente: int = Field(ge=0)
     pct_faltantes: float = Field(ge=0, le=100)
     metodo_imputacion: MetodoImputacion
-    observaciones: Optional[str] = None
+    observaciones: str | None = None
 
 
 class MetricasModelo(_Base):
@@ -178,12 +186,12 @@ class MetricasModelo(_Base):
     algoritmo: Algoritmo
     tipo_evento: TipoEvento
     version: str
-    entrenado_en: Optional[datetime] = None
-    f1_macro: Optional[float] = Field(default=None, ge=0, le=1)
-    precision_macro: Optional[float] = Field(default=None, ge=0, le=1)
-    exhaustividad_macro: Optional[float] = Field(default=None, ge=0, le=1)
-    matriz_confusion: Optional[list[list[int]]] = None
-    supera_linea_base: Optional[bool] = Field(
+    entrenado_en: datetime | None = None
+    f1_macro: float | None = Field(default=None, ge=0, le=1)
+    precision_macro: float | None = Field(default=None, ge=0, le=1)
+    exhaustividad_macro: float | None = Field(default=None, ge=0, le=1)
+    matriz_confusion: list[list[int]] | None = None
+    supera_linea_base: bool | None = Field(
         default=None,
         description="None mientras no se haya contrastado contra la linea base climatologica",
     )
@@ -192,6 +200,7 @@ class MetricasModelo(_Base):
 # --------------------------------------------------------------------------- #
 # Estado del sistema                                                            #
 # --------------------------------------------------------------------------- #
+
 
 class Salud(_Base):
     """
@@ -204,4 +213,4 @@ class Salud(_Base):
     version_contratos: str
     modo: ModoOperacion
     base_datos_conectada: bool
-    ultima_ingesta: Optional[datetime] = Field(default=None, description="None si nunca se ejecuto")
+    ultima_ingesta: datetime | None = Field(default=None, description="None si nunca se ejecuto")

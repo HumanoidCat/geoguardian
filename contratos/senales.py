@@ -10,7 +10,7 @@ huecos. Cada metodo declara explicitamente como trata los None.
 
 from __future__ import annotations
 
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -19,9 +19,9 @@ class ProcesadorSenales(Protocol):
 
     def filtrar_ruido(
         self,
-        serie: list[Optional[float]],
+        serie: list[float | None],
         ventana: int,
-    ) -> list[Optional[float]]:
+    ) -> list[float | None]:
         """
         Suaviza la serie preservando los huecos.
 
@@ -32,7 +32,7 @@ class ProcesadorSenales(Protocol):
 
     def espectro(
         self,
-        serie: list[Optional[float]],
+        serie: list[float | None],
         frecuencia_muestreo: float,
     ) -> tuple[list[float], list[float]]:
         """
@@ -49,9 +49,9 @@ class ProcesadorSenales(Protocol):
 
     def spi(
         self,
-        precipitacion: list[Optional[float]],
+        precipitacion: list[float | None],
         ventana_meses: int,
-    ) -> list[Optional[float]]:
+    ) -> list[float | None]:
         """
         Indice de Precipitacion Estandarizado por convolucion de ventana movil.
 
@@ -64,9 +64,9 @@ class ProcesadorSenales(Protocol):
 
     def anomalia(
         self,
-        serie: list[Optional[float]],
+        serie: list[float | None],
         normal_por_mes: dict[int, float],
-    ) -> list[Optional[float]]:
+    ) -> list[float | None]:
         """
         Desviacion respecto a la normal climatologica 1991-2020.
 
@@ -77,10 +77,10 @@ class ProcesadorSenales(Protocol):
 
     def remuestrear(
         self,
-        serie: list[Optional[float]],
+        serie: list[float | None],
         factor: int,
         agregacion: str,
-    ) -> list[Optional[float]]:
+    ) -> list[float | None]:
         """
         Cambia la frecuencia de muestreo. `agregacion` en {"suma", "media", "max", "min"}.
 

@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  contratos:
+    name: Contratos y simulados
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar lo minimo para verificar contratos
+        run: pip install pydantic==2.10.4
+      - name: Verificar que los simulados cumplen los contratos
+        run: python -m contratos.verificar
+
+  calidad:
+    name: Linter y formato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ruff==0.8.4
+      - name: Revisar estilo
+        run: ruff check .
+      - name: Revisar formato
+        run: ruff format --check .
+
+  pruebas:
+    name: Pruebas contra PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: geoguardian_test
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d geoguardian_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Comprobar que PostGIS responde
+        run: |
+          python - <<'PY'
+          import psycopg
+          with psycopg.connect("host=localhost port=5432 dbname=geoguardian_test user=ci password=ci") as c:
+              print("PostGIS disponible:", c.execute("SELECT postgis_version()").fetchone()[0])
+          PY
+      - name: Ejecutar la suite
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_DB: geoguardian_test
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+        run: |
+          # Todavia no hay pruebas escritas (historia H10.1, Luna). Cuando existan,
+          # este paso empieza a fallar de verdad si algo se rompe.
+          if [ -n "$(find backend/tests -name 'test_*.py' -print -quit)" ]; then
+            pytest backend/tests -v --cov=backend --cov-report=term-missing
+          else
+            echo "Sin pruebas todavia. Pendiente de la historia H10.1."
+          fi

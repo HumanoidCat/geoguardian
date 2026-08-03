@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import logging
 import random
-from datetime import date, datetime, timedelta
-from typing import Optional
+from datetime import date, timedelta
 
 from ..enums import Algoritmo, MetodoImputacion, ModoOperacion, NivelRiesgo, TipoEvento
 from ..esquemas import (
@@ -44,9 +43,15 @@ def _cuadro(i: int) -> dict:
     d = 0.04
     return {
         "type": "Polygon",
-        "coordinates": [[
-            [lon, lat], [lon + d, lat], [lon + d, lat - d], [lon, lat - d], [lon, lat],
-        ]],
+        "coordinates": [
+            [
+                [lon, lat],
+                [lon + d, lat],
+                [lon + d, lat - d],
+                [lon, lat - d],
+                [lon, lat],
+            ]
+        ],
     }
 
 
@@ -65,7 +70,7 @@ class RepositorioSimulado:
             for i, (c, n, a) in enumerate(_DISTRITOS)
         ]
 
-    def obtener_distrito(self, codigo: str) -> Optional[Distrito]:
+    def obtener_distrito(self, codigo: str) -> Distrito | None:
         return next((d for d in self.listar_distritos() if d.codigo == codigo), None)
 
     # -- Mediciones --------------------------------------------------------- #
@@ -79,7 +84,7 @@ class RepositorioSimulado:
         """Incluye huecos a proposito: una de cada veinte fechas viene sin dato."""
         salida, actual, i = [], desde, 0
         while actual <= hasta:
-            hueco = (i % 20 == 7)
+            hueco = i % 20 == 7
             salida.append(
                 MedicionDiaria(
                     codigo_distrito=codigo_distrito,
@@ -135,7 +140,7 @@ class RepositorioSimulado:
 
     def obtener_riesgo(
         self, codigo_distrito: str, fecha: date, tipo_evento: TipoEvento
-    ) -> Optional[Riesgo]:
+    ) -> Riesgo | None:
         nivel = self._rnd.choice(list(NivelRiesgo))
         return Riesgo(
             codigo_distrito=codigo_distrito,
@@ -156,7 +161,7 @@ class RepositorioSimulado:
 
     # -- Eventos, calidad y modelos ----------------------------------------- #
 
-    def listar_eventos(self, tipo_evento: Optional[TipoEvento] = None) -> list[EventoHistorico]:
+    def listar_eventos(self, tipo_evento: TipoEvento | None = None) -> list[EventoHistorico]:
         base = [
             EventoHistorico(
                 codigo_distrito="50506",
