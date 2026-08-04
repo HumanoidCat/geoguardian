@@ -8,15 +8,17 @@
 
 ## 0. Compromiso de tiempo
 
-**13 horas por semana por persona.** Es el número con el que el proyecto cabe en
-las diez semanas sin recortar alcance.
+**16 horas por semana por persona.** Es lo que el proyecto exige para entregar en
+la semana 12 con las cinco asignaturas cubiertas. No es una estimación optimista
+ni un promedio: es el número con el que las cuentas cierran, y no hay holgura.
 
-Suena alto, y lo es menos de lo que parece: la mayor parte del trabajo es código
+Suena alto y lo es menos de lo que parece: la mayor parte del trabajo es código
 que se genera y se verifica, no que se escribe a mano. Pero la verificación no se
-salta — es donde se va el 20% del tiempo y es lo que separa un proyecto que
+salta — es donde se va el 20 % del tiempo y es lo que separa un proyecto que
 funciona de uno que parece funcionar.
 
-Si una semana no podés poner las 13 h, avisá al planificar, no al cerrar.
+Si una semana no vas a poder, se avisa **al planificar el sprint**, no al
+cerrarlo. Una semana perdida no se recupera sola: la paga alguien más.
 
 ---
 
@@ -194,12 +196,36 @@ apruebe.
 
 ---
 
-## 6. Qué hacer cuando te trabás
+---
 
-No te quedes trabado más de **treinta minutos** en silencio. El costo de preguntar es bajo; el de bloquear a otros por dos días es alto.
+## 7. Cuando te trabas: pedile a Claude el reporte
 
-1. Revisá si tu bloqueo es por código ajeno. Si sí, usá el simulado y seguí.
-2. Si es un problema técnico, escribilo en el canal del equipo con: qué intentaste, qué esperabas y qué pasó.
-3. Si te bloquea una decisión, escribile a Alejandro. Las decisiones no se toman por cuenta propia: se registran en la bitácora.
+Si Claude detecta un bloqueo —o si vos te trabas y no sabes explicarlo— pedile
+esto tal cual:
 
-Si algo salió mal y ya se resolvió, se anota como incidencia (I-01, I-02...) en `docs/04-bitacora-incidencias.md` con causa, acción y aprendizaje. **No es para repartir culpas.** Es para que no vuelva a pasar y para tener material real en la sección de limitaciones del paper.
+> Redactame un mensaje en formato markdown para el PM explicando este bloqueo:
+> qué se intentó, cuál es la causa, qué opciones hay y qué necesito para
+> desbloquearme.
+
+Se lo mandás a Alejandro por el canal. Un bloqueo reportado a tiempo es un
+problema; uno que aparece el domingo es un sprint perdido.
+
+**No te quedes trabado más de treinta minutos en silencio.**
+
+## 8. El ritmo de entrega
+
+**Los Pull Requests tienen que estar abiertos el domingo**, no empezados ese día.
+El domingo es cuando el PM revisa, no cuando se trabaja.
+
+Trabajar con Claude reduce mucho las horas, pero no elimina la revisión: hay que
+correr lo que se genera, verificar que hace lo que dice y comprobar los números.
+Ahí se va buena parte del tiempo. Si arrancás el sábado no te alcanza para
+revisar, y se nota en el Pull Request.
+
+## 9. Antes de cada sesión de trabajo
+
+    git checkout dev
+    git pull
+
+Cada vez. El proyecto cambia entre semanas; trabajar sobre una versión vieja
+garantiza conflictos al abrir el Pull Request.

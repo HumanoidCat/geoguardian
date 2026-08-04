@@ -48,14 +48,14 @@ que declara.
 
 | h/persona/semana | Capacidad util | Resultado |
 |---|---|---|
-| 9 | 306 h | Deficit de 121 h |
-| 10 | 340 h | Deficit de 87 h |
-| 11 | 374 h | Deficit de 53 h |
-| 12 | 408 h | Deficit de 19 h |
-| **13** | **442 h** | **Cabe, con 15 h de holgura** |
+| 13 | 442 h | Deficit de 102 h |
+| 15 | 510 h | Deficit de 34 h |
+| **16** | **544 h** | **Compromiso adquirido. Cabe justo, sin holgura** |
 
-**Decision: 13 horas por persona por semana. 52 horas de equipo.** No se recorta
-ningun punto del backlog.
+**Al incorporar lluvia intensa como tercer evento el esfuerzo paso de 506 h a
+544 h.** Antes de subir las horas conviene verificar el riesgo R16: si el canton
+no tiene suficientes focos de calor historicos, se elimina el evento de incendio
+y el esfuerzo baja de golpe. Esa verificacion cuesta un dia.
 
 ### Lo que la asistencia de IA NO acelera
 
@@ -72,7 +72,7 @@ Conviene tenerlo presente para no volver a subestimar:
 ### Regla de control
 
 Al planificar cada semana se suman las horas asignadas por persona. Si alguien
-supera 13 h, o si el total supera 52 h, el plan no se aprueba: sale trabajo o se
+supera 16 h, o si el total supera 64 h, el plan no se aprueba: sale trabajo o se
 reasigna. Al cierre de cada sprint se compara la velocidad real contra este
 modelo y se recalibran las tres tasas de h/pt.
 
@@ -167,8 +167,8 @@ wireframes, esqueleto de React. Consume los simulados, no la API real.
 | Avril | Wireframes de las tres pantallas | 5 | - |
 | Avril | Esqueleto de React con enrutamiento | 4 | Contratos |
 
-    Alejandro  24 h    Cesar  19 h    Luna  19 h    Avril  18 h
-    Total 80 h contra 104 h de capacidad en dos semanas (13 h x 4 x 2).
+    Alejandro  11 h    Cesar  18 h    Luna  21 h    Avril   3 h
+    Total 53 h contra 128 h de capacidad en dos semanas (16 h x 4 x 2).
 
 Cabe con holgura. El margen se usa para la curva de aprendizaje del stack y para
 la puesta a punto del entorno, que siempre consume mas de lo previsto en la

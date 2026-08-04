@@ -8,7 +8,14 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.0.0** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.1.0** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.0.0 -> v1.1.0 (3 de agosto).** `TipoEvento` incorpora
+`LLUVIA_INTENSA`. Motivo: Tilaran esta en la vertiente del Arenal y la lluvia
+intensa es su afectacion mas frecuente; estimar solo sequia e incendio dejaba el
+sistema sin pertinencia territorial. Se hizo con cero codigo dependiendo del
+enum. **Quien clono antes de esa fecha debe hacer `git pull` antes de empezar
+cualquier historia.**
 
 | Contrato | Archivo | Dueno | Simulado | Estado |
 |---|---|---|---|---|

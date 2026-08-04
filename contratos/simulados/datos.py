@@ -164,6 +164,15 @@ class RepositorioSimulado:
     def listar_eventos(self, tipo_evento: TipoEvento | None = None) -> list[EventoHistorico]:
         base = [
             EventoHistorico(
+                codigo_distrito="50501",
+                tipo_evento=TipoEvento.LLUVIA_INTENSA,
+                fecha_inicio=date(2021, 7, 20),
+                fecha_fin=date(2021, 7, 23),
+                severidad=NivelRiesgo.ALTO,
+                fuente="SIMULADO: reemplazar con catalogo real de la historia H4.3",
+                descripcion=None,
+            ),
+            EventoHistorico(
                 codigo_distrito="50506",
                 tipo_evento=TipoEvento.SEQUIA,
                 fecha_inicio=date(2019, 2, 1),
@@ -248,7 +257,7 @@ def salud_simulada() -> Salud:
     """Estado que la API expone mientras corre con simulados."""
     return Salud(
         version_api="0.1.0",
-        version_contratos="1.0.0",
+        version_contratos="1.1.0",
         modo=ModoOperacion.SIMULADO,
         base_datos_conectada=False,
         ultima_ingesta=None,
