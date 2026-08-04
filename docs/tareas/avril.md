@@ -7,31 +7,35 @@
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
 
-**Total asignado:** 73 puntos · 91 horas · 9.1 h por semana en promedio
+> **Compromiso de tiempo: 16 horas por semana.** Es lo que el proyecto exige para
+> entregar en la semana 12 sin recortar alcance. Si una semana no se puede, se avisa
+> al planificar el sprint, no al cerrarlo.
+
+**Total asignado:** 71 puntos · 90 horas · 9.0 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 2.9 | 26 | holgado |
-| S1 | semanas 4-5 | 9.6 | 26 | holgado |
-| S2 | semanas 6-7 | 20.2 | 26 | holgado |
-| S3 | semanas 8-9 | 34.6 | 26 | SOBRECARGA +9 h |
-| S4 | semanas 10-11 | 24.1 | 26 | ajustado |
+| S0 | semanas 2-3 | 2.9 | 32 | holgado |
+| S1 | semanas 4-5 | 11.5 | 32 | holgado |
+| S2 | semanas 6-7 | 26.0 | 32 | ajustado |
+| S3 | semanas 8-9 | 25.0 | 32 | holgado |
+| S4 | semanas 10-11 | 24.1 | 32 | holgado |
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
 - [ ] **H5.1** · Mapa del canton con poligonos distritales, zoom y desplazamiento
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: contratos · **bloquea a: H5.2, H5.3, H5.6**
 
-## Sprint 1 (semanas 4-5) — 9.6 h
+## Sprint 1 (semanas 4-5) — 11.5 h
 
 - [ ] **H5.2** · Cuatro o mas capas conmutables con control de opacidad
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
-- [ ] **H5.3** · Coropletas de riesgo con rampa de color y leyenda cuantitativa
-  - `E5` · 5 pts · 4.8 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
+- [ ] **H5.3** · Coropletas de riesgo por evento con rampa de color y leyenda
+  - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
-## Sprint 2 (semanas 6-7) — 20.2 h
+## Sprint 2 (semanas 6-7) — 26.0 h
 
 - [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
   - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
@@ -39,21 +43,19 @@
   - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
 - [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
-- [ ] **H7.1** · Semaforo de riesgo por distrito con umbrales documentados
-  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
+- [ ] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados
+  - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
+- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
 
-## Sprint 3 (semanas 8-9) — 34.6 h
+## Sprint 3 (semanas 8-9) — 25.0 h
 
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
 - [ ] **H5.4** · Mapa de calor por interpolacion IDW
   - `E5` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
 - [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.3 · **bloquea a: H10.7**
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
-  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
 
 ## Sprint 4 (semanas 10-11) — 24.1 h
 
@@ -65,7 +67,6 @@
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
 - [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
-
 
 ## Regla: lo hecho no se borra
 

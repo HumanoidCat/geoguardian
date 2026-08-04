@@ -73,7 +73,7 @@ def main() -> int:
 
     print("\nEl vocabulario del dominio esta cerrado:")
     comprobar("tres niveles de riesgo", len(list(NivelRiesgo)) == 3)
-    comprobar("dos tipos de evento", len(list(TipoEvento)) == 2)
+    comprobar("tres tipos de evento", len(list(TipoEvento)) == 3)
     comprobar("ocho distritos cargados", len(repo.listar_distritos()) == 8)
 
     if fallos:

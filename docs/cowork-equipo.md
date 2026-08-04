@@ -8,15 +8,17 @@
 
 ## 0. Compromiso de tiempo
 
-**13 horas por semana por persona.** Es el número con el que el proyecto cabe en
-las diez semanas sin recortar alcance.
+**16 horas por semana por persona.** Es lo que el proyecto exige para entregar en
+la semana 12 con las cinco asignaturas cubiertas. No es una estimación optimista
+ni un promedio: es el número con el que las cuentas cierran, y no hay holgura.
 
-Suena alto, y lo es menos de lo que parece: la mayor parte del trabajo es código
+Suena alto y lo es menos de lo que parece: la mayor parte del trabajo es código
 que se genera y se verifica, no que se escribe a mano. Pero la verificación no se
-salta — es donde se va el 20% del tiempo y es lo que separa un proyecto que
+salta — es donde se va el 20 % del tiempo y es lo que separa un proyecto que
 funciona de uno que parece funcionar.
 
-Si una semana no podés poner las 13 h, avisá al planificar, no al cerrar.
+Si una semana no vas a poder, se avisa **al planificar el sprint**, no al
+cerrarlo. Una semana perdida no se recupera sola: la paga alguien más.
 
 ---
 

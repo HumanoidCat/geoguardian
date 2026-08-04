@@ -9,4 +9,4 @@ Cada contrato tiene un simulado en contratos/simulados/ que lo respeta, para que
 nadie quede bloqueado esperando codigo ajeno.
 """
 
-VERSION_CONTRATOS = "1.0.0"
+VERSION_CONTRATOS = "1.1.0"

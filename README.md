@@ -1,16 +1,17 @@
 # GeoGuardian
 
-Estimación del riesgo de sequía e incendio forestal por distrito en el cantón de
-Tilarán, Costa Rica, mediante aprendizaje automático sobre datos climáticos y
-satelitales de acceso abierto.
+Estimación del riesgo climático por distrito en el cantón de Tilarán, Costa Rica,
+mediante aprendizaje automático sobre datos climáticos y satelitales de acceso
+abierto. Estima tres eventos: lluvia intensa, sequía e incendio forestal.
 
 Proyecto Integrador · Carrera TICE · Universidad Invenio · III Trimestre 2026
 
 ## Pregunta de investigación
 
 ¿En qué medida permiten los datos climáticos y satelitales de acceso abierto
-estimar el nivel de riesgo de sequía e incendio forestal por distrito en el
-cantón de Tilarán, con un desempeño superior al de una línea base climatológica?
+estimar el nivel de riesgo de lluvia intensa, sequía e incendio forestal por
+distrito en el cantón de Tilarán, con un desempeño superior al de una línea base
+climatológica?
 
 **H1.** Un modelo supervisado entrenado sobre variables derivadas de fuentes
 abiertas alcanza un F1-macro superior al de una línea base construida a partir de
