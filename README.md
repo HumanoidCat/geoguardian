@@ -30,6 +30,8 @@ H1 es refutable por diseño. Rechazarla es un resultado válido.
 
 ## Arranque rápido
 
+**Si es tu primera vez, leé `docs/ARRANQUE.md`**: está paso a paso con los errores ya documentados.
+
 Requisitos: Docker, Docker Compose, Python 3.11, Node 20.
 
     cp .env.example .env
@@ -57,6 +59,26 @@ Requisitos: Docker, Docker Compose, Python 3.11, Node 20.
 | Copernicus Sentinel-2 | Imágenes multiespectrales | Abierto, con cuenta gratuita |
 | SNIT Costa Rica | Capas territoriales oficiales | Servicios OGC públicos |
 
+## Estado del proyecto
+
+| | |
+|---|---|
+| Contratos | v1.1.0, congelados |
+| Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
+| Integración continua | Tres trabajos: contratos, linter y pruebas |
+| Backlog | 82 historias, 417 puntos, repartido en `docs/tareas/` |
+| Tablero | GitHub Projects, agrupado por sprint |
+
 ## Documentación
 
-Ver `docs/`. El flujo de trabajo en Git está en `CONTRIBUTING.md`.
+| Archivo | Para qué |
+|---|---|
+| `docs/ARRANQUE.md` | Instalar todo y dejar el entorno funcionando |
+| `docs/cowork-equipo.md` | Cómo trabajar con Claude, reglas y ritmo de entrega |
+| `docs/tareas/` | Historias asignadas a cada quien |
+| `docs/02-contratos.md` | Interfaces congeladas entre módulos |
+| `docs/03-bitacora-decisiones.md` | Decisiones técnicas con su justificación |
+| `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué aprendimos |
+| `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
+| `docs/06-roadmap.md` | Cronograma y capacidad |
+| `CONTRIBUTING.md` | Flujo de ramas, commits y Definition of Done |

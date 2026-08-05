@@ -48,14 +48,18 @@ que declara.
 
 | h/persona/semana | Capacidad util | Resultado |
 |---|---|---|
-| 13 | 442 h | Deficit de 102 h |
-| 15 | 510 h | Deficit de 34 h |
-| **16** | **544 h** | **Compromiso adquirido. Cabe justo, sin holgura** |
+| 16 | 544 h | Deficit de 72 h |
+| 17 | 578 h | Deficit de 38 h |
+| **18** | **612 h** | **Compromiso adquirido. Cabe justo, sin holgura** |
 
-**Al incorporar lluvia intensa como tercer evento el esfuerzo paso de 506 h a
-544 h.** Antes de subir las horas conviene verificar el riesgo R16: si el canton
-no tiene suficientes focos de calor historicos, se elimina el evento de incendio
-y el esfuerzo baja de golpe. Esa verificacion cuesta un dia.
+**El backlog crecio dos veces.** Primero al incorporar lluvia intensa como tercer
+evento estimado, y despues al recibirse la rubrica de Arquitectura de Software,
+que agrego CI/CD completo, herramienta de resolucion de incidencias, actas de
+ceremonias Scrum y manual de operacion. El esfuerzo paso de 506 h a 616 h.
+
+Antes de dar por definitivo este numero conviene verificar el riesgo R16: si el
+canton no tiene suficientes focos de calor historicos, sale el evento de incendio
+y el esfuerzo baja alrededor de 60 h. Esa verificacion cuesta un dia.
 
 ### Lo que la asistencia de IA NO acelera
 
@@ -72,7 +76,7 @@ Conviene tenerlo presente para no volver a subestimar:
 ### Regla de control
 
 Al planificar cada semana se suman las horas asignadas por persona. Si alguien
-supera 16 h, o si el total supera 64 h, el plan no se aprueba: sale trabajo o se
+supera 18 h, o si el total supera 72 h, el plan no se aprueba: sale trabajo o se
 reasigna. Al cierre de cada sprint se compara la velocidad real contra este
 modelo y se recalibran las tres tasas de h/pt.
 

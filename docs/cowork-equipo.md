@@ -8,7 +8,7 @@
 
 ## 0. Compromiso de tiempo
 
-**16 horas por semana por persona.** Es lo que el proyecto exige para entregar en
+**18 horas por semana por persona.** Es lo que el proyecto exige para entregar en
 la semana 12 con las cinco asignaturas cubiertas. No es una estimación optimista
 ni un promedio: es el número con el que las cuentas cierran, y no hay holgura.
 
@@ -64,10 +64,15 @@ Trabajo en GeoGuardian, una plataforma de estimación de riesgo de sequía e
 incendio forestal por distrito para el cantón de Tilarán. Proyecto Integrador
 TICE, Universidad Invenio.
 
-Soy César. Mi responsabilidad es el backend, el pipeline de datos y la base de
-datos. Mis carpetas son backend/api/, backend/etl/ y basedatos/. No modifico
-ninguna otra carpeta: si algo fuera de ahí necesita cambiar, lo reporto en vez
-de tocarlo.
+Soy César. Mi responsabilidad es el backend, el pipeline de datos, la base de
+datos y parte del modelado. Mis carpetas son backend/api/, backend/etl/ y
+basedatos/. No modifico ninguna otra carpeta: si algo fuera de ahí necesita
+cambiar, lo reporto en vez de tocarlo.
+
+Además de la base de datos me tocan la ingeniería de características (lags,
+acumulados, medias móviles), el entrenamiento de dos de los tres algoritmos y el
+versionado de modelos. Eso va en backend/modelado/ y es la única excepción: para
+esas historias sí trabajo ahí, coordinando con Alejandro.
 
 Stack cerrado: Python 3.11, FastAPI, pandas, GeoPandas, PostgreSQL con PostGIS,
 Docker. No propongas alternativas al stack.
@@ -99,8 +104,13 @@ incendio forestal por distrito para el cantón de Tilarán. Proyecto Integrador
 TICE, Universidad Invenio.
 
 Soy Luna. Mi responsabilidad es la investigación académica, la calidad de los
-datos y las pruebas. Mis carpetas son backend/calidad/, backend/tests/ y
-docs/investigacion/. No modifico ninguna otra carpeta.
+datos, las pruebas y el módulo de señales. Mis carpetas son backend/calidad/,
+backend/tests/, backend/senales/ y docs/investigacion/. No modifico ninguna otra
+carpeta.
+
+El sistema estima TRES eventos: lluvia intensa, sequía e incendio forestal. Los
+umbrales de lluvia salen de los índices R95p y R99p adoptados por la OMM, y los
+de sequía de la clasificación del SPI de McKee. Ninguno lo define el equipo.
 
 El documento IEEE lo redacta Alejandro, que tiene el contexto completo del
 proyecto. Yo le entrego insumos verificados a docs/investigacion/: referencias
@@ -147,6 +157,11 @@ Contexto de mi trabajo: la rúbrica de Computación Gráfica evalúa aplicación
 efectiva de técnicas visuales, calidad de la interfaz, uso apropiado de imágenes
 y recursos visuales, e integración de los componentes gráficos en la solución.
 Lo que construya tiene que poder demostrar alguna de esas cuatro cosas.
+
+El sistema estima TRES eventos, no dos: lluvia intensa, sequía e incendio
+forestal. El visor tiene que poder mostrarlos por separado. Además me toca una
+pantalla de monitoreo de pipelines y el histórico de incidentes, que van dentro
+del mismo visor y no como aplicación aparte.
 
 Mientras la API no esté lista, trabajo contra los simulados que están en
 contratos/simulados/. No espero a nadie.
@@ -229,3 +244,65 @@ revisar, y se nota en el Pull Request.
 
 Cada vez. El proyecto cambia entre semanas; trabajar sobre una versión vieja
 garantiza conflictos al abrir el Pull Request.
+
+---
+
+## 10. Que cambio desde que se creo el repositorio
+
+Si clonaste antes del 4 de agosto, **hace `git pull` en `dev` antes de tocar nada.**
+Estos son los cambios que te afectan:
+
+### Contratos en v1.1.0
+
+`TipoEvento` tiene un valor nuevo: `LLUVIA_INTENSA`. El sistema estima **tres**
+eventos, no dos. Si escribiste codigo asumiendo dos, hay que ajustarlo.
+
+Verifica que estas al dia:
+
+    python -m contratos.verificar
+
+Tiene que decir "tres tipos de evento" y pasar las 14 comprobaciones. Si dice
+"dos", tu copia esta vieja.
+
+### El motor de base de datos es PostgreSQL
+
+Hubo un periodo en que la documentacion decia SQL Server. **Ya no.** Es
+PostgreSQL 16 con PostGIS. Nada de sintaxis T-SQL: los bloques de manejo de error
+van con `EXCEPTION WHEN` y `RAISE` en PL/pgSQL, no con `TRY...CATCH`.
+
+### Once historias nuevas
+
+La rubrica de Arquitectura de Software agrego CI/CD completo, una herramienta de
+resolucion de incidencias, actas de ceremonias Scrum y manual de operacion. Son
+las historias H11.x, H12.x y H13.x. Revisa tu archivo en `docs/tareas/`, puede que
+tengas alguna.
+
+### El compromiso paso a 18 horas por semana
+
+Era 16. El backlog crecio con la rubrica de Arquitectura y las cuentas cambiaron.
+
+### La rama main esta protegida
+
+No se puede hacer push directo. Todo entra por Pull Request desde `dev`, con el
+CI en verde y una aprobacion.
+
+---
+
+## 11. Antes de tu primera historia: lista de comprobacion
+
+    git checkout dev
+    git pull
+    docker compose up -d
+    docker compose ps                       # debe decir healthy
+    python -m contratos.verificar           # 14 de 14, tres tipos de evento
+
+Si algo de eso falla, no empieces: avisa en el canal. Arrancar sobre un entorno
+roto cuesta mas que resolverlo primero.
+
+Despues:
+
+    git checkout -b feature/tus-iniciales-H1.1-descripcion-corta
+
+Y cuando abras el Pull Request, GitHub carga la plantilla sola. Llenala completa,
+sobre todo el bloque de "Como lo verifique": ahi va el comando que corriste y lo
+que devolvio, no un "probe y funciona".

@@ -1,37 +1,33 @@
 # Reparto del backlog
 
-**71 historias · 366 puntos · 544 horas** (incluye 20 % de revision)
+**82 historias · 417 puntos · 616 horas** (incluye 20 % de revision)
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total h | Puntos | h/semana |
 |---|---|---|---|---|---|---|---|---|
-| Alejandro | 10.7 | 37.7 | 44.0 | 48.0 | 52.8 | 193 | 117 | 19.3 |
-| Cesar | 18.3 | 25.1 | 24.8 | 29.8 | 15.5 | 114 | 93 | 11.3 |
-| Luna | 25.9 | 34.3 | 31.0 | 25.1 | 32.0 | 148 | 85 | 14.8 |
-| Avril | 2.9 | 11.5 | 26.0 | 25.0 | 24.1 | 90 | 71 | 8.9 |
-| **Equipo** | **58** | **109** | **126** | **128** | **124** | **544** | **366** | |
+| Alejandro | 35.9 | 47.8 | 47.0 | 45.1 | 65.4 | 241 | 147 | 24.1 |
+| Cesar | 18.3 | 28.0 | 31.5 | 37.6 | 18.4 | 134 | 111 | 13.4 |
+| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 | 14.3 |
+| Avril | 2.9 | 11.5 | 26.0 | 25.0 | 31.8 | 97 | 79 | 9.7 |
+| **Equipo** | **83** | **122** | **136** | **128** | **148** | **616** | **417** | |
 
-> El Lead PM asume la documentacion completa y el nucleo de modelado, por eso
-> concentra un tercio del esfuerzo. Es una decision, no un desbalance accidental.
+> El Lead PM asume el pipeline de CI/CD completo, el nucleo de modelado y toda
+> la documentacion. Concentra el 39 % del esfuerzo por decision propia.
 
-## Compromiso de tiempo: 16 horas por persona por semana
+## Compromiso de tiempo: 18 horas por persona por semana
 
-Al incorporar lluvia intensa como tercer evento, el esfuerzo paso de 506 h a
-544 h. Con 85 por ciento de utilizacion realista, **el proyecto exige 16 horas
-por persona por semana**. Es el numero con el que se entrega en la semana 12 sin
-recortar alcance ni bajar la calidad de los entregables.
+La rubrica de Arquitectura de Software incorporo CI/CD completo, una herramienta
+de resolucion de incidencias, evidencia de ceremonias Scrum y manual de operacion:
+51 puntos y 72 horas mas. El esfuerzo paso de 544 h a 616 h.
 
-    4 personas x 16 h x 10 semanas = 640 h
-    Utilizacion realista al 85 %    = 544 h
-    Esfuerzo requerido              = 544 h
+    4 personas x 18 h x 10 semanas = 720 h
+    Utilizacion realista al 85 %   = 612 h
+    Esfuerzo requerido             = 616 h
 
-No hay holgura. Eso significa que una semana perdida no se recupera sola: se
-recupera trabajando de mas o recortando alcance, y el alcance ya esta comprometido
-con cinco asignaturas.
+No hay holgura. Una semana perdida no se recupera sola.
 
-**Verificacion pendiente que puede cambiar este numero.** El riesgo R16 dice que
-el canton podria no tener suficientes focos de calor historicos para entrenar el
-modelo de incendio. Si se confirma, ese evento sale y el esfuerzo baja alrededor
-de 60 h. La verificacion cuesta un dia y va antes que cualquier otra tarea.
+**Verificacion pendiente que puede bajar este numero.** El riesgo R16: si el canton
+no tiene suficientes focos de calor historicos, sale el evento de incendio y el
+esfuerzo baja alrededor de 60 h. Cuesta un dia y va antes que cualquier otra tarea.
 
 ## El crunch final es estructural
 

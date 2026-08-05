@@ -7,21 +7,19 @@
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
 
-> **Compromiso de tiempo: 16 horas por semana.** Es lo que el proyecto exige para
-> entregar en la semana 12 sin recortar alcance. Si una semana no se puede, se avisa
-> al planificar el sprint, no al cerrarlo.
+> **Compromiso de tiempo: 18 horas por semana.**
 
-**Total asignado:** 71 puntos · 90 horas · 9.0 h por semana en promedio
+**Total asignado:** 79 puntos · 97 horas · 9.7 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 2.9 | 32 | holgado |
-| S1 | semanas 4-5 | 11.5 | 32 | holgado |
-| S2 | semanas 6-7 | 26.0 | 32 | ajustado |
-| S3 | semanas 8-9 | 25.0 | 32 | holgado |
-| S4 | semanas 10-11 | 24.1 | 32 | holgado |
+| S0 | semanas 2-3 | 2.9 | 38 | holgado |
+| S1 | semanas 4-5 | 11.5 | 38 | holgado |
+| S2 | semanas 6-7 | 26.0 | 38 | holgado |
+| S3 | semanas 8-9 | 25.0 | 38 | holgado |
+| S4 | semanas 10-11 | 31.8 | 38 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
@@ -57,12 +55,16 @@
 - [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.3 · **bloquea a: H10.7**
 
-## Sprint 4 (semanas 10-11) — 24.1 h
+## Sprint 4 (semanas 10-11) — 31.8 h
 
 - [ ] **H10.6** · Cartel academico IEEE legible a 1.5 m
   - `E10` · 8 pts · 7.7 h · rubrica: IEEE · depende de: H10.5c
 - [ ] **H10.9** · Guion de demo y tres ensayos completos
   - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3
+- [ ] **H12.2** · Pantalla de monitoreo de pipelines y entornos dentro del visor
+  - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H12.1
+- [ ] **H12.5** · Historico de incidentes consultable desde la aplicacion
+  - `E12` · 3 pts · 2.9 h · rubrica: Troubleshoot · depende de: H12.4
 - [ ] **H7.3** · Historial de eventos filtrable y exportable
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
 - [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica

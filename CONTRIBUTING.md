@@ -53,9 +53,12 @@ Un archivo, un dueno. Nadie modifica la carpeta de otra persona.
 | Carpeta | Dueno |
 |---|---|
 | backend/api, backend/etl, basedatos | Cesar |
-| backend/senales, backend/modelado, infra, docs | Alejandro |
+| backend/senales, backend/modelado, infra, docs, .github/workflows | Alejandro |
 | backend/calidad, backend/tests, docs/investigacion | Luna |
 | frontend | Avril |
+
+Excepcion acordada: Cesar trabaja en backend/modelado para las historias H2.5,
+H2.6 y H3.7, coordinando con Alejandro.
 
 Archivos compartidos: `contratos/`, `docker-compose.yml`, `.env.example`,
 `requirements.txt`, `package.json`. Se tocan solo por solicitud de cambio
