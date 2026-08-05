@@ -13,6 +13,7 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | backend/senales | Alejandro | Filtrado, remuestreo, espectro, SPI, anomalias |
 | backend/modelado | Alejandro | Etiquetado, linea base, entrenamiento, evaluacion, SHAP |
 | infra | Alejandro | Docker, manifiestos de Kubernetes |
+| .github/workflows | Alejandro | Pipelines de integracion y despliegue continuo |
 | docs/adr | Alejandro | Registros de decisiones de arquitectura |
 | backend/calidad | Luna | Reporte de calidad de datos, perfilado |
 | backend/tests | Luna | Suite de pruebas |

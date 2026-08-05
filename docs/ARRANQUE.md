@@ -166,7 +166,9 @@ Comprobá que todo está en su lugar:
 python -m contratos.verificar
 ```
 
-Tienen que pasar las 14 verificaciones. Si alguna falla, avisá: significa que un contrato se rompió y hay más gente afectada.
+Tienen que pasar las 14 verificaciones y una de ellas debe decir **"tres tipos de evento"**. Si dice "dos", tu copia del repositorio está vieja: hacé `git pull` en `dev`.
+
+Si alguna falla, avisá: significa que un contrato se rompió y hay más gente afectada.
 
 ## 8. Empezar a trabajar
 
@@ -199,6 +201,8 @@ Trabajás, verificás ejecutando, y abrís el Pull Request hacia `dev`.
 3. **Verificá ejecutando.** Si Claude dice que las pruebas pasan, corrélas vos.
 4. **Trabajá contra los simulados** de `contratos/simulados/`. No esperes el código de nadie.
 5. **Lo hecho no se borra.** Marcás `[x]` con la fecha y se queda ahí. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
+
+**El compromiso es de 18 horas por semana**, y los Pull Requests tienen que estar **abiertos el domingo** para que el PM los revise ese día.
 
 ---
 
