@@ -146,8 +146,6 @@ docker compose exec db psql -U geoguardian -d geoguardian -c "\dn"
 
 El segundo tiene que listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 
-> El motor es **PostgreSQL con PostGIS**. Si en algún documento viejo leés SQL Server o sintaxis `TRY...CATCH`, está desactualizado: el manejo de errores va con `EXCEPTION WHEN` y `RAISE` en PL/pgSQL.
-
 ## 7. Preparar Python
 
 ```powershell

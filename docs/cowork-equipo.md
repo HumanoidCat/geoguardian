@@ -264,12 +264,6 @@ Verifica que estas al dia:
 Tiene que decir "tres tipos de evento" y pasar las 14 comprobaciones. Si dice
 "dos", tu copia esta vieja.
 
-### El motor de base de datos es PostgreSQL
-
-Hubo un periodo en que la documentacion decia SQL Server. **Ya no.** Es
-PostgreSQL 16 con PostGIS. Nada de sintaxis T-SQL: los bloques de manejo de error
-van con `EXCEPTION WHEN` y `RAISE` en PL/pgSQL, no con `TRY...CATCH`.
-
 ### Once historias nuevas
 
 La rubrica de Arquitectura de Software agrego CI/CD completo, una herramienta de
