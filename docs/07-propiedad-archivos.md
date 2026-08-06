@@ -21,6 +21,19 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | docs (resto) | Alejandro | Documento IEEE, bitacoras, matrices, roadmap, manuales |
 | frontend | Avril | Visor, tablero, componentes, estilos |
 
+## Excepcion: docs/evidencias/
+
+`docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**
+para todo el equipo. Cada integrante sube la evidencia de sus propias historias
+sin pedir autorizacion.
+
+La razon es practica: son 82 historias, cada una con su evidencia. Exigir una
+solicitud de cambio por cada una convertiria al Lead PM en cuello de botella de
+algo que no aporta ningun control real.
+
+Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
+`docs/evidencias/`, o modificar la evidencia de otra persona.
+
 ## Archivos compartidos
 
 Se tocan solo por solicitud de cambio aprobada por Alejandro y por el dueno del

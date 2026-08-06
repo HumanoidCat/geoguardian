@@ -194,13 +194,14 @@ Trabajás, verificás ejecutando, y abrís el Pull Request hacia `dev`.
 
 ---
 
-## Las cinco reglas
+## Las seis reglas
 
 1. **Solo tocás tu carpeta.** Si necesitás un cambio fuera de ella, se pide, no se hace.
 2. **Nunca inventes datos.** Si un valor no existe todavía, va vacío o nulo con un comentario de qué depende. Una pantalla vacía y honesta es mejor que una llena de mentiras.
 3. **Verificá ejecutando.** Si Claude dice que las pruebas pasan, corrélas vos.
 4. **Trabajá contra los simulados** de `contratos/simulados/`. No esperes el código de nadie.
-5. **Lo hecho no se borra.** Marcás `[x]` con la fecha y se queda ahí. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
+5. **La evidencia va en `docs/evidencias/`, sin pedir permiso.** Cada historia terminada deja la suya el mismo día. La carpeta se elige por la rúbrica de la historia; el mapa está en `docs/evidencias/README.md`.
+6. **Lo hecho no se borra.** Marcás `[x]` con la fecha y se queda ahí. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
 
 **El compromiso es de 18 horas por semana**, y los Pull Requests tienen que estar **abiertos el domingo** para que el PM los revise ese día.
 
