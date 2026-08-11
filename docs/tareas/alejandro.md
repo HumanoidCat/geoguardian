@@ -31,13 +31,13 @@
 
 ## Sprint 0 (semanas 2-3) — 35.9 h
 
-- [ ] **H10.8** · Carpeta de evidencias organizada por materia con indice
+- [x] **H10.8** · Carpeta de evidencias organizada por materia con indice (2026-08-11)
   - `E10` · 5 pts · 4.8 h · rubrica: SO-4
-- [ ] **H6.4** · Seis o mas registros ADR escritos
+- [x] **H6.4** · Seis o mas registros ADR escritos (2026-08-11)
   - `E6` · 3 pts · 7.9 h · rubrica: Arq
 - [x] **H8.1** · docker compose up levanta todo en maquina limpia (2026-08-03)
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · **bloquea a: H10.4, H11.1, H8.6**
-- [ ] **H8.5** · Credenciales por variables de entorno, fuera del repositorio
+- [x] **H8.5** · Credenciales por variables de entorno, fuera del repositorio (2026-08-11)
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1
 - [ ] **H8.6** · Manifiestos de Kubernetes corriendo en k3d local
   - `E8` · 8 pts · 12.5 h · rubrica: Arq · depende de: H8.1
