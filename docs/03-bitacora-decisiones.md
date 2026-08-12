@@ -24,6 +24,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-10 | F1-macro como metrica principal de contraste | Aceptada | 2026-08-03 |
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
+| D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 
 ---
 
@@ -621,6 +622,87 @@ documento IEEE debe decirlo asi, sin adornarlo.
 ### Medicion
 
 Pendiente hasta H9.2.
+
+---
+
+## D-13 · El SNIT es la fuente unica del vocabulario territorial
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-11
+**Decide.** Alejandro, a partir del hallazgo de Cesar en H1.3
+
+### Contexto
+
+Ningun documento del repositorio decia de donde salen las geometrias distritales
+ni los codigos de distrito. Lo unico escrito era un comentario suelto en
+`contratos/simulados/datos.py` que mencionaba el SNIT sin enlace, sin capa y sin
+formato.
+
+La consecuencia aparecio de inmediato: los codigos de los simulados eran
+50501-50508, del canton de Carrillo, en lugar de los oficiales 50801-50808 de
+Tilaran. Nadie tenia contra que contrastarlos. Ver incidencia **I-04**.
+
+El codigo de distrito no es un identificador interno: es la clave que une las
+mediciones climaticas, los focos de calor, las geometrias del visor y las
+estimaciones de riesgo. Si esa clave esta mal, no falla una consulta: falla la
+union de todo el sistema, y falla en silencio.
+
+### Decision
+
+El **Sistema Nacional de Informacion Territorial** es la fuente unica del
+vocabulario territorial del proyecto.
+
+| Elemento | Valor |
+|---|---|
+| Servicio | `https://geos.snitcr.go.cr/be/IGN_5_CO/wfs` |
+| Capa | `IGN_5_CO:limitedistrital_5k` |
+| Entidades en la capa | 492 distritos de todo el pais |
+| Ambito del proyecto | Los 8 con codigo `508xx` |
+| Sistema de referencia | EPSG:4326, como exige `Distrito.geometria` |
+
+Codigos oficiales, congelados como vocabulario cerrado:
+
+    50801 Tilaran            50805 Libano
+    50802 Quebrada Grande    50806 Tierras Morenas
+    50803 Tronadora          50807 Arenal
+    50804 Santa Rosa         50808 Cabeceras
+
+El codigo se compone de provincia, canton y distrito: **5** es Guanacaste, **08**
+es Tilaran. Ningun codigo del proyecto se escribe de memoria: se toma de la capa.
+
+### Justificacion
+
+Es el organismo oficial de informacion territorial del pais, publica por
+servicios OGC estandar, y es la misma fuente que usaria la Municipalidad. Eso
+hace que el resultado sea contrastable por un tercero, que es justamente lo que
+pide la validacion externa (D-12).
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Escribir los codigos a mano | Es lo que ya fallo. Produjo I-04 |
+| Descargar un shapefile suelto de internet | Sin trazabilidad ni version. No se puede citar en el documento IEEE |
+| Usar los limites de OpenStreetMap | No son la division administrativa oficial y pueden diferir de lo que reconoce la Municipalidad |
+
+### Consecuencias
+
+Se gana una clave territorial verificable contra una fuente citable, y un lugar
+unico donde mirar cuando haya duda. Se pierde independencia: si el servicio del
+SNIT esta caido, H1.3 no avanza. Como mitigacion, las geometrias se cargan una
+sola vez a la tabla `geo.distritos` y de ahi en adelante el proyecto no vuelve a
+depender del servicio.
+
+Consecuencia de proceso: **H1.1 depende de H1.3**, y el backlog lo tenia como sin
+dependencias. `ExtractorClima` recibe un `codigo_distrito`, pero NASA POWER
+consulta por coordenada geografica, y esa traduccion necesita las geometrias
+oficiales. Queda corregido en `docs/tareas/cesar.md` y en el roadmap.
+
+### Medicion
+
+La capa expone 492 entidades, verificado por Cesar mediante GetCapabilities. La
+evidencia de H1.3 debe registrar cuantas se cargaron y con que filtro se
+redujeron a los ocho distritos de Tilaran.
 
 ---
 

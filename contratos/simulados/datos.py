@@ -24,16 +24,22 @@ log = logging.getLogger(__name__)
 SEMILLA = 20260803
 
 # Los ocho distritos de Tilaran con geometrias de marcador de posicion.
-# Las geometrias reales se cargan del SNIT en la historia H1.3.
+#
+# Los codigos son los oficiales del SNIT: 5 = Guanacaste, 08 = Tilaran, y los dos
+# ultimos digitos el distrito. NO son 505xx: ese es el canton de Carrillo. El
+# error estuvo en los contratos hasta la version 1.2.0. Ver incidencia I-04.
+#
+# Las geometrias reales se cargan de la capa IGN_5_CO:limitedistrital_5k del SNIT
+# en la historia H1.3. Ver D-13.
 _DISTRITOS = [
-    ("50501", "Tilaran", 60.0),
-    ("50502", "Quebrada Grande", 88.4),
-    ("50503", "Tronadora", 30.2),
-    ("50504", "Santa Rosa", 33.6),
-    ("50505", "Libano", 76.9),
-    ("50506", "Tierras Morenas", 76.4),
-    ("50507", "Arenal", 156.5),
-    ("50508", "Cabeceras", 116.3),
+    ("50801", "Tilaran", 60.0),
+    ("50802", "Quebrada Grande", 88.4),
+    ("50803", "Tronadora", 30.2),
+    ("50804", "Santa Rosa", 33.6),
+    ("50805", "Libano", 76.9),
+    ("50806", "Tierras Morenas", 76.4),
+    ("50807", "Arenal", 156.5),
+    ("50808", "Cabeceras", 116.3),
 ]
 
 
@@ -164,7 +170,7 @@ class RepositorioSimulado:
     def listar_eventos(self, tipo_evento: TipoEvento | None = None) -> list[EventoHistorico]:
         base = [
             EventoHistorico(
-                codigo_distrito="50501",
+                codigo_distrito="50801",
                 tipo_evento=TipoEvento.LLUVIA_INTENSA,
                 fecha_inicio=date(2021, 7, 20),
                 fecha_fin=date(2021, 7, 23),
@@ -173,7 +179,7 @@ class RepositorioSimulado:
                 descripcion=None,
             ),
             EventoHistorico(
-                codigo_distrito="50506",
+                codigo_distrito="50806",
                 tipo_evento=TipoEvento.SEQUIA,
                 fecha_inicio=date(2019, 2, 1),
                 fecha_fin=date(2019, 5, 15),
@@ -182,7 +188,7 @@ class RepositorioSimulado:
                 descripcion=None,
             ),
             EventoHistorico(
-                codigo_distrito="50507",
+                codigo_distrito="50807",
                 tipo_evento=TipoEvento.INCENDIO,
                 fecha_inicio=date(2020, 3, 10),
                 fecha_fin=date(2020, 3, 14),
@@ -257,7 +263,7 @@ def salud_simulada() -> Salud:
     """Estado que la API expone mientras corre con simulados."""
     return Salud(
         version_api="0.1.0",
-        version_contratos="1.1.0",
+        version_contratos="1.2.0",
         modo=ModoOperacion.SIMULADO,
         base_datos_conectada=False,
         ultima_ingesta=None,

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: geoguardian-pruebas
+  labels:
+    app.kubernetes.io/part-of: geoguardian
+    entorno: pruebas

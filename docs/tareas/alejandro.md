@@ -39,7 +39,7 @@
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · **bloquea a: H10.4, H11.1, H8.6**
 - [x] **H8.5** · Credenciales por variables de entorno, fuera del repositorio (2026-08-11)
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1
-- [ ] **H8.6** · Manifiestos de Kubernetes corriendo en k3d local
+- [x] **H8.6** · Manifiestos de Kubernetes corriendo en k3d local (2026-08-11)
   - `E8` · 8 pts · 12.5 h · rubrica: Arq · depende de: H8.1
 
 ## Sprint 1 (semanas 4-5) — 47.8 h
