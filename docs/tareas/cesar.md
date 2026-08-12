@@ -15,29 +15,22 @@
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 18.3 | 38 | holgado |
-| S1 | semanas 4-5 | 30.9 | 38 | ajustado |
-| S2 | semanas 6-7 | 31.5 | 38 | ajustado |
-| S3 | semanas 8-9 | 39.2 | 38 | SOBRECARGA +1 h |
-| S4 | semanas 10-11 | 34.0 | 38 | ajustado |
+| S0 | semanas 2-3 | 18.3 | 36 | holgado |
+| S1 | semanas 4-5 | 30.9 | 36 | ajustado |
+| S2 | semanas 6-7 | 31.5 | 36 | ajustado |
+| S3 | semanas 8-9 | 39.2 | 36 | SOBRECARGA +3 h |
+| S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
-
-> **Orden corregido el 2026-08-11.** H1.3 va primero: `ExtractorClima` recibe un
-> `codigo_distrito`, pero NASA POWER consulta por coordenada geografica, y esa
-> traduccion necesita las geometrias oficiales que carga H1.3. Detectado por
-> Cesar. Ver D-13.
-
-- [ ] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado
-  - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.2, H1.11, H1.8**
-  - Fuente: capa `IGN_5_CO:limitedistrital_5k` del SNIT. Codigos oficiales 50801 a 50808
 
 - [ ] **H1.1** · Descargar 10 anios de series climaticas diarias, reejecutable e idempotente
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.4, H1.5, H8.2**
 
 - [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
-  - **Prioritaria: verifica el riesgo R16.** Contar cuantos focos historicos tiene el canton entre 2001 y 2025
+
+- [ ] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado
+  - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.11, H1.2, H1.8**
 
 
 ## Sprint 1 (semanas 4-5) — 30.9 h

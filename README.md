@@ -32,7 +32,10 @@ H1 es refutable por diseño. Rechazarla es un resultado válido.
 
 **Si es tu primera vez, leé `docs/ARRANQUE.md`**: está paso a paso con los errores ya documentados.
 
-Requisitos: Docker, Docker Compose, Python 3.11, Node 20.
+Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
+
+> Python 3.11 no es una sugerencia: con 3.14 el `requirements.txt` no instala,
+> porque `scipy` intenta compilarse desde fuente y falla.
 
     cp .env.example .env
     docker compose up -d
@@ -63,10 +66,11 @@ Requisitos: Docker, Docker Compose, Python 3.11, Node 20.
 
 | | |
 |---|---|
-| Contratos | v1.1.0, congelados |
+| Contratos | v1.2.0, congelados. 17 verificaciones en `python -m contratos.verificar` |
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
-| Integración continua | Tres trabajos: contratos, linter y pruebas |
-| Backlog | 82 historias, 417 puntos, repartido en `docs/tareas/` |
+| Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
+| Integración continua | Cinco trabajos: contratos, backlog y documentación, linter, pruebas y frontend |
+| Backlog | 83 historias, 417 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
 
 ## Documentación

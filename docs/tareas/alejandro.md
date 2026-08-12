@@ -15,18 +15,27 @@
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 35.9 | 38 | ajustado |
-| S1 | semanas 4-5 | 22.8 | 38 | holgado |
-| S2 | semanas 6-7 | 54.7 | 38 | SOBRECARGA +17 h |
-| S3 | semanas 8-9 | 35.7 | 38 | ajustado |
-| S4 | semanas 10-11 | 52.8 | 38 | SOBRECARGA +15 h |
+| S0 | semanas 2-3 | 35.9 | 36 | ajustado |
+| S1 | semanas 4-5 | 22.8 | 36 | holgado |
+| S2 | semanas 6-7 | 54.7 | 36 | SOBRECARGA +19 h |
+| S3 | semanas 8-9 | 35.7 | 36 | ajustado |
+| S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
-> **Sobre los picos.** El pipeline completo de CI/CD, el modelado, la documentacion
-> y la evaluacion se concentran aqui por decision propia. S4 llega a 33 h por semana
-> porque el paper, la explicabilidad y el despliegue a produccion dependen de trabajo
-> previo y no se pueden adelantar. Avril esta en 9.7 h por semana: si en algun punto
-> hace falta descargar, el manual de usuario y el guion de demo son lo primero que
-> puede pasar a ella.
+> **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
+> evaluacion se concentran aqui por decision propia. La auditoria de dependencias
+> del 11 de agosto ya descargo 17.4 h a Avril (manual de usuario, diagramas y
+> manual de operacion) y 17.2 h a Cesar (XGBoost y alertas), y aun asi quedan
+> 202 h contra 180 de capacidad.
+>
+> Las dos concentraciones que quedan son estructurales, no de reparto: el Sprint
+> 2 junta la cadena de despliegue continuo con el arranque del modelado, y las
+> dos preceden al primer avance de la semana 7; el Sprint 4 junta el documento
+> IEEE con el analisis de fallos, y ninguno se puede adelantar porque dependen de
+> tener resultados.
+>
+> **Palanca disponible si el Sprint 4 se vuelve inviable:** H4.4 son 26.4 h en
+> una sola historia, la mas grande del backlog. Se puede partir dejando el
+> contraste contra el catalogo a Luna, que lo construye en H4.3.
 
 
 ## Sprint 0 (semanas 2-3) — 35.9 h

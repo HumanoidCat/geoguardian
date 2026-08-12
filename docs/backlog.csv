@@ -63,14 +63,14 @@ H1.6,"H1.6 Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
 
 Rubrica o objetivo: CG-3
 Depende de: -
-Sprint: S2 (semanas 6-7)
+Sprint: S1 (semanas 4-5)
 
 Definition of Done:
 - [ ] Criterios de aceptacion verificados por otra persona
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,CG-3,avril",S2,avril,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,CG-3,avril",S1,avril,5,7.8
 H1.7,H1.7 Versionar el dataset consolidado para reproducibilidad,"Epica E1 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: OE1

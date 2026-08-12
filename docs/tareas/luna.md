@@ -15,11 +15,11 @@
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 25.9 | 38 | holgado |
-| S1 | semanas 4-5 | 34.3 | 38 | ajustado |
-| S2 | semanas 6-7 | 31.0 | 38 | ajustado |
-| S3 | semanas 8-9 | 20.3 | 38 | holgado |
-| S4 | semanas 10-11 | 32.0 | 38 | ajustado |
+| S0 | semanas 2-3 | 25.9 | 36 | holgado |
+| S1 | semanas 4-5 | 34.3 | 36 | ajustado |
+| S2 | semanas 6-7 | 31.0 | 36 | ajustado |
+| S3 | semanas 8-9 | 20.3 | 36 | holgado |
+| S4 | semanas 10-11 | 32.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 25.9 h
 

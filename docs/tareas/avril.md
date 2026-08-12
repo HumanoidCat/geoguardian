@@ -15,11 +15,11 @@
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 2.9 | 38 | holgado |
-| S1 | semanas 4-5 | 11.5 | 38 | holgado |
-| S2 | semanas 6-7 | 38.6 | 38 | SOBRECARGA +1 h |
-| S3 | semanas 8-9 | 25.0 | 38 | holgado |
-| S4 | semanas 10-11 | 36.6 | 38 | ajustado |
+| S0 | semanas 2-3 | 2.9 | 36 | holgado |
+| S1 | semanas 4-5 | 19.3 | 36 | holgado |
+| S2 | semanas 6-7 | 30.8 | 36 | ajustado |
+| S3 | semanas 8-9 | 25.0 | 36 | holgado |
+| S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
@@ -27,7 +27,10 @@
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: contratos · **bloquea a: H5.2, H5.3, H5.6**
 
 
-## Sprint 1 (semanas 4-5) — 11.5 h
+## Sprint 1 (semanas 4-5) — 19.3 h
+
+- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
 
 - [ ] **H5.2** · Cuatro o mas capas conmutables con control de opacidad
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
@@ -36,10 +39,7 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 38.6 h
-
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
-  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+## Sprint 2 (semanas 6-7) — 30.8 h
 
 - [ ] **H10.3** · Manual de usuario con capturas paso a paso
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
