@@ -21,6 +21,25 @@ jobs:
       - name: Verificar que los simulados cumplen los contratos
         run: python -m contratos.verificar
 
+  gestion:
+    name: Backlog y documentacion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Estos tres verificadores existen por errores que ya ocurrieron:
+      #   backlog  -> tres dependencias apuntaban a sprints posteriores (semana 4)
+      #   adr      -> la rubrica exige seis registros y hay que probar que estan
+      #   evidencias -> 30 de 82 historias no tenian carpeta destino
+      - name: El backlog es consistente
+        run: python docs/herramientas/verificar_backlog.py
+      - name: Los registros ADR estan completos
+        run: python docs/herramientas/verificar_adr.py
+      - name: Toda historia tiene carpeta de evidencia
+        run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+
   calidad:
     name: Linter y formato
     runs-on: ubuntu-latest
