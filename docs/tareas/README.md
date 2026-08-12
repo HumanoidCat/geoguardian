@@ -1,55 +1,60 @@
 # Reparto del backlog
 
-**82 historias · 417 puntos · 616 horas** (incluye 20 % de revision)
+**83 historias · 417 puntos · 614 horas** (incluye 20 % de revision)
+
+> El detalle completo, con dependencias de cada historia, esta en
+> [`docs/08-backlog.md`](../08-backlog.md). Este archivo es solo el resumen.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total h | Puntos | h/semana |
 |---|---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 47.8 | 47.0 | 45.1 | 65.4 | 241 | 147 | 24.1 |
-| Cesar | 18.3 | 28.0 | 31.5 | 37.6 | 18.4 | 134 | 111 | 13.4 |
+| Alejandro | 35.9 | 22.8 | 54.7 | 35.7 | 52.8 | 202 | 118 | 20.2 |
+| Cesar | 18.3 | 30.9 | 31.5 | 39.2 | 34.0 | 154 | 125 | 15.4 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 | 14.3 |
-| Avril | 2.9 | 11.5 | 26.0 | 25.0 | 31.8 | 97 | 79 | 9.7 |
-| **Equipo** | **83** | **122** | **136** | **128** | **148** | **616** | **417** | |
-
-> El Lead PM asume el pipeline de CI/CD completo, el nucleo de modelado y toda
-> la documentacion. Concentra el 39 % del esfuerzo por decision propia.
+| Avril | 2.9 | 11.5 | 38.6 | 25.0 | 36.6 | 115 | 94 | 11.5 |
+| **Equipo** | **83** | **100** | **156** | **120** | **155** | **614** | **417** | |
 
 ## Compromiso de tiempo: 18 horas por persona por semana
 
-La rubrica de Arquitectura de Software incorporo CI/CD completo, una herramienta
-de resolucion de incidencias, evidencia de ceremonias Scrum y manual de operacion:
-51 puntos y 72 horas mas. El esfuerzo paso de 544 h a 616 h.
-
     4 personas x 18 h x 10 semanas = 720 h
     Utilizacion realista al 85 %   = 612 h
-    Esfuerzo requerido             = 616 h
+    Esfuerzo requerido             = 614 h
 
 No hay holgura. Una semana perdida no se recupera sola.
 
-**Verificacion pendiente que puede bajar este numero.** El riesgo R16: si el canton
-no tiene suficientes focos de calor historicos, sale el evento de incendio y el
-esfuerzo baja alrededor de 60 h. Cuesta un dia y va antes que cualquier otra tarea.
+## Reparto revisado el 2026-08-11
 
-## El crunch final es estructural
+La auditoria de dependencias encontro tres historias que dependian de trabajo
+programado para sprints posteriores, y una cadena de seis historias de despliegue
+colgando de un Dockerfile que nadie tenia asignado. Al corregirlo, el trabajo se
+redistribuyo:
 
-Los sprints 3 y 4 estan por encima de la capacidad nominal y los sprints 0 y 1
-por debajo. No es un error de calculo: es la forma que imponen las dependencias.
+- **H6.0**, el Dockerfile, es historia nueva y va a Cesar en el Sprint 1.
+- **H10.3**, **H10.7** y **H13.2** pasan a Avril: manual de usuario, diagramas de
+  casos de uso y entidad-relacion, y manual de operacion.
+- **H3.5** (XGBoost) y **H12.3** (alertas) pasan a Cesar, que ya entrena los otros
+  dos algoritmos y ya centraliza los logs.
+- **H3.0** y **H10.7** se mueven al Sprint 2, que es donde por fin se pueden hacer.
 
-- El documento IEEE no se escribe antes de que existan resultados.
-- La sesion con el Comite Municipal de Emergencias necesita algo que mostrar.
-- Los manuales describen un producto que todavia no esta terminado.
-- SHAP y el contraste con eventos reales dependen de los modelos entrenados.
+El detalle esta en `gestion/auditoria-dependencias-backlog.md`.
 
-**Mitigaciones:**
+## Lo que sigue sin cuadrar, y hay que decirlo
 
-1. Adelantar todo lo adelantable en S0 y S1, que estan flojos: referencias,
-   estado del arte, catalogo de eventos, plantillas de manuales, guion de demo.
-2. Escribir el paper de forma incremental desde la semana 3.
-3. Escribir al CME en la semana 6 para agendar la sesion de la semana 10.
-4. Congelar funcionalidades al inicio de la semana 11.
+Alejandro queda en 202 h contra una capacidad de 180, con el Sprint 2 en 54.7 h y
+el Sprint 4 en 52.8 h. La descarga no alcanzo a cerrarlo del todo.
 
-**Riesgo declarado:** si S0 y S1 se desaprovechan, el crunch de S3 y S4 se vuelve
-inviable. El margen de las primeras semanas no es tiempo libre: es el colchon de
-las ultimas.
+Las dos concentraciones que quedan son estructurales, no de reparto:
+
+- **Sprint 2** junta toda la cadena de despliegue continuo con el arranque del
+  modelado, y las dos preceden al primer avance de la semana 7.
+- **Sprint 4** junta el documento IEEE, el contraste contra el catalogo y el
+  analisis de fallos. Ninguna de las tres se puede adelantar: dependen de tener
+  resultados.
+
+**Palanca disponible si el Sprint 4 se vuelve inviable:** H4.4 son 26.4 h en una
+sola historia, la mas grande del backlog. Se puede partir en dos, dejando el
+contraste contra el catalogo a Luna, que es quien lo construye en H4.3, y el
+analisis de fallos al Lead PM. No se hizo todavia porque cambia la carga de
+alguien que ya esta trabajando.
 
 ## Archivos por persona
 
