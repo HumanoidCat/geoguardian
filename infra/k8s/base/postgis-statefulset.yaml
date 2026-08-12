@@ -1,0 +1,114 @@
+# PostGIS como StatefulSet.
+#
+# Es un StatefulSet y no un Deployment porque la base tiene estado: necesita
+# identidad estable y un volumen que sobreviva al reinicio del pod. Un
+# Deployment con PVC compartido rompe si alguna vez hay mas de una replica.
+#
+# Las credenciales NO estan aqui. Se leen de un Secret llamado
+# `geoguardian-db`, que se crea fuera del repositorio. Ver infra/k8s/README.md.
+# Un Secret de Kubernetes esta codificado en base64, no cifrado: si se versiona
+# con el valor adentro, el secreto queda en el repositorio igual que en texto
+# plano. Ver D-07 y la evidencia de H8.5.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgis
+  labels:
+    app.kubernetes.io/name: postgis
+    app.kubernetes.io/component: base-de-datos
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  serviceName: postgis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgis
+        app.kubernetes.io/component: base-de-datos
+        app.kubernetes.io/part-of: geoguardian
+    spec:
+      securityContext:
+        fsGroup: 999          # grupo postgres de la imagen oficial
+      containers:
+        - name: postgis
+          image: postgis/postgis:16-3.4
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: geoguardian
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: geoguardian-db
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: geoguardian-db
+                  key: POSTGRES_PASSWORD
+            # Mismo arreglo que en docker-compose.yml: la configuracion regional
+            # es-ES.UTF-8 no viene generada en la imagen e initdb falla dejando
+            # el contenedor en bucle de reinicio. Ver incidencia I-02.
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF8 --locale-provider=icu --icu-locale=es-CR"
+            # El PVC se monta en /var/lib/postgresql/data y en algunos
+            # aprovisionadores llega con contenido (lost+found), lo que hace
+            # fallar a initdb por directorio no vacio. Se usa un subdirectorio.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+            - name: memoria-compartida
+              mountPath: /dev/shm
+          # readiness decide si el Service manda trafico; liveness reinicia.
+          # El umbral de fallos de liveness es alto a proposito: la primera
+          # arrancada corre initdb y tarda.
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d geoguardian"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d geoguardian"]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              memory: "1Gi"
+      volumes:
+        - name: init
+          configMap:
+            name: postgis-init
+        # Equivalente al shm_size: 256mb del docker-compose. Sin esto, PostgreSQL
+        # queda con los 64 MB por defecto de /dev/shm y falla en consultas con
+        # ordenamientos o uniones grandes.
+        - name: memoria-compartida
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: datos
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

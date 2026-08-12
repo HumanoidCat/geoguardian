@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: geoguardian-desarrollo
+  labels:
+    app.kubernetes.io/part-of: geoguardian
+    entorno: desarrollo

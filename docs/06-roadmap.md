@@ -103,7 +103,8 @@ Fechas por confirmar con el profesorado.
 ## 2. Ruta critica
 
     Contratos congelados (S2)
-      -> ETL real cargando en Postgres (S3)
+      -> Geometrias oficiales del SNIT en geo.distritos, H1.3 (S3)
+        -> ETL real cargando en Postgres (S3)
         -> Dataset etiquetado con reporte de calidad (S4)
           -> Caracteristicas y linea base (S5)
             -> Tres modelos comparados (S6)
@@ -127,6 +128,7 @@ Estas van primero, siempre, sin importar la semana.
 | Congelar contratos y publicar simulados | Los cuatro | Alejandro | Semana 2 |
 | Levantar Postgres con PostGIS en Docker | Cesar, Alejandro, Luna | Alejandro | Semana 2 |
 | DDL con esquemas y tablas | Cesar, Luna | Cesar | Semana 3 |
+| Geometrias del SNIT cargadas, H1.3 | Cesar mismo, en H1.1 y H1.2 | Cesar | Semana 3 |
 | Primer extractor cargando datos reales | Alejandro, Luna | Cesar | Semana 3 |
 | Etiquetado de la variable objetivo | Alejandro, Luna | Alejandro | Semana 5 |
 | API con endpoint de riesgo | Avril | Cesar | Semana 6 |

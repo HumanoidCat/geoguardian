@@ -1,0 +1,14 @@
+# Base comun a los tres entornos.
+#
+# Hoy solo la base de datos. La API y el visor entran cuando existan sus
+# Dockerfile e imagenes publicadas: historias H6.1 (API) y H5.1 (frontend), mas
+# H11.1 que publica los artefactos en ghcr.io. Igual que en docker-compose.yml,
+# no se declara un Deployment de algo que todavia no se puede construir.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - postgis-configmap-init.yaml
+  - postgis-service.yaml
+  - postgis-statefulset.yaml
