@@ -23,12 +23,19 @@
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
 
-- [ ] **H1.1** · Descargar 10 anios de series climaticas diarias, reejecutable e idempotente
-  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · **bloquea a: H1.4, H1.5, H8.2**
-- [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
-  - `E1` · 3 pts · 4.7 h · rubrica: BD-1
+> **Orden corregido el 2026-08-11.** H1.3 va primero. `ExtractorClima` recibe un
+> `codigo_distrito`, pero NASA POWER consulta por coordenada geografica, y esa
+> traduccion necesita las geometrias oficiales que carga H1.3. La dependencia
+> existia y el backlog no la tenia. Detectada por Cesar. Ver D-13.
+
 - [ ] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado
-  - `E1` · 6 pts · 5.8 h · rubrica: BD-1 · depende de: contratos · **bloquea a: H1.11, H1.8**
+  - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.2, H1.11, H1.8**
+  - Fuente: capa `IGN_5_CO:limitedistrital_5k` del SNIT. Codigos oficiales 50801 a 50808. Ver D-13
+- [ ] **H1.1** · Descargar 10 anios de series climaticas diarias, reejecutable e idempotente
+  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.4, H1.5, H8.2**
+- [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
+  - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3
+  - **Prioritaria: verifica el riesgo R16.** Al cargarlos, contar cuantos focos historicos tiene el canton entre 2001 y 2025. Si son pocos, el modelo de incendio no tiene casos positivos con que entrenar y el evento sale del alcance
 
 ## Sprint 1 (semanas 4-5) — 28.0 h
 

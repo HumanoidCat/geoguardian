@@ -44,11 +44,16 @@ Si Claude dice "las pruebas pasan", corré las pruebas. Si dice "esto funciona",
 **4. Trabajá contra los simulados, no contra el código de otros.**
 En `contratos/simulados/` hay una versión falsa de cada módulo que respeta la interfaz real. Usalos. Así nadie espera a nadie. Cuando el módulo real esté listo, cambiás una línea.
 
-**5. Lo hecho no se borra.**
+**5. La evidencia va en `docs/evidencias/`, sin pedir permiso.**
+Es la excepcion a la regla de carpetas: aunque `docs/` sea de Alejandro, vos subis
+la evidencia de tus historias directamente. La carpeta se elige por la rubrica de
+la historia; el mapa completo esta en `docs/evidencias/README.md`.
+
+**6. Lo hecho no se borra.**
 Marcás `[x]` con la fecha y la historia se queda ahí. Las issues se cierran, no se
 eliminan. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
 
-**6. Evidencia el mismo día.**
+**7. Evidencia el mismo día.**
 Cuando terminás una historia, guardás la captura, la medición o la salida en `docs/evidencias/<materia>/`. En la semana 12 no se reconstruye evidencia: se recopila la que ya existe.
 
 ---
