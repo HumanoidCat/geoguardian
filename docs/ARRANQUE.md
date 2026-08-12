@@ -78,6 +78,28 @@ Hace falta para correr scripts `.sh`:
 3. Activá el interruptor de **Ubuntu**
 4. **Apply & Restart**
 
+## 3.5. Instalar Node.js
+
+Hace falta para el visor. **Avril lo necesita sí o sí**; César y Luna pueden
+saltarse este paso hasta que trabajen con el frontend.
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+Cerrá y volvé a abrir PowerShell. Después:
+
+```powershell
+node --version
+npm --version
+```
+
+El proyecto pide **Node 20 o superior**. La LTS que instala winget hoy es más
+nueva y funciona.
+
+> Este paso faltaba en la guía hasta el 12 de agosto: lo detectó Avril al ser la
+> primera en necesitarlo. Sin Node, su carpeta entera no corre.
+
 ## 4. Clonar el repositorio
 
 Elegí dónde querés trabajar. Por ejemplo, en Documentos:
@@ -166,7 +188,9 @@ Comprobá que todo está en su lugar:
 python -m contratos.verificar
 ```
 
-Tienen que pasar las 14 verificaciones y una de ellas debe decir **"tres tipos de evento"**. Si dice "dos", tu copia del repositorio está vieja: hacé `git pull` en `dev`.
+Tienen que pasar las **17 verificaciones**, y arriba debe decir **"Contratos version 1.2.0"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
+
+Si dice una versión anterior, tu copia del repositorio está vieja: hacé `git pull` en `dev`.
 
 Si alguna falla, avisá: significa que un contrato se rompió y hay más gente afectada.
 

@@ -25,6 +25,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
+| D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
 
 ---
 
@@ -703,6 +704,83 @@ oficiales. Queda corregido en `docs/tareas/cesar.md` y en el roadmap.
 La capa expone 492 entidades, verificado por Cesar mediante GetCapabilities. La
 evidencia de H1.3 debe registrar cuantas se cargaron y con que filtro se
 redujeron a los ocho distritos de Tilaran.
+
+---
+
+## D-14 · El frontend consume los simulados exportados a JSON estatico
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-12
+**Decide.** Alejandro, a propuesta de Avril
+
+### Contexto
+
+La regla 4 del metodo de trabajo dice que cada quien trabaje contra los simulados
+de `contratos/simulados/` y no espere el codigo de nadie. Para el backend
+funciona: son objetos de Python que se importan directamente.
+
+Para el frontend no. `contratos/simulados/datos.py` expone objetos de Python y el
+navegador no los puede consumir. El unico puente posible seria la API, y
+`backend/api/` no existe hasta H6.1. El roadmap ponia el endpoint de riesgo en la
+semana 6, con Avril esperando.
+
+En la practica, la regla que existe para que nadie se bloquee dejaba bloqueada a
+una de las cuatro personas durante cuatro semanas.
+
+### Decision
+
+Un script en la carpeta del frontend lee `contratos/simulados/` en modo solo
+lectura y escribe archivos estaticos en `frontend/public/simulados/`:
+
+    frontend/herramientas/exportar_simulados.py
+      -> frontend/public/simulados/distritos.geojson
+      -> frontend/public/simulados/salud.json
+
+El visor los consume por `fetch`, igual que consumira la API real. Cuando exista
+la API, el cambio es la URL del `fetch`, en un solo modulo.
+
+Los archivos van en `public/` y no en `src/` a proposito: asi ningun componente
+los importa directamente y la migracion no se ramifica por todo el codigo.
+
+### Justificacion
+
+Desbloquea el frontend sin tocar ningun archivo compartido: leer `contratos/` no
+es modificarlo, y todo lo generado vive en la carpeta de Avril.
+
+El dato exportado conserva la honestidad del contrato. `poblacion` viaja como
+`null` y no como `0`, que es la regla D-07 aplicada al limite de un formato que
+ni siquiera tiene `None`. Los ocho codigos de distrito salen del contrato, no
+escritos a mano, asi que cuando los contratos cambiaron a v1.2.0 el export
+recogio los correctos sin intervencion.
+
+Ademas el archivo se autodenuncia: lleva un campo `advertencia` y cada distrito
+un `geometria_simulada: true`. Si alguien abre ese `.geojson` fuera de contexto,
+la advertencia viaja con el.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Esperar a la API (H6.1) | Cuatro semanas de bloqueo para una persona, contra la regla que dice que nadie espera |
+| Escribir los datos de prueba a mano en JavaScript | Es inventar datos, y se desincroniza del contrato en el primer cambio. Lo confirma I-04: los codigos cambiaron y un JSON escrito a mano no se habria enterado |
+| Un servidor de simulacion aparte | Una pieza mas que instalar, arrancar y mantener, para un problema que resuelve un archivo estatico |
+
+### Consecuencias
+
+Se gana paralelismo real para las cuatro personas, no para tres. Se gana tambien
+un punto de migracion unico y explicito.
+
+Se pierde: hay un paso manual de regeneracion. Si los contratos cambian y nadie
+vuelve a correr el exportador, el frontend trabaja contra datos viejos sin
+enterarse. Mitigacion: el `salud.json` exportado lleva `version_contratos`, y el
+visor puede compararla contra la que espera. Cuando exista el trabajo de frontend
+en el CI, la regeneracion deberia correr ahi.
+
+### Medicion
+
+Ejecutado el 2026-08-12: 8 distritos exportados, codigos 50801 a 50808,
+`version_contratos: 1.2.0`, `modo: simulado`. Ninguna poblacion inventada: los
+ocho salen con dato ausente.
 
 ---
 

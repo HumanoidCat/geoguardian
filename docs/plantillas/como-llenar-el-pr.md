@@ -50,6 +50,20 @@ Escribi el cuerpo en un archivo .md aparte para que yo lo revise antes de subirl
 gh issue list --repo HumanoidCat/geoguardian --search "H1.9" --json number,title
 ```
 
+> Escrito así, la issue se cierra sola al mergear el Pull Request y queda
+> enlazada con él. En prosa —"Cierra H1.9"— no se cierra nada y el tablero
+> empieza a mentir.
+>
+> Si por alguna razón quedó abierta, se cierra a mano con el enlace a su
+> evidencia:
+>
+> ```powershell
+> gh issue close 23 --repo HumanoidCat/geoguardian --comment "H1.9 terminada. PR #45 mergeado a dev. Evidencia en docs/evidencias/bases-de-datos/H1.9-....md"
+> ```
+>
+> **Cerrar no es borrar.** Una issue cerrada conserva la discusión, los commits
+> y el Pull Request. Nunca se elimina ninguna.
+
 **Cómo lo verifiqué.** Lo más importante del PR. Comando y salida, dentro del
 bloque de código. No vale "probé y funciona". Un revisor tiene que poder copiar
 ese comando y obtener lo mismo.
