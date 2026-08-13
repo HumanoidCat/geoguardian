@@ -23,7 +23,7 @@
 
 ## Sprint 0 (semanas 2-3) — 25.9 h
 
-- [ ] **H10.1** · Plan de pruebas con casos por modulo
+- [x] **H10.1** · Plan de pruebas con casos por modulo (2026-08-06)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: contratos
 
 - [ ] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido
