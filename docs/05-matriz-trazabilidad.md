@@ -12,7 +12,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H1.1 | Series climaticas diarias, 10 anios | backend/etl | test_extractor_power | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
 | H1.2 | Historico de focos de calor | backend/etl | test_extractor_firms | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
 | H1.3 | Geometrias de distritos en 3FN con SRID validado | basedatos/ddl, backend/etl | basedatos/verificar_h13.py, consultas/verificar_modelo.sql, consultas/verificar_transaccion.sql | docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md | BD-1, BD-3 | Cesar | **Con evidencia** |
-| H1.5 | Reporte de calidad de datos | backend/calidad | test_reporte_calidad | docs/evidencias/bases-de-datos/ | OE1 | Luna | Pendiente |
+| H1.5 | Reporte de calidad de datos | backend/calidad | test_reporte_calidad | docs/evidencias/objetivos/ | OE1 | Luna | Pendiente |
 | H1.8 | Esquemas, roles, minimo privilegio | basedatos/seguridad | test_permisos_rol | docs/evidencias/bases-de-datos/ | BD-2 | Cesar | Pendiente |
 | H1.9 | Control transaccional con manejo de errores | basedatos/procedimientos | test_rollback | docs/evidencias/bases-de-datos/ | BD-3 | Cesar | Pendiente |
 | H1.10 | Estrategia de respaldo probada | basedatos/respaldos | restauracion manual | docs/evidencias/bases-de-datos/ | BD-4 | Cesar | Pendiente |
@@ -27,6 +27,8 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/ | Arq | Cesar | Pendiente |
 | H8.1 | Despliegue reproducible | docker-compose.yml, infra/docker/init-db | levantado en maquina limpia | docs/evidencias/sistemas-operativos/H8.1-despliegue.md | SO-1 | Alejandro | **Con evidencia** |
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Alejandro | Pendiente |
-| H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/ | OE4 | Luna | Pendiente |
+| H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
+| H10.1 | Plan de pruebas con casos por modulo | docs/investigacion | no aplica: es el plan, no la suite | docs/evidencias/calidad/H10.1-plan-pruebas.md | QA | Luna | **Con evidencia** |
+| H10.2 | Suite de pruebas del backend | backend/tests | los 39 casos del plan H10.1 | docs/evidencias/calidad/ | QA | Luna | Pendiente |
 
 Completar con el resto del backlog conforme entren al sprint.
