@@ -29,8 +29,9 @@
 - [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
 
-- [ ] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado
+- [x] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado (2026-08-13)
   - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.11, H1.2, H1.8**
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md`
 
 
 ## Sprint 1 (semanas 4-5) — 30.9 h
