@@ -123,9 +123,9 @@ def ca3_contrato(cursor: psycopg.Cursor) -> Resultado:
 
 def ca4_validez(cursor: psycopg.Cursor) -> Resultado:
     """Ninguna geometria invalida."""
-    invalidas = _fila(
-        cursor, "SELECT count(*) FROM geo.distrito WHERE NOT ST_IsValid(geometria)"
-    )[0]
+    invalidas = _fila(cursor, "SELECT count(*) FROM geo.distrito WHERE NOT ST_IsValid(geometria)")[
+        0
+    ]
     return Resultado(
         "CA-4",
         "Validez geometrica",
@@ -177,9 +177,9 @@ def ca6_nombre(cursor: psycopg.Cursor) -> Resultado:
         "SELECT count(*) FROM geo.distrito WHERE nombre IS NULL OR btrim(nombre) = ''",
     )[0]
 
-    con_espacios = _fila(
-        cursor, "SELECT count(*) FROM geo.distrito WHERE nombre <> btrim(nombre)"
-    )[0]
+    con_espacios = _fila(cursor, "SELECT count(*) FROM geo.distrito WHERE nombre <> btrim(nombre)")[
+        0
+    ]
 
     repetidos = _fila(
         cursor,
@@ -197,10 +197,7 @@ def ca6_nombre(cursor: psycopg.Cursor) -> Resultado:
     )[0]
 
     cumple = (
-        vacios == 0
-        and con_espacios == 0
-        and repetidos == 0
-        and con_tilde == len(NOMBRES_CON_TILDE)
+        vacios == 0 and con_espacios == 0 and repetidos == 0 and con_tilde == len(NOMBRES_CON_TILDE)
     )
     return Resultado(
         "CA-6",
@@ -291,7 +288,15 @@ def ca8_poblacion(cursor: psycopg.Cursor) -> Resultado:
     )
 
 
-COMPROBACIONES = [ca2_srid, ca3_contrato, ca4_validez, ca5_cobertura, ca6_nombre, ca7_area, ca8_poblacion]
+COMPROBACIONES = [
+    ca2_srid,
+    ca3_contrato,
+    ca4_validez,
+    ca5_cobertura,
+    ca6_nombre,
+    ca7_area,
+    ca8_poblacion,
+]
 
 
 def main() -> int:

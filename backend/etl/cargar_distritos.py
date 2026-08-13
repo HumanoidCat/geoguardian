@@ -169,9 +169,7 @@ def contar_total_nacional(cliente: httpx.Client) -> int:
     raiz = ET.fromstring(respuesta.text)
     coincidencias = raiz.attrib.get("numberMatched")
     if coincidencias is None or not coincidencias.isdigit():
-        raise ErrorCarga(
-            f"El servicio no devolvio un conteo utilizable: {coincidencias!r}"
-        )
+        raise ErrorCarga(f"El servicio no devolvio un conteo utilizable: {coincidencias!r}")
     return int(coincidencias)
 
 
@@ -310,9 +308,7 @@ def validar_canton(descarga: Descarga) -> dict[str, Any]:
     entidades = descarga.contenido.get("features", [])
 
     if len(entidades) != 1:
-        raise ErrorCarga(
-            f"Se esperaba 1 canton y el servicio devolvio {len(entidades)}"
-        )
+        raise ErrorCarga(f"Se esperaba 1 canton y el servicio devolvio {len(entidades)}")
 
     entidad = entidades[0]
     propiedades = entidad.get("properties") or {}
@@ -420,9 +416,7 @@ def cargar(
 
             cursor.execute(SQL_DISTRITO, distrito)
             area = cursor.fetchone()
-            filas.append(
-                (distrito["codigo"], distrito["nombre"], float(area[0]) if area else 0.0)
-            )
+            filas.append((distrito["codigo"], distrito["nombre"], float(area[0]) if area else 0.0))
 
     return filas, invalidas
 

@@ -115,9 +115,7 @@ def leer_migraciones(directorio: Path = DIRECTORIO_DDL) -> list[Migracion]:
                 f"{encontradas[numero].archivo} y {ruta.name}"
             )
 
-        encontradas[numero] = Migracion(
-            numero=numero, archivo=ruta.name, ruta=ruta, suma=suma
-        )
+        encontradas[numero] = Migracion(numero=numero, archivo=ruta.name, ruta=ruta, suma=suma)
 
     return [encontradas[numero] for numero in sorted(encontradas)]
 
