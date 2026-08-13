@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GeoGuardian · Muestra de la escala de riesgo</title>
+
+    <!-- Lee el sistema de diseno real. Si tokens.css cambia, esta pagina cambia.
+         No hay ningun color escrito aqui: si esta pagina se ve bien, tokens.css
+         esta bien. -->
+    <link rel="stylesheet" href="../src/estilos/tokens.css" />
+
+    <style>
+      body {
+        font-family: var(--fuente);
+        color: var(--texto);
+        background: var(--superficie-alterna);
+        margin: 0;
+        padding: var(--espacio-8);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 60rem;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: var(--texto-xl);
+        margin: 0 0 var(--espacio-2);
+      }
+      h2 {
+        font-size: var(--texto-lg);
+        margin: var(--espacio-8) 0 var(--espacio-2);
+        padding-bottom: var(--espacio-2);
+        border-bottom: 1px solid var(--borde);
+      }
+      p.nota {
+        color: var(--texto-suave);
+        font-size: var(--texto-sm);
+        max-width: 46rem;
+      }
+
+      .fila {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--espacio-3);
+      }
+      .muestra {
+        border: var(--distrito-borde-ancho) solid var(--distrito-borde);
+        border-radius: var(--radio);
+        min-height: 5.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: var(--espacio-3);
+        font-size: var(--texto-sm);
+        font-weight: 600;
+      }
+      .muestra small {
+        font-weight: 400;
+        font-size: var(--texto-xs);
+        opacity: 0.85;
+      }
+
+      /* Sobre la trama diagonal, el texto pierde legibilidad: las rayas cruzan
+         las letras. Se le pone un respaldo solido del mismo color de fondo, que
+         despeja el area del texto sin tapar la trama del resto de la muestra.
+         Encontrado al revisar la pagina en pantalla, no por el script: medir
+         contraste de color no detecta un texto ilegible por textura. */
+      .muestra .etiqueta {
+        display: inline-block;
+        align-self: flex-start;
+        background: var(--sin-dato-fondo);
+        box-shadow: 0 0 0 4px var(--sin-dato-fondo);
+        border-radius: 2px;
+      }
+      .muestra .etiqueta small {
+        display: block;
+        opacity: 1;
+      }
+
+      .bajo {
+        background: var(--riesgo-bajo);
+        color: var(--texto-sobre-bajo);
+      }
+      .medio {
+        background: var(--riesgo-medio);
+        color: var(--texto-sobre-medio);
+      }
+      .alto {
+        background: var(--riesgo-alto);
+        color: var(--texto-sobre-alto);
+      }
+      .sin-dato {
+        color: var(--texto-sobre-sin-dato);
+        border-style: dashed;
+        border-color: var(--sin-dato-borde);
+      }
+      .cargando {
+        color: var(--texto-suave);
+        border-color: var(--borde-fuerte);
+      }
+
+      /* Banda de modo simulado. Exigida por el contrato. */
+      .aviso-simulado {
+        color: var(--simulado-texto);
+        padding: var(--espacio-3) var(--espacio-4);
+        border-radius: var(--radio);
+        display: flex;
+        align-items: center;
+        gap: var(--espacio-3);
+        font-size: var(--texto-sm);
+        margin-bottom: var(--espacio-6);
+      }
+      .aviso-simulado strong {
+        color: var(--simulado-acento);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: var(--texto-xs);
+        white-space: nowrap;
+      }
+
+      /* Leyenda tal como iria en el mapa. */
+      .leyenda {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio);
+        box-shadow: var(--sombra);
+        padding: var(--espacio-3);
+        display: inline-block;
+        min-width: 13rem;
+      }
+      .leyenda h3 {
+        margin: 0 0 var(--espacio-2);
+        font-size: var(--texto-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--texto-suave);
+      }
+      .leyenda ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .leyenda li {
+        display: flex;
+        align-items: center;
+        gap: var(--espacio-2);
+        font-size: var(--texto-sm);
+        padding: 2px 0;
+      }
+      .cuadro {
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 2px;
+        border: 1px solid var(--distrito-borde);
+        flex: none;
+      }
+      .separador {
+        border: 0;
+        border-top: 1px solid var(--borde);
+        margin: var(--espacio-2) 0;
+      }
+
+      .gris {
+        filter: grayscale(1);
+      }
+      .protanopia {
+        filter: url(#protanopia);
+      }
+      .deuteranopia {
+        filter: url(#deuteranopia);
+      }
+      .tritanopia {
+        filter: url(#tritanopia);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Filtros de simulacion de dicromacia. Matrices de Vienot, Brettel y
+         Mollon (1999). Los filtros SVG operan en RGB lineal por defecto, que es
+         el espacio en el que estas matrices estan definidas. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="protanopia">
+        <feColorMatrix
+          type="matrix"
+          values="0.1121 0.8853 -0.0005 0 0
+                  0.1127 0.8897 -0.0001 0 0
+                  0.0045 0      1.0     0 0
+                  0      0      0       1 0"
+        />
+      </filter>
+      <filter id="deuteranopia">
+        <feColorMatrix
+          type="matrix"
+          values="0.2920  0.7054 -0.0003 0 0
+                  0.2934  0.7089  0.0    0 0
+                 -0.0209  0.0257  0.9997 0 0
+                  0       0       0      1 0"
+        />
+      </filter>
+      <filter id="tritanopia">
+        <feColorMatrix
+          type="matrix"
+          values="1.0 0.1502 -0.1387 0 0
+                  0   0.8654  0.1451 0 0
+                  0   0       1.0    0 0
+                  0   0       0      1 0"
+        />
+      </filter>
+    </svg>
+
+    <main>
+      <div class="aviso-simulado trama-simulado">
+        <strong>Modo simulado</strong>
+        <span>
+          Los datos que se muestran no son reales. Las geometrias son marcadores
+          de posicion y se reemplazan en la historia H1.3.
+        </span>
+      </div>
+
+      <h1>Escala de riesgo</h1>
+      <p class="nota">
+        Los cinco estados que puede tener un distrito en el visor. Ningun color de
+        esta pagina esta escrito aqui: todos se leen de
+        <code>frontend/src/estilos/tokens.css</code>. Si esta pagina se ve
+        correcta, el sistema de diseno es correcto.
+      </p>
+
+      <h2>1. Como se ve en pantalla</h2>
+      <div class="fila">
+        <div class="muestra bajo">Bajo<small>SPI &gt; -1.0</small></div>
+        <div class="muestra medio">Medio<small>-1.5 &lt; SPI &le; -1.0</small></div>
+        <div class="muestra alto">Alto<small>SPI &le; -1.5</small></div>
+        <div class="muestra sin-dato trama-sin-dato">
+          <span class="etiqueta">Sin dato<small>no hay modelo</small></span>
+        </div>
+        <div class="muestra cargando pulso-cargando">Cargando<small>consultando</small></div>
+      </div>
+
+      <h2>2. Impreso o proyectado en blanco y negro</h2>
+      <p class="nota">
+        El cartel de la feria y las capturas del documento IEEE pueden terminar en
+        escala de grises. Los tres niveles tienen que seguir distinguiendose, y la
+        ausencia de dato tiene que seguir sin parecerse a riesgo bajo.
+      </p>
+      <div class="fila gris">
+        <div class="muestra bajo">Bajo</div>
+        <div class="muestra medio">Medio</div>
+        <div class="muestra alto">Alto</div>
+        <div class="muestra sin-dato trama-sin-dato"><span class="etiqueta">Sin dato</span></div>
+        <div class="muestra cargando">Cargando</div>
+      </div>
+
+      <h2>3. Con daltonismo</h2>
+      <p class="nota">
+        Alrededor del ocho por ciento de los hombres tiene alguna deficiencia en la
+        vision del color. Un mapa de riesgo que solo funciona para el resto no
+        sirve para comunicar una emergencia.
+      </p>
+
+      <p class="nota"><strong>Protanopia</strong></p>
+      <div class="fila protanopia">
+        <div class="muestra bajo">Bajo</div>
+        <div class="muestra medio">Medio</div>
+        <div class="muestra alto">Alto</div>
+        <div class="muestra sin-dato trama-sin-dato"><span class="etiqueta">Sin dato</span></div>
+        <div class="muestra cargando">Cargando</div>
+      </div>
+
+      <p class="nota"><strong>Deuteranopia</strong></p>
+      <div class="fila deuteranopia">
+        <div class="muestra bajo">Bajo</div>
+        <div class="muestra medio">Medio</div>
+        <div class="muestra alto">Alto</div>
+        <div class="muestra sin-dato trama-sin-dato"><span class="etiqueta">Sin dato</span></div>
+        <div class="muestra cargando">Cargando</div>
+      </div>
+
+      <p class="nota"><strong>Tritanopia</strong></p>
+      <div class="fila tritanopia">
+        <div class="muestra bajo">Bajo</div>
+        <div class="muestra medio">Medio</div>
+        <div class="muestra alto">Alto</div>
+        <div class="muestra sin-dato trama-sin-dato"><span class="etiqueta">Sin dato</span></div>
+        <div class="muestra cargando">Cargando</div>
+      </div>
+
+      <h2>4. La leyenda, tal como iria en el mapa</h2>
+      <div class="leyenda">
+        <h3>Riesgo de sequia</h3>
+        <ul>
+          <li><span class="cuadro" style="background: var(--riesgo-alto)"></span> Alto</li>
+          <li><span class="cuadro" style="background: var(--riesgo-medio)"></span> Medio</li>
+          <li><span class="cuadro" style="background: var(--riesgo-bajo)"></span> Bajo</li>
+        </ul>
+        <hr class="separador" />
+        <ul>
+          <li>
+            <span class="cuadro trama-sin-dato" style="border-style: dashed"></span> Sin
+            estimacion
+          </li>
+        </ul>
+      </div>
+      <p class="nota">
+        La ausencia de dato va separada por una linea, fuera de la rampa. No es un
+        cuarto nivel de riesgo: es la ausencia de una medicion. Mientras no exista
+        un modelo entrenado, este es el estado de todos los distritos.
+      </p>
+    </main>
+  </body>
+</html>
