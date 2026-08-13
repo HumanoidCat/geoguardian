@@ -1,0 +1,39 @@
+# Script de inicializacion de PostGIS.
+#
+# Es el mismo contenido de infra/docker/init-db/01-extensiones.sql. Se duplica
+# aqui a proposito: un ConfigMap no puede leer un archivo del repositorio en
+# tiempo de ejecucion, y kustomize resolveria el duplicado con configMapGenerator
+# pero ataria el manifiesto a la ruta relativa desde la que se aplica.
+#
+# ATENCION: si se cambia el SQL en infra/docker/init-db/, hay que cambiarlo aqui
+# tambien. La incidencia queda registrada; si esto se desincroniza una segunda
+# vez, se pasa a configMapGenerator.
+#
+# El script corre UNA SOLA VEZ, cuando el volumen esta vacio.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgis-init
+  labels:
+    app.kubernetes.io/name: postgis
+    app.kubernetes.io/part-of: geoguardian
+data:
+  01-extensiones.sql: |
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS postgis_raster;
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+    -- Cuatro esquemas separados por responsabilidad. Sostienen el criterio BD-2
+    -- de la rubrica: seguridad con minimo privilegio.
+    CREATE SCHEMA IF NOT EXISTS geo;        -- referencia territorial, casi estatica
+    CREATE SCHEMA IF NOT EXISTS crudo;      -- datos tal como llegan, solo escribe el ETL
+    CREATE SCHEMA IF NOT EXISTS analitico;  -- derivados y resultados del modelo
+    CREATE SCHEMA IF NOT EXISTS control;    -- gobernanza, calidad y auditoria
+
+    COMMENT ON SCHEMA geo       IS 'Distritos, estaciones y fuentes. Lectura casi estatica.';
+    COMMENT ON SCHEMA crudo     IS 'Mediciones, focos e imagenes sin transformar.';
+    COMMENT ON SCHEMA analitico IS 'Indices derivados, modelos, predicciones y eventos.';
+    COMMENT ON SCHEMA control   IS 'Calidad de datos, bitacora de ETL y auditoria.';
+
+    ALTER DATABASE geoguardian SET timezone TO 'America/Costa_Rica';

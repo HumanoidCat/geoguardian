@@ -1,0 +1,26 @@
+# Service headless (clusterIP: None) para el StatefulSet.
+#
+# Headless porque la identidad del pod importa: se resuelve como
+# postgis-0.postgis.<namespace>.svc.cluster.local. Un ClusterIP normal
+# balancearia entre replicas, que es justo lo que no se quiere en una base con
+# estado.
+#
+# No se expone fuera del cluster. Para llegar desde la maquina se usa
+# `kubectl port-forward`, documentado en infra/k8s/README.md.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgis
+  labels:
+    app.kubernetes.io/name: postgis
+    app.kubernetes.io/component: base-de-datos
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: postgis
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
