@@ -9,83 +9,108 @@
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
-**Total asignado:** 111 puntos · 134 horas · 13.4 h por semana en promedio
+**Total asignado:** 125 puntos · 154 horas · 15.4 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 18.3 | 40 | holgado |
-| S1 | semanas 4-5 | 28.0 | 40 | holgado |
-| S2 | semanas 6-7 | 31.5 | 40 | holgado |
-| S3 | semanas 8-9 | 37.6 | 40 | ajustado |
-| S4 | semanas 10-11 | 18.4 | 40 | holgado |
+| S0 | semanas 2-3 | 18.3 | 36 | holgado |
+| S1 | semanas 4-5 | 30.9 | 36 | ajustado |
+| S2 | semanas 6-7 | 31.5 | 36 | ajustado |
+| S3 | semanas 8-9 | 39.2 | 36 | SOBRECARGA +3 h |
+| S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
 
-> **Orden corregido el 2026-08-11.** H1.3 va primero. `ExtractorClima` recibe un
-> `codigo_distrito`, pero NASA POWER consulta por coordenada geografica, y esa
-> traduccion necesita las geometrias oficiales que carga H1.3. La dependencia
-> existia y el backlog no la tenia. Detectada por Cesar. Ver D-13.
-
-- [ ] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado
-  - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.2, H1.11, H1.8**
-  - Fuente: capa `IGN_5_CO:limitedistrital_5k` del SNIT. Codigos oficiales 50801 a 50808. Ver D-13
 - [ ] **H1.1** · Descargar 10 anios de series climaticas diarias, reejecutable e idempotente
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.4, H1.5, H8.2**
-- [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
-  - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3
-  - **Prioritaria: verifica el riesgo R16.** Al cargarlos, contar cuantos focos historicos tiene el canton entre 2001 y 2025. Si son pocos, el modelo de incendio no tiene casos positivos con que entrenar y el evento sale del alcance
 
-## Sprint 1 (semanas 4-5) — 28.0 h
+- [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
+  - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
+
+- [x] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado (2026-08-13)
+  - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.11, H1.2, H1.8**
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md`
+
+
+## Sprint 1 (semanas 4-5) — 30.9 h
 
 - [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
   - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8
+
 - [ ] **H1.4** · Documentar y aplicar criterios de imputacion de faltantes
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7, H2.1**
+
 - [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4
+
 - [ ] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio
-  - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9**
+  - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9, H10.7**
+
+- [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
+  - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**
+
 - [ ] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints
-  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H6.2, H7.2, H8.3**
+  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H11.1, H6.0, H6.2, H6.5, H7.2, H8.3**
+
 - [ ] **H6.2** · Patron Repository con pruebas unitarias sin base de datos
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1 · **bloquea a: H10.2, H6.3**
+
 
 ## Sprint 2 (semanas 6-7) — 31.5 h
 
 - [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
+
 - [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
+
 - [ ] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos
   - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
+
 - [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
   - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
+
 - [ ] **H3.3** · Entrenar y evaluar Regresion Logistica
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
 
-## Sprint 3 (semanas 8-9) — 37.6 h
+
+## Sprint 3 (semanas 8-9) — 39.2 h
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9
+
 - [ ] **H12.1** · Centralizar los logs de pipeline y aplicacion en control.bitacora_etl
   - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H1.9 · **bloquea a: H12.2, H12.4**
-- [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
-  - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
+
 - [ ] **H3.4** · Entrenar y evaluar Random Forest
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+
+- [ ] **H3.5** · Entrenar y evaluar XGBoost
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.6**
+
 - [ ] **H8.2** · ETL concurrente con medicion secuencial contra paralelo
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
 
-## Sprint 4 (semanas 10-11) — 18.4 h
+
+## Sprint 4 (semanas 10-11) — 34.0 h
+
+- [ ] **H12.3** · Alertas automaticas ante fallo de pipeline o despliegue
+  - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H11.2
+
+- [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
+  - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
 
 - [ ] **H3.7** · Versionar modelos con metricas y fecha asociadas
   - `E3` · 3 pts · 2.9 h · rubrica: Arq · depende de: H3.6
+
 - [ ] **H6.3** · Strategy y Factory: agregar una fuente sin tocar el orquestador
-  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.2 · **bloquea a: H6.5**
+  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.2
+
 - [ ] **H8.3** · Cache en memoria con politica de expiracion y consumo medido
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1
+
 - [ ] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1 · depende de: H1.6
 
