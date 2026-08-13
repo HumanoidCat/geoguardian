@@ -26,6 +26,8 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/ | Arq | Cesar | Pendiente |
 | H8.1 | Despliegue reproducible | docker-compose.yml, infra/docker/init-db | levantado en maquina limpia | docs/evidencias/sistemas-operativos/H8.1-despliegue.md | SO-1 | Alejandro | **Con evidencia** |
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Alejandro | Pendiente |
-| H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/ | OE4 | Luna | Pendiente |
+| H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
+| H10.5a | 15 referencias IEEE con ficha de contenido | docs/investigacion | verificacion de cada DOI contra la editorial | docs/evidencias/entregables/H10.5a-referencias-ieee.md | IEEE | Luna | **Con evidencia** |
+| H10.5b | Estado del arte de Costa Rica | docs/investigacion | no aplica: es documentacion | docs/evidencias/entregables/ | IEEE | Luna | Pendiente |
 
 Completar con el resto del backlog conforme entren al sprint.

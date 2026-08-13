@@ -25,7 +25,7 @@
 
 - [ ] **H10.1** · Plan de pruebas con casos por modulo
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: contratos
-- [ ] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido
+- [x] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido (2026-08-06)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · **bloquea a: H10.5b**
 
 ## Sprint 1 (semanas 4-5) — 34.3 h
