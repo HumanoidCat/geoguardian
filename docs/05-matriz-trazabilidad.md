@@ -30,5 +30,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H10.1 | Plan de pruebas con casos por modulo | docs/investigacion | no aplica: es el plan, no la suite | docs/evidencias/calidad/H10.1-plan-pruebas.md | QA | Luna | **Con evidencia** |
 | H10.2 | Suite de pruebas del backend | backend/tests | los 39 casos del plan H10.1 | docs/evidencias/calidad/ | QA | Luna | Pendiente |
+| H10.5a | 15 referencias IEEE con ficha de contenido | docs/investigacion | verificacion de cada DOI contra la editorial | docs/evidencias/entregables/H10.5a-referencias-ieee.md | IEEE | Luna | **Con evidencia** |
+| H10.5b | Estado del arte de Costa Rica | docs/investigacion | no aplica: es documentacion | docs/evidencias/entregables/ | IEEE | Luna | Pendiente |
 
 Completar con el resto del backlog conforme entren al sprint.
