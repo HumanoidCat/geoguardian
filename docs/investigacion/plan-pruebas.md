@@ -1,7 +1,7 @@
 # Plan de pruebas
 
 **Historia:** H10.1 · **Responsable:** Luna · **Rúbrica:** QA
-**Depende de:** contratos v1.1.0 (congelados el 3 de agosto de 2026)
+**Depende de:** contratos v1.2.0
 **Estado del documento:** en redacción, sin pruebas implementadas todavía
 
 Este documento planifica los casos de prueba que debe cubrir la suite de
@@ -59,11 +59,21 @@ casos de este documento las referencian donde hay dependencia funcional.
 
 ## 3. Casos de prueba por contrato
 
+**Significado de la prioridad.** Prioridad 1: el caso protege una invariante
+declarada en la sección 1 (representación de faltantes, ausencia de valores
+por defecto, ausencia de fuga temporal); si falla, hay un resultado inválido
+que nadie detecta hasta el análisis final. Prioridad 2: el caso verifica un
+error o un borde declarado explícitamente en el contrato; si falla, el módulo
+se comporta distinto de lo prometido. Prioridad 3: el caso verifica
+comportamiento nominal sin ambigüedad de contrato; si falla, se detecta
+rápido por otras vías. Se implementan en ese orden.
+
 ### 3.1 `Repositorio` (contratos/repositorio.py — dueño César, simulado: `RepositorioSimulado`)
 
 | Caso | Tipo | Verifica | Prioridad |
 |---|---|---|---|
 | `test_listar_distritos_devuelve_ocho` | Feliz | El vocabulario territorial está cerrado a los ocho distritos de Tilarán | 3 |
+| `test_codigos_distrito_son_los_oficiales_de_tilaran` | Funcional | Los ocho códigos son 50801 a 50808, sin repetidos: Tilarán es el cantón 08 de Guanacaste. Un código con forma válida pero de otro cantón (50501–50508, Carrillo) es un dato falso que ninguna validación de tipo detecta. Ver incidencia I-04 | 1 |
 | `test_obtener_distrito_codigo_inexistente_devuelve_none` | Borde | No lanza excepción ante código inexistente | 2 |
 | `test_guardar_mediciones_es_idempotente` | Funcional | Guardar dos veces el mismo lote no duplica filas | 1 |
 | `test_guardar_mediciones_revierte_en_fallo_parcial` | Error | Un fallo a mitad de la escritura no deja carga parcial | 1 |
@@ -103,7 +113,10 @@ casos de este documento las referencian donde hay dependencia funcional.
 | `test_predecir_sin_entrenar_lanza_runtimeerror` | Error | No hay predicción por defecto de un estimador sin entrenar | 1 |
 | `test_linea_base_ignora_caracteristicas` | Funcional | La línea base climatológica usa solo distrito y mes calendario, no las variables del modelo | 1 |
 | `test_linea_base_explicar_devuelve_none` | Borde | La línea base no soporta SHAP; devuelve `None` explícito, no lanza excepción | 2 |
-| `test_validar_ventana_expansiva_respeta_orden_temporal` | Funcional | En cada corte, todas las fechas de entrenamiento son anteriores a las de prueba (evita fuga de información del futuro) | 1 |
+| `test_validar_ventana_expansiva_respeta_orden_temporal` | Funcional | En cada corte, la fecha máxima del pliegue de entrenamiento es anterior a la fecha mínima de su pliegue de prueba. Ninguna observación de entrenamiento es posterior al inicio de la prueba | 1 |
+| `test_validar_ventana_expansiva_la_ventana_se_expande_no_se_desliza` | Funcional | Cada pliegue de entrenamiento contiene íntegramente al pliegue anterior. Una ventana deslizante descartaría historia que sí estaba disponible en operación | 1 |
+| `test_validar_ventana_expansiva_rechaza_particion_aleatoria` | Error | Una partición construida al azar sobre las mismas fechas es rechazada explícitamente, no aceptada en silencio | 1 |
+| `test_validar_ventana_expansiva_n_cortes_produce_n_evaluaciones` | Funcional | El número de particiones evaluadas coincide con `n_cortes`; ningún corte se omite por quedar sin datos suficientes sin que se reporte | 2 |
 | `test_comparar_con_linea_base_devuelve_supera_y_valor_p` | Feliz | El contraste de H1 produce ambos valores | 2 |
 | `test_comparar_con_linea_base_resultado_negativo_no_lanza_error` | Funcional | Un modelo que no supera la línea base es un resultado válido, no una excepción ni un caso descartado | 1 |
 
@@ -133,8 +146,9 @@ de otros dueños (`test_extractor_power`, `test_espectro`, `test_spi`,
 Este plan los conserva y añade los casos de borde y error que la matriz no
 detalla. Cuando se implemente cada prueba, su fila en la matriz pasa de
 "Pendiente" a "Implementado" y luego a "Verificado" cuando corre en CI, y a
-"Con evidencia" cuando la evidencia queda archivada en
-`docs/evidencias/<materia>/`.
+"Con evidencia" cuando la evidencia queda archivada en la carpeta que
+corresponda según `docs/evidencias/README.md`. Para las historias de rúbrica
+QA de este plan (H10.1, H10.2) esa carpeta es `docs/evidencias/calidad/`.
 
 ## 5. Estado de implementación
 
@@ -143,10 +157,10 @@ medida que se agregan archivos a `backend/tests/`.
 
 | Sección | Casos planificados | Casos implementados |
 |---|---|---|
-| Repositorio | 10 | 0 |
+| Repositorio | 11 | 0 |
 | Extractores | 5 | 0 |
 | Procesador de señales | 6 | 0 |
-| Estimador y evaluador | 7 | 0 |
+| Estimador y evaluador | 10 | 0 |
 | Esquemas | 4 | 0 |
 | Calidad | 3 | 0 |
-| **Total** | **35** | **0** |
+| **Total** | **39** | **0** |
