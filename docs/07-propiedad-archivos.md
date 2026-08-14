@@ -21,10 +21,23 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | docs (resto) | Alejandro | Documento IEEE, bitacoras, matrices, roadmap, manuales |
 | frontend | Avril | Visor, tablero, componentes, estilos |
 
+## Excepcion: docs/evidencias/
+
+`docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**
+para todo el equipo. Cada integrante sube la evidencia de sus propias historias
+sin pedir autorizacion.
+
+La razon es practica: son 82 historias, cada una con su evidencia. Exigir una
+solicitud de cambio por cada una convertiria al Lead PM en cuello de botella de
+algo que no aporta ningun control real.
+
+Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
+`docs/evidencias/`, o modificar la evidencia de otra persona.
+
 ## Archivos compartidos
 
-Se tocan solo por solicitud de cambio aprobada por Alejandro y por el dueno del
-modulo afectado:
+**Se MODIFICAN solo por solicitud de cambio** aprobada por Alejandro y por el
+dueno del modulo afectado:
 
 - contratos/ (todo el contenido)
 - docker-compose.yml
@@ -32,6 +45,28 @@ modulo afectado:
 - requirements.txt
 - frontend/package.json
 - .github/workflows/
+
+### La regla aplica a modificar, no a crear
+
+**Crear por primera vez uno de estos archivos, dentro de la propia carpeta, no
+requiere solicitud.** El dueno de la carpeta lo declara en el Pull Request y
+listo.
+
+La distincion sale de un bloqueo real: `frontend/package.json` estaba en esta
+lista y `frontend/` no tenia ningun archivo de proyecto. Avril no podia crear el
+andamiaje de Vite sin generar `package.json`, y no podia generar `package.json`
+sin aprobacion. La regla se habia escrito pensando en proteger un archivo
+existente de cambios ajenos, no en impedir que una carpeta vacia arrancara.
+
+Lo que sigue exigiendo solicitud:
+
+- Modificar cualquiera de estos archivos una vez que existe.
+- Agregar una dependencia que no este en el stack cerrado del proyecto.
+- Crear o modificar un archivo compartido que este fuera de tu carpeta. El caso
+  claro es `contratos/`, que no es de nadie y afecta a los cuatro.
+
+**Leer un archivo compartido nunca requiere solicitud.** Leer `contratos/` para
+generar algo dentro de la propia carpeta es uso normal, no modificacion.
 
 ## Por que esta regla
 

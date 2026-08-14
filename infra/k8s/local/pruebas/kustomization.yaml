@@ -1,0 +1,28 @@
+# Entorno de pruebas (staging).
+#
+# Recibe despliegue con aprobacion manual (historia H11.3). Es donde se valida
+# antes de produccion, asi que lleva mas almacenamiento que desarrollo: aqui se
+# carga la serie climatica completa.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: geoguardian-pruebas
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/instance: pruebas
+
+patches:
+  - target:
+      kind: StatefulSet
+      name: postgis
+    patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 3Gi

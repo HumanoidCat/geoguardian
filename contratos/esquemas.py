@@ -35,7 +35,7 @@ class Distrito(_Base):
     varias formas y no sirve como clave.
     """
 
-    codigo: str = Field(description="Codigo oficial del distrito", examples=["50501"])
+    codigo: str = Field(description="Codigo oficial del distrito", examples=["50801"])
     nombre: str
     area_km2: float = Field(gt=0)
     poblacion: int | None = Field(default=None, ge=0, description="None si no hay dato censal")

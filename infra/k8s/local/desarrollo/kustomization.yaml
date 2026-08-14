@@ -1,0 +1,18 @@
+# Entorno de desarrollo.
+#
+# Destino del despliegue automatico al mergear a main (historia H11.2). Es el
+# unico de los tres que se redespliega sin aprobacion manual.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: geoguardian-desarrollo
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/instance: desarrollo

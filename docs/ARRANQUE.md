@@ -78,6 +78,28 @@ Hace falta para correr scripts `.sh`:
 3. Activá el interruptor de **Ubuntu**
 4. **Apply & Restart**
 
+## 3.5. Instalar Node.js
+
+Hace falta para el visor. **Avril lo necesita sí o sí**; César y Luna pueden
+saltarse este paso hasta que trabajen con el frontend.
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+Cerrá y volvé a abrir PowerShell. Después:
+
+```powershell
+node --version
+npm --version
+```
+
+El proyecto pide **Node 20 o superior**. La LTS que instala winget hoy es más
+nueva y funciona.
+
+> Este paso faltaba en la guía hasta el 12 de agosto: lo detectó Avril al ser la
+> primera en necesitarlo. Sin Node, su carpeta entera no corre.
+
 ## 4. Clonar el repositorio
 
 Elegí dónde querés trabajar. Por ejemplo, en Documentos:
@@ -166,7 +188,9 @@ Comprobá que todo está en su lugar:
 python -m contratos.verificar
 ```
 
-Tienen que pasar las 14 verificaciones y una de ellas debe decir **"tres tipos de evento"**. Si dice "dos", tu copia del repositorio está vieja: hacé `git pull` en `dev`.
+Tienen que pasar las **17 verificaciones**, y arriba debe decir **"Contratos version 1.2.0"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
+
+Si dice una versión anterior, tu copia del repositorio está vieja: hacé `git pull` en `dev`.
 
 Si alguna falla, avisá: significa que un contrato se rompió y hay más gente afectada.
 
@@ -194,13 +218,14 @@ Trabajás, verificás ejecutando, y abrís el Pull Request hacia `dev`.
 
 ---
 
-## Las cinco reglas
+## Las seis reglas
 
 1. **Solo tocás tu carpeta.** Si necesitás un cambio fuera de ella, se pide, no se hace.
 2. **Nunca inventes datos.** Si un valor no existe todavía, va vacío o nulo con un comentario de qué depende. Una pantalla vacía y honesta es mejor que una llena de mentiras.
 3. **Verificá ejecutando.** Si Claude dice que las pruebas pasan, corrélas vos.
 4. **Trabajá contra los simulados** de `contratos/simulados/`. No esperes el código de nadie.
-5. **Lo hecho no se borra.** Marcás `[x]` con la fecha y se queda ahí. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
+5. **La evidencia va en `docs/evidencias/`, sin pedir permiso.** Cada historia terminada deja la suya el mismo día. La carpeta se elige por la rúbrica de la historia; el mapa está en `docs/evidencias/README.md`.
+6. **Lo hecho no se borra.** Marcás `[x]` con la fecha y se queda ahí. Es tu rastro de contribución individual y hay rúbricas que lo evalúan.
 
 **El compromiso es de 18 horas por semana**, y los Pull Requests tienen que estar **abiertos el domingo** para que el PM los revise ese día.
 

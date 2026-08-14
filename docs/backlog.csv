@@ -1,0 +1,1004 @@
+﻿id,titulo,cuerpo,etiquetas,sprint,responsable,puntos,horas
+H1.1,"H1.1 Descargar 10 anios de series climaticas diarias, reejecutable e idempotente","Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.3
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S0,BD-1,cesar",S0,cesar,5,7.8
+H1.2,H1.2 Descargar historico de focos de calor filtrado al canton,"Epica E1 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.3
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S0,BD-1,cesar",S0,cesar,3,4.7
+H1.3,H1.3 Cargar geometrias oficiales de distritos con SRID validado,"Epica E1 | 6 puntos | 5.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: contratos
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S0,BD-1,BD-3,cesar",S0,cesar,6,5.8
+H1.4,H1.4 Documentar y aplicar criterios de imputacion de faltantes,"Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.1
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-1,cesar",S1,cesar,5,7.8
+H1.5,"H1.5 Reporte formal de calidad de datos: faltantes, atipicos, sesgos","Epica E1 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: OE1
+Depende de: H1.1
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,OE1,luna",S2,luna,8,12.5
+H1.6,"H1.6 Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%","Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: CG-3
+Depende de: -
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,CG-3,avril",S1,avril,5,7.8
+H1.7,H1.7 Versionar el dataset consolidado para reproducibilidad,"Epica E1 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: OE1
+Depende de: H1.4
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,OE1,cesar",S1,cesar,3,2.9
+H1.8,"H1.8 Crear esquemas, roles y usuarios con minimo privilegio","Epica E1 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: BD-2
+Depende de: H1.3
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,5,4.8
+H1.9,"H1.9 Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos","Epica E1 | 8 puntos | 7.7 h estimadas
+
+Rubrica o objetivo: BD-3
+Depende de: H1.8
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-3,cesar",S2,cesar,8,7.7
+H1.10,H1.10 Estrategia de respaldo definida y restauracion probada,"Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: BD-4
+Depende de: H1.9
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S3,BD-4,cesar",S3,cesar,5,7.8
+H1.11,H1.11 Particionar mediciones por anio y medir efecto en consultas,"Epica E1 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.3
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,cesar",S2,cesar,5,4.8
+H1.12,H1.12 Indices espaciales y compuestos con planes antes y despues,"Epica E1 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.11
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,cesar",S2,cesar,5,4.8
+H1.13,"H1.13 Trigger de auditoria sobre predicciones, con prueba","Epica E1 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: BD-2
+Depende de: H1.8
+Sprint: S1 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
+H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: Senales
+Depende de: H1.4
+Sprint: S2 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,Senales,luna",S2,luna,3,2.9
+H2.2,H2.2 Analisis espectral de la lluvia e interpretacion fisica,"Epica E2 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Senales
+Depende de: H2.1
+Sprint: S3 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S3,Senales,luna",S3,luna,5,7.8
+H2.3,H2.3 SPI de 1 y 3 meses por convolucion de ventana movil,"Epica E2 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Senales
+Depende de: H2.1
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,Senales,luna",S2,luna,5,7.8
+H2.4,H2.4 Anomalias respecto a la normal climatologica 1991-2020,"Epica E2 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: Senales
+Depende de: H2.1
+Sprint: S3 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S3,Senales,luna",S3,luna,3,2.9
+H2.5,"H2.5 Generar lags, acumulados y medias moviles reproducibles","Epica E2 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H2.3
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,OE2,cesar",S2,cesar,5,4.8
+H2.6,H2.6 Documentar seleccion de variables y descartar redundantes,"Epica E2 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H2.5
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S4,OE2,cesar",S4,cesar,5,7.8
+H3.0,H3.0 Implementar el etiquetado de los tres eventos y su distribucion de clases,"Epica E3 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H2.3, H2.7, H1.2
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,alejandro",S2,alejandro,8,12.5
+H3.1,"H3.1 Construir la linea base climatologica por distrito, mes y tipo de evento","Epica E3 | 6 puntos | 9.4 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.0
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,alejandro",S2,alejandro,6,9.4
+H3.2,H3.2 Definir y documentar la validacion por ventana expansiva,"Epica E3 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.0
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,alejandro",S2,alejandro,8,12.5
+H3.3,H3.3 Entrenar y evaluar Regresion Logistica,"Epica E3 | 6 puntos | 9.4 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.2
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,cesar",S2,cesar,6,9.4
+H3.4,H3.4 Entrenar y evaluar Random Forest,"Epica E3 | 6 puntos | 9.4 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.2
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S3,OE2,cesar",S3,cesar,6,9.4
+H3.5,H3.5 Entrenar y evaluar XGBoost,"Epica E3 | 6 puntos | 9.4 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.2
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S3,OE2,cesar",S3,cesar,6,9.4
+H3.6,"H3.6 Tabla comparativa de tres algoritmos contra la linea base, por evento","Epica E3 | 10 puntos | 15.6 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.5
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S3,OE2,alejandro",S3,alejandro,10,15.6
+H3.7,H3.7 Versionar modelos con metricas y fecha asociadas,"Epica E3 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H3.6
+Sprint: S4 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S4,Arq,cesar",S4,cesar,3,2.9
+H3.8,"H3.8 Ajuste de hiperparametros del mejor modelo, documentado","Epica E3 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H3.6
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S3,OE2,alejandro",S3,alejandro,3,4.7
+H4.1,H4.1 Importancia de variables global del mejor modelo,"Epica E4 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: OE3
+Depende de: H3.6
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E4,S3,OE3,alejandro",S3,alejandro,3,2.9
+H4.2,H4.2 Aplicar SHAP para explicar predicciones individuales,"Epica E4 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: OE3
+Depende de: H4.1
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E4,S3,OE3,alejandro",S3,alejandro,8,12.5
+H4.3,H4.3 Catalogo de 12 o mas eventos historicos del canton con fuente,"Epica E4 | 8 puntos | 21.1 h estimadas
+
+Rubrica o objetivo: OE3
+Depende de: -
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E4,S1,OE3,luna",S1,luna,8,21.1
+H4.4,H4.4 Contrastar estimaciones contra el catalogo y analizar fallos,"Epica E4 | 10 puntos | 26.4 h estimadas
+
+Rubrica o objetivo: OE3
+Depende de: H4.3, H3.6
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E4,S4,OE3,alejandro",S4,alejandro,10,26.4
+H4.5,H4.5 Redactar la respuesta a la pregunta de investigacion,"Epica E4 | 2 puntos | 5.3 h estimadas
+
+Rubrica o objetivo: OE3
+Depende de: H4.4
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E4,S4,OE3,alejandro",S4,alejandro,2,5.3
+H5.1,"H5.1 Mapa del canton con poligonos distritales, zoom y desplazamiento","Epica E5 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CG-4
+Depende de: contratos
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S0,CG-4,avril",S0,avril,3,2.9
+H5.2,H5.2 Cuatro o mas capas conmutables con control de opacidad,"Epica E5 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: CG-4
+Depende de: H5.1
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S1,CG-4,avril",S1,avril,5,4.8
+H5.3,H5.3 Coropletas de riesgo por evento con rampa de color y leyenda,"Epica E5 | 7 puntos | 6.7 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.1
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S1,CG-1,avril",S1,avril,7,6.7
+H5.4,H5.4 Mapa de calor por interpolacion IDW,"Epica E5 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.3
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S3,CG-1,avril",S3,avril,8,12.5
+H5.5,H5.5 Indices NDVI y NDWI renderizados como capa,"Epica E5 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: CG-3
+Depende de: H1.6
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S3,CG-3,avril",S3,avril,5,7.8
+H5.6,H5.6 Transformacion WGS84 a CRTM05 verificada con puntos de control,"Epica E5 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.1
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,avril",S2,avril,3,4.7
+H5.7,H5.7 Selector de fecha que recarga el estado del mapa,"Epica E5 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CG-4
+Depende de: H5.3
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-4,avril",S2,avril,3,2.9
+H6.1,H6.1 API REST con OpenAPI y esquemas Pydantic en todos los endpoints,"Epica E6 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: contratos
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S1,Arq,cesar",S1,cesar,5,4.8
+H6.2,H6.2 Patron Repository con pruebas unitarias sin base de datos,"Epica E6 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H6.1
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S1,Arq,cesar",S1,cesar,5,4.8
+H6.3,H6.3 Strategy y Factory: agregar una fuente sin tocar el orquestador,"Epica E6 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H6.2
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S4,Arq,cesar",S4,cesar,5,4.8
+H6.4,H6.4 Seis o mas registros ADR escritos,"Epica E6 | 3 puntos | 7.9 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: -
+Sprint: S0 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S0,Arq,alejandro",S0,alejandro,3,7.9
+H6.5,H6.5 Diagrama de componentes y de secuencia del flujo principal,"Epica E6 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H6.1
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S3,Arq,avril",S3,avril,3,4.7
+H7.1,H7.1 Semaforo de riesgo por distrito y evento con umbrales documentados,"Epica E7 | 6 puntos | 5.8 h estimadas
+
+Rubrica o objetivo: CG-2
+Depende de: H5.3
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S2,CG-2,avril",S2,avril,6,5.8
+H7.2,H7.2 Graficas interactivas de series con seleccion de rango,"Epica E7 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: CG-2
+Depende de: H6.1
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S2,CG-2,avril",S2,avril,5,4.8
+H7.3,H7.3 Historial de eventos filtrable y exportable,"Epica E7 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CG-2
+Depende de: H4.3
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,avril",S4,avril,3,2.9
+H7.4,H7.4 Panel de estadisticas comparado contra la normal historica,"Epica E7 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CG-2
+Depende de: H2.4
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,avril",S4,avril,3,2.9
+H8.1,H8.1 docker compose up levanta todo en maquina limpia,"Epica E8 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: SO-1
+Depende de: -
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S0,SO-1,alejandro",S0,alejandro,5,7.8
+H8.2,H8.2 ETL concurrente con medicion secuencial contra paralelo,"Epica E8 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: SO-1
+Depende de: H1.1
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S3,SO-1,cesar",S3,cesar,5,7.8
+H8.3,H8.3 Cache en memoria con politica de expiracion y consumo medido,"Epica E8 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: SO-1
+Depende de: H6.1
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S4,SO-1,cesar",S4,cesar,5,7.8
+H8.4,H8.4 Estrategia de almacenamiento de rasters con proyeccion de crecimiento,"Epica E8 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: SO-1
+Depende de: H1.6
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S4,SO-1,cesar",S4,cesar,3,2.9
+H8.5,"H8.5 Credenciales por variables de entorno, fuera del repositorio","Epica E8 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: SO-1
+Depende de: -
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S0,SO-1,alejandro",S0,alejandro,3,2.9
+H8.6,H8.6 Manifiestos de Kubernetes corriendo en k3d local,"Epica E8 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H8.1
+Sprint: S0 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S0,Arq,alejandro",S0,alejandro,8,12.5
+H9.1,"H9.1 Preparar SUS, guion de entrevista y dosier de 3 casos","Epica E9 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: OE4
+Depende de: -
+Sprint: S3 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S3,OE4,luna",S3,luna,5,4.8
+H9.2,H9.2 Sesion con 3 a 5 participantes y calculo del puntaje SUS,"Epica E9 | 5 puntos | 13.2 h estimadas
+
+Rubrica o objetivo: OE4
+Depende de: H9.1
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,5,13.2
+H9.3,H9.3 Someter los umbrales de incendio a criterio de los participantes,"Epica E9 | 3 puntos | 7.9 h estimadas
+
+Rubrica o objetivo: OE4
+Depende de: H9.2, H1.2
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,3,7.9
+H9.4,H9.4 Incorporar un cambio derivado de la retroalimentacion,"Epica E9 | 2 puntos | 3.1 h estimadas
+
+Rubrica o objetivo: OE4
+Depende de: H9.2
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,2,3.1
+H10.1,H10.1 Plan de pruebas con casos por modulo,"Epica E10 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: QA
+Depende de: contratos
+Sprint: S0 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S0,QA,luna",S0,luna,5,4.8
+H10.2,"H10.2 Pruebas automatizadas del backend, cobertura de dominio","Epica E10 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: QA
+Depende de: H6.2
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S3,QA,luna",S3,luna,5,4.8
+H10.3,H10.3 Manual de usuario con capturas paso a paso,"Epica E10 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: MVP
+Depende de: H7.1
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,MVP,avril",S2,avril,5,4.8
+H10.4,H10.4 Manual tecnico verificado por alguien ajeno al desarrollo,"Epica E10 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: MVP
+Depende de: H8.1
+Sprint: S1 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S1,MVP,alejandro",S1,alejandro,5,4.8
+H10.5a,H10.5a Recopilar 15 referencias IEEE con ficha de contenido,"Epica E10 | 8 puntos | 21.1 h estimadas
+
+Rubrica o objetivo: IEEE
+Depende de: -
+Sprint: S0 (semanas 2-3)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S0,IEEE,luna",S0,luna,8,21.1
+H10.5b,H10.5b Estado del arte de Costa Rica,"Epica E10 | 5 puntos | 13.2 h estimadas
+
+Rubrica o objetivo: IEEE
+Depende de: H10.5a
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S1,IEEE,luna",S1,luna,5,13.2
+H10.5c,H10.5c Redactar el documento IEEE completo,"Epica E10 | 8 puntos | 21.1 h estimadas
+
+Rubrica o objetivo: IEEE
+Depende de: H10.5b
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,IEEE,alejandro",S4,alejandro,8,21.1
+H10.6,H10.6 Cartel academico IEEE legible a 1.5 m,"Epica E10 | 8 puntos | 7.7 h estimadas
+
+Rubrica o objetivo: IEEE
+Depende de: H10.5c
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,IEEE,avril",S4,avril,8,7.7
+H10.7,H10.7 Diagramas de casos de uso y entidad-relacion,"Epica E10 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H1.8
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,Arq,avril",S2,avril,5,7.8
+H10.8,H10.8 Carpeta de evidencias organizada por materia con indice,"Epica E10 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: SO-4
+Depende de: -
+Sprint: S0 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S0,SO-4,alejandro",S0,alejandro,5,4.8
+H10.9,H10.9 Guion de demo y tres ensayos completos,"Epica E10 | 4 puntos | 10.6 h estimadas
+
+Rubrica o objetivo: CG-6
+Depende de: H10.3
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,CG-6,avril",S4,avril,4,10.6
+H2.7,H2.7 Calcular percentiles R95p y R99p de precipitacion acumulada por distrito,"Epica E2 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Senales
+Depende de: H2.1
+Sprint: S2 (semanas 6-7)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,Senales,luna",S2,luna,5,7.8
+H11.1,H11.1 CI: construir imagen Docker y publicar artefactos en ghcr.io,"Epica E11 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H6.0, H6.1
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E11,S1,CICD,alejandro",S1,alejandro,5,4.8
+H11.2,H11.2 CD: despliegue automatico al entorno de desarrollo al mergear a main,"Epica E11 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H11.1
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E11,S2,CICD,alejandro",S2,alejandro,5,7.8
+H11.3,"H11.3 CD: despliegue a staging en namespace propio, con aprobacion manual","Epica E11 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H11.2
+Sprint: S2 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E11,S2,CICD,alejandro",S2,alejandro,3,4.7
+H11.4,H11.4 CD: despliegue a produccion con aprobacion explicita y rollback automatico,"Epica E11 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H11.3
+Sprint: S2 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E11,S2,CICD,alejandro",S2,alejandro,5,7.8
+H12.1,H12.1 Centralizar los logs de pipeline y aplicacion en control.bitacora_etl,"Epica E12 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Troubleshoot
+Depende de: H1.9
+Sprint: S3 (semanas 8-9)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E12,S3,Troubleshoot,cesar",S3,cesar,5,4.8
+H12.2,H12.2 Pantalla de monitoreo de pipelines y entornos dentro del visor,"Epica E12 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Troubleshoot
+Depende de: H12.1
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E12,S4,Troubleshoot,avril",S4,avril,5,4.8
+H12.3,H12.3 Alertas automaticas ante fallo de pipeline o despliegue,"Epica E12 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Troubleshoot
+Depende de: H11.2
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E12,S4,Troubleshoot,cesar",S4,cesar,5,7.8
+H12.4,H12.4 Diagnostico guiado a partir de la bitacora de incidencias,"Epica E12 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Troubleshoot
+Depende de: H12.1
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E12,S4,Troubleshoot,luna",S4,luna,5,7.8
+H12.5,H12.5 Historico de incidentes consultable desde la aplicacion,"Epica E12 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: Troubleshoot
+Depende de: H12.4
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E12,S4,Troubleshoot,avril",S4,avril,3,2.9
+H13.1,"H13.1 Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva","Epica E13 | 5 puntos | 13.2 h estimadas
+
+Rubrica o objetivo: Scrum
+Depende de: -
+Sprint: S1 (semanas 4-5)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E13,S1,Scrum,alejandro",S1,alejandro,5,13.2
+H13.2,H13.2 Manual de operacion del sistema,"Epica E13 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Documentacion
+Depende de: H11.4
+Sprint: S4 (semanas 10-11)
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E13,S4,Documentacion,avril",S4,avril,5,4.8
+H6.0,H6.0 Dockerfile de la API y del visor con imagen construida localmente,"Epica E6 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H6.1
+Sprint: S1 (semanas 4-5)
+
+Criterios de aceptacion:
+- [ ] Existe un Dockerfile multietapa para la API que produce una imagen que arranca y responde /salud
+- [ ] Existe un Dockerfile para el visor que sirve el build estatico
+- [ ] Las imagenes no contienen credenciales ni el archivo .env
+- [ ] La imagen de la API corre como usuario sin privilegios, no como root
+- [ ] docker build y docker run quedan documentados con su salida en la evidencia
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S1,CICD,cesar",S1,cesar,3,2.9

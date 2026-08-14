@@ -57,12 +57,23 @@ Un archivo, un dueno. Nadie modifica la carpeta de otra persona.
 | backend/calidad, backend/tests, docs/investigacion | Luna |
 | frontend | Avril |
 
-Excepcion acordada: Cesar trabaja en backend/modelado para las historias H2.5,
-H2.6 y H3.7, coordinando con Alejandro.
+Excepciones acordadas:
+
+- Cesar trabaja en `backend/modelado` para las historias H2.5, H2.6 y H3.7,
+  coordinando con Alejandro.
+- **`docs/evidencias/` es de escritura libre para todo el equipo.** Cada quien
+  sube la evidencia de sus propias historias a la carpeta que corresponda, sin
+  solicitud previa. Ver `docs/evidencias/README.md`. Solo requiere solicitud
+  crear una carpeta nueva de primer nivel o tocar evidencia ajena.
 
 Archivos compartidos: `contratos/`, `docker-compose.yml`, `.env.example`,
-`requirements.txt`, `package.json`. Se tocan solo por solicitud de cambio
-aprobada por Alejandro y por el dueno del modulo afectado.
+`requirements.txt`, `package.json`, `.github/workflows/`. Se **modifican** solo
+por solicitud de cambio aprobada por Alejandro y por el dueno del modulo
+afectado.
+
+**Crearlos por primera vez dentro de tu propia carpeta no requiere solicitud**:
+lo declaras en el Pull Request. Leer un archivo compartido tampoco: leer
+`contratos/` para generar algo tuyo es uso normal. Ver `docs/07-propiedad-archivos.md`.
 
 ## Commits
 
