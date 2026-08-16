@@ -36,9 +36,30 @@ function AjustarEncuadre({ coleccion }) {
 
   useEffect(() => {
     if (!coleccion) return
+
     const limites = L.geoJSON(coleccion).getBounds()
-    if (limites.isValid()) {
-      mapa.fitBounds(limites, { padding: [40, 40] })
+    if (!limites.isValid()) return
+
+    const ajustar = () => mapa.fitBounds(limites, { padding: [32, 32] })
+
+    // El efecto corre antes de que el navegador termine de calcular el alto del
+    // contenedor. Si se ajusta en ese momento, Leaflet mide una caja equivocada
+    // y elige un zoom demasiado abierto: se ve medio pais en lugar del canton.
+    //
+    // requestAnimationFrame espera al siguiente cuadro, cuando el tamano ya esta
+    // resuelto, e invalidateSize obliga a Leaflet a releerlo.
+    const cuadro = requestAnimationFrame(() => {
+      mapa.invalidateSize()
+      ajustar()
+    })
+
+    // Si la ventana cambia de tamano, el encuadre se recalcula. No llama a
+    // invalidateSize para no realimentar el propio evento.
+    mapa.on('resize', ajustar)
+
+    return () => {
+      cancelAnimationFrame(cuadro)
+      mapa.off('resize', ajustar)
     }
   }, [coleccion, mapa])
 
