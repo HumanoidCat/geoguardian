@@ -86,7 +86,8 @@ def simular(hexadecimal: str, tipo: str) -> str:
     rgb = [_lineal(c) for c in a_rgb(hexadecimal)]
     fila = MATRICES[tipo]
     salida = [sum(fila[i][j] * rgb[j] for j in range(3)) for i in range(3)]
-    return "#%02x%02x%02x" % tuple(a_srgb(c) for c in salida)
+    rojo, verde, azul = (a_srgb(c) for c in salida)
+    return f"#{rojo:02x}{verde:02x}{azul:02x}"
 
 
 # --------------------------------------------------------------------------- #
