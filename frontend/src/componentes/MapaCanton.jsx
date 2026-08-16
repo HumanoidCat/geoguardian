@@ -40,27 +40,25 @@ function AjustarEncuadre({ coleccion }) {
     const limites = L.geoJSON(coleccion).getBounds()
     if (!limites.isValid()) return
 
-    const ajustar = () => mapa.fitBounds(limites, { padding: [32, 32] })
-
-    // El efecto corre antes de que el navegador termine de calcular el alto del
-    // contenedor. Si se ajusta en ese momento, Leaflet mide una caja equivocada
-    // y elige un zoom demasiado abierto: se ve medio pais en lugar del canton.
-    //
-    // requestAnimationFrame espera al siguiente cuadro, cuando el tamano ya esta
-    // resuelto, e invalidateSize obliga a Leaflet a releerlo.
-    const cuadro = requestAnimationFrame(() => {
+    const ajustar = () => {
       mapa.invalidateSize()
-      ajustar()
-    })
-
-    // Si la ventana cambia de tamano, el encuadre se recalcula. No llama a
-    // invalidateSize para no realimentar el propio evento.
-    mapa.on('resize', ajustar)
-
-    return () => {
-      cancelAnimationFrame(cuadro)
-      mapa.off('resize', ajustar)
+      mapa.fitBounds(limites, { padding: [32, 32] })
     }
+
+    // El contenedor del mapa todavia esta creciendo cuando este efecto corre.
+    // Leaflet mide el tamano que hay en ese instante, y si es mas chico que el
+    // final elige un zoom demasiado abierto: se ve medio pais en lugar del
+    // canton. Esperar un cuadro de render no alcanza, porque el alto lo termina
+    // de resolver la rejilla de CSS despues.
+    //
+    // ResizeObserver avisa cada vez que el contenedor cambia de tamano de
+    // verdad, incluida esa ultima vez. Tambien cubre el cambio de tamano de la
+    // ventana. No entra en bucle: invalidateSize no altera el tamano del
+    // contenedor, solo hace que Leaflet lo relea.
+    const observador = new ResizeObserver(ajustar)
+    observador.observe(mapa.getContainer())
+
+    return () => observador.disconnect()
   }, [coleccion, mapa])
 
   return null

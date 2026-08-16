@@ -23,7 +23,7 @@
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
-- [ ] **H5.1** · Mapa del canton con poligonos distritales, zoom y desplazamiento
+- [x] **H5.1** · Mapa del canton con poligonos distritales, zoom y desplazamiento (2026-08-15)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: contratos · **bloquea a: H5.2, H5.3, H5.6**
 
 
