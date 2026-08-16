@@ -1,0 +1,7 @@
+{
+  "version_api": "0.1.0",
+  "version_contratos": "1.2.0",
+  "modo": "simulado",
+  "base_datos_conectada": false,
+  "ultima_ingesta": null
+}

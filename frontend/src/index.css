@@ -1,0 +1,302 @@
+/*
+ * Estilos base del visor.
+ *
+ * Los colores no se definen aca: salen de src/estilos/tokens.css, que es la
+ * fuente unica del sistema de diseno. Este archivo solo compone.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  color: var(--texto);
+  background: var(--superficie-alterna);
+  font-size: var(--texto-md);
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.aplicacion {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Cabecera
+ * -------------------------------------------------------------------------- */
+
+.cabecera {
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borde);
+  padding: var(--espacio-4) var(--espacio-6);
+}
+
+.cabecera h1 {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: 600;
+}
+
+.subtitulo {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Aviso de modo simulado. Exigido por el contrato.
+ * -------------------------------------------------------------------------- */
+
+.aviso-simulado {
+  color: var(--simulado-texto);
+  padding: var(--espacio-3) var(--espacio-6);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  font-size: var(--texto-sm);
+}
+
+.aviso-simulado strong {
+  color: var(--simulado-acento);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--texto-xs);
+  white-space: nowrap;
+}
+
+.aviso-simulado-version {
+  margin-left: auto;
+  color: var(--simulado-acento);
+  font-size: var(--texto-xs);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Estados de carga y error
+ * -------------------------------------------------------------------------- */
+
+.cargando-pantalla {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-4);
+  color: var(--texto-suave);
+}
+
+.barra-carga {
+  width: 14rem;
+  height: 0.5rem;
+  border-radius: var(--radio);
+}
+
+.error {
+  margin: var(--espacio-6);
+  padding: var(--espacio-4);
+  background: var(--superficie);
+  border: 1px solid var(--riesgo-alto);
+  border-left-width: 4px;
+  border-radius: var(--radio);
+}
+
+.error strong {
+  color: var(--riesgo-alto);
+}
+
+.error p {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Contenido: mapa y panel
+ * -------------------------------------------------------------------------- */
+
+.contenido {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 20rem;
+  gap: var(--espacio-4);
+  padding: var(--espacio-4) var(--espacio-6) var(--espacio-6);
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .contenido {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contenedor-mapa {
+  position: relative;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra);
+  min-height: 30rem;
+}
+
+.mapa {
+  width: 100%;
+  height: 100%;
+  min-height: 30rem;
+  z-index: var(--z-mapa);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Poligonos de distrito
+ *
+ * El relleno se resuelve por CSS y no por opciones de Leaflet porque una trama
+ * no cabe en un color. El navegador da prioridad a la regla CSS sobre el
+ * atributo fill que escribe Leaflet, asi que esto gana.
+ * -------------------------------------------------------------------------- */
+
+.distrito {
+  cursor: pointer;
+  transition: stroke-width 0.12s ease;
+}
+
+.distrito-sin-dato {
+  fill: url(#patron-sin-dato);
+  fill-opacity: 1;
+  stroke: var(--sin-dato-borde);
+  stroke-width: var(--distrito-borde-ancho);
+  stroke-dasharray: 5 3;
+}
+
+.distrito:hover,
+.distrito:focus {
+  stroke: var(--distrito-borde-activo);
+  stroke-width: var(--distrito-borde-ancho-activo);
+  outline: none;
+}
+
+.distrito-seleccionado {
+  stroke: var(--distrito-borde-activo);
+  stroke-width: var(--distrito-borde-ancho-activo);
+  stroke-dasharray: none;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Panel del distrito
+ * -------------------------------------------------------------------------- */
+
+.panel {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+  padding: var(--espacio-4);
+  align-self: start;
+}
+
+.panel-vacio {
+  color: var(--texto-tenue);
+  font-size: var(--texto-sm);
+  margin: 0;
+}
+
+.panel-titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: 600;
+}
+
+.panel-codigo {
+  margin: var(--espacio-1) 0 var(--espacio-4);
+  color: var(--texto-tenue);
+  font-size: var(--texto-xs);
+  letter-spacing: 0.05em;
+}
+
+.panel-datos {
+  margin: 0 0 var(--espacio-4);
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.dato {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--espacio-3);
+  padding-bottom: var(--espacio-2);
+  border-bottom: 1px solid var(--borde);
+}
+
+.dato dt {
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.dato dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.unidad {
+  font-weight: 400;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* Un dato ausente se ve distinto de un dato presente. Si se vieran igual, no
+   habria forma de distinguir "cero" de "no se sabe". */
+.valor-ausente {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--texto-tenue);
+  font-size: var(--texto-sm);
+}
+
+.panel-estimacion {
+  display: flex;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background: var(--superficie-alterna);
+  border-radius: var(--radio);
+}
+
+.cuadro-leyenda {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  border: 1px dashed var(--sin-dato-borde);
+  border-radius: 2px;
+}
+
+.panel-estimacion-titulo {
+  margin: 0 0 var(--espacio-1);
+  font-weight: 600;
+  font-size: var(--texto-sm);
+}
+
+.panel-estimacion-detalle {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-xs);
+}
+
+.panel-nota {
+  margin: var(--espacio-3) 0 0;
+  color: var(--texto-tenue);
+  font-size: var(--texto-xs);
+  font-style: italic;
+}
+
+/* Los controles de Leaflet tienen que quedar sobre el mapa pero debajo del
+   aviso de modo simulado. */
+.leaflet-top,
+.leaflet-bottom {
+  z-index: var(--z-controles);
+}
