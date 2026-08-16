@@ -15,18 +15,18 @@
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
-| S0 | semanas 2-3 | 25.9 | 38 | holgado |
-| S1 | semanas 4-5 | 34.3 | 38 | ajustado |
-| S2 | semanas 6-7 | 31.0 | 38 | ajustado |
-| S3 | semanas 8-9 | 20.3 | 38 | holgado |
-| S4 | semanas 10-11 | 32.0 | 38 | ajustado |
+| S0 | semanas 2-3 | 25.9 | 36 | holgado |
+| S1 | semanas 4-5 | 34.3 | 36 | ajustado |
+| S2 | semanas 6-7 | 31.0 | 36 | ajustado |
+| S3 | semanas 8-9 | 20.3 | 36 | holgado |
+| S4 | semanas 10-11 | 32.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 25.9 h
 
-- [ ] **H10.1** · Plan de pruebas con casos por modulo
+- [x] **H10.1** · Plan de pruebas con casos por modulo (2026-08-06)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: contratos
 
-- [ ] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido
+- [x] **H10.5a** · Recopilar 15 referencias IEEE con ficha de contenido (2026-08-06)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · **bloquea a: H10.5b**
 
 

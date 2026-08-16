@@ -67,8 +67,13 @@ Excepciones acordadas:
   crear una carpeta nueva de primer nivel o tocar evidencia ajena.
 
 Archivos compartidos: `contratos/`, `docker-compose.yml`, `.env.example`,
-`requirements.txt`, `package.json`. Se tocan solo por solicitud de cambio
-aprobada por Alejandro y por el dueno del modulo afectado.
+`requirements.txt`, `package.json`, `.github/workflows/`. Se **modifican** solo
+por solicitud de cambio aprobada por Alejandro y por el dueno del modulo
+afectado.
+
+**Crearlos por primera vez dentro de tu propia carpeta no requiere solicitud**:
+lo declaras en el Pull Request. Leer un archivo compartido tampoco: leer
+`contratos/` para generar algo tuyo es uso normal. Ver `docs/07-propiedad-archivos.md`.
 
 ## Commits
 

@@ -2,8 +2,8 @@
 
 **83 historias · 417 puntos · 614 horas** (incluye 20 % de revision)
 
-Generado desde `gestion/issues.csv`, que es la fuente de verdad. Las issues
-de GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
+Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
+GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
 manda el CSV.
 
 La consistencia se comprueba con `python docs/herramientas/verificar_backlog.py`:
@@ -19,8 +19,8 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 | Alejandro | 35.9 | 22.8 | 54.7** | 35.7 | 52.8** | 202 | 118 |
 | Cesar | 18.3 | 30.9 | 31.5 | 39.2** | 34.0 | 154 | 125 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 |
-| Avril | 2.9 | 11.5 | 38.6** | 25.0 | 36.6** | 115 | 94 |
-| **Equipo** | 83 | 100 | 156 | 120 | 155 | **614** | **417** |
+| Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 115 | 94 |
+| **Equipo** | 83 | 107 | 148 | 120 | 155 | **614** | **417** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -43,7 +43,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.1** Plan de pruebas con casos por modulo | luna | 5 | 4.8 | QA | contratos | — |
 | **H10.5a** Recopilar 15 referencias IEEE con ficha de contenido | luna | 8 | 21.1 | IEEE | - | H10.5b |
 
-## Sprint 1 · semanas 4-5 · 14 historias · 99.5 h
+## Sprint 1 · semanas 4-5 · 15 historias · 107.3 h
 
 **Foco.** Dataset consolidado, API y reporte de calidad  
 **Hito.** Entrega institucional (semana 4)
@@ -53,6 +53,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.4** Manual tecnico verificado por alguien ajeno al desarrollo | alejandro | 5 | 4.8 | MVP | H8.1 | — |
 | **H11.1** CI: construir imagen Docker y publicar artefactos en ghcr.io | alejandro | 5 | 4.8 | CICD | H6.0, H6.1 | H11.2 |
 | **H13.1** Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva | alejandro | 5 | 13.2 | Scrum | - | — |
+| **H1.6** Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% | avril | 5 | 7.8 | CG-3 | - | H5.5, H8.4 |
 | **H5.2** Cuatro o mas capas conmutables con control de opacidad | avril | 5 | 4.8 | CG-4 | H5.1 | — |
 | **H5.3** Coropletas de riesgo por evento con rampa de color y leyenda | avril | 7 | 6.7 | CG-1 | H5.1 | H5.4, H5.7, H7.1 |
 | **H1.13** Trigger de auditoria sobre predicciones, con prueba | cesar | 3 | 2.9 | BD-2 | H1.8 | — |
@@ -65,7 +66,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.5b** Estado del arte de Costa Rica | luna | 5 | 13.2 | IEEE | H10.5a | H10.5c |
 | **H4.3** Catalogo de 12 o mas eventos historicos del canton con fuente | luna | 8 | 21.1 | OE3 | - | H4.4, H7.3 |
 
-## Sprint 2 · semanas 6-7 · 22 historias · 155.8 h
+## Sprint 2 · semanas 6-7 · 21 historias · 148.0 h
 
 **Foco.** Modelos entrenados, despliegue continuo y demo de extremo a extremo  
 **Hito.** **Primer avance (semana 7)**
@@ -78,7 +79,6 @@ Las celdas con `**` estan por encima del compromiso.
 | **H3.0** Implementar el etiquetado de los tres eventos y su distribucion de clases | alejandro | 8 | 12.5 | OE2 | H2.3, H2.7, H1.2 | H3.1, H3.2 |
 | **H3.1** Construir la linea base climatologica por distrito, mes y tipo de evento | alejandro | 6 | 9.4 | OE2 | H3.0 | — |
 | **H3.2** Definir y documentar la validacion por ventana expansiva | alejandro | 8 | 12.5 | OE2 | H3.0 | H3.3, H3.4, H3.5 |
-| **H1.6** Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% | avril | 5 | 7.8 | CG-3 | - | H5.5, H8.4 |
 | **H10.3** Manual de usuario con capturas paso a paso | avril | 5 | 4.8 | MVP | H7.1 | H10.9 |
 | **H10.7** Diagramas de casos de uso y entidad-relacion | avril | 5 | 7.8 | Arq | H1.8 | — |
 | **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | avril | 3 | 4.7 | CG-1 | H5.1 | — |
