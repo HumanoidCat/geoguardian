@@ -533,8 +533,38 @@ contra el tamaño del área de estudio.
 | 10.1 | Registrar D-15 e I-05 | Alejandro | Cumplida el 16 ago |
 | 10.2 | Actualizar backlog, roadmap y README con la fuente y la ventana | Alejandro | Cumplida el 16 ago |
 | 10.3 | Completar `.env.example` con los nombres acordados | Alejandro | Cumplida el 16 ago |
-| 10.4 | Verificar CHIRPS con el test de dos puntos antes de implementar | César | **Abierta** |
-| 10.5 | Corregir la extensión del cantón en los criterios de H1.1 | César | **Abierta** |
+| 10.4 | Verificar CHIRPS con el test de dos puntos antes de implementar | César | Cumplida el 18 ago |
+| 10.5 | Corregir la extensión del cantón en los criterios de H1.1 | César | Cumplida el 18 ago |
+
+### Resultado de las acciones 10.4 y 10.5
+
+**10.4 · CHIRPS diferencia.** Los ocho distritos caen en ocho celdas distintas, y
+sobre datos reales del 1 al 7 de setiembre de 2024 el acumulado semanal va de 97,25
+mm en Tronadora a 117,04 en Tierras Morenas, un 20,3 % de diferencia. Lo que más
+sostiene la decisión es que **el orden entre distritos cambia de un día a otro**,
+que es variación espacial y no un sesgo constante del método. **D-15 queda firme**
+y H1.1 se desbloquea.
+
+**10.5 · La extensión real es 30,7 × 36,6 km**, con una caja envolvente de 1.124
+km² que contiene los 669,23 km² del cantón. El cantón es más alto que ancho, al
+revés de lo que decía la versión anterior.
+
+César rastreó de dónde salía el número falso, que es lo que evita que se repita:
+los 22 × 17 km no venían de ninguna medición sino de las líneas 251 y 252 de
+`contratos/simulados/datos.py`, los rangos con los que el generador inventa focos
+**simulados** al azar. Comprobado: 10,40–10,55 de latitud son 16,6 km y −85,05 a
+−84,85 de longitud son 21,9 km. Exactamente 22 × 17.
+
+Es la misma clase de defecto que I-04: un dato del simulado que se cuela a un
+documento con etiqueta de medido.
+
+**Un hallazgo nuevo, anotado sin darlo por cierto.** En los cinco primeros días de
+la muestra, seis de los ocho distritos dan valores que son múltiplos enteros
+exactos de una unidad base, y el patrón se rompe en el día 6. Cinco días son una
+péntada, y CHIRPS reparte totales de péntada entre sus días. Es consistente, pero
+una semana no alcanza para afirmarlo. Importa porque el umbral de lluvia intensa se
+define sobre acumulados de 72 h. Queda para verificar sobre la serie completa y
+documentar como limitación antes del modelado.
 
 **Tiempo de respuesta: mismo día. Impacto evitado:** sin la detección, el defecto
 habría aparecido en la semana 8 o 9, con el modelo entrenado y el visor pintando
