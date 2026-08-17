@@ -8,7 +8,15 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.1.0** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.2.0** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.1.0 -> v1.2.0 (11 de agosto).** Los codigos de distrito pasan de
+`50501`-`50508` a los oficiales `50801`-`50808`. Tilaran es el canton **08** de
+Guanacaste, no el 05; el prefijo `505` corresponde a Carrillo. El defecto lo
+detecto Cesar al consultar el WFS del SNIT durante H1.3. Era un dato con forma
+valida y contenido falso: ninguna validacion de tipo lo detecta. Ver incidencia
+I-04. El verificador incorpora desde entonces una comprobacion explicita de los
+ocho codigos.
 
 **Cambio v1.0.0 -> v1.1.0 (3 de agosto).** `TipoEvento` incorpora
 `LLUVIA_INTENSA`. Motivo: Tilaran esta en la vertiente del Arenal y la lluvia
@@ -23,16 +31,44 @@ cualquier historia.**
 | Esquemas de la API | contratos/esquemas.py | Cesar | no aplica | CONGELADO |
 | Extractores | contratos/fuentes.py | Cesar | si | CONGELADO |
 | Repositorio | contratos/repositorio.py | Cesar | si | CONGELADO |
-| Procesador de senales | contratos/senales.py | Alejandro | pendiente | CONGELADO |
-| Estimador y evaluador | contratos/modelado.py | Alejandro | pendiente | CONGELADO |
+| Procesador de senales | contratos/senales.py | Alejandro | si | CONGELADO |
+| Estimador y evaluador | contratos/modelado.py | Alejandro | si | CONGELADO |
+
+Los seis contratos tienen simulado. Los dos ultimos se agregaron el 16 de agosto:
+hasta entonces figuraban como pendientes y tenian detenidos 16 de los 39 casos del
+plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-    RepositorioSimulado es Repositorio        True
-    ExtractorClimaSimulado es ExtractorClima  True
-    ExtractorFocosSimulado es ExtractorFocos  True
-    31 dias de serie: 2 huecos (None), 11 dias con lluvia 0.0 mm, distinguibles
-    listar_metricas() devuelve [] porque no hay modelos entrenados
+`python -m contratos.verificar` ejecuta **28 comprobaciones** agrupadas en seis
+bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
+respeten las tres invariantes del proyecto.
+
+    Los simulados cumplen los protocolos            6 comprobaciones
+    Los datos faltantes son representables           4
+    Lo que aun no existe se reporta vacio            4
+    El procesamiento de senales no rellena huecos    4
+    No hay estimacion sin modelo detras              4
+    La validacion temporal no admite fuga            3
+    El modo simulado es visible                      1
+    El vocabulario del dominio esta cerrado          5
+
+Las tres comprobaciones de fuga temporal son las que menos se notan y mas valen:
+una particion aleatoria sobre series temporales no rompe ninguna prueba por si
+sola, infla las metricas y no se descubre hasta el analisis final, cuando ya
+invalido el contraste de H1.
+
+## Huecos conocidos del contrato
+
+Se registran aqui, sin corregirlos: modificar un contrato congelado exige
+solicitud de cambio aprobada.
+
+**`ProcesadorSenales.anomalia` no recibe fechas.** La firma toma la serie y las
+normales indexadas por mes, pero nada indica a que mes corresponde cada posicion.
+El simulado supone que la serie es mensual y arranca en enero. Si esa suposicion
+no se cumple, el resultado es silenciosamente incorrecto: no falla, devuelve
+numeros equivocados. Corregirlo es agregar las fechas a la firma, en la proxima
+version.
 
 ## Decisiones de diseno
 
