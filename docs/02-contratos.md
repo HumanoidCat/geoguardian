@@ -40,7 +40,7 @@ plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-`python -m contratos.verificar` ejecuta **28 comprobaciones** agrupadas en seis
+`python -m contratos.verificar` ejecuta **31 comprobaciones** agrupadas en ocho
 bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
 respeten las tres invariantes del proyecto.
 
@@ -52,6 +52,8 @@ respeten las tres invariantes del proyecto.
     La validacion temporal no admite fuga            3
     El modo simulado es visible                      1
     El vocabulario del dominio esta cerrado          5
+                                                    --
+                                                    31
 
 Las tres comprobaciones de fuga temporal son las que menos se notan y mas valen:
 una particion aleatoria sobre series temporales no rompe ninguna prueba por si
