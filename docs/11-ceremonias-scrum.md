@@ -434,19 +434,25 @@ fuente. Queda explicado en la evidencia.
 
 ### Estado al cierre del Sprint 0
 
-Contado sobre el último commit del 13 de agosto en `dev`, no de memoria:
+Contado sobre el último commit del 13 de agosto en `dev`, con dos métodos
+independientes que coinciden:
 
-| Persona | Historias cerradas con evidencia |
-|---|---|
-| Alejandro | 6 |
-| César | 2 |
-| Luna | 3 |
-| Avril | 1 |
-| **Total** | **12 de 83** |
+| Persona | Historias cerradas con evidencia | Cuáles |
+|---|---|---|
+| Alejandro | 5 | H10.8, H6.4, H8.1, H8.5, H8.6 |
+| César | 1 | H1.3 |
+| Luna | 2 | H10.1, H10.5a |
+| Avril | 0 | — |
+| **Total** | **8 de 83** | |
 
-El reparto desigual es esperado y ya estaba anotado como alerta en el roadmap: con
-la documentación asignada al Scrum Master, la carga tiende a concentrarse en él.
-Avril arrancó con 2,9 h asignadas en el Sprint 0 por diseño, no por retraso.
+El reparto desigual es esperado y estaba anotado como alerta en el roadmap: con la
+documentación asignada al Scrum Master, la carga tiende a concentrarse en él. Avril
+arrancó con 2,9 h asignadas en el Sprint 0 por diseño, no por retraso, y cerró H5.1
+tres días después.
+
+**Ocho historias de 83 al cerrar el primer sprint de cinco.** El dato no se maquilla:
+de esas ocho, seis son de infraestructura y documentación y solo H1.3 es código que
+va a correr en el sistema final. La velocidad de producto todavía no se puede medir.
 
 ### Acciones abiertas al cierre
 
@@ -642,8 +648,28 @@ escrito una vez y nunca vuelto a comprobar.
 | # | Acción | Responsable | Estado |
 |---|---|---|---|
 | 12.1 | Corregir los cinco documentos desfasados | Alejandro | Cumplida el 16 ago |
-| 12.2 | Agregar un verificador de documentación desfasada al CI | Alejandro | **Abierta** |
-| 12.3 | Calcular la velocidad real del Sprint 0 y recalibrar el modelo | Alejandro | **Abierta** |
+| 12.2 | Agregar un verificador de documentación desfasada al CI | Alejandro | Cumplida el 16 ago |
+| 12.3 | Calcular la velocidad real del Sprint 0 | Alejandro | Cumplida el 16 ago |
+| 12.4 | Registrar horas reales en el cuerpo del PR, para poder recalibrar el modelo de esfuerzo | Todo el equipo | **Abierta** |
+
+### Resultado de las acciones 12.2 y 12.3
+
+**12.2.** `docs/herramientas/verificar_documentacion.py` corre en el trabajo de
+gestión del CI. Calcula desde el repositorio cada cifra que la documentación
+afirma —comprobaciones de contratos, versión, historias del backlog, trabajos del
+pipeline— y falla si alguna no coincide. Se probó inyectando un número falso: lo
+detecta y sale con código 1.
+
+Trae además una función de conteo de historias cerradas que excluye el ejemplo del
+bloque de instrucciones, que fue el origen de dos de los cinco errores.
+
+**12.3.** El Sprint 0 entregó **43 de 54 puntos comprometidos, un 80 %**: 21,5
+puntos por semana. El detalle está en `docs/12-velocidad.md`.
+
+Ese documento declara también lo que **no** se pudo calcular: el modelo de horas
+por punto del roadmap no se puede recalibrar porque nadie registró horas reales, y
+comparar estimación contra estimación daría 1,0 por construcción. De ahí sale la
+acción 12.4, que cuesta una línea por Pull Request.
 
 ---
 
@@ -668,9 +694,10 @@ escrito una vez y nunca vuelto a comprobar.
 **Actas de reuniones sincrónicas**, porque el equipo no las celebra: la modalidad
 asincrónica está declarada en cada acta y se decidió al arrancar, no después.
 
-**Métricas de velocidad por sprint**, porque el Sprint 0 cerró el 13 de agosto y la
-comparación de la velocidad real contra el modelo de horas por punto es la acción
-12.3, todavía abierta.
+**El modelo de horas por punto recalibrado**, porque nadie registró horas reales y
+comparar estimación contra estimación daría 1,0 por construcción. La velocidad en
+puntos sí está medida —43 de 54 comprometidos en el Sprint 0— y vive en
+`docs/12-velocidad.md`.
 
 Ambas ausencias se declaran en lugar de rellenarse. Es la misma regla que el
 proyecto aplica a sus datos: lo que no existe se reporta vacío, no se inventa.
