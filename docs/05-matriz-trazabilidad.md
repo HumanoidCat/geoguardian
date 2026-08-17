@@ -22,6 +22,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H3.6 | Comparativa de tres algoritmos | backend/modelado | test_comparativa | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H4.2 | Explicabilidad con SHAP | backend/modelado | test_shap | docs/evidencias/ | OE3 | Alejandro | Pendiente |
+| H5.1 | Mapa del canton con poligonos distritales, zoom y desplazamiento | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.1-mapa-distritos.md | CG-4 | Avril | **Con evidencia** |
 | H5.3 | Coropletas de riesgo por distrito | frontend | prueba visual | docs/evidencias/computacion-grafica/ | CG-1 | Avril | Pendiente |
 | H5.6 | Transformacion de coordenadas | frontend | test_proyeccion | docs/evidencias/computacion-grafica/ | CG-1 | Avril | Pendiente |
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/ | Arq | Cesar | Pendiente |
@@ -29,6 +30,8 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Alejandro | Pendiente |
 | H9.2 | Validacion externa con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H10.1 | Plan de pruebas con casos por modulo | docs/investigacion | no aplica: es el plan, no la suite | docs/evidencias/calidad/H10.1-plan-pruebas.md | QA | Luna | **Con evidencia** |
+| H10.4 | Manual tecnico verificado por alguien ajeno al desarrollo | docs | los comandos de su seccion 5, ejecutados | docs/evidencias/entregables/H10.4-manual-tecnico.md | MVP | Alejandro | En progreso: falta la verificacion externa |
+| H13.1 | Actas de las ceremonias Scrum | docs | contraste de cada cifra contra git log y el backlog | docs/evidencias/arquitectura-software/H13.1-ceremonias-scrum.md | Scrum | Alejandro | **Con evidencia** |
 | H10.2 | Suite de pruebas del backend | backend/tests | los 39 casos del plan H10.1 | docs/evidencias/calidad/ | QA | Luna | Pendiente |
 | H10.5a | 15 referencias IEEE con ficha de contenido | docs/investigacion | verificacion de cada DOI contra la editorial | docs/evidencias/entregables/H10.5a-referencias-ieee.md | IEEE | Luna | **Con evidencia** |
 | H10.5b | Estado del arte de Costa Rica | docs/investigacion | no aplica: es documentacion | docs/evidencias/entregables/ | IEEE | Luna | Pendiente |

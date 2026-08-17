@@ -26,14 +26,23 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
+| D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
+| D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 
 ---
 
 ## D-01 · Fuentes globales abiertas como base primaria
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **revisada parcialmente por D-15** el 2026-08-16
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, Lead PM
+
+> **Nota de revision.** El principio de esta decision se mantiene: fuentes
+> abiertas, sin dependencia del calendario de terceros. Lo que cambio es la fuente
+> de **precipitacion**, que pasa de NASA POWER a CHIRPS por resolucion espacial.
+> La consecuencia que este registro ya anticipaba —"se pierde resolucion local"—
+> resulto ser mas grave de lo evaluado: no era perdida de precision sino
+> imposibilidad de diferenciar entre distritos. Ver **D-15** e **I-05**.
 
 ### Contexto
 
@@ -657,7 +666,7 @@ vocabulario territorial del proyecto.
 |---|---|
 | Servicio | `https://geos.snitcr.go.cr/be/IGN_5_CO/wfs` |
 | Capa | `IGN_5_CO:limitedistrital_5k` |
-| Entidades en la capa | 492 distritos de todo el pais |
+| Entidades en la capa | 494 distritos de todo el pais, medidos al cargar |
 | Ambito del proyecto | Los 8 con codigo `508xx` |
 | Sistema de referencia | EPSG:4326, como exige `Distrito.geometria` |
 
@@ -701,9 +710,22 @@ oficiales. Queda corregido en `docs/tareas/cesar.md` y en el roadmap.
 
 ### Medicion
 
-La capa expone 492 entidades, verificado por Cesar mediante GetCapabilities. La
-evidencia de H1.3 debe registrar cuantas se cargaron y con que filtro se
-redujeron a los ocho distritos de Tilaran.
+**Medicion realizada** (H1.3, 13 de agosto de 2026). El filtro
+`"CODIGO_CANTON"=508` redujo la capa nacional a los 8 distritos de Tilaran, con
+la reduccion hecha en el servidor y no descargando el pais entero. Queda
+registrado en `basedatos/ddl/procedencia-geometrias.md` con la URL exacta, la
+fecha y las sumas de verificacion.
+
+**Correccion del conteo, 16 de agosto.** Este registro afirmaba **492** entidades,
+tomado del listado publicado por el SNIT al redactar la decision. Al ejecutar la
+carga, el servicio devolvio **494**: la division territorial cambio despues de
+publicarse ese listado. El numero correcto es 494 y se consulta en cada carga en
+lugar de fijarse en el codigo, de modo que una reforma territorial futura quede
+registrada sola.
+
+El error no tuvo consecuencia —el filtro por canton no depende del total
+nacional— pero es un caso mas del hallazgo abierto de la retrospectiva: la
+documentacion propia se desfasa y ningun verificador lo detecta.
 
 ---
 
@@ -781,6 +803,180 @@ en el CI, la regeneracion deberia correr ahi.
 Ejecutado el 2026-08-12: 8 distritos exportados, codigos 50801 a 50808,
 `version_contratos: 1.2.0`, `modo: simulado`. Ninguna poblacion inventada: los
 ocho salen con dato ausente.
+
+---
+
+## D-15 · Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-16
+**Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
+**Revisa parcialmente.** D-01, que declaraba NASA POWER fuente primaria de clima
+
+### Contexto
+
+Antes de escribir el extractor de H1.1, Cesar comprobo que devuelve NASA POWER
+para dos puntos distintos del canton. Devuelve exactamente lo mismo, hasta el
+ultimo decimal, incluida la elevacion:
+
+| Fecha | Punto suroeste | Punto noreste |
+|---|---|---|
+| 2024-01-01 | 24.40 C · 0.0 mm | 24.40 C · 0.0 mm |
+| 2024-01-03 | 24.42 C · 0.04 mm | 24.42 C · 0.04 mm |
+| 2024-01-04 | 24.31 C · 0.7 mm | 24.31 C · 0.7 mm |
+
+La causa es la resolucion. POWER sirve MERRA-2 en una malla de 0,5° × 0,625°,
+que a la latitud de Tilaran son unos 68 × 55 km. El canton mide 669,23 km²
+—medidos en H1.3— y cabe entero dentro de una sola celda.
+
+Dos de los tres eventos se definen sobre precipitacion: la sequia por SPI-3 y la
+lluvia intensa por acumulado de 72 h contra los percentiles del propio distrito.
+Con una sola celda, esos dos eventos dan el mismo riesgo en los ocho distritos
+**por construccion y no por hallazgo**. El visor mostraria ocho poligonos del
+mismo color y el modelo no tendria de donde aprender diferencias.
+
+Eso no es una limitacion que se documenta: es responder la pregunta de
+investigacion con un "no" antes de recolectar ninguna evidencia. Ver **I-05**.
+
+El incendio no esta afectado: su etiqueta sale de los focos de FIRMS, que son
+detecciones puntuales de unos 375 m.
+
+### Decision
+
+Fuente hibrida, por variable y no por proveedor:
+
+| Variable | Fuente | Resolucion | Credenciales |
+|---|---|---|---|
+| Precipitacion | **CHIRPS** | 0,05° (~5,5 km) | Ninguna, dominio publico |
+| Temperatura, humedad, radiacion, viento | NASA POWER | 0,5° × 0,625° | Ninguna |
+
+A 0,05° el canton se reparte en unas 36 celdas y cada distrito abarca varias, de
+modo que la precipitacion deja de ser constante entre distritos.
+
+**La decision esta condicionada a una verificacion previa.** Antes de escribir el
+extractor hay que repetir sobre CHIRPS el mismo test de dos puntos con el que se
+descarto POWER, usando los extremos reales del canton. Si CHIRPS tambien devuelve
+valores identicos, no sirve y se vuelve a decidir. Una resolucion nominal mejor no
+es prueba de diferenciacion real.
+
+Consecuencia asociada: la ventana de descarga pasa de 2016-2025 a **1991-2025**,
+porque la linea base de D-10 se define sobre la normal climatologica 1991-2020 y
+con diez anios no se puede calcular como esta declarada. Ambas fuentes llegan a
+1981, asi que ninguna lo impide.
+
+### Justificacion
+
+Se cambia solo la variable que esta rota. La precipitacion es la que define los
+dos umbrales afectados; temperatura, humedad, radiacion y viento no definen
+ninguno, y a escala de un canton pequenio la aproximacion de area se sostiene
+mientras quede declarada.
+
+CHIRPS es de dominio publico, no exige registro y publica desde 1981, de modo que
+cubre tambien el periodo de la normal climatologica. Mantiene intacta la
+independencia del calendario de terceros que motivo D-01.
+
+Nada de esto toca los contratos: `ExtractorClima` ya contempla varias
+implementaciones.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Mantener POWER y documentar la limitacion | Responde la pregunta de investigacion por construccion, sin evidencia. Obligaria a replantear OE4 y el titulo del proyecto |
+| Cambiar todo a ERA5-Land | Su malla nativa de 9 km no se expone por API: el Climate Data Store entrega 0,1° (~11 km), donde varios distritos siguen compartiendo celda. Ademas exige cuenta con espera, igual que Copernicus para H1.6 |
+| Usar las estaciones del IMN | Son mediciones reales y el contrato ya las nombra como segunda implementacion, pero exige averiguar cuantas estaciones hay cerca y con que continuidad en 35 anios. No se descarta como enriquecimiento; se descarta como camino critico, por la misma razon que en D-01 |
+
+### Consecuencias
+
+Se gana diferenciacion espacial real en las dos variables que la necesitan, sin
+sumar ninguna credencial ni ninguna espera.
+
+Se pierde homogeneidad: el conjunto de datos pasa a tener dos procedencias con
+mallas distintas, y eso hay que declararlo en el documento IEEE y en el reporte de
+calidad de H1.5. La temperatura sigue siendo constante entre distritos, asi que
+cualquier diferencia que el modelo encuentre entre ellos vendra de la
+precipitacion, de los focos de calor o de variables estaticas, nunca de la
+temperatura. Esa restriccion condiciona la lectura de la importancia de variables
+en H4.1 y del analisis SHAP en H4.2.
+
+Se pierde tambien trabajo previsto: H1.1 se rehace contra otra fuente. El costo
+real es cero porque el extractor no llego a escribirse, y eso es merito del orden
+en que Cesar trabajo: comprobar la fuente antes de implementarla.
+
+### Medicion
+
+El test de dos puntos sobre CHIRPS, previo a escribir el extractor, tiene que
+mostrar valores distintos entre distritos para las mismas fechas. La evidencia de
+H1.1 debe registrar cuantos de los ocho distritos caen en celdas distintas y el
+rango de precipitacion entre ellos para una fecha de lluvia.
+
+Si esa medicion muestra que CHIRPS tampoco diferencia, esta decision pasa a
+**Sustituida** y se vuelve a D-01 con la limitacion documentada.
+
+---
+
+## D-16 · La propiedad de una carpeta sigue al trabajo asignado
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-16
+**Decide.** Alejandro
+
+### Contexto
+
+`backend/senales` figuraba como carpeta de Alejandro desde el arranque. Al
+auditar el reparto real aparecio que **las cinco historias de senales son de Luna
+y dos de Cesar**: ninguno de los dos podia escribir una linea sin una solicitud de
+cambio, archivo por archivo.
+
+Lo mismo en `backend/modelado`, de Alejandro, donde Cesar tiene cuatro historias.
+
+Nadie se habia topado con el problema todavia porque el trabajo de esas dos epicas
+no ha empezado. Habria aparecido el dia que Luna abriera H2.1, y habria costado un
+dia de ida y vuelta, exactamente como paso con Avril y `frontend/package.json` el
+12 de agosto (ver acta 08).
+
+### Decision
+
+**La propiedad de una carpeta sigue al trabajo asignado, no al reves.**
+
+- `backend/senales` pasa a **Luna**, que tiene cinco de sus siete historias.
+- `backend/modelado` sigue en Alejandro, con excepcion declarada para las cuatro
+  historias de Cesar: H3.3, H3.4, H3.5 y H3.7.
+- Cesar escribe en `backend/senales` para H2.5 y H2.6 sin solicitud.
+- Alejandro escribe en `backend/senales` para lo que necesiten sus historias de
+  modelado, avisando a Luna.
+
+### Justificacion
+
+La regla de un dueno por carpeta existe para evitar que dos personas se pisen el
+mismo archivo, no para que quien tiene la historia asignada tenga que pedir
+permiso para hacerla. Cuando el reparto de trabajo y el de carpetas no coinciden,
+lo que esta mal es el reparto de carpetas.
+
+Se corrige **antes** de que bloquee a alguien y no despues, que es la diferencia
+con el caso de Avril.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Dejarlo y resolver por solicitud cuando aparezca | Es garantizar el bloqueo. Ya sabemos que va a pasar y cuando |
+| Devolver las historias de E2 y E3 a Alejandro | Elimina el conflicto pero le suma nueve historias sobre dos sprints que ya estan sobrecargados en +19 h y +17 h |
+| Quitar la regla de propiedad | Existe por una razon y ha funcionado: nadie ha pisado el trabajo de otro en seis semanas |
+
+### Consecuencias
+
+Se gana que tres personas puedan arrancar E2 y E3 sin pedir permiso. Se pierde
+nitidez: dos carpetas dejan de tener un unico dueno y hay que mirar la tabla de
+excepciones para saber quien puede escribir donde.
+
+La mitigacion es que la excepcion esta escrita por historia, no en general: fuera
+de esas seis historias, la regla sigue valiendo.
+
+### Medicion
+
+Ninguna solicitud de cambio sobre `backend/senales` o `backend/modelado` cuando
+arranquen E2 y E3. Si aparece una, la excepcion quedo corta y hay que ampliarla.
 
 ---
 

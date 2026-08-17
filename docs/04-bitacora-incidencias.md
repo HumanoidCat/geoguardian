@@ -168,3 +168,66 @@ compartido, reporto en lugar de corregir por su cuenta.
 implementara contra el valor equivocado. Sin la deteccion, la estimacion es de
 varios dias de diagnostico en el Sprint 1.
 
+---
+
+## I-05 · La fuente climatica no distingue entre los distritos del canton
+
+**Fecha.** 2026-08-16
+
+**Quien lo detecto.** Cesar, al redactar los criterios de aceptacion de H1.1,
+antes de escribir una linea del extractor.
+
+**Que paso.** NASA POWER devuelve exactamente el mismo valor para dos puntos
+distintos del canton, hasta el ultimo decimal, e incluso la misma elevacion. La
+causa es la resolucion: POWER sirve MERRA-2 en una malla de 0,5° × 0,625°, unos
+68 × 55 km a la latitud de Tilaran. El canton mide 669,23 km² y cabe entero
+dentro de una sola celda.
+
+Dos de los tres eventos se definen sobre precipitacion: sequia por SPI-3 y lluvia
+intensa por acumulado de 72 h contra los percentiles del propio distrito. Con una
+sola celda, los ocho distritos habrian dado el mismo riesgo siempre, por
+construccion.
+
+**Causa raiz.** Se eligio la fuente por cobertura temporal y facilidad de acceso
+—series diarias desde 1981, sin registro— y nadie comprobo su resolucion espacial
+contra el tamanio del area de estudio. La decision D-01 llego a escribir que
+"POWER entrega una celda de reanalisis, no una estacion en Tilaran", pero se
+trato como una limitacion aceptable de precision y no como lo que era: la
+imposibilidad de cumplir el objetivo por distrito, que es el titulo del proyecto.
+
+Nadie hizo la cuenta de cuantos distritos caben en una celda. Es una division.
+
+**Accion tomada.** Fuente hibrida (**D-15**): CHIRPS a 0,05° para precipitacion,
+que es la variable que define los dos umbrales rotos, y POWER para temperatura,
+humedad, radiacion y viento, que no definen ninguno. La decision queda
+condicionada a repetir el mismo test de dos puntos sobre CHIRPS antes de escribir
+el extractor.
+
+Se corrigio ademas la ventana de descarga, de 2016-2025 a 1991-2025: la linea
+base de D-10 se define sobre la normal climatologica 1991-2020 y con diez anios
+no se podia calcular como esta declarada. Ese segundo defecto salio de la misma
+revision.
+
+**Aprendizaje.** Una fuente de datos se evalua contra el area de estudio, no en
+abstracto. La pregunta "cuantas celdas caben en el area" es una division y hay
+que hacerla al elegir la fuente, no al implementar el extractor.
+
+Lo que hay que copiar del hallazgo, otra vez: comprobar la fuente **antes** de
+implementar. Es el segundo defecto grave que aparece por ese orden de trabajo
+—I-04 fue el primero— y en los dos casos el costo fue cero.
+
+Vale registrar tambien el contraejemplo: en el mismo documento la extension del
+canton figuraba como 22 × 17 km, que son 374 km², cuando el area medida en H1.3
+es 669 km². Un poligono no puede tener mas area que su caja envolvente. El numero
+salio de medir la separacion entre los dos puntos de muestreo y no los extremos
+del canton. No invalida el hallazgo, pero cambiaba el modo de fallo: si el borde
+este del canton pasa de la longitud -84,6875, parte de los distritos cae en la
+celda vecina y en vez de un valor uniforme habria dos, separados por una linea
+recta que no corresponde a ningun accidente geografico. Eso es peor, porque
+parece senial.
+
+**Impacto.** Cero horas perdidas de implementacion: el extractor no llego a
+escribirse. H1.1 queda bloqueada unos dias mientras se verifica CHIRPS. Sin la
+deteccion, el defecto habria aparecido en la semana 8 o 9, con el modelo entrenado
+y el visor pintando ocho poligonos identicos, y con la pregunta de investigacion
+ya respondida por construccion.

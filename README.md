@@ -55,18 +55,25 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 
 ## Fuentes de datos
 
-| Fuente | Aporta | Acceso |
-|---|---|---|
-| NASA POWER | Series climáticas diarias desde 1981 | Abierto, sin registro |
-| NASA FIRMS | Focos de calor desde el año 2000 | Abierto, con clave gratuita |
-| Copernicus Sentinel-2 | Imágenes multiespectrales | Abierto, con cuenta gratuita |
-| SNIT Costa Rica | Capas territoriales oficiales | Servicios OGC públicos |
+| Fuente | Aporta | Resolución | Acceso |
+|---|---|---|---|
+| CHIRPS | Precipitación diaria desde 1981 | 0,05° (~5,5 km) | Abierto, sin registro |
+| NASA POWER | Temperatura, humedad, radiación y viento, diarias desde 1981 | 0,5° × 0,625° (~68 × 55 km) | Abierto, sin registro |
+| NASA FIRMS | Focos de calor desde el año 2000 | ~375 m por detección | Abierto, con clave gratuita |
+| Copernicus Sentinel-2 | Imágenes multiespectrales | 10-60 m | Abierto, con cuenta gratuita |
+| SNIT Costa Rica | Capas territoriales oficiales | 1:5000 | Servicios OGC públicos |
+
+> **Por qué dos fuentes climáticas.** El cantón entero cabe dentro de una sola
+> celda de NASA POWER, así que la precipitación salía idéntica en los ocho
+> distritos y dos de los tres eventos —sequía y lluvia intensa, ambos definidos
+> sobre precipitación— habrían dado el mismo riesgo por construcción. CHIRPS
+> reparte el cantón en unas 36 celdas. Ver `docs/03-bitacora-decisiones.md`, D-15.
 
 ## Estado del proyecto
 
 | | |
 |---|---|
-| Contratos | v1.2.0, congelados. 17 verificaciones en `python -m contratos.verificar` |
+| Contratos | v1.2.0, congelados. 31 verificaciones en `python -m contratos.verificar` |
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
 | Integración continua | Cinco trabajos: contratos, backlog y documentación, linter, pruebas y frontend |
