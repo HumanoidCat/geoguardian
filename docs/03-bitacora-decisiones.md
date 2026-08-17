@@ -665,7 +665,7 @@ vocabulario territorial del proyecto.
 |---|---|
 | Servicio | `https://geos.snitcr.go.cr/be/IGN_5_CO/wfs` |
 | Capa | `IGN_5_CO:limitedistrital_5k` |
-| Entidades en la capa | 492 distritos de todo el pais |
+| Entidades en la capa | 494 distritos de todo el pais, medidos al cargar |
 | Ambito del proyecto | Los 8 con codigo `508xx` |
 | Sistema de referencia | EPSG:4326, como exige `Distrito.geometria` |
 
@@ -709,9 +709,22 @@ oficiales. Queda corregido en `docs/tareas/cesar.md` y en el roadmap.
 
 ### Medicion
 
-La capa expone 492 entidades, verificado por Cesar mediante GetCapabilities. La
-evidencia de H1.3 debe registrar cuantas se cargaron y con que filtro se
-redujeron a los ocho distritos de Tilaran.
+**Medicion realizada** (H1.3, 13 de agosto de 2026). El filtro
+`"CODIGO_CANTON"=508` redujo la capa nacional a los 8 distritos de Tilaran, con
+la reduccion hecha en el servidor y no descargando el pais entero. Queda
+registrado en `basedatos/ddl/procedencia-geometrias.md` con la URL exacta, la
+fecha y las sumas de verificacion.
+
+**Correccion del conteo, 16 de agosto.** Este registro afirmaba **492** entidades,
+tomado del listado publicado por el SNIT al redactar la decision. Al ejecutar la
+carga, el servicio devolvio **494**: la division territorial cambio despues de
+publicarse ese listado. El numero correcto es 494 y se consulta en cada carga en
+lugar de fijarse en el codigo, de modo que una reforma territorial futura quede
+registrada sola.
+
+El error no tuvo consecuencia —el filtro por canton no depende del total
+nacional— pero es un caso mas del hallazgo abierto de la retrospectiva: la
+documentacion propia se desfasa y ningun verificador lo detecta.
 
 ---
 

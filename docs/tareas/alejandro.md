@@ -64,7 +64,7 @@
 - [ ] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io
   - `E11` · 5 pts · 4.8 h · rubrica: CICD · depende de: H6.0, H6.1 · **bloquea a: H11.2**
 
-- [ ] **H13.1** · Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva
+- [x] **H13.1** · Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva (2026-08-16)
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
