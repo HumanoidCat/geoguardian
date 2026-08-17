@@ -27,6 +27,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
 | D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
+| D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 
 ---
 
@@ -665,7 +666,7 @@ vocabulario territorial del proyecto.
 |---|---|
 | Servicio | `https://geos.snitcr.go.cr/be/IGN_5_CO/wfs` |
 | Capa | `IGN_5_CO:limitedistrital_5k` |
-| Entidades en la capa | 492 distritos de todo el pais |
+| Entidades en la capa | 494 distritos de todo el pais, medidos al cargar |
 | Ambito del proyecto | Los 8 con codigo `508xx` |
 | Sistema de referencia | EPSG:4326, como exige `Distrito.geometria` |
 
@@ -709,9 +710,22 @@ oficiales. Queda corregido en `docs/tareas/cesar.md` y en el roadmap.
 
 ### Medicion
 
-La capa expone 492 entidades, verificado por Cesar mediante GetCapabilities. La
-evidencia de H1.3 debe registrar cuantas se cargaron y con que filtro se
-redujeron a los ocho distritos de Tilaran.
+**Medicion realizada** (H1.3, 13 de agosto de 2026). El filtro
+`"CODIGO_CANTON"=508` redujo la capa nacional a los 8 distritos de Tilaran, con
+la reduccion hecha en el servidor y no descargando el pais entero. Queda
+registrado en `basedatos/ddl/procedencia-geometrias.md` con la URL exacta, la
+fecha y las sumas de verificacion.
+
+**Correccion del conteo, 16 de agosto.** Este registro afirmaba **492** entidades,
+tomado del listado publicado por el SNIT al redactar la decision. Al ejecutar la
+carga, el servicio devolvio **494**: la division territorial cambio despues de
+publicarse ese listado. El numero correcto es 494 y se consulta en cada carga en
+lugar de fijarse en el codigo, de modo que una reforma territorial futura quede
+registrada sola.
+
+El error no tuvo consecuencia —el filtro por canton no depende del total
+nacional— pero es un caso mas del hallazgo abierto de la retrospectiva: la
+documentacion propia se desfasa y ningun verificador lo detecta.
 
 ---
 
@@ -898,6 +912,71 @@ rango de precipitacion entre ellos para una fecha de lluvia.
 
 Si esa medicion muestra que CHIRPS tampoco diferencia, esta decision pasa a
 **Sustituida** y se vuelve a D-01 con la limitacion documentada.
+
+---
+
+## D-16 · La propiedad de una carpeta sigue al trabajo asignado
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-16
+**Decide.** Alejandro
+
+### Contexto
+
+`backend/senales` figuraba como carpeta de Alejandro desde el arranque. Al
+auditar el reparto real aparecio que **las cinco historias de senales son de Luna
+y dos de Cesar**: ninguno de los dos podia escribir una linea sin una solicitud de
+cambio, archivo por archivo.
+
+Lo mismo en `backend/modelado`, de Alejandro, donde Cesar tiene cuatro historias.
+
+Nadie se habia topado con el problema todavia porque el trabajo de esas dos epicas
+no ha empezado. Habria aparecido el dia que Luna abriera H2.1, y habria costado un
+dia de ida y vuelta, exactamente como paso con Avril y `frontend/package.json` el
+12 de agosto (ver acta 08).
+
+### Decision
+
+**La propiedad de una carpeta sigue al trabajo asignado, no al reves.**
+
+- `backend/senales` pasa a **Luna**, que tiene cinco de sus siete historias.
+- `backend/modelado` sigue en Alejandro, con excepcion declarada para las cuatro
+  historias de Cesar: H3.3, H3.4, H3.5 y H3.7.
+- Cesar escribe en `backend/senales` para H2.5 y H2.6 sin solicitud.
+- Alejandro escribe en `backend/senales` para lo que necesiten sus historias de
+  modelado, avisando a Luna.
+
+### Justificacion
+
+La regla de un dueno por carpeta existe para evitar que dos personas se pisen el
+mismo archivo, no para que quien tiene la historia asignada tenga que pedir
+permiso para hacerla. Cuando el reparto de trabajo y el de carpetas no coinciden,
+lo que esta mal es el reparto de carpetas.
+
+Se corrige **antes** de que bloquee a alguien y no despues, que es la diferencia
+con el caso de Avril.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Dejarlo y resolver por solicitud cuando aparezca | Es garantizar el bloqueo. Ya sabemos que va a pasar y cuando |
+| Devolver las historias de E2 y E3 a Alejandro | Elimina el conflicto pero le suma nueve historias sobre dos sprints que ya estan sobrecargados en +19 h y +17 h |
+| Quitar la regla de propiedad | Existe por una razon y ha funcionado: nadie ha pisado el trabajo de otro en seis semanas |
+
+### Consecuencias
+
+Se gana que tres personas puedan arrancar E2 y E3 sin pedir permiso. Se pierde
+nitidez: dos carpetas dejan de tener un unico dueno y hay que mirar la tabla de
+excepciones para saber quien puede escribir donde.
+
+La mitigacion es que la excepcion esta escrita por historia, no en general: fuera
+de esas seis historias, la regla sigue valiendo.
+
+### Medicion
+
+Ninguna solicitud de cambio sobre `backend/senales` o `backend/modelado` cuando
+arranquen E2 y E3. Si aparece una, la excepcion quedo corta y hay que ampliarla.
 
 ---
 

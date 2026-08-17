@@ -29,16 +29,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # Estos tres verificadores existen por errores que ya ocurrieron:
-      #   backlog  -> tres dependencias apuntaban a sprints posteriores (semana 4)
-      #   adr      -> la rubrica exige seis registros y hay que probar que estan
+      # Estos cuatro verificadores existen por errores que ya ocurrieron:
+      #   backlog    -> tres dependencias apuntaban a sprints posteriores (semana 4)
+      #   adr        -> la rubrica exige seis registros y hay que probar que estan
       #   evidencias -> 30 de 82 historias no tenian carpeta destino
+      #   documentacion -> cinco cifras desfasadas en dos dias (accion 12.2)
       - name: El backlog es consistente
         run: python docs/herramientas/verificar_backlog.py
       - name: Los registros ADR estan completos
         run: python docs/herramientas/verificar_adr.py
       - name: Toda historia tiene carpeta de evidencia
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+      # Necesita pydantic porque corre contratos.verificar para contar sus
+      # comprobaciones en lugar de confiar en un numero escrito a mano.
+      - name: Instalar lo minimo para contar las comprobaciones de contratos
+        run: pip install pydantic==2.10.4
+      - name: Las cifras de la documentacion siguen siendo ciertas
+        run: python docs/herramientas/verificar_documentacion.py
 
   calidad:
     name: Linter y formato
