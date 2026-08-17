@@ -119,6 +119,14 @@ Fechas por confirmar con el profesorado.
 **El eslabon mas fragil es el primero.** Sin contratos congelados en la semana 2,
 nadie puede trabajar en paralelo y el proyecto se vuelve secuencial.
 
+**Correccion del 16 de agosto.** El segundo eslabon, "ETL real cargando en
+Postgres", cambio de fuente: la precipitacion pasa de NASA POWER a CHIRPS porque
+el canton entero cabe en una sola celda de POWER y dos de los tres eventos
+habrian dado el mismo riesgo en los ocho distritos. Ver **D-15** e **I-05**. El
+extractor no llego a escribirse, asi que no hay trabajo perdido, pero H1.1 queda
+detenida hasta verificar que CHIRPS si diferencia. Es el unico punto de la ruta
+critica afectado.
+
 ## 3. Tareas que bloquean a mas de una persona
 
 Estas van primero, siempre, sin importar la semana.

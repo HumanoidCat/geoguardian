@@ -1,5 +1,11 @@
 ﻿id,titulo,cuerpo,etiquetas,sprint,responsable,puntos,horas
-H1.1,"H1.1 Descargar 10 anios de series climaticas diarias, reejecutable e idempotente","Epica E1 | 5 puntos | 7.8 h estimadas
+H1.1,"H1.1 Descargar 35 anios de series climaticas diarias (1991-2025), reejecutable e idempotente","Epica E1 | 5 puntos | 7.8 h estimadas
+
+Fuente: CHIRPS para precipitacion y NASA POWER para el resto (D-15).
+Ventana 1991-2025: la linea base de D-10 se define sobre la normal
+climatologica 1991-2020 y con diez anios no se puede calcular.
+Antes de implementar hay que verificar que CHIRPS si diferencia entre
+distritos, con el mismo test de dos puntos que descarto a POWER (I-05).
 
 Rubrica o objetivo: BD-1
 Depende de: H1.3
