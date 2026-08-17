@@ -73,7 +73,7 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 
 | | |
 |---|---|
-| Contratos | v1.2.0, congelados. 17 verificaciones en `python -m contratos.verificar` |
+| Contratos | v1.2.0, congelados. 31 verificaciones en `python -m contratos.verificar` |
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
 | Integración continua | Cinco trabajos: contratos, backlog y documentación, linter, pruebas y frontend |

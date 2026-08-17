@@ -123,15 +123,18 @@ Copy-Item .env.example .env
 notepad .env
 ```
 
-Completá estas líneas con **tus propias contraseñas** (inventalas, son solo de tu máquina):
+Completá **solo las contraseñas** con las tuyas (inventalas, son solo de tu
+máquina). Los nombres de usuario ya vienen puestos y están acordados por el
+equipo: no los cambies, o la evidencia de H1.8 no va a coincidir entre las cuatro
+máquinas.
 
 ```
 POSTGRES_DB=geoguardian
 POSTGRES_USER=geoguardian
 POSTGRES_PASSWORD=pone-aqui-una-contrasena-larga
-DB_USER_ETL=geo_etl
+DB_USER_ETL=etl_geoguardian
 DB_PASS_ETL=otra-contrasena
-DB_USER_API=geo_api
+DB_USER_API=api_geoguardian
 DB_PASS_API=otra-mas
 ```
 
@@ -188,7 +191,7 @@ Comprobá que todo está en su lugar:
 python -m contratos.verificar
 ```
 
-Tienen que pasar las **17 verificaciones**, y arriba debe decir **"Contratos version 1.2.0"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
+Tienen que pasar las **31 verificaciones**, y arriba debe decir **"Contratos version 1.2.0"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
 
 Si dice una versión anterior, tu copia del repositorio está vieja: hacé `git pull` en `dev`.
 
