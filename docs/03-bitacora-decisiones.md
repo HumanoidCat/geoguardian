@@ -27,6 +27,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
 | D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
+| D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 
 ---
 
@@ -911,6 +912,71 @@ rango de precipitacion entre ellos para una fecha de lluvia.
 
 Si esa medicion muestra que CHIRPS tampoco diferencia, esta decision pasa a
 **Sustituida** y se vuelve a D-01 con la limitacion documentada.
+
+---
+
+## D-16 · La propiedad de una carpeta sigue al trabajo asignado
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-16
+**Decide.** Alejandro
+
+### Contexto
+
+`backend/senales` figuraba como carpeta de Alejandro desde el arranque. Al
+auditar el reparto real aparecio que **las cinco historias de senales son de Luna
+y dos de Cesar**: ninguno de los dos podia escribir una linea sin una solicitud de
+cambio, archivo por archivo.
+
+Lo mismo en `backend/modelado`, de Alejandro, donde Cesar tiene cuatro historias.
+
+Nadie se habia topado con el problema todavia porque el trabajo de esas dos epicas
+no ha empezado. Habria aparecido el dia que Luna abriera H2.1, y habria costado un
+dia de ida y vuelta, exactamente como paso con Avril y `frontend/package.json` el
+12 de agosto (ver acta 08).
+
+### Decision
+
+**La propiedad de una carpeta sigue al trabajo asignado, no al reves.**
+
+- `backend/senales` pasa a **Luna**, que tiene cinco de sus siete historias.
+- `backend/modelado` sigue en Alejandro, con excepcion declarada para las cuatro
+  historias de Cesar: H3.3, H3.4, H3.5 y H3.7.
+- Cesar escribe en `backend/senales` para H2.5 y H2.6 sin solicitud.
+- Alejandro escribe en `backend/senales` para lo que necesiten sus historias de
+  modelado, avisando a Luna.
+
+### Justificacion
+
+La regla de un dueno por carpeta existe para evitar que dos personas se pisen el
+mismo archivo, no para que quien tiene la historia asignada tenga que pedir
+permiso para hacerla. Cuando el reparto de trabajo y el de carpetas no coinciden,
+lo que esta mal es el reparto de carpetas.
+
+Se corrige **antes** de que bloquee a alguien y no despues, que es la diferencia
+con el caso de Avril.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Dejarlo y resolver por solicitud cuando aparezca | Es garantizar el bloqueo. Ya sabemos que va a pasar y cuando |
+| Devolver las historias de E2 y E3 a Alejandro | Elimina el conflicto pero le suma nueve historias sobre dos sprints que ya estan sobrecargados en +19 h y +17 h |
+| Quitar la regla de propiedad | Existe por una razon y ha funcionado: nadie ha pisado el trabajo de otro en seis semanas |
+
+### Consecuencias
+
+Se gana que tres personas puedan arrancar E2 y E3 sin pedir permiso. Se pierde
+nitidez: dos carpetas dejan de tener un unico dueno y hay que mirar la tabla de
+excepciones para saber quien puede escribir donde.
+
+La mitigacion es que la excepcion esta escrita por historia, no en general: fuera
+de esas seis historias, la regla sigue valiendo.
+
+### Medicion
+
+Ninguna solicitud de cambio sobre `backend/senales` o `backend/modelado` cuando
+arranquen E2 y E3. Si aparece una, la excepcion quedo corta y hay que ampliarla.
 
 ---
 

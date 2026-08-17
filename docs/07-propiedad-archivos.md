@@ -10,7 +10,7 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | backend/api | Cesar | Endpoints, enrutamiento, dependencias de FastAPI |
 | backend/etl | Cesar | Extractores, limpieza, carga |
 | basedatos | Cesar | DDL, seguridad, procedimientos, respaldos, consultas |
-| backend/senales | Alejandro | Filtrado, remuestreo, espectro, SPI, anomalias |
+| backend/senales | **Luna** | Filtrado, remuestreo, espectro, SPI, anomalias |
 | backend/modelado | Alejandro | Etiquetado, linea base, entrenamiento, evaluacion, SHAP |
 | infra | Alejandro | Docker, manifiestos de Kubernetes |
 | .github/workflows | Alejandro | Pipelines de integracion y despliegue continuo |
@@ -20,6 +20,27 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | docs/investigacion | Luna | Referencias, estado del arte, catalogo de eventos, plan de pruebas |
 | docs (resto) | Alejandro | Documento IEEE, bitacoras, matrices, roadmap, manuales |
 | frontend | Avril | Visor, tablero, componentes, estilos |
+
+## Excepcion: backend/senales y backend/modelado
+
+Las dos carpetas se reparten historias entre tres personas, asi que la regla de un
+dueno por carpeta se relaja de forma explicita en vez de obligar a pedir permiso
+seis veces.
+
+| Quien | Donde | Para que historias |
+|---|---|---|
+| Cesar | `backend/senales` | H2.5, H2.6 |
+| Cesar | `backend/modelado` | H3.3, H3.4, H3.5, H3.7 |
+| Alejandro | `backend/senales` | lo que necesiten sus historias de modelado |
+
+**Por que se corrigio.** `backend/senales` figuraba como carpeta de Alejandro, pero
+las cinco historias de senales son de Luna y dos de Cesar: ninguno de los dos podia
+escribir una linea sin una solicitud de cambio por archivo. Es el mismo bloqueo que
+tuvo Avril con `frontend/package.json` el 12 de agosto, y se corrigio antes de que
+volviera a ocurrir en lugar de despues.
+
+La regla que se aplica es la misma que salio de aquel caso: **la propiedad sigue al
+trabajo asignado, no al reves.**
 
 ## Excepcion: docs/evidencias/
 

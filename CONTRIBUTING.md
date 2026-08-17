@@ -53,14 +53,17 @@ Un archivo, un dueno. Nadie modifica la carpeta de otra persona.
 | Carpeta | Dueno |
 |---|---|
 | backend/api, backend/etl, basedatos | Cesar |
-| backend/senales, backend/modelado, infra, docs, .github/workflows | Alejandro |
-| backend/calidad, backend/tests, docs/investigacion | Luna |
+| backend/modelado, infra, docs, .github/workflows | Alejandro |
+| backend/senales, backend/calidad, backend/tests, docs/investigacion | Luna |
 | frontend | Avril |
 
 Excepciones acordadas:
 
-- Cesar trabaja en `backend/modelado` para las historias H2.5, H2.6 y H3.7,
-  coordinando con Alejandro.
+- **Cesar escribe en `backend/senales` y `backend/modelado`** para las seis
+  historias que tiene asignadas ahi: H2.5, H2.6, H3.3, H3.4, H3.5 y H3.7. No
+  necesita solicitud para ninguna de ellas.
+- **Alejandro escribe en `backend/senales`** para lo que necesiten sus historias
+  de modelado, avisando a Luna.
 - **`docs/evidencias/` es de escritura libre para todo el equipo.** Cada quien
   sube la evidencia de sus propias historias a la carpeta que corresponda, sin
   solicitud previa. Ver `docs/evidencias/README.md`. Solo requiere solicitud
