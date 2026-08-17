@@ -23,8 +23,11 @@
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
 
-- [ ] **H1.1** · Descargar 10 anios de series climaticas diarias, reejecutable e idempotente
+- [ ] **H1.1** · Descargar 35 anios de series climaticas diarias (1991-2025), reejecutable e idempotente
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.4, H1.5, H8.2**
+  - Fuente: CHIRPS para precipitacion, NASA POWER para el resto. Ver **D-15** e **I-05**
+  - Antes de implementar: verificar que CHIRPS si diferencia entre distritos, con
+    el mismo test de dos puntos que descarto a POWER
 
 - [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
