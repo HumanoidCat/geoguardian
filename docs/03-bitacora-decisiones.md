@@ -808,10 +808,14 @@ ocho salen con dato ausente.
 
 ## D-15 · Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **condicion cumplida y verificada** el 2026-08-18
 **Fecha.** 2026-08-16
 **Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
 **Revisa parcialmente.** D-01, que declaraba NASA POWER fuente primaria de clima
+
+> La decision se tomo condicionada a repetir sobre CHIRPS el mismo test que
+> descarto a POWER. Cesar lo hizo el 18 de agosto y CHIRPS diferencia entre los
+> ocho distritos. Ver la seccion de medicion, al final de este registro.
 
 ### Contexto
 
@@ -905,13 +909,68 @@ en que Cesar trabajo: comprobar la fuente antes de implementarla.
 
 ### Medicion
 
-El test de dos puntos sobre CHIRPS, previo a escribir el extractor, tiene que
-mostrar valores distintos entre distritos para las mismas fechas. La evidencia de
-H1.1 debe registrar cuantos de los ocho distritos caen en celdas distintas y el
-rango de precipitacion entre ellos para una fecha de lluvia.
+**Realizada por Cesar el 18 de agosto de 2026. La condicion se cumple y la
+decision queda firme.** Evidencia completa en
+`docs/evidencias/bases-de-datos/H1.1-criterios-aceptacion.md`.
 
-Si esa medicion muestra que CHIRPS tampoco diferencia, esta decision pasa a
-**Sustituida** y se vuelve a D-01 con la limitacion documentada.
+**POWER no diferencia.** Los ocho distritos caen en la misma celda, `(152, 201)`,
+y el servicio devuelve el mismo valor y la misma elevacion para los dos distritos
+mas separados, Tronadora y Tierras Morenas, a unos 24 km.
+
+**CHIRPS si diferencia.** Los ocho distritos caen en ocho celdas distintas. Datos
+reales del 1 al 7 de setiembre de 2024, elegido por ser epoca lluviosa:
+
+| | mm |
+|---|---|
+| Rango maximo en un solo dia | 13,27 |
+| Acumulado semanal minimo, Tronadora | 97,25 |
+| Acumulado semanal maximo, Tierras Morenas | 117,04 |
+| Diferencia | 20,3 % |
+
+Lo que mas sostiene la decision no es el rango sino que **el orden entre distritos
+cambia de un dia a otro**: el dia 3 Tierras Morenas marca 0,00 mm y Arenal 11,54;
+el dia 7 se invierte, 34,24 contra 28,75. Un sesgo constante del metodo daria
+siempre el mismo orden. Esto es variacion espacial que cambia de signo.
+
+### Correccion del metodo de conteo de celdas
+
+El primer calculo de celdas dio tres para POWER, en contradiccion con la
+observacion de que los valores eran identicos. El motivo importa:
+
+- **MERRA-2, que sirve POWER, ancla los centros de celda** en multiplos del paso.
+  Una consulta puntual devuelve el punto de malla mas cercano, asi que hay que
+  **redondear**, no truncar. Con redondeo los ocho distritos caen en `(-85.0, 10.5)`.
+- **CHIRPS ancla los bordes**, y ahi truncar si corresponde.
+
+Aplicar el mismo anclaje a las dos mallas produce un numero que parece razonable y
+es falso. `docs/herramientas/verificar_resolucion_fuente.py` incorpora una
+autoprueba que compara su logica contra esta observacion y se detiene si no
+coinciden.
+
+### Limitacion abierta: el reparto por pentada de CHIRPS
+
+En los cinco primeros dias de la muestra, seis de los ocho distritos dan valores
+que son multiplos enteros exactos de una unidad base, y el patron se rompe en el
+dia 6. Cinco dias es una pentada, y CHIRPS deriva sus valores diarios repartiendo
+totales de pentada.
+
+Es consistente con eso pero **una semana no alcanza para afirmarlo**. Queda
+anotado, no dado por cierto.
+
+Importa porque el umbral de lluvia intensa se define sobre acumulados de 72 horas:
+si el reparto dentro de la pentada es parcialmente artificial, los percentiles de
+72 h heredan ese artificio. No cambia la decision —CHIRPS es la unica fuente que
+diferencia— pero hay que verificarlo sobre la serie completa y documentarlo como
+limitacion en el documento IEEE antes del modelado, no durante.
+
+### Las dos fuentes no son intercambiables
+
+El 1 de enero de 2024, POWER reporta 0,0 mm en Tronadora y CHIRPS reporta 18,72.
+No es error de ninguna: son productos distintos, uno de reanalisis y otro de
+satelite combinado con estaciones.
+
+De ahi la regla operativa: la precipitacion viene de CHIRPS **siempre**, y un hueco
+de CHIRPS **nunca** se rellena con POWER.
 
 ---
 
