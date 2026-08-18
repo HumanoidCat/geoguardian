@@ -32,10 +32,10 @@
 
 ## Sprint 1 (semanas 4-5) — 34.3 h
 
-- [ ] **H10.5b** · Estado del arte de Costa Rica
+- [x] **H10.5b** · Estado del arte de Costa Rica (2026-08-18)
   - `E10` · 5 pts · 13.2 h · rubrica: IEEE · depende de: H10.5a · **bloquea a: H10.5c**
 
-- [ ] **H4.3** · Catalogo de 12 o mas eventos historicos del canton con fuente
+- [x] **H4.3** · Catalogo de 12 o mas eventos historicos del canton con fuente (2026-08-18)
   - `E4` · 8 pts · 21.1 h · rubrica: OE3 · **bloquea a: H4.4, H7.3**
 
 
@@ -44,7 +44,7 @@
 - [ ] **H1.5** · Reporte formal de calidad de datos: faltantes, atipicos, sesgos
   - `E1` · 8 pts · 12.5 h · rubrica: OE1 · depende de: H1.1
 
-- [ ] **H2.1** · Filtrar ruido de las series con justificacion del filtro
+- [x] **H2.1** · Filtrar ruido de las series con justificacion del filtro (2026-08-18)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H1.4 · **bloquea a: H2.2, H2.3, H2.4, H2.7**
 
 - [ ] **H2.3** · SPI de 1 y 3 meses por convolucion de ventana movil

@@ -231,3 +231,72 @@ escribirse. H1.1 queda bloqueada unos dias mientras se verifica CHIRPS. Sin la
 deteccion, el defecto habria aparecido en la semana 8 o 9, con el modelo entrenado
 y el visor pintando ocho poligonos identicos, y con la pregunta de investigacion
 ya respondida por construccion.
+
+## I-06 · El CI corria pytest de una forma que ninguna persona usaba
+
+**Fecha.** 2026-08-18
+
+**Quien lo detecto.** Alejandro, al revisar por que el trabajo de pruebas del PR
+#110 salia en rojo mientras la misma suite pasaba en la maquina de Luna.
+
+**Que paso.** El PR #110 trae la primera prueba automatizada del proyecto,
+`backend/tests/test_filtros.py`. En la maquina de quien la escribio pasan los 19
+casos. En el CI el trabajo fallaba al recolectar, antes de ejecutar ninguna
+prueba:
+
+    ModuleNotFoundError: No module named 'backend'
+
+Los otros cuatro trabajos del pipeline salian en verde, asi que el fallo parecia
+un defecto de la historia. No lo era: el codigo entregado estaba bien.
+
+**Causa raiz.** El flujo de trabajo invocaba `pytest` como script de consola. Ese
+script **no agrega el directorio actual al path de importacion**; `python -m
+pytest` si lo hace. Como `backend/` no tiene `__init__.py` ni el proyecto se
+instala como paquete, la importacion de `backend.senales.filtros` solo resuelve
+si la raiz del repositorio esta en el path.
+
+El resto de los controles del proyecto ya se invocaban con `python -m`
+—`python -m contratos.verificar`, `python -m ruff check`—, asi que la unica linea
+que no seguia la convencion era justamente la que nunca se habia ejecutado. El
+paso estaba protegido por una condicion que lo saltaba mientras no existieran
+pruebas, y por eso el trabajo llevaba dos semanas en verde sin haber corrido
+nunca.
+
+**Un control que nunca fallo no esta probado.** Es el mismo argumento con el que
+se valido el verificador de documentacion inyectandole un numero falso, y aqui no
+se aplico.
+
+**Accion tomada.** Dos cambios, deliberadamente redundantes:
+
+1. `.github/workflows/ci.yml` invoca `python -m pytest`, igual que el resto de los
+   controles.
+2. `pyproject.toml` declara `pythonpath = ["."]` en la configuracion de pytest, de
+   modo que **las dos formas de invocar den el mismo resultado**. Sin esto, quien
+   corriera `pytest` a secas en su maquina veria un fallo que el CI no muestra, o
+   al reves.
+
+El segundo es el que cierra la clase de defecto: el problema no era que el CI
+estuviera mal, era que el CI y la maquina de quien escribe la prueba discrepaban.
+
+Queda pendiente convertir en fallo el salto del paso cuando no hay pruebas. No se
+hizo en el mismo cambio porque este arreglo tiene que integrarse **antes** que el
+PR #110, que es el que aporta la primera prueba, y hasta entonces `dev` no tiene
+ninguna.
+
+**Aprendizaje.** Un paso de CI protegido por una condicion que lo salta no es un
+control: es un control apagado que se ve igual que uno encendido. Mientras la
+condicion se cumpla, el trabajo sale en verde sin haber comprobado nada, y el
+primero que dependa de el se lleva el fallo.
+
+Cuando un paso quede desactivado a la espera de algo, hay que probarlo contra un
+caso de prueba de mentira el mismo dia en que se escribe, o dejar registrado que
+esta apagado. Que el trabajo aparezca en verde en la interfaz de GitHub no
+significa que haya corrido.
+
+**Impacto.** Cero para el equipo, mas alla de una revision. El defecto era del
+pipeline, no de la historia: `backend/senales/filtros.py` y sus 19 pruebas
+estaban correctos desde el primer envio. El costo real lo habria tenido de no
+haberse revisado: el autor de la primera prueba del proyecto habria pasado horas
+buscando un error inexistente en su codigo, y la conclusion natural —"las pruebas
+automatizadas dan problemas"— es cara de revertir en un equipo que apenas empieza
+a escribirlas.
