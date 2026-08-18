@@ -28,6 +28,8 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
 | D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
+| D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
+| D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
 
 ---
 
@@ -1036,6 +1038,276 @@ de esas seis historias, la regla sigue valiendo.
 
 Ninguna solicitud de cambio sobre `backend/senales` o `backend/modelado` cuando
 arranquen E2 y E3. Si aparece una, la excepcion quedo corta y hay que ampliarla.
+
+---
+
+## D-17 · La precipitacion no se filtra: los indices se calculan sobre la serie cruda
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, a peticion de Luna en H2.1
+
+### Contexto
+
+La historia H2.1 entrego un filtro de ruido, Savitzky-Golay, que cumple el
+contrato y esta bien construido. Al entregarlo, Luna planteo una pregunta que la
+historia no resolvia y que no le correspondia resolver:
+
+> Filtrar ruido tiene sentido cuando el ruido es instrumental: temperatura,
+> humedad, radiacion, viento. En precipitacion el caso es distinto: un pico de
+> lluvia no es ruido, es el evento que el proyecto quiere detectar.
+
+La pregunta pesa porque **dos de los tres eventos del sistema se definen sobre
+precipitacion**: sequia por SPI-3 y lluvia intensa por el acumulado de 72 h contra
+los percentiles P95 y P99 del propio distrito. Si la serie se suaviza antes de
+calcular esos indices, se altera justamente lo que los indices miden.
+
+Y porque, sin decision escrita, la respuesta quedaba determinada por el orden en
+que alguien llamara a las funciones. Eso no es una arquitectura: es una
+casualidad que despues nadie puede explicar.
+
+Las tres opciones planteadas fueron: no filtrar precipitacion; filtrarla solo
+para visualizacion y calcular los indices sobre la serie cruda; o filtrar tambien
+para el calculo documentando el efecto.
+
+### Decision
+
+**La precipitacion no se filtra, en ningun punto de la cadena.**
+
+1. El filtro de H2.1 se aplica a **temperatura, humedad relativa, radiacion y
+   viento**, que son las variables con ruido instrumental.
+2. **SPI (H2.3), percentiles R95p y R99p (H2.7) y el acumulado de 72 h se
+   calculan sobre la serie cruda de CHIRPS**, sin paso previo de suavizado.
+3. Tampoco se filtra para visualizacion. Si en algun momento hace falta mostrar
+   una tendencia suavizada, se hara con un metodo que no produzca valores
+   negativos, se etiquetara como serie suavizada en la propia pantalla y no
+   alimentara ningun calculo.
+4. `filtrar_ruido` no lleva una lista de variables prohibidas por dentro. La
+   restriccion vive en quien lo llama, y esta escrita aqui y en la evidencia de
+   H2.1: un filtro que decide por su cuenta a que serie se aplica es peor de
+   depurar que una regla explicita.
+
+### Justificacion
+
+Se midio en vez de argumentar, porque los dos argumentos suenan razonables y
+leyendolos no se puede elegir. La herramienta es
+`docs/herramientas/medir_efecto_filtro.py` y los resultados estan abajo, en
+Medicion.
+
+Lo que decide no es el corrimiento de los percentiles, aunque sea grande. Es que
+**el filtro produce series que no son series de lluvia**:
+
+- **El 12,5 % de los dias sale con precipitacion negativa**, hasta −13,5 mm. No
+  es un defecto de la implementacion: los coeficientes de Savitzky-Golay para
+  ventana 7 y orden 2 son negativos en los extremos, −0,0952 a cada lado, asi que
+  un dia contiguo a un aguacero recibe una contribucion negativa. Es una
+  propiedad del metodo, no un error.
+- **El 31,6 % de los dias secos, de 0,0 mm, sale con 1 mm o mas.** El ETCCDI
+  define R95p y R99p sobre los dias humedos, y el umbral de dia humedo es
+  exactamente 1 mm. Filtrar reescribe cual es el denominador del indice.
+
+Un corrimiento de percentil se puede documentar y compensar. Una serie con lluvia
+negativa no se puede compensar: rompe el ajuste gamma del que sale el SPI, que
+esta definido sobre valores no negativos, y hace que la mitad de la estacion seca
+cuente como dias con lluvia.
+
+El corrimiento, ademas, es severo: el P99 de los dias humedos cae un 53,6 %, y de
+los 37 dias que la serie cruda clasifica como el 1 % mas extremo, **ninguno
+sobrevive** si se conserva el umbral original. Aun comparando cada serie contra su
+propio umbral, solo coinciden 16 de 37: el 43 %.
+
+Sobre el acumulado de 72 h el efecto es menor —el P99 baja un 11,7 % y coincide el
+78 % de los dias— y tiene explicacion: acumular ya es suavizar. Esa observacion no
+cambia la decision, la refuerza. El indice del proyecto **ya incorpora el
+promediado que se necesita**; agregar un filtro antes es aplicarlo dos veces.
+
+Hay un ultimo resultado que conviene dejar escrito porque cierra la discusion sin
+apelar a preferencias: con ventana 3 y polinomio de orden 2 el filtro **no cambia
+nada**, porque con tres puntos una parabola pasa exactamente por los tres. La
+unica configuracion que no dana la precipitacion es aquella en la que el filtro no
+hace nada.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Filtrar tambien para el calculo, documentando el efecto | Es la opcion 3 de Luna. Documentar que el P99 baja un 53,6 % no lo arregla: los umbrales del proyecto quedan definidos sobre una serie que contiene lluvia negativa. Se estaria publicando un indice estandar, R99p del ETCCDI, calculado sobre una entrada que el estandar no admite |
+| Filtrar solo para visualizacion | Es la opcion 2, la que Luna prefiere y la que yo prefería antes de medir. Se cae por lo mismo: la serie que se mostraria en pantalla tiene 12,5 % de dias negativos. Habria que recortarlos a cero, y ese recorte es una segunda transformacion no declarada que ademas rompe la conservacion de masa. Un grafico que dibuja lluvia que no cayo es peor que uno con ruido |
+| Usar una media movil en lugar de Savitzky-Golay para precipitacion | La media movil no produce negativos, pero aplasta los maximos aun mas: es exactamente lo que H2.1 midio y descarto, con el pico conservando un 20 % de su amplitud contra el 48,6 % de Savitzky-Golay. Cambia un defecto por otro peor |
+| Filtrar solo la parte de la serie sin eventos extremos | Requiere decidir que es extremo antes de calcular los umbrales que definen lo extremo. Es circular |
+| Dejarlo sin decidir y que cada historia elija | Es lo que habia. La decision quedaria implicita en el orden de las llamadas y cambiaria sola cuando alguien reordenara el codigo |
+
+### Consecuencias
+
+**Se gana** que los tres indices de precipitacion se calculen sobre el dato tal
+como lo entrega la fuente, y que el resultado sea comparable con la literatura que
+usa las mismas definiciones. Es lo que permite citar el ETCCDI sin asterisco.
+
+**Se pierde** el suavizado en las variables donde quiza si habria ayudado y ahora
+no se aplica por precaucion. No se pierde mucho: ninguno de los tres eventos se
+define sobre temperatura, humedad, radiacion o viento; entran al modelo como
+variables predictoras, donde el ruido lo absorbe el propio algoritmo.
+
+**Queda una asimetria que hay que declarar en el documento IEEE:** el proyecto
+implementa un filtro de senales, lo justifica y lo prueba, y luego lo aplica a
+cuatro variables y no a la que define dos de los tres eventos. Es la conclusion
+correcta, pero se ve rara si no se explica. La explicacion es que la rubrica de
+Senales y Sistemas evalua el tratamiento de la senal, y **decidir con medicion no
+aplicar una tecnica es tratamiento de la senal**, no ausencia de el.
+
+**H2.1 no se reabre.** El filtro esta bien construido y su justificacion se
+sostiene para las variables a las que aplica. Lo que cambia es su alcance, y eso
+se anota en la matriz de trazabilidad, no en la historia.
+
+**H2.3 y H2.7 quedan desbloqueadas** con la regla explicita: entrada cruda.
+
+### Medicion
+
+Se comprueba con dos cosas, y las dos tienen que dar.
+
+**Primero, la medicion misma, repetida sobre datos reales.** Lo de arriba se midio
+sobre una serie sintetica de 35 anios con el regimen de Guanacaste, porque H1.1
+sigue abierta y no hay series descargadas. **Cuando CHIRPS entregue las series de
+Tilaran hay que volver a correr `medir_efecto_filtro.py` sobre ellas.** La
+decision se sostiene si el signo y el orden de magnitud se conservan; si sobre
+datos reales el filtro no produjera negativos ni mojara dias secos, hay que
+reabrir este registro.
+
+El resultado sobre la serie sintetica, con la ventana por defecto de 7 muestras:
+
+    P99 de los dias humedos      crudo 54,91 mm    filtrado 25,50 mm    -53,6 %
+    P95 de los dias humedos      crudo 32,30 mm    filtrado 17,93 mm    -44,5 %
+    P99 del acumulado de 72 h    crudo 64,82 mm    filtrado 57,21 mm    -11,7 %
+
+    dias con valor negativo               1594 de 12784   12,47 %   minimo -13,47 mm
+    dias secos que pasan a humedos        2610 de  8255   31,62 %
+    masa total                            sin cambio, -0,00 %
+
+Verificado con tres semillas y cuatro ventanas: el signo y el orden de magnitud se
+conservan en las doce combinaciones.
+
+**Segundo, que la regla se cumpla en el codigo.** Cuando H2.3 y H2.7 esten
+implementadas, ninguna debe llamar a `filtrar_ruido` sobre la serie de
+precipitacion. Si aparece esa llamada, o la regla no se comunico o hace falta un
+verificador que la compruebe, como el de documentacion desfasada.
+
+La masa total conservada sirve de control de la propia herramienta: Savitzky-Golay
+preserva la suma en el interior de la serie, y que la medicion lo reproduzca
+indica que el script no esta introduciendo su propio error.
+
+---
+
+## D-18 · El nombre de un poblado no identifica a un distrito
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, a partir del hallazgo de Luna en H4.3
+
+### Contexto
+
+Al construir el catalogo de eventos historicos, Luna encontro que **en Tilaran hay
+dos lugares llamados Rio Chiquito y no pertenecen al mismo distrito**: el poblado
+principal es del distrito central, 50801, y Rio Chiquito Abajo se asocia a
+Tronadora, 50803.
+
+Las fuentes historicas —fichas de DesInventar, partes de la CNE, prensa— describen
+donde ocurrio un evento **por el nombre del lugar**, no por el codigo del
+distrito. Cualquier proceso que traduzca ese nombre a un distrito tiene que
+resolver la ambiguedad, y si la resuelve tomando la primera coincidencia produce
+un error que no se ve: la fila queda completa, con un codigo valido, asignada al
+distrito equivocado.
+
+Es la misma familia que la incidencia **I-04**, donde los codigos de distrito de
+los contratos no eran los oficiales. En los dos casos el dato tiene la forma
+correcta y el contenido falso, y en los dos el sistema no puede detectarlo solo.
+
+Sin registro, esto se olvida. Luna lo resolvio a mano en H4.3 mirando ficha por
+ficha; el proximo que cargue eventos historicos, o que geocodifique un reporte
+ciudadano, no va a saber que el problema existe.
+
+### Decision
+
+**El nombre de un poblado no es clave para asignar distrito. Nunca.**
+
+1. La unica clave territorial valida es el **codigo de distrito de cinco digitos**
+   de la division territorial administrativa, con el SNIT como fuente unica
+   (**D-13**).
+2. Cuando una fuente historica da un nombre de lugar y tambien un distrito, **manda
+   el distrito que declara la fuente**, aunque el nombre sugiera otro. Es lo que
+   Luna hizo en H4.3.
+3. Cuando una fuente da solo un nombre y ese nombre es ambiguo dentro del canton,
+   la fila **no se asigna**: el distrito queda en `None` y se documenta el motivo.
+   No se elige la coincidencia mas probable.
+4. Ningun proceso automatico asigna distrito por nombre sin registrar la
+   ambiguedad. Si se implementa una traduccion de nombre a codigo, tiene que
+   devolver la lista de candidatos, no uno solo.
+
+### Justificacion
+
+La regla se deriva de **D-07**: la ausencia de dato se representa como `None`,
+nunca como un valor por defecto. Un distrito adivinado a partir de un nombre
+ambiguo es exactamente un valor por defecto, con el agravante de que parece un
+dato medido.
+
+El costo de equivocarse no es simetrico. Dejar la fila sin distrito cuesta una
+fila menos en el catalogo, y el validador ya lo reporta como aviso. Asignarla mal
+cuesta que en H4.4 el contraste cuente un fallo del modelo donde el modelo acerto,
+o al reves. Ese error contamina la respuesta a la pregunta de investigacion y no
+deja rastro.
+
+El caso concreto lo demuestra: la ficha `1973-85` de DesInventar es un
+deslizamiento cuya observacion dice "Epicentro en Rio Chiquito". Mapeada por
+nombre habria entrado al catalogo de lluvia intensa. Es el terremoto de Tilaran
+del 14 de abril de 1973. Un sismo contado como evento de lluvia, en el distrito
+que el nombre sugiere y no en el que la ficha declara: dos errores de la misma
+linea.
+
+Los toponimos no son identificadores. Se repiten dentro de un mismo canton, se
+escriben de varias formas, cambian con el tiempo y no respetan los limites
+administrativos, que es justamente lo que los hace utiles para hablar y malos para
+indexar.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Resolver por el candidato mas poblado o mas conocido | Es una heuristica plausible que acierta la mayoria de las veces, y por eso es peligrosa: los errores que produce son pocos y no se distinguen de los aciertos |
+| Construir un diccionario de toponimos a distritos | Util, y probablemente haga falta. Pero no resuelve el caso ambiguo, que es este: los dos Rio Chiquito son entradas legitimas del diccionario. Un diccionario sin marca de ambiguedad esconde el problema mejor que la ausencia de diccionario |
+| Asignar el evento a los dos distritos candidatos | Duplica el evento. En H4.4 contaria dos veces y sesgaria el contraste hacia el evento que resulto ambiguo |
+| Tratarlo como incidencia y no como decision | Ya existe el hallazgo en la evidencia de H4.3. Lo que faltaba es la regla, que es lo que se aplica a las historias que todavia no se escribieron: H4.4, H7.3 y cualquier ingreso de reportes ciudadanos |
+
+### Consecuencias
+
+**Se gana** que el catalogo y todo lo que se construya sobre el tengan una regla
+unica y verificable, y que las filas sin distrito sean visibles en lugar de estar
+disueltas entre las asignadas.
+
+**Se pierde** cobertura. Habra eventos historicos reales que no entren al catalogo
+porque su fuente solo da un nombre ambiguo. Es una perdida aceptable y ya
+declarada: el catalogo de H4.3 documenta su sesgo, y este es un sesgo mas del
+mismo tipo, de registro y no de ocurrencia.
+
+**Impacto en H4.4.** El contraste tiene que separar tres cosas y no dos: el modelo
+acerto, el modelo fallo, y no habia con que comparar. La tercera no es un fallo
+del modelo y no puede contarse como tal.
+
+**Impacto en el visor.** Si en algun momento se busca un distrito por nombre de
+lugar, la interfaz tiene que mostrar los candidatos y dejar elegir, no resolver
+sola.
+
+### Medicion
+
+Ninguna fila del catalogo de eventos con distrito asignado a partir del nombre del
+poblado cuando la ficha declara otro. Se comprueba sobre
+`docs/investigacion/catalogo-eventos.csv`, que ya trae la procedencia de cada fila
+en `catalogo-eventos.md`.
+
+En H4.3 la regla se aplico y el resultado esta: la ficha `1973-85` no entro al
+catalogo de lluvia intensa, y las fichas con toponimo ambiguo conservan el
+distrito de la ficha y no el que sugiere el nombre.
+
+Si aparece un proceso automatico de asignacion por nombre, debe traer su propia
+prueba con el caso de Rio Chiquito: dos candidatos, ninguno elegido en solitario.
 
 ---
 

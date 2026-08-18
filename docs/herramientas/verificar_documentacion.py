@@ -180,6 +180,15 @@ AFIRMACIONES = [
             ("docs/10-manual-tecnico.md", r"Integración continua, (\w+) trabajos"),
         ],
     ),
+    # Se agrego al integrar D-17 y D-18: el manual tecnico decia 15 decisiones
+    # cuando ya habia 18. Es el mismo defecto que esta herramienta existe para
+    # detectar, y estaba fuera de su alcance porque el conteo de ADR solo se
+    # imprimia como informativo.
+    Afirmacion(
+        "registros ADR",
+        registros_adr,
+        [("docs/10-manual-tecnico.md", r"Las (\d+) decisiones de arquitectura")],
+    ),
 ]
 
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
@@ -187,7 +196,6 @@ AFIRMACIONES = [
 INFORMATIVAS = [
     ("historias cerradas", historias_cerradas),
     ("incidencias registradas", incidencias),
-    ("registros ADR", registros_adr),
 ]
 
 # Palabras que valen como numero en las tablas del README.
