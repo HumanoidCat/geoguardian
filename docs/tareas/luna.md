@@ -32,10 +32,10 @@
 
 ## Sprint 1 (semanas 4-5) — 34.3 h
 
-- [ ] **H10.5b** · Estado del arte de Costa Rica
+- [x] **H10.5b** · Estado del arte de Costa Rica (2026-08-18)
   - `E10` · 5 pts · 13.2 h · rubrica: IEEE · depende de: H10.5a · **bloquea a: H10.5c**
 
-- [ ] **H4.3** · Catalogo de 12 o mas eventos historicos del canton con fuente
+- [x] **H4.3** · Catalogo de 12 o mas eventos historicos del canton con fuente (2026-08-18)
   - `E4` · 8 pts · 21.1 h · rubrica: OE3 · **bloquea a: H4.4, H7.3**
 
 

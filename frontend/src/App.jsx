@@ -111,7 +111,8 @@ export default function App() {
         <div>
           <h1>GeoGuardian</h1>
           <p className="subtitulo">
-            Riesgo de sequia e incendio forestal por distrito · Canton de Tilaran
+            Riesgo de lluvia intensa, sequia e incendio forestal por distrito ·
+            Canton de Tilaran
           </p>
         </div>
       </header>
@@ -139,7 +140,6 @@ export default function App() {
             <MapaCanton
               coleccion={coleccion}
               riesgos={riesgos}
-              evento={evento}
               seleccionado={seleccionado}
               alSeleccionar={setSeleccionado}
               capaBase={capaBase}

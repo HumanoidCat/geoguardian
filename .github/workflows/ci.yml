@@ -135,10 +135,17 @@ jobs:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
         run: |
-          # Todavia no hay pruebas escritas (historia H10.1, Luna). Cuando existan,
-          # este paso empieza a fallar de verdad si algo se rompe.
-          if [ -n "$(find backend/tests -name 'test_*.py' -print -quit)" ]; then
-            pytest backend/tests -v --cov=backend --cov-report=term-missing
-          else
-            echo "Sin pruebas todavia. Pendiente de la historia H10.1."
+          # El salto solo sigue aqui porque este arreglo tiene que entrar antes
+          # que el PR #110, que es el que trae la primera prueba. Apenas ese PR
+          # este integrado, el salto se convierte en fallo: si no hay pruebas es
+          # que alguien las borro, y eso tiene que salir en rojo.
+          if [ -z "$(find backend/tests -name 'test_*.py' -print -quit)" ]; then
+            echo "Sin pruebas todavia. Pendiente del PR #110."
+            exit 0
           fi
+          # Se invoca con `python -m` a proposito, igual que el resto de los
+          # controles del proyecto. El script `pytest` a secas no agrega el
+          # directorio actual al path de importacion y falla con "No module
+          # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
+          # de modo que las dos formas funcionan.
+          python -m pytest backend/tests -v --cov=backend --cov-report=term-missing

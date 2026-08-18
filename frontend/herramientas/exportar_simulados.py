@@ -15,10 +15,16 @@ fetch. Ningun componente tiene que cambiar.
 Uso, desde la raiz del repositorio y con el entorno virtual activo:
 
     python frontend/herramientas/exportar_simulados.py
+
+Para producir el caso de ausencia de estimacion, que es el que va a devolver la
+API real mientras no exista un modelo entrenado:
+
+    python frontend/herramientas/exportar_simulados.py --sin-estimacion 2
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from datetime import date
@@ -94,7 +100,9 @@ def construir_geojson(repositorio: RepositorioSimulado) -> dict:
     }
 
 
-def construir_riesgos(repositorio: RepositorioSimulado, evento: TipoEvento) -> dict:
+def construir_riesgos(
+    repositorio: RepositorioSimulado, evento: TipoEvento, sin_estimacion: int = 0
+) -> dict:
     """
     Riesgo de un evento para los ocho distritos en la fecha de referencia.
 
@@ -104,9 +112,12 @@ def construir_riesgos(repositorio: RepositorioSimulado, evento: TipoEvento) -> d
     advertencia adentro, y el visor la repite en la leyenda y en la ficha del
     distrito.
 
-    Cuando exista un modelo real, `nivel` y `probabilidad` pueden venir en None:
-    el contrato lo permite y el visor tiene que seguir funcionando. Por eso se
-    conservan tal cual, sin sustituirlos por ningun valor por defecto.
+    `sin_estimacion` deja los primeros N distritos, por orden de codigo, con
+    nivel y probabilidad en None. No es un capricho de prueba: mientras no exista
+    un modelo entrenado, ese es el estado que la API real va a devolver para
+    todos los distritos, durante semanas. El contrato lo permite explicitamente y
+    el visor tiene que seguir funcionando. Sin esta bandera no habria forma de
+    capturar ese caso, porque el simulado siempre asigna nivel.
     """
     riesgos = {}
     for riesgo in repositorio.obtener_riesgos_por_fecha(FECHA_REFERENCIA, evento):
@@ -115,6 +126,14 @@ def construir_riesgos(repositorio: RepositorioSimulado, evento: TipoEvento) -> d
             "probabilidad": riesgo.probabilidad,
             "algoritmo": riesgo.algoritmo.value if riesgo.algoritmo else None,
             "version_modelo": riesgo.version_modelo,
+        }
+
+    for codigo in sorted(riesgos)[:sin_estimacion]:
+        riesgos[codigo] = {
+            "nivel": None,
+            "probabilidad": None,
+            "algoritmo": None,
+            "version_modelo": None,
         }
 
     return {
@@ -173,7 +192,28 @@ def escribir(ruta: Path, contenido: dict) -> None:
     ruta.write_text(json.dumps(contenido, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def leer_argumentos() -> argparse.Namespace:
+    analizador = argparse.ArgumentParser(description=__doc__)
+    analizador.add_argument(
+        "--sin-estimacion",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "Deja los primeros N distritos sin nivel de riesgo, para reproducir "
+            "el estado que devolvera la API mientras no exista modelo entrenado"
+        ),
+    )
+    argumentos = analizador.parse_args()
+
+    if not 0 <= argumentos.sin_estimacion <= 8:
+        raise SystemExit("ERROR: --sin-estimacion tiene que estar entre 0 y 8")
+
+    return argumentos
+
+
 def main() -> None:
+    argumentos = leer_argumentos()
     repositorio = RepositorioSimulado()
 
     geojson = construir_geojson(repositorio)
@@ -194,8 +234,10 @@ def main() -> None:
         )
 
     print(f"\nRiesgos simulados para el {FECHA_REFERENCIA.isoformat()}:")
+    if argumentos.sin_estimacion:
+        print(f"  ({argumentos.sin_estimacion} distritos forzados a sin estimacion)")
     for evento in TipoEvento:
-        paquete = construir_riesgos(repositorio, evento)
+        paquete = construir_riesgos(repositorio, evento, argumentos.sin_estimacion)
         verificar_riesgos(paquete)
         escribir(SALIDA / f"riesgos-{evento.value}.json", paquete)
 

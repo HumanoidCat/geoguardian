@@ -136,6 +136,26 @@ rápido por otras vías. Se implementan en ese orden.
 | `test_reporte_calidad_pct_faltantes_se_calcula_no_se_declara` | Funcional | El porcentaje de faltantes se obtiene ejecutando sobre una serie conocida, no se asigna a mano | 1 |
 | `test_reporte_calidad_detecta_atipicos` | Funcional | Un valor fuera de rango físico razonable se marca, no se descarta en silencio | 1 |
 | `test_reporte_calidad_registra_metodo_imputacion` | Funcional | Toda imputación queda con su `MetodoImputacion` distinto de `SIN_IMPUTAR` | 2 |
+| `test_variables_no_son_identicas_entre_distritos` | Funcional | Para una misma fecha, la serie de cada variable no es idéntica en los ocho distritos. Ver la nota sobre variación espacial más abajo | 1 |
+
+**Nota sobre variación espacial (decisión D-15).** La medición de H1.1 mostró
+que los ocho distritos de Tilarán caen en **una sola celda** de la malla de
+NASA POWER, de modo que temperatura, humedad, radiación y viento son
+numéricamente idénticas en los ocho. Solo la precipitación, servida por CHIRPS
+a 0,05°, varía entre distritos.
+
+Esto crea un modo de fallo que ninguna prueba de contrato detecta: un conjunto
+de datos donde cuatro de cinco variables son la misma columna repetida ocho
+veces sigue cumpliendo el esquema, sigue teniendo la forma correcta y no
+produce ningún error. El caso
+`test_variables_no_son_identicas_entre_distritos` existe para que esa
+condición quede visible y medida en vez de descubrirse al interpretar los
+resultados del modelo.
+
+La prueba no debe fallar por que POWER no diferencie —eso es una limitación
+conocida de la fuente, no un defecto del código— sino **reportar qué variables
+tienen variación espacial real y cuáles no**. Ese reporte es insumo directo de
+H1.5 y de la sección de limitaciones del documento IEEE.
 
 ## 4. Referencia cruzada con la matriz de trazabilidad
 
@@ -162,5 +182,5 @@ medida que se agregan archivos a `backend/tests/`.
 | Procesador de señales | 6 | 0 |
 | Estimador y evaluador | 10 | 0 |
 | Esquemas | 4 | 0 |
-| Calidad | 3 | 0 |
-| **Total** | **39** | **0** |
+| Calidad | 4 | 0 |
+| **Total** | **40** | **0** |
