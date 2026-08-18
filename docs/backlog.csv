@@ -1008,3 +1008,27 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E6,S1,CICD,cesar",S1,cesar,3,2.9
+H6.6,H6.6 El visor consume la API real en lugar de los JSON estaticos,"Epica E6 | 5 puntos | 4.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H6.1
+Sprint: S2 (semanas 6-7)
+
+El visor lee hoy archivos JSON estaticos generados desde los simulados, segun la
+decision D-14. Esta historia cambia el origen por la API real sin que ningun
+componente de presentacion se entere: la costura ya existe y es
+frontend/src/datos/cliente.js, el unico modulo que sabe de donde vienen los datos.
+
+Al cerrarse hay que anotar D-14 como revisada por esta historia.
+
+Excepcion de propiedad: la carpeta frontend es de Avril. Esta historia autoriza a
+Alejandro a modificar frontend/src/datos/cliente.js y la configuracion de entorno
+del visor, nada mas. Queda registrada en docs/07-propiedad-archivos.md.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] El visor sigue funcionando si la API no responde, declarando el modo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E6,S2,Arq,alejandro",S2,alejandro,5,4.8

@@ -9,7 +9,7 @@
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
-**Total asignado:** 118 puntos · 202 horas · 20.2 h por semana en promedio
+**Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
 
 ## Carga por sprint
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 22.8 | 36 | holgado |
-| S2 | semanas 6-7 | 54.7 | 36 | SOBRECARGA +19 h |
+| S2 | semanas 6-7 | 59.5 | 36 | SOBRECARGA +23.5 h |
 | S3 | semanas 8-9 | 35.7 | 36 | ajustado |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
@@ -68,7 +68,15 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 54.7 h
+## Sprint 2 (semanas 6-7) — 59.5 h
+
+- [ ] **H6.6** · El visor consume la API real en lugar de los JSON estaticos
+  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
+  - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
+    el cambio de origen de datos del visor, y esta en la ruta critica del
+    prototipo. Al cerrarla hay que anotar **D-14** como revisada.
+  - Excepcion de propiedad: autoriza a tocar `frontend/src/datos/cliente.js` y la
+    configuracion de entorno del visor, nada mas. Ver `docs/07-propiedad-archivos.md`.
 
 - [ ] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1 · **bloquea a: H11.3, H12.3**

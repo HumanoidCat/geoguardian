@@ -42,6 +42,28 @@ volviera a ocurrir en lugar de despues.
 La regla que se aplica es la misma que salio de aquel caso: **la propiedad sigue al
 trabajo asignado, no al reves.**
 
+## Excepcion: frontend/src/datos/cliente.js, para H6.6
+
+`frontend/` es de Avril. La historia **H6.6** —cambiar el origen de datos del visor
+de los JSON estaticos a la API real— es de Alejandro, y toca ese archivo.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/src/datos/cliente.js` y la configuracion de entorno del visor | H6.6, y nada mas |
+
+**Por que no se le asigna a Avril.** El cambio no es de presentacion: es de
+arquitectura, sustituye la costura que D-14 dejo puesta a proposito y depende de
+conocer los esquemas de la API. Avril diseño el archivo justamente para que esto
+fuera un cambio de una constante y ningun componente se enterara; el trabajo esta
+del lado de la API, no del visor.
+
+**Por que la excepcion es tan estrecha.** Solo ese archivo y la configuracion. Los
+componentes, los estilos y el exportador siguen siendo de Avril sin excepcion. Si
+hiciera falta tocar un componente, se pide.
+
+Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
+asignado, y se declara por historia y no en general.
+
 ## Excepcion: docs/evidencias/
 
 `docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**
