@@ -81,13 +81,32 @@ function AjustarEncuadre({ coleccion }) {
   return null
 }
 
-export default function MapaCanton({ coleccion, riesgos, evento, seleccionado, alSeleccionar }) {
-  // La clave fuerza a react-leaflet a recrear la capa cuando cambia el evento o
-  // la seleccion. Sin esto, GeoJSON conserva los estilos del primer render y el
-  // mapa no cambia de color al cambiar de evento.
+export default function MapaCanton({ coleccion, riesgos, seleccionado, alSeleccionar }) {
+  // Firma de lo que se va a pintar: un distrito y su nivel, por cada distrito.
+  //
+  // La clave describe EL RESULTADO, no la intencion. La version anterior dependia
+  // de `evento`, y eso producia un defecto silencioso: `evento` cambia en el
+  // instante del clic, pero los riesgos llegan despues, al terminar el fetch.
+  // La capa se recreaba de inmediato con los riesgos viejos, y cuando llegaban
+  // los nuevos la clave ya no cambiaba, asi que nadie la volvia a recrear. El
+  // mapa quedaba pintando el evento anterior mientras la leyenda mostraba el
+  // correcto.
+  //
+  // Con la firma, la capa se recrea exactamente cuando cambia lo que hay que
+  // dibujar. Y si dos eventos dieran los mismos niveles no se recrea, que es lo
+  // correcto: el dibujo seria identico.
+  const firmaRiesgos = useMemo(
+    () =>
+      Object.entries(riesgos ?? {})
+        .sort(([unCodigo], [otroCodigo]) => unCodigo.localeCompare(otroCodigo))
+        .map(([codigo, riesgo]) => `${codigo}:${riesgo?.nivel ?? 'sin'}`)
+        .join(','),
+    [riesgos],
+  )
+
   const clave = useMemo(
-    () => `${evento}-${seleccionado ?? 'ninguno'}-${coleccion?.features?.length ?? 0}`,
-    [evento, seleccionado, coleccion],
+    () => `${firmaRiesgos}|${seleccionado ?? 'ninguno'}|${coleccion?.features?.length ?? 0}`,
+    [firmaRiesgos, seleccionado, coleccion],
   )
 
   const nivelDe = (codigo) => riesgos?.[codigo]?.nivel ?? null
