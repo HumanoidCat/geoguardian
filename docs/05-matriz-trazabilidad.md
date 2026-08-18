@@ -34,7 +34,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H13.1 | Actas de las ceremonias Scrum | docs | contraste de cada cifra contra git log y el backlog | docs/evidencias/arquitectura-software/H13.1-ceremonias-scrum.md | Scrum | Alejandro | **Con evidencia** |
 | H10.2 | Suite de pruebas del backend | backend/tests | los 39 casos del plan H10.1 | docs/evidencias/calidad/ | QA | Luna | Pendiente |
 | H10.5a | 15 referencias IEEE con ficha de contenido | docs/investigacion | verificacion de cada DOI contra la editorial | docs/evidencias/entregables/H10.5a-referencias-ieee.md | IEEE | Luna | **Con evidencia** |
-| H10.5b | Estado del arte de Costa Rica | docs/investigacion | no aplica: es documentacion | docs/evidencias/entregables/ | IEEE | Luna | Pendiente |
+| H10.5b | Estado del arte de Costa Rica | docs/investigacion | verificacion de las fuentes nuevas contra el sitio del editor | docs/evidencias/entregables/H10.5b-estado-del-arte.md | IEEE | Luna | **Con evidencia** |
 | H4.3 | Catalogo de 12 o mas eventos historicos con fuente | docs/investigacion, backend/calidad | python -m backend.calidad.validar_catalogo | docs/evidencias/objetivos/H4.3-catalogo-eventos.md | OE3 | Luna | **Con evidencia** |
 | H4.4 | Contrastar estimaciones contra el catalogo | backend/modelado | test_contraste_catalogo | docs/evidencias/objetivos/ | OE3 | Alejandro | Pendiente: sin eventos de incendio catalogables, ver H4.3 |
 

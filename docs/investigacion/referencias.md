@@ -450,6 +450,58 @@ directamente (`arxiv.org/abs/2405.01607`). DOI de arXiv:
 - *Uso previsto:* cita de respaldo en la sección de metodología al describir
   el cálculo del SPI, y en la evidencia de H2.3.
 
+### [25] IMN y SINAC — Sistema de Alerta Temprana de Incendios Forestales
+
+```
+[25] Instituto Meteorológico Nacional y Sistema Nacional de Áreas de
+     Conservación, "Sistema de Alerta Temprana de Incendios Forestales
+     (SATIF)," CONIFOR Costa Rica. [En línea]. Disponible:
+     https://www.imn.ac.cr/alerta
+```
+
+**Fuente verificada:** sitio oficial del IMN (`imn.ac.cr/alerta`), consultado
+el 2026-08-18.
+
+**Ficha de contenido**
+- *Qué dice:* documenta el sistema nacional de alerta temprana de incendios
+  forestales, operativo desde 2020, gestionado por el Programa Nacional de
+  Manejo del Fuego del SINAC-MINAE con el IMN y asesoría técnica del Servicio
+  Forestal de Canadá. Implementa el Fire Weather Index canadiense adaptado al
+  país y clasifica el peligro en cuatro categorías. Declara de forma explícita
+  que se basa únicamente en temperatura, humedad relativa, velocidad del viento
+  y lluvia, y que **no considera riesgo, topografía ni combustibles**. Su
+  resolución espacial es la del área representativa de la estación
+  meteorológica que aporta los datos.
+- *Por qué es relevante:* es el sistema nacional con el que el componente de
+  incendio de este proyecto se va a comparar inevitablemente. Su alcance
+  declarado delimita con precisión qué aporta el proyecto y qué no, y evita
+  presentar la propuesta como si no existiera nada previo.
+- *Uso previsto:* estado del arte (H10.5b) y discusión de resultados.
+
+### [26] Hernández-Alpízar, Gómez-Mejía y Argüello-Vega — IA, ML y SIG en ingeniería ambiental
+
+```
+[26] L. Hernández-Alpízar, J. A. Gómez-Mejía y M. B. Argüello-Vega,
+     "Inteligencia artificial, machine learning y SIG en ingeniería
+     ambiental: tendencias actuales," Revista Tecnología en Marcha,
+     vol. 37, no. 7, pp. 87-96, 2024.
+```
+
+**Fuente verificada:** Revista Tecnología en Marcha, Instituto Tecnológico de
+Costa Rica. DOI: `10.18845/tm.v37i7.7304`.
+
+**Ficha de contenido**
+- *Qué dice:* revisa el uso de inteligencia artificial, aprendizaje automático
+  y sistemas de información geográfica en ingeniería ambiental a partir de la
+  base IEEE Xplore, filtrando por agua, aire, suelo, cambio climático, energía
+  y residuos, y cuantifica la proporción de uso por tema para señalar las áreas
+  con mayor aplicabilidad y las que merecen reforzarse.
+- *Por qué es relevante:* es producción costarricense reciente sobre la
+  intersección exacta de este proyecto —aprendizaje automático, SIG y ambiente—
+  y permite situar el trabajo dentro de la capacidad instalada del país en vez
+  de apoyarse solo en literatura extranjera.
+- *Uso previsto:* estado del arte (H10.5b).
+
 ## Referencias buscadas y no incluidas
 
 Dos revisiones de aprendizaje automático aplicado a incendio y sequía
@@ -466,8 +518,10 @@ número.
 
 | | |
 |---|---|
-| Fichas nuevas de esta historia | 16 (`[9]` a `[24]`) |
+| Fichas de H10.5a | 16 (`[9]` a `[24]`) |
 | Mínimo exigido por H10.5a | 15 |
+| Fichas agregadas por H10.5b | 2 (`[25]` y `[26]`) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
-| Total de la bibliografía | 24 |
+| Total de la bibliografía | 26 |
 | Referencias descartadas por no poder verificarse | 2 |
+| Pendientes de verificar antes de citar | 1 (Mora-Vahrson 1994, ver `estado-del-arte.md`) |
