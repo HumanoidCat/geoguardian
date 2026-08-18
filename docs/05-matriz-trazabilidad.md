@@ -16,6 +16,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H1.8 | Esquemas, roles, minimo privilegio | basedatos/seguridad | test_permisos_rol | docs/evidencias/bases-de-datos/ | BD-2 | Cesar | Pendiente |
 | H1.9 | Control transaccional con manejo de errores | basedatos/procedimientos | test_rollback | docs/evidencias/bases-de-datos/ | BD-3 | Cesar | Pendiente |
 | H1.10 | Estrategia de respaldo probada | basedatos/respaldos | restauracion manual | docs/evidencias/bases-de-datos/ | BD-4 | Cesar | Pendiente |
+| H2.1 | Filtrado de ruido con justificacion del filtro | backend/senales | test_filtros, 19 casos | docs/evidencias/senales-y-sistemas/H2.1-filtro-ruido.md | Senales | Luna | **Con evidencia** |
 | H2.2 | Analisis espectral de estacionalidad | backend/senales | test_espectro | docs/evidencias/senales-y-sistemas/ | Senales | Alejandro | Pendiente |
 | H2.3 | SPI por ventana movil | backend/senales | test_spi | docs/evidencias/senales-y-sistemas/ | Senales | Alejandro | Pendiente |
 | H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | Pendiente |
