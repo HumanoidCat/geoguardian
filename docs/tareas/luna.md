@@ -50,7 +50,7 @@
 - [ ] **H2.3** · SPI de 1 y 3 meses por convolucion de ventana movil
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H2.5, H3.0**
 
-- [ ] **H2.7** · Calcular percentiles R95p y R99p de precipitacion acumulada por distrito
+- [x] **H2.7** · Calcular percentiles R95p y R99p de precipitacion acumulada por distrito (2026-08-18)
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H3.0**
 
 
