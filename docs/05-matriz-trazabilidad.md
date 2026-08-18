@@ -16,9 +16,9 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H1.8 | Esquemas, roles, minimo privilegio | basedatos/seguridad | test_permisos_rol | docs/evidencias/bases-de-datos/ | BD-2 | Cesar | Pendiente |
 | H1.9 | Control transaccional con manejo de errores | basedatos/procedimientos | test_rollback | docs/evidencias/bases-de-datos/ | BD-3 | Cesar | Pendiente |
 | H1.10 | Estrategia de respaldo probada | basedatos/respaldos | restauracion manual | docs/evidencias/bases-de-datos/ | BD-4 | Cesar | Pendiente |
-| H2.1 | Filtrado de ruido con justificacion del filtro | backend/senales | test_filtros, 19 casos | docs/evidencias/senales-y-sistemas/H2.1-filtro-ruido.md | Senales | Luna | **Con evidencia** |
-| H2.2 | Analisis espectral de estacionalidad | backend/senales | test_espectro | docs/evidencias/senales-y-sistemas/ | Senales | Alejandro | Pendiente |
-| H2.3 | SPI por ventana movil | backend/senales | test_spi, 21 casos | docs/evidencias/senales-y-sistemas/H2.3-spi.md | Senales | Luna | **Con evidencia**, con la salvedad de SC-02: el ajuste no es por mes calendario |
+| H2.1 | Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion | backend/senales | test_filtros, 19 casos | docs/evidencias/senales-y-sistemas/H2.1-filtro-ruido.md | Senales | Luna | **Con evidencia** · pendiente reejecutar contra las series reales de H1.1 |
+| H2.2 | Analisis espectral de estacionalidad, sobre la serie cruda (D-17) | backend/senales | test_espectro | docs/evidencias/senales-y-sistemas/ | Senales | Luna | Pendiente |
+| H2.3 | SPI por ventana movil, sobre la serie cruda (D-17) | backend/senales | test_spi, 21 casos | docs/evidencias/senales-y-sistemas/H2.3-spi.md | Senales | Luna | **Con evidencia**, con la salvedad de SC-02: el ajuste no es por mes calendario |
 | H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H3.6 | Comparativa de tres algoritmos | backend/modelado | test_comparativa | docs/evidencias/ | OE2 | Alejandro | Pendiente |
@@ -38,5 +38,10 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H10.5b | Estado del arte de Costa Rica | docs/investigacion | verificacion de las fuentes nuevas contra el sitio del editor | docs/evidencias/entregables/H10.5b-estado-del-arte.md | IEEE | Luna | **Con evidencia** |
 | H4.3 | Catalogo de 12 o mas eventos historicos con fuente | docs/investigacion, backend/calidad | python -m backend.calidad.validar_catalogo | docs/evidencias/objetivos/H4.3-catalogo-eventos.md | OE3 | Luna | **Con evidencia** |
 | H4.4 | Contrastar estimaciones contra el catalogo | backend/modelado | test_contraste_catalogo | docs/evidencias/objetivos/ | OE3 | Alejandro | Pendiente: sin eventos de incendio catalogables, ver H4.3 |
+| H6.4 | Seis o mas registros ADR escritos | docs | docs/herramientas/verificar_adr.py, 18 de 18 completos | docs/evidencias/arquitectura-software/H6.4-registros-adr.md | Arq | Alejandro | **Con evidencia** |
+| H8.5 | Credenciales por variables de entorno, fuera del repositorio | .env.example, docker-compose.yml | rastreo del historial de git buscando .env | docs/evidencias/sistemas-operativos/H8.5-credenciales-por-entorno.md | SO-1 | Alejandro | **Con evidencia** |
+| H8.6 | Manifiestos de Kubernetes corriendo en k3d local | infra/k8s | kubectl apply sobre un cluster k3d recien creado | docs/evidencias/arquitectura-software/H8.6-kubernetes-k3d.md | Arq | Alejandro | **Con evidencia** |
+| H10.8 | Carpeta de evidencias organizada por materia con indice | docs/evidencias | docs/herramientas/verificar_cobertura_evidencias.py | docs/evidencias/sistemas-operativos/H10.8-carpeta-evidencias.md | SO-4 | Alejandro | **Con evidencia** |
+| H6.6 | El visor consume la API real en lugar de los JSON estaticos | frontend/src/datos/cliente.js, backend/api | verificacion de punta a punta con la API levantada | docs/evidencias/arquitectura-software/ | Arq | Alejandro | Pendiente |
 
 Completar con el resto del backlog conforme entren al sprint.
