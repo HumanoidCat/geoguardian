@@ -1,16 +1,25 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvisoModoSimulado from './componentes/AvisoModoSimulado'
+import LeyendaRiesgo from './componentes/LeyendaRiesgo'
 import MapaCanton from './componentes/MapaCanton'
 import PanelDistrito from './componentes/PanelDistrito'
-import { obtenerDistritos, obtenerSalud } from './datos/cliente'
+import SelectorEvento from './componentes/SelectorEvento'
+import { obtenerDistritos, obtenerRiesgos, obtenerSalud } from './datos/cliente'
+import { nombreDeEvento } from './datos/eventos'
+
+const EVENTO_INICIAL = 'sequia'
 
 export default function App() {
   const [salud, setSalud] = useState(null)
   const [coleccion, setColeccion] = useState(null)
+  const [evento, setEvento] = useState(EVENTO_INICIAL)
+  const [paqueteRiesgos, setPaqueteRiesgos] = useState(null)
   const [seleccionado, setSeleccionado] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
+  const [cargandoRiesgos, setCargandoRiesgos] = useState(true)
 
+  // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
     let vigente = true
 
@@ -37,10 +46,49 @@ export default function App() {
     }
   }, [])
 
+  // Riesgos del evento seleccionado. Se recarga cada vez que cambia el evento.
+  //
+  // El estado de carga NO se enciende aca: se enciende en el manejador del
+  // selector y arranca en true. Encenderlo dentro del efecto provoca un render
+  // en cascada, y el linter lo rechaza con razon.
+  useEffect(() => {
+    let vigente = true
+
+    async function cargar() {
+      try {
+        const paquete = await obtenerRiesgos(evento)
+        if (!vigente) return
+        setPaqueteRiesgos(paquete)
+      } catch (causa) {
+        if (!vigente) return
+        // Si fallan los riesgos, el mapa sigue en pie con los distritos sin
+        // estimacion. Es mejor que una pantalla en blanco: se ve el canton y se
+        // ve que falta el dato.
+        setPaqueteRiesgos(null)
+        setError(causa.message)
+      } finally {
+        if (vigente) setCargandoRiesgos(false)
+      }
+    }
+
+    cargar()
+    return () => {
+      vigente = false
+    }
+  }, [evento])
+
+  const cambiarEvento = useCallback((nuevo) => {
+    setCargandoRiesgos(true)
+    setEvento(nuevo)
+  }, [])
+
   const distritoSeleccionado = useMemo(() => {
     if (!coleccion || !seleccionado) return null
     return coleccion.features.find((r) => r.properties.codigo === seleccionado)?.properties ?? null
   }, [coleccion, seleccionado])
+
+  const nombreEvento = nombreDeEvento(evento)
+  const riesgos = paqueteRiesgos?.riesgos ?? null
 
   return (
     <div className="aplicacion">
@@ -57,7 +105,7 @@ export default function App() {
 
       {error && (
         <div className="error" role="alert">
-          <strong>No se pudieron cargar los datos.</strong>
+          <strong>No se pudieron cargar todos los datos.</strong>
           <p>{error}</p>
         </div>
       )}
@@ -69,14 +117,39 @@ export default function App() {
         </div>
       )}
 
-      {!cargando && !error && (
+      {!cargando && coleccion && (
         <main className="contenido">
-          <MapaCanton
-            coleccion={coleccion}
-            seleccionado={seleccionado}
-            alSeleccionar={setSeleccionado}
-          />
-          <PanelDistrito distrito={distritoSeleccionado} />
+          <div className="columna-mapa">
+            <SelectorEvento seleccionado={evento} alCambiar={cambiarEvento} />
+            <MapaCanton
+              coleccion={coleccion}
+              riesgos={riesgos}
+              evento={evento}
+              seleccionado={seleccionado}
+              alSeleccionar={setSeleccionado}
+            />
+          </div>
+
+          <div className="columna-panel">
+            {cargandoRiesgos ? (
+              <div className="leyenda">
+                <div className="pulso-cargando barra-carga" />
+                <p className="leyenda-aviso">Cargando los niveles de riesgo...</p>
+              </div>
+            ) : (
+              <LeyendaRiesgo
+                nombreEvento={nombreEvento}
+                riesgos={riesgos}
+                simulado={paqueteRiesgos?.simulado}
+              />
+            )}
+
+            <PanelDistrito
+              distrito={distritoSeleccionado}
+              riesgo={seleccionado ? riesgos?.[seleccionado] : null}
+              nombreEvento={nombreEvento}
+            />
+          </div>
         </main>
       )}
     </div>

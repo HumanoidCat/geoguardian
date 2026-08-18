@@ -1,0 +1,56 @@
+{
+  "tipo_evento": "incendio",
+  "fecha": "2026-08-16",
+  "simulado": true,
+  "advertencia": "NIVELES SIMULADOS. No hay ningun modelo entrenado todavia: estos valores los sortea contratos/simulados/datos.py y no representan riesgo real. Existen unicamente para poder construir y verificar la representacion visual. El visor los declara como simulados de forma permanente.",
+  "riesgos": {
+    "50801": {
+      "nivel": "medio",
+      "probabilidad": 0.56,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50802": {
+      "nivel": "alto",
+      "probabilidad": 0.73,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50803": {
+      "nivel": "bajo",
+      "probabilidad": 0.64,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50804": {
+      "nivel": "alto",
+      "probabilidad": 0.8,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50805": {
+      "nivel": "alto",
+      "probabilidad": 0.83,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50806": {
+      "nivel": "bajo",
+      "probabilidad": 0.89,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50807": {
+      "nivel": "medio",
+      "probabilidad": 0.86,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50808": {
+      "nivel": "bajo",
+      "probabilidad": 0.39,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    }
+  }
+}

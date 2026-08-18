@@ -12,6 +12,7 @@
 
 const ORIGEN_DISTRITOS = '/simulados/distritos.geojson'
 const ORIGEN_SALUD = '/simulados/salud.json'
+const ORIGEN_RIESGOS = (evento) => `/simulados/riesgos-${evento}.json`
 
 async function leerJson(ruta, queEs) {
   let respuesta
@@ -59,4 +60,24 @@ export async function obtenerDistritos() {
   }
 
   return coleccion
+}
+
+/**
+ * Riesgo de un tipo de evento para todos los distritos.
+ *
+ * Devuelve el paquete completo, no solo el mapa de riesgos, porque trae la
+ * fecha y la marca de simulado que el visor necesita declarar en pantalla.
+ *
+ * Un distrito puede venir con `nivel` en null: el contrato lo permite mientras
+ * no exista un modelo entrenado. Eso no se corrige aca, se muestra como
+ * ausencia de estimacion.
+ */
+export async function obtenerRiesgos(evento) {
+  const paquete = await leerJson(ORIGEN_RIESGOS(evento), `los riesgos de ${evento}`)
+
+  if (!paquete?.riesgos || typeof paquete.riesgos !== 'object') {
+    throw new Error(`El origen de los riesgos de ${evento} no devolvio un mapa de riesgos.`)
+  }
+
+  return paquete
 }

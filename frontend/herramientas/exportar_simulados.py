@@ -21,23 +21,41 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+from contratos.enums import TipoEvento  # noqa: E402
 from contratos.simulados.datos import RepositorioSimulado, salud_simulada  # noqa: E402
 
 SALIDA = RAIZ / "frontend" / "public" / "simulados"
+
+# Fecha de referencia de la exportacion. Fija para que el resultado sea
+# reproducible: dos corridas del mismo commit producen archivos identicos.
+FECHA_REFERENCIA = date(2026, 8, 16)
 
 # Los ocho distritos del canton de Tilaran, provincia 5 Guanacaste, canton 08.
 # Se usa solo para verificar que el contrato devuelve lo que se espera. Los
 # codigos que terminan en los archivos salen del contrato, no de aqui.
 CODIGOS_ESPERADOS = {"50801", "50802", "50803", "50804", "50805", "50806", "50807", "50808"}
 
+ADVERTENCIA_GEOMETRIA = (
+    "Geometrias de marcador de posicion, no son los limites reales de los "
+    "distritos. Se reemplazan en la historia H1.3 con la capa del SNIT."
+)
 
-def construir_geojson() -> dict:
+ADVERTENCIA_RIESGO = (
+    "NIVELES SIMULADOS. No hay ningun modelo entrenado todavia: estos valores "
+    "los sortea contratos/simulados/datos.py y no representan riesgo real. "
+    "Existen unicamente para poder construir y verificar la representacion "
+    "visual. El visor los declara como simulados de forma permanente."
+)
+
+
+def construir_geojson(repositorio: RepositorioSimulado) -> dict:
     """
     Arma un FeatureCollection con los ocho distritos.
 
@@ -45,15 +63,9 @@ def construir_geojson() -> dict:
     _cuadro() de contratos/simulados/datos.py. NO son la forma real de los
     distritos. Las reales se cargan de la capa IGN_5_CO:limitedistrital_5k del
     SNIT en la historia H1.3, que no es de esta carpeta.
-
-    Por eso el archivo lleva la marca simulado en sus propiedades y el visor
-    muestra el aviso de modo simulado de forma permanente.
     """
-    repositorio = RepositorioSimulado()
-    distritos = repositorio.listar_distritos()
-
     rasgos = []
-    for distrito in distritos:
+    for distrito in repositorio.listar_distritos():
         rasgos.append(
             {
                 "type": "Feature",
@@ -77,11 +89,40 @@ def construir_geojson() -> dict:
             "type": "name",
             "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"},
         },
-        "advertencia": (
-            "Geometrias de marcador de posicion, no son los limites reales de los "
-            "distritos. Se reemplazan en la historia H1.3 con la capa del SNIT."
-        ),
+        "advertencia": ADVERTENCIA_GEOMETRIA,
         "features": rasgos,
+    }
+
+
+def construir_riesgos(repositorio: RepositorioSimulado, evento: TipoEvento) -> dict:
+    """
+    Riesgo de un evento para los ocho distritos en la fecha de referencia.
+
+    El nivel y la probabilidad los inventa el simulado. Se exportan igual porque
+    sin ellos no hay forma de construir ni de verificar la representacion visual
+    de la escala, que es lo que evalua el criterio CG-1. Cada archivo lleva la
+    advertencia adentro, y el visor la repite en la leyenda y en la ficha del
+    distrito.
+
+    Cuando exista un modelo real, `nivel` y `probabilidad` pueden venir en None:
+    el contrato lo permite y el visor tiene que seguir funcionando. Por eso se
+    conservan tal cual, sin sustituirlos por ningun valor por defecto.
+    """
+    riesgos = {}
+    for riesgo in repositorio.obtener_riesgos_por_fecha(FECHA_REFERENCIA, evento):
+        riesgos[riesgo.codigo_distrito] = {
+            "nivel": riesgo.nivel.value if riesgo.nivel else None,
+            "probabilidad": riesgo.probabilidad,
+            "algoritmo": riesgo.algoritmo.value if riesgo.algoritmo else None,
+            "version_modelo": riesgo.version_modelo,
+        }
+
+    return {
+        "tipo_evento": evento.value,
+        "fecha": FECHA_REFERENCIA.isoformat(),
+        "simulado": True,
+        "advertencia": ADVERTENCIA_RIESGO,
+        "riesgos": riesgos,
     }
 
 
@@ -90,7 +131,7 @@ def construir_salud() -> dict:
     return json.loads(salud_simulada().model_dump_json())
 
 
-def verificar(geojson: dict) -> None:
+def verificar_geojson(geojson: dict) -> None:
     """
     Falla ruidosamente si el resultado no es el esperado.
 
@@ -114,18 +155,32 @@ def verificar(geojson: dict) -> None:
         raise SystemExit(f"ERROR: distritos sin geometria: {sin_geometria}")
 
 
+def verificar_riesgos(paquete: dict) -> None:
+    """Los riesgos tienen que cubrir los mismos ocho distritos que el mapa."""
+    codigos = set(paquete["riesgos"])
+    if codigos != CODIGOS_ESPERADOS:
+        faltan = CODIGOS_ESPERADOS - codigos
+        sobran = codigos - CODIGOS_ESPERADOS
+        raise SystemExit(
+            f"ERROR en {paquete['tipo_evento']}: faltan {faltan}, sobran {sobran}. "
+            "Un distrito sin entrada en el mapa de riesgos se dibujaria en blanco "
+            "sin que nadie sepa por que."
+        )
+
+
 def escribir(ruta: Path, contenido: dict) -> None:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     ruta.write_text(json.dumps(contenido, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> None:
-    geojson = construir_geojson()
-    verificar(geojson)
+    repositorio = RepositorioSimulado()
+
+    geojson = construir_geojson(repositorio)
+    verificar_geojson(geojson)
+    escribir(SALIDA / "distritos.geojson", geojson)
 
     salud = construir_salud()
-
-    escribir(SALIDA / "distritos.geojson", geojson)
     escribir(SALIDA / "salud.json", salud)
 
     print(f"Distritos exportados: {len(geojson['features'])}")
@@ -137,12 +192,29 @@ def main() -> None:
             f"{propiedades['area_km2']:>6.1f} km2  "
             f"poblacion: {'sin dato' if poblacion is None else poblacion}"
         )
+
+    print(f"\nRiesgos simulados para el {FECHA_REFERENCIA.isoformat()}:")
+    for evento in TipoEvento:
+        paquete = construir_riesgos(repositorio, evento)
+        verificar_riesgos(paquete)
+        escribir(SALIDA / f"riesgos-{evento.value}.json", paquete)
+
+        conteo: dict[str, int] = {}
+        for datos in paquete["riesgos"].values():
+            clave = datos["nivel"] or "sin estimacion"
+            conteo[clave] = conteo.get(clave, 0) + 1
+        detalle = ", ".join(f"{cantidad} {nivel}" for nivel, cantidad in sorted(conteo.items()))
+        print(f"  {evento.value:<16} {detalle}")
+
     print(f"\nModo de la API: {salud['modo']}")
     print(f"Version de contratos: {salud['version_contratos']}")
     print(f"\nEscritos en {SALIDA.relative_to(RAIZ)}:")
     print("  distritos.geojson")
     print("  salud.json")
+    for evento in TipoEvento:
+        print(f"  riesgos-{evento.value}.json")
     print("\nGeometrias de marcador de posicion. Se reemplazan en H1.3.")
+    print("Niveles de riesgo sorteados por el simulado. No son estimaciones reales.")
 
 
 if __name__ == "__main__":

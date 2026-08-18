@@ -38,6 +38,15 @@
   --texto-sobre-medio: #1a1a1a;
   --texto-sobre-alto: #ffffff;
 
+  /* Opacidad del relleno de los poligonos sobre la capa base.
+     No es una decision estetica. Con relleno opaco se pierde el terreno y el
+     mapa deja de dar contexto; con demasiada transparencia los colores se
+     mezclan con el fondo y los contrastes verificados dejan de valer.
+     0.85 conserva las relaciones de la rampa y deja leer rios y caminos.
+     Las mediciones del script se hacen sobre el color solido: sobre la capa
+     base el contraste real es algo menor. Queda documentado como limitacion. */
+  --riesgo-opacidad: 0.85;
+
   /* ---------------------------------------------------------------------- *
    * Ausencia de dato
    *
