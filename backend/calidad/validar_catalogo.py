@@ -132,9 +132,7 @@ def validar(ruta: Path) -> int:
         print(f"  {codigo} {nombre:<16} {n:>3}{marca}")
 
     print("\nFilas por severidad:")
-    por_severidad = Counter(
-        e.severidad.value if e.severidad else "sin asignar" for e in eventos
-    )
+    por_severidad = Counter(e.severidad.value if e.severidad else "sin asignar" for e in eventos)
     for clave, n in sorted(por_severidad.items()):
         print(f"  {clave:<16} {n:>3}")
 
