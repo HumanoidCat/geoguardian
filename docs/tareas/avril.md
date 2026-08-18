@@ -35,7 +35,7 @@
 - [ ] **H5.2** · Cuatro o mas capas conmutables con control de opacidad
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
 
-- [ ] **H5.3** · Coropletas de riesgo por evento con rampa de color y leyenda
+- [x] **H5.3** · Coropletas de riesgo por evento con rampa de color y leyenda (2026-08-17)
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 

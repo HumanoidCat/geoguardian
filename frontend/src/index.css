@@ -93,13 +93,14 @@ body {
 }
 
 .barra-carga {
-  width: 14rem;
+  width: 100%;
+  max-width: 14rem;
   height: 0.5rem;
   border-radius: var(--radio);
 }
 
 .error {
-  margin: var(--espacio-6);
+  margin: var(--espacio-4) var(--espacio-6) 0;
   padding: var(--espacio-4);
   background: var(--superficie);
   border: 1px solid var(--riesgo-alto);
@@ -118,7 +119,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------- *
- * Contenido: mapa y panel
+ * Contenido: mapa y panel lateral
  * -------------------------------------------------------------------------- */
 
 .contenido {
@@ -136,19 +137,93 @@ body {
   }
 }
 
+.columna-mapa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  min-height: 0;
+}
+
+.columna-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  align-self: start;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Selector de evento
+ * -------------------------------------------------------------------------- */
+
+.selector-evento {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-3);
+  box-shadow: var(--sombra);
+}
+
+.selector-evento-grupo {
+  display: flex;
+  gap: var(--espacio-2);
+  flex-wrap: wrap;
+}
+
+.selector-evento-boton {
+  font-family: inherit;
+  font-size: var(--texto-sm);
+  padding: var(--espacio-2) var(--espacio-4);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto-suave);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.selector-evento-boton:hover {
+  background: var(--superficie-alterna);
+}
+
+.selector-evento-boton:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+}
+
+.selector-evento-boton-activo {
+  background: var(--texto);
+  border-color: var(--texto);
+  color: var(--superficie);
+  font-weight: 600;
+}
+
+/* El umbral no es una nota al pie: es lo que permite entender que significa
+   "alto" sin salir de la pantalla. */
+.selector-evento-umbral {
+  margin: var(--espacio-3) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-xs);
+  line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Mapa
+ * -------------------------------------------------------------------------- */
+
 .contenedor-mapa {
   position: relative;
+  flex: 1;
   border: 1px solid var(--borde);
   border-radius: var(--radio-lg);
   overflow: hidden;
   box-shadow: var(--sombra);
-  min-height: 30rem;
+  min-height: 28rem;
 }
 
 .mapa {
   width: 100%;
   height: 100%;
-  min-height: 30rem;
+  min-height: 28rem;
   z-index: var(--z-mapa);
 }
 
@@ -163,13 +238,31 @@ body {
 .distrito {
   cursor: pointer;
   transition: stroke-width 0.12s ease;
+  stroke: var(--distrito-borde);
+  stroke-width: var(--distrito-borde-ancho);
 }
 
+.distrito-riesgo-bajo {
+  fill: var(--riesgo-bajo);
+  fill-opacity: var(--riesgo-opacidad);
+}
+
+.distrito-riesgo-medio {
+  fill: var(--riesgo-medio);
+  fill-opacity: var(--riesgo-opacidad);
+}
+
+.distrito-riesgo-alto {
+  fill: var(--riesgo-alto);
+  fill-opacity: var(--riesgo-opacidad);
+}
+
+/* Ausencia de dato: trama, borde punteado y fondo fuera de la rampa. Tres
+   senales distintas, para que no se pueda confundir con un cuarto nivel. */
 .distrito-sin-dato {
   fill: url(#patron-sin-dato);
   fill-opacity: 1;
   stroke: var(--sin-dato-borde);
-  stroke-width: var(--distrito-borde-ancho);
   stroke-dasharray: 5 3;
 }
 
@@ -187,6 +280,92 @@ body {
 }
 
 /* -------------------------------------------------------------------------- *
+ * Leyenda
+ * -------------------------------------------------------------------------- */
+
+.leyenda {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+  padding: var(--espacio-4);
+}
+
+.leyenda-titulo {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+}
+
+.leyenda-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.leyenda-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-size: var(--texto-sm);
+  padding: var(--espacio-1) 0;
+}
+
+.leyenda-nombre {
+  flex: 1;
+}
+
+.leyenda-conteo {
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texto-xs);
+}
+
+.cuadro-leyenda {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 2px;
+  border: 1px solid var(--distrito-borde);
+  flex: none;
+}
+
+.cuadro-riesgo-bajo {
+  background: var(--riesgo-bajo);
+}
+
+.cuadro-riesgo-medio {
+  background: var(--riesgo-medio);
+}
+
+.cuadro-riesgo-alto {
+  background: var(--riesgo-alto);
+}
+
+.cuadro-sin-dato {
+  border-style: dashed;
+  border-color: var(--sin-dato-borde);
+}
+
+/* La linea separa la rampa de la ausencia de dato. No es un adorno: marca que
+   "sin estimacion" no es un cuarto nivel de riesgo. */
+.leyenda-separador {
+  border: 0;
+  border-top: 1px solid var(--borde);
+  margin: var(--espacio-2) 0;
+}
+
+.leyenda-aviso {
+  margin: var(--espacio-3) 0 0;
+  padding-top: var(--espacio-2);
+  border-top: 1px solid var(--borde);
+  color: var(--texto-tenue);
+  font-size: var(--texto-xs);
+  font-style: italic;
+}
+
+/* -------------------------------------------------------------------------- *
  * Panel del distrito
  * -------------------------------------------------------------------------- */
 
@@ -196,7 +375,6 @@ body {
   border-radius: var(--radio-lg);
   box-shadow: var(--sombra);
   padding: var(--espacio-4);
-  align-self: start;
 }
 
 .panel-vacio {
@@ -267,12 +445,9 @@ body {
   border-radius: var(--radio);
 }
 
-.cuadro-leyenda {
-  width: 1.75rem;
-  height: 1.75rem;
-  flex: none;
-  border: 1px dashed var(--sin-dato-borde);
-  border-radius: 2px;
+.panel-estimacion > div {
+  flex: 1;
+  min-width: 0;
 }
 
 .panel-estimacion-titulo {
@@ -284,6 +459,22 @@ body {
 .panel-estimacion-detalle {
   margin: 0;
   color: var(--texto-suave);
+  font-size: var(--texto-xs);
+}
+
+.panel-riesgo-datos {
+  margin: var(--espacio-2) 0 0;
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.panel-riesgo-datos .dato {
+  padding-bottom: var(--espacio-1);
+  border-bottom: 0;
+}
+
+.panel-riesgo-datos .dato dt,
+.panel-riesgo-datos .dato dd {
   font-size: var(--texto-xs);
 }
 
