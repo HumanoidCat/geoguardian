@@ -38,6 +38,10 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H10.5b | Estado del arte de Costa Rica | docs/investigacion | verificacion de las fuentes nuevas contra el sitio del editor | docs/evidencias/entregables/H10.5b-estado-del-arte.md | IEEE | Luna | **Con evidencia** |
 | H4.3 | Catalogo de 12 o mas eventos historicos con fuente | docs/investigacion, backend/calidad | python -m backend.calidad.validar_catalogo | docs/evidencias/objetivos/H4.3-catalogo-eventos.md | OE3 | Luna | **Con evidencia** |
 | H4.4 | Contrastar estimaciones contra el catalogo | backend/modelado | test_contraste_catalogo | docs/evidencias/objetivos/ | OE3 | Alejandro | Pendiente: sin eventos de incendio catalogables, ver H4.3 |
+| H6.4 | Seis o mas registros ADR escritos | docs | docs/herramientas/verificar_adr.py, 18 de 18 completos | docs/evidencias/arquitectura-software/H6.4-registros-adr.md | Arq | Alejandro | **Con evidencia** |
+| H8.5 | Credenciales por variables de entorno, fuera del repositorio | .env.example, docker-compose.yml | rastreo del historial de git buscando .env | docs/evidencias/sistemas-operativos/H8.5-credenciales-por-entorno.md | SO-1 | Alejandro | **Con evidencia** |
+| H8.6 | Manifiestos de Kubernetes corriendo en k3d local | infra/k8s | kubectl apply sobre un cluster k3d recien creado | docs/evidencias/arquitectura-software/H8.6-kubernetes-k3d.md | Arq | Alejandro | **Con evidencia** |
+| H10.8 | Carpeta de evidencias organizada por materia con indice | docs/evidencias | docs/herramientas/verificar_cobertura_evidencias.py | docs/evidencias/sistemas-operativos/H10.8-carpeta-evidencias.md | SO-4 | Alejandro | **Con evidencia** |
 | H6.6 | El visor consume la API real en lugar de los JSON estaticos | frontend/src/datos/cliente.js, backend/api | verificacion de punta a punta con la API levantada | docs/evidencias/arquitectura-software/ | Arq | Alejandro | Pendiente |
 
 Completar con el resto del backlog conforme entren al sprint.

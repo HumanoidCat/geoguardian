@@ -70,7 +70,7 @@ asignado, y se declara por historia y no en general.
 para todo el equipo. Cada integrante sube la evidencia de sus propias historias
 sin pedir autorizacion.
 
-La razon es practica: son 82 historias, cada una con su evidencia. Exigir una
+La razon es practica: son 84 historias, cada una con su evidencia. Exigir una
 solicitud de cambio por cada una convertiria al Lead PM en cuello de botella de
 algo que no aporta ningun control real.
 
@@ -124,7 +124,7 @@ cada quien revisa territorio que conoce.
 Alejandro es el dueno de `docs/` porque tiene el contexto completo del proyecto y
 es quien puede sostener la coherencia entre arquitectura, resultados y redaccion.
 
-Luna es duena de `docs/investigacion/`, que alimenta al documento IEEE con
+Luna es dueno de `docs/investigacion/`, que alimenta al documento IEEE con
 insumos que no requieren contexto arquitectonico: referencias, estado del arte,
 catalogo de eventos historicos y plan de pruebas.
 
