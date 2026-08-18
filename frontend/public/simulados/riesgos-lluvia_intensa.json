@@ -1,0 +1,56 @@
+{
+  "tipo_evento": "lluvia_intensa",
+  "fecha": "2026-08-16",
+  "simulado": true,
+  "advertencia": "NIVELES SIMULADOS. No hay ningun modelo entrenado todavia: estos valores los sortea contratos/simulados/datos.py y no representan riesgo real. Existen unicamente para poder construir y verificar la representacion visual. El visor los declara como simulados de forma permanente.",
+  "riesgos": {
+    "50801": {
+      "nivel": "bajo",
+      "probabilidad": 0.46,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50802": {
+      "nivel": "alto",
+      "probabilidad": 0.53,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50803": {
+      "nivel": "medio",
+      "probabilidad": 0.79,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50804": {
+      "nivel": "medio",
+      "probabilidad": 0.74,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50805": {
+      "nivel": "alto",
+      "probabilidad": 0.89,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50806": {
+      "nivel": "medio",
+      "probabilidad": 0.42,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50807": {
+      "nivel": "bajo",
+      "probabilidad": 0.43,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    },
+    "50808": {
+      "nivel": "alto",
+      "probabilidad": 0.67,
+      "algoritmo": "xgboost",
+      "version_modelo": "simulado-0.0.0"
+    }
+  }
+}

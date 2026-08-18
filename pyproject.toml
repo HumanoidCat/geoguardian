@@ -16,6 +16,12 @@ ignore = [
 known-first-party = ["contratos", "backend"]
 
 [tool.pytest.ini_options]
+# La raiz del repositorio entra al path de importacion. Sin esto, `pytest` a
+# secas falla con "No module named 'backend'": el script de consola no agrega el
+# directorio actual al path, mientras que `python -m pytest` si lo hace. Las dos
+# formas de invocar tienen que dar el mismo resultado, porque si no el CI y la
+# maquina de quien escribe la prueba discrepan. Encontrado en el PR #110.
+pythonpath = ["."]
 testpaths = ["backend/tests"]
 python_files = ["test_*.py"]
 addopts = "-ra"
