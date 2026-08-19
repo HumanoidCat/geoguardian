@@ -212,9 +212,35 @@ def _a_normal_estandar(
     cortas. El limite equivale a un SPI de aproximadamente +-3,7, mas alla del
     cual la clasificacion de sequia no distingue nada: los umbrales del
     proyecto estan en -1,0 y -1,5.
+
+    **El caso del acumulado cero, y una atribucion que hay que verificar.**
+
+    Con la distribucion mixta, en x = 0 se tiene G(0) = 0 y por lo tanto
+    H(0) = q. La lectura directa seria entonces `ppf(q)`.
+
+    Aqui se usa `ppf(q / 2)`, que es la variante de centro de masa: reparte la
+    masa de probabilidad de los ceros en lugar de acumularla toda en su
+    extremo superior, y evita la discontinuidad que produce usar q entre el
+    ultimo cero y el primer valor positivo.
+
+    **La eleccion se mantiene; lo que no esta resuelto es a quien se atribuye.**
+    Una version anterior de este archivo la atribuia a la OMM, lo cual es
+    incorrecto: WMO-No. 1090 plantea la distribucion mixta pero no se verifico
+    que recomiende la mitad. Alejandro sugirio Stagge et al. (2015),
+    *Candidate Distributions for Climatological Drought Indices (SPI and
+    SPEI)*, Int. J. Climatology 35(13), 4027-4040, DOI 10.1002/joc.4267. Se
+    confirmo que ese articulo existe con esos datos, pero **no** que sea la
+    fuente de esta correccion en particular.
+
+    Queda pendiente confirmarlo contra el texto de una de las dos fuentes antes
+    de que la afirmacion pase al documento IEEE. Mientras tanto no se cita
+    ninguna: es preferible una decision sin atribucion a una atribucion falsa.
+
+    Con 35 anios y SPI-3 el efecto numerico entre `q` y `q / 2` es menor.
     """
     if acumulado <= 0:
-        probabilidad = prob_cero / 2  # convencion de la OMM para la masa en cero
+        # ATRIBUCION PENDIENTE DE VERIFICAR. Ver la nota de abajo.
+        probabilidad = prob_cero / 2
     else:
         probabilidad = prob_cero + (1 - prob_cero) * gamma.cdf(acumulado, forma, scale=escala)
 
