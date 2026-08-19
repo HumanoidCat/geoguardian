@@ -264,6 +264,13 @@ python docs/herramientas/verificar_estado.py
 python docs/herramientas/verificar_documentacion.py
 ```
 
+La matriz de trazabilidad **se genera, no se edita**. Si `verificar_estado.py`
+avisa que no corresponde a sus fuentes:
+
+```bash
+python docs/herramientas/generar_matriz.py
+```
+
 Los cinco existen por errores que ya ocurrieron: tres dependencias apuntaban a
 sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, 30 de
 82 historias no tenían carpeta de evidencia asignada, cuatro historias cerradas no
@@ -413,7 +420,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 19 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 20 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |
