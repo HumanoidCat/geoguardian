@@ -18,7 +18,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H1.10 | Estrategia de respaldo probada | basedatos/respaldos | restauracion manual | docs/evidencias/bases-de-datos/ | BD-4 | Cesar | Pendiente |
 | H2.1 | Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion | backend/senales | test_filtros, 19 casos | docs/evidencias/senales-y-sistemas/H2.1-filtro-ruido.md | Senales | Luna | **Con evidencia** · pendiente reejecutar contra las series reales de H1.1 |
 | H2.2 | Analisis espectral de estacionalidad, sobre la serie cruda (D-17) | backend/senales | test_espectro | docs/evidencias/senales-y-sistemas/ | Senales | Luna | Pendiente |
-| H2.3 | SPI por ventana movil, sobre la serie cruda (D-17) | backend/senales | test_spi, 21 casos | docs/evidencias/senales-y-sistemas/H2.3-spi.md | Senales | Luna | **Con evidencia**, con la salvedad de SC-02: el ajuste no es por mes calendario |
+| H2.3 | SPI por ventana movil, sobre la serie cruda (D-17) | backend/senales | test_spi, 21 casos | docs/evidencias/senales-y-sistemas/H2.3-spi.md | Senales | Luna | **Con evidencia** · SC-02 resuelta por D-19: falta que la implementacion use el parametro `meses` |
 | H2.7 | Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo | backend/senales | test_percentiles, 17 casos | docs/evidencias/senales-y-sistemas/H2.7-percentiles.md | Senales | Luna | **Con evidencia** |
 | H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | Pendiente |

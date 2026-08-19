@@ -103,12 +103,90 @@ hay que volver a mirar el plan.
 
 ---
 
-## 4. Registro por sprint
+## 4. Sprint 1 · lectura parcial del 18 de agosto
+
+**El Sprint 1 no esta cerrado.** Va por el **dia 5 de 14**. Esto es una lectura, no
+un cierre, y se recalcula al terminar.
+
+### Produccion del periodo, del 14 al 18 de agosto
+
+| Origen | Historias | Puntos |
+|---|---|---|
+| Comprometido en el Sprint 1, entregado | 4 | 25 |
+| Adelantado del Sprint 2 | 3 | 13 |
+| Arrastre del Sprint 0, cerrado ahora | 1 | 3 |
+| **Total del periodo** | **8** | **41** |
+
+Comprometido en el Sprint 1: **15 historias, 74 puntos, 107,3 h**. Entregado del
+compromiso: 25 puntos, un **34 %**, en el dia 5 de 14. Va en linea.
+
+### El detalle, por dia
+
+| Fecha | Historia | Quien | Puntos |
+|---|---|---|---|
+| 15 ago | H5.1 · Mapa del canton (S0) | Avril | 3 |
+| 16 ago | H13.1 · Actas de ceremonias | Alejandro | 5 |
+| 17 ago | H5.3 · Coropletas de riesgo | Avril | 7 |
+| 18 ago | H4.3 · Catalogo de eventos historicos | Luna | 8 |
+| 18 ago | H10.5b · Estado del arte de Costa Rica | Luna | 5 |
+| 18 ago | H2.1 · Filtrado de ruido (S2) | Luna | 3 |
+| 18 ago | H2.3 · SPI (S2) | Luna | 5 |
+| 18 ago | H2.7 · Percentiles (S2) | Luna | 5 |
+
+### Velocidad
+
+**41 puntos en cinco dias.** El Sprint 0 entrego 43 puntos en catorce dias.
+
+| | Sprint 0 | Periodo actual |
+|---|---|---|
+| Puntos | 43 | 41 |
+| Dias | 14 | 5 |
+| Puntos por dia | 3,07 | 8,20 |
+| Puntos por semana | 21,5 | 57,4 |
+
+La aceleracion es de **2,7 veces**. La seccion 3 de este documento proyectaba que
+hacian falta 3,5 veces la velocidad del Sprint 0 para llegar a tiempo. **No se
+alcanza esa cifra todavia, pero el orden de magnitud ya no es imposible.**
+
+### Tres razones para no proyectar sobre esta cifra
+
+**1. El 63 % de los puntos son de una sola persona.** Luna cerro cinco historias y
+26 de los 41 puntos. Alejandro suma 5, Avril 10, Cesar cero. Una velocidad de
+equipo sostenida por una persona no es una velocidad de equipo.
+
+**2. Buena parte del periodo es documentacion e investigacion**, que se mueve mas
+rapido que el modelado, el despliegue continuo y la API que vienen despues. Las
+historias de E3 son de 12,5 h cada una y dependen unas de otras en cadena.
+
+**3. Hay deuda que no aparece en los puntos.** H1.1 y H1.2 siguen abiertas desde el
+Sprint 0. Son 12,5 horas que **destraban a las cuatro personas**, y mientras no
+entren, tres de los cuatro trabajan contra simulados. Los puntos entregados no
+reflejan ese bloqueo porque el trabajo bloqueado ni siquiera empezo.
+
+### Lo que si se puede afirmar
+
+El metodo de trabajo empezo a rendir. En este periodo entraron **la primera suite
+de pruebas automatizadas** del proyecto, **dos decisiones de arquitectura tomadas
+midiendo** en vez de discutiendo, y **dos defectos de fondo detectados en revision**
+antes de llegar al modelo.
+
+Ninguna de esas cuatro cosas aparece en el conteo de puntos, y las cuatro cambian
+el resultado final mas que un punto de mas o de menos.
+
+### Lo que sigue sin poder calcularse
+
+**Las horas reales.** La accion 12.4 sigue abierta: nadie las registra en el cuerpo
+de los Pull Requests, asi que el modelo de horas por punto sigue sin poder
+recalibrarse. Cuatro dias despues de abrirla, no ha empezado a cumplirse.
+
+---
+
+## 5. Registro por sprint
 
 | Sprint | Semanas | Comprometido | Entregado | Velocidad | Cumplimiento |
 |---|---|---|---|---|---|
 | 0 | 2-3 | 54 pts | 43 pts | 21,5 pts/sem | 80 % |
-| 1 | 4-5 | 74 pts | — | — | — |
+| 1 | en curso | 74 pts | 25 pts al dia 5 de 14 | 57,4 pts/sem en el periodo | — |
 | 2 | 6-7 | — | — | — | — |
 | 3 | 8-9 | — | — | — | — |
 | 4 | 10-11 | — | — | — | — |

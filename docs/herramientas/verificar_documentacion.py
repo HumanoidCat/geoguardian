@@ -167,6 +167,7 @@ AFIRMACIONES = [
             ("docs/ARRANQUE.md", r"pasar las \*\*(\d+) verificaciones\*\*"),
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
+            ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
         ],
     ),
     Afirmacion(
