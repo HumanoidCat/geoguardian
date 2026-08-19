@@ -40,6 +40,8 @@ jobs:
         run: python docs/herramientas/verificar_adr.py
       - name: Toda historia tiene carpeta de evidencia
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+      - name: El avance dice lo mismo en los archivos de tareas y en la matriz
+        run: python docs/herramientas/verificar_estado.py
       # Necesita pydantic porque corre contratos.verificar para contar sus
       # comprobaciones en lugar de confiar en un numero escrito a mano.
       - name: Instalar lo minimo para contar las comprobaciones de contratos
