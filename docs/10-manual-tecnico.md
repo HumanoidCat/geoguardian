@@ -264,8 +264,9 @@ python docs/herramientas/verificar_estado.py
 python docs/herramientas/verificar_documentacion.py
 ```
 
-La matriz de trazabilidad **se genera, no se edita**. Si `verificar_estado.py`
-avisa que no corresponde a sus fuentes:
+La matriz de trazabilidad y la linea de avance del backlog **se generan, no se
+editan**. Si `verificar_estado.py` o `verificar_documentacion.py` avisan que no
+corresponden a sus fuentes:
 
 ```bash
 python docs/herramientas/generar_matriz.py

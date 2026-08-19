@@ -300,3 +300,68 @@ haberse revisado: el autor de la primera prueba del proyecto habria pasado horas
 buscando un error inexistente en su codigo, y la conclusion natural —"las pruebas
 automatizadas dan problemas"— es cara de revertir en un equipo que apenas empieza
 a escribirlas.
+
+## I-07 · Una cifra derivada escrita a mano rompia el CI de quien no la toco
+
+**Fecha.** 2026-08-19
+
+**Quien lo detecto.** Cesar, al cerrar H1.8 y ver su Pull Request en rojo por algo
+que no habia escrito.
+
+**Que paso.** `docs/08-backlog.md` declaraba cuantas historias van cerradas:
+
+    Al 18 de agosto de 2026: **18 historias cerradas de 84**, 84 puntos de 422.
+
+Es una cifra que se calcula contando las marcas de `docs/tareas/*.md`, y que por
+lo tanto **cambia cada vez que cualquiera cierra una historia**. El verificador de
+documentacion la comprueba y es obligatorio en el CI.
+
+El resultado: **el siguiente Pull Request de quien sea sale en rojo sin haber roto
+nada.** Le toco a Cesar, y le habria tocado a los cuatro por turnos. Quedaban 65
+historias por cerrar, o sea 65 ocasiones.
+
+**La demostracion, que aparecio sola.** Cesar tenia dos Pull Requests abiertos,
+#125 y #126. Los dos corrigieron la linea al mismo valor, 19, y cada uno era
+correcto por separado. Al integrar los dos el valor real pasaba a 20, asi que **la
+fusion de dos PR individualmente correctos dejaba `dev` en rojo**. Se comprobo
+integrando ambos en una copia local antes de mergear:
+
+    historias cerradas: 20
+      - docs/08-backlog.md: dice '19' y el valor real es '20'
+
+**Causa raiz.** La introduje yo el 18 de agosto, un dia despues de escribir la
+decision **D-20**, que dice exactamente que un dato calculable no se escribe a
+mano. Agregue la linea al backlog y la puse a comprobar por el verificador, sin
+aplicarle el principio que acababa de registrar.
+
+Es la tercera vez que el mismo patron aparece en el proyecto: I-04 con los codigos
+de distrito, la matriz de trazabilidad con los duenos, y ahora esta linea.
+
+**Accion tomada.** La linea la escribe `docs/herramientas/generar_matriz.py`, que
+pasa a generar los dos artefactos derivados de la documentacion: la matriz y esta
+cifra. **No agrega ningun paso**: quien cierra una historia ya tenia que correr esa
+herramienta, porque la fila de la matriz tambien cambia.
+
+Se fecha con el **ultimo cierre** y no con el dia de hoy. Con la fecha actual,
+regenerar sin haber cerrado nada produciria un cambio en el archivo y el CI
+empezaria a fallar por el paso del tiempo.
+
+Al hacerlo aparecio un segundo defecto: la cifra de **puntos** de esa misma linea
+decia 84 y el valor real era 97. Ese numero **no lo comprobaba nadie**, asi que
+llevaba desfasado sin que se notara. Lo detecto Cesar tambien.
+
+**Aprendizaje.** Un verificador convierte un dato desactualizado en un fallo
+ruidoso, que es una mejora. Pero **si el dato es derivado y el verificador es
+obligatorio, el fallo le cae a quien no lo causo**, y eso es peor que el problema
+original: castiga al que trabaja.
+
+La regla que sale de aqui, y que completa a D-20:
+
+> Antes de poner una cifra bajo verificacion obligatoria, hay que preguntarse
+> **quien la actualiza**. Si la respuesta es "el proximo que pase por aqui", la
+> cifra tiene que generarse, no comprobarse.
+
+**Impacto.** Un Pull Request bloqueado y el tiempo de Cesar en diagnosticarlo, que
+uso bien: en vez de corregir el numero y seguir, escribio el analisis del patron y
+propuso la solucion. Sin ese diagnostico, el siguiente en toparselo habria vuelto a
+corregir a mano.
