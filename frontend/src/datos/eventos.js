@@ -30,8 +30,14 @@ export const EVENTOS = [
   {
     id: 'lluvia_intensa',
     nombre: 'Lluvia intensa',
+    // La version anterior citaba los indices R95p y R99p del ETCCDI. Estaba mal
+    // atribuida: el R95p se calcula sobre la precipitacion diaria de los dias
+    // humedos, y nuestro corte sobre el acumulado de 72 h. Medidos sobre 30
+    // anios, el umbral diario del ETCCDI declararia riesgo alto 934 dias contra
+    // los 110 del acumulado: ocho veces y media mas. El umbral no cambia, cambia
+    // como se nombra. Ver D-08 y la medicion de H2.7.
     umbral:
-      'Precipitacion acumulada en 72 h. Alto por encima del percentil 99. Indices R95p y R99p del ETCCDI, adoptados por la OMM.',
+      'Precipitacion acumulada en 72 h por distrito. Alto por encima del percentil 99 de su propia serie historica, periodo base 1991-2020. El corte sigue el criterio de percentiles extremos del ETCCDI, pero no es el indice R95p, que se define sobre lluvia diaria.',
   },
 ]
 

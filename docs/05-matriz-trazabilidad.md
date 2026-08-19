@@ -59,6 +59,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H8.6 | Manifiestos de Kubernetes corriendo en k3d local | infra/k8s | kubectl apply sobre un cluster k3d recien creado | docs/evidencias/arquitectura-software/H8.6-kubernetes-k3d.md | Arq | Alejandro | **Con evidencia** |
 | H10.8 | Carpeta de evidencias organizada por materia con indice | docs/evidencias | docs/herramientas/verificar_cobertura_evidencias.py | docs/evidencias/sistemas-operativos/H10.8-carpeta-evidencias.md | SO-4 | Alejandro | **Con evidencia** |
 | H6.6 | El visor consume la API real en lugar de los JSON estaticos | frontend/src/datos/cliente.js, backend/api | verificacion de punta a punta con la API levantada | docs/evidencias/arquitectura-software/ | Arq | Alejandro | Pendiente |
+| H5.2 | Cuatro o mas capas conmutables con control de opacidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.2-capas-conmutables.md | CG-4 | Avril | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.

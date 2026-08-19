@@ -1,14 +1,15 @@
 import { useEffect, useMemo } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import { CAPAS_BASE } from '../datos/capasBase'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
- * riesgo del evento seleccionado.
+ * riesgo del evento seleccionado y con capas conmutables.
  *
- * Historias H5.1 y H5.3. Rubrica de Computacion Grafica, criterios CG-4 y CG-1.
+ * Historias H5.1, H5.3 y H5.2. Rubrica de Computacion Grafica, CG-4 y CG-1.
  *
- * Tres decisiones que conviene no deshacer sin pensarlo:
+ * Decisiones que conviene no deshacer sin pensarlo:
  *
  * 1. El encuadre se calcula a partir de la geometria recibida, no se escribe a
  *    mano. Hoy las geometrias son cuadrados de marcador de posicion y en la
@@ -24,6 +25,11 @@ import L from 'leaflet'
  * 3. Un distrito sin nivel NO se pinta con el color mas claro de la rampa. Va
  *    con la trama de ausencia de dato. La diferencia entre "riesgo bajo" y
  *    "nadie lo midio" es la que evita que el mapa afirme lo que no sabe.
+ *
+ * 4. La opacidad de la coropleta viaja como variable CSS al contenedor, no como
+ *    opcion de cada poligono. Asi el valor por defecto sigue viviendo en
+ *    tokens.css y el deslizador solo lo sobrescribe mientras se usa: la decision
+ *    de diseno no se duplica en dos lugares.
  */
 
 // Centro provisional mientras se calcula el encuadre real. Solo se ve durante
@@ -81,7 +87,57 @@ function AjustarEncuadre({ coleccion }) {
   return null
 }
 
-export default function MapaCanton({ coleccion, riesgos, seleccionado, alSeleccionar }) {
+/**
+ * Etiquetas con el nombre de cada distrito.
+ *
+ * Se dibujan con divIcon y no con marcadores normales para no depender de
+ * ninguna imagen: el icono por defecto de Leaflet se carga por URL y se rompe
+ * en la construccion de produccion. Un texto en un div no tiene ese problema.
+ *
+ * El punto donde se coloca es el centro de la caja envolvente del poligono. Con
+ * los cuadrados actuales coincide con el centro real; con las geometrias del
+ * SNIT sera aproximado, suficiente para una etiqueta.
+ */
+function CapaEtiquetas({ coleccion }) {
+  const mapa = useMap()
+
+  useEffect(() => {
+    if (!coleccion) return
+
+    const grupo = L.layerGroup().addTo(mapa)
+
+    for (const rasgo of coleccion.features) {
+      const centro = L.geoJSON(rasgo).getBounds().getCenter()
+      L.marker(centro, {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({
+          className: 'etiqueta-distrito',
+          html: `<span>${rasgo.properties.nombre}</span>`,
+          iconSize: null,
+        }),
+      }).addTo(grupo)
+    }
+
+    return () => {
+      grupo.remove()
+    }
+  }, [coleccion, mapa])
+
+  return null
+}
+
+export default function MapaCanton({
+  coleccion,
+  riesgos,
+  seleccionado,
+  alSeleccionar,
+  capaBase,
+  superpuestas,
+  opacidad,
+}) {
+  const base = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0]
+
   // Firma de lo que se va a pintar: un distrito y su nivel, por cada distrito.
   //
   // La clave describe EL RESULTADO, no la intencion. La version anterior dependia
@@ -146,7 +202,12 @@ export default function MapaCanton({ coleccion, riesgos, seleccionado, alSelecci
   }
 
   return (
-    <div className="contenedor-mapa">
+    <div
+      className="contenedor-mapa"
+      // La opacidad se inyecta como variable CSS. tokens.css sigue siendo el
+      // dueno del valor por defecto; esto solo lo sobrescribe.
+      style={{ '--riesgo-opacidad': opacidad }}
+    >
       {/* Trama de ausencia de dato. Va en el documento para que los poligonos de
           Leaflet puedan referenciarla con fill: url(#patron-sin-dato). */}
       <svg width="0" height="0" aria-hidden="true" style={{ position: 'absolute' }}>
@@ -176,15 +237,32 @@ export default function MapaCanton({ coleccion, riesgos, seleccionado, alSelecci
         scrollWheelZoom
         className="mapa"
       >
-        <TileLayer
-          attribution='&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
+        {base.url && (
+          <TileLayer
+            key={base.id}
+            attribution={base.atribucion}
+            url={base.url}
+            maxZoom={base.zoomMaximo}
+          />
+        )}
 
         {coleccion && (
           <>
-            <GeoJSON key={clave} data={coleccion} style={estilo} onEachFeature={porCadaDistrito} />
+            {superpuestas.riesgo && (
+              <GeoJSON key={clave} data={coleccion} style={estilo} onEachFeature={porCadaDistrito} />
+            )}
+
+            {superpuestas.limites && (
+              <GeoJSON
+                key={`limites-${clave}`}
+                data={coleccion}
+                style={{ className: 'distrito-limite' }}
+                interactive={false}
+              />
+            )}
+
+            {superpuestas.etiquetas && <CapaEtiquetas coleccion={coleccion} />}
+
             <AjustarEncuadre coleccion={coleccion} />
           </>
         )}
