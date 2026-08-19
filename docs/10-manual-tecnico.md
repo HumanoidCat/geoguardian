@@ -260,11 +260,19 @@ Get-Content basedatos\consultas\verificar_transaccion.sql | docker compose exec 
 python docs/herramientas/verificar_backlog.py
 python docs/herramientas/verificar_adr.py
 python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+python docs/herramientas/verificar_estado.py
+python docs/herramientas/verificar_documentacion.py
 ```
 
-Los tres existen por errores que ya ocurrieron: tres dependencias apuntaban a
-sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, y 30
-de 82 historias no tenían carpeta de evidencia asignada.
+Los cinco existen por errores que ya ocurrieron: tres dependencias apuntaban a
+sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, 30 de
+82 historias no tenían carpeta de evidencia asignada, cuatro historias cerradas no
+figuraban en la matriz de trazabilidad, y cinco cifras escritas en la
+documentación habían dejado de ser ciertas.
+
+**`verificar_estado.py` imprime además el avance del proyecto** —historias y puntos
+cerrados, por persona y por sprint— calculado desde el repositorio. Es la forma de
+saber cómo va sin contar a mano.
 
 ### 5.6 Estilo del código
 

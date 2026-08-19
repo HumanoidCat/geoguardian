@@ -229,10 +229,19 @@ AFIRMACIONES = [
     ),
 ]
 
+# El avance escrito en docs/08-backlog.md. Se agrego el 18 de agosto: el archivo
+# declara cuantas historias van cerradas y nada lo comprobaba.
+AFIRMACIONES.append(
+    Afirmacion(
+        "historias cerradas",
+        historias_cerradas,
+        [("docs/08-backlog.md", r"\*\*(\d+) historias cerradas de")],
+    )
+)
+
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
 # mano al redactar: la herramienta las imprime para que nadie las cuente a mano.
 INFORMATIVAS = [
-    ("historias cerradas", historias_cerradas),
     ("incidencias registradas", incidencias),
 ]
 

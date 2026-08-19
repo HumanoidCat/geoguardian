@@ -10,6 +10,26 @@ La consistencia se comprueba con `python docs/herramientas/verificar_backlog.py`
 dependencias hacia historias inexistentes, hacia sprints posteriores,
 dependencias circulares y carga por persona.
 
+## Avance
+
+**Este archivo no registra que historias estan terminadas, y es deliberado.** El
+avance vive en `docs/tareas/<persona>.md`, donde cada quien marca su propio trabajo
+con `[x]` y la fecha. Anotarlo tambien aqui crearia un cuarto lugar donde el estado
+puede desfasarse, que es exactamente el problema que este proyecto ya tuvo tres
+veces.
+
+Para saber como va, sin contar a mano:
+
+    python docs/herramientas/verificar_estado.py
+
+Imprime historias y puntos cerrados, por persona y por sprint, calculados desde el
+repositorio. Y **falla si los archivos de tareas y la matriz de trazabilidad no
+dicen lo mismo**, que es la comprobacion que faltaba: la auditoria del 18 de agosto
+encontro cuatro historias cerradas sin fila en la matriz y dos con el dueno
+equivocado.
+
+Al 18 de agosto de 2026: **16 historias cerradas de 84**, 84 puntos de 422.
+
 ## Carga por persona y sprint
 
 Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
