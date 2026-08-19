@@ -77,10 +77,14 @@ algo que no aporta ningun control real.
 Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
 `docs/evidencias/`, o modificar la evidencia de otra persona.
 
-## La matriz de trazabilidad no se edita: se genera
+## Lo que se genera no se edita
 
-`docs/05-matriz-trazabilidad.md` **es un archivo derivado**. Nadie lo abre para
-escribir en el, ni siquiera Alejandro.
+Dos cosas son **artefactos derivados**. Nadie las abre para escribir en ellas, ni
+siquiera Alejandro:
+
+- `docs/05-matriz-trazabilidad.md`, la tabla completa.
+- La **linea de avance** de `docs/08-backlog.md`, la que dice cuantas historias
+  van cerradas. El resto de ese archivo si se edita a mano.
 
 Se produce con:
 
@@ -100,6 +104,10 @@ personas, casi siempre en el mismo bloque de filas, y nada lo comprobaba. En dos
 dias produjo tres conflictos de fusion, tres duenos desfasados y cuatro historias
 cerradas sin fila. Uno de esos defectos le quito trabajo del plato a una persona
 durante un dia.
+
+**La linea de avance** se agrego el 19 de agosto por la incidencia **I-07**: era
+una cifra derivada escrita a mano, y rompia el CI de quien cerrara la siguiente
+historia sin haber roto nada.
 
 **Si aparece un conflicto de fusion en la matriz, no se fusiona a mano:**
 
