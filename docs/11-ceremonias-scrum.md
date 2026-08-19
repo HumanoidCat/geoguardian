@@ -905,8 +905,12 @@ el texto que el visor muestra en pantalla.
 
 **A16.1 · La matriz de trazabilidad es el archivo más frágil del repositorio.** La
 tocan las cuatro personas en casi todos los PR, siempre en el mismo bloque, y
-ningún verificador la comprueba. Generó tres conflictos en un día. Queda como
-hallazgo abierto para la retrospectiva del Sprint 1.
+ningún verificador la comprueba. Generó tres conflictos en un día.
+
+> **Cumplida el mismo día.** La matriz pasa a generarse desde el backlog, los
+> archivos de tareas de cada quien, `docs/trazabilidad.csv` y los archivos que
+> existan en `docs/evidencias/`. Nadie vuelve a editarla a mano y el CI comprueba
+> que corresponda a sus fuentes. Registrado como **D-20**.
 
 **A16.2 · Una atribución no verificada se retira, no se sustituye.** Luna quitó dos
 citas que no pudo confirmar contra el texto original —una de ellas escrita por el
