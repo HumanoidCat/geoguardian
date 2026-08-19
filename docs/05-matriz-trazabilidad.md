@@ -3,7 +3,22 @@
 Liga cada requisito con el modulo que lo implementa, la prueba que lo verifica, la
 metrica que lo demuestra y el criterio de rubrica al que responde.
 
-Se actualiza cada vez que algo cambia de estado, no solo antes de una entrega.
+> **Este archivo se genera. No se edita a mano.**
+>
+>     python docs/herramientas/generar_matriz.py
+>
+> Sale de `docs/backlog.csv` (dueno y rubrica), de `docs/tareas/<persona>.md` (si
+> la historia esta cerrada), de `docs/trazabilidad.csv` (requisito, modulo y
+> prueba) y de los archivos que existan en `docs/evidencias/`.
+>
+> Para cambiar una fila se cambia la fuente, no la tabla. Si aparece un conflicto
+> de fusion aqui, se resuelve regenerando:
+>
+>     git checkout --ours docs/05-matriz-trazabilidad.md
+>     python docs/herramientas/generar_matriz.py
+>
+> `docs/herramientas/verificar_estado.py` comprueba en el CI que la tabla
+> corresponda a sus fuentes.
 
 Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 
@@ -45,4 +60,5 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H10.8 | Carpeta de evidencias organizada por materia con indice | docs/evidencias | docs/herramientas/verificar_cobertura_evidencias.py | docs/evidencias/sistemas-operativos/H10.8-carpeta-evidencias.md | SO-4 | Alejandro | **Con evidencia** |
 | H6.6 | El visor consume la API real en lugar de los JSON estaticos | frontend/src/datos/cliente.js, backend/api | verificacion de punta a punta con la API levantada | docs/evidencias/arquitectura-software/ | Arq | Alejandro | Pendiente |
 
-Completar con el resto del backlog conforme entren al sprint.
+Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
+`docs/trazabilidad.csv` y se regenera.

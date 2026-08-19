@@ -31,6 +31,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
 | D-19 | El SPI se ajusta por mes calendario: contratos a v1.3.0 | Aceptada | 2026-08-18 |
+| D-20 | La matriz de trazabilidad es un artefacto derivado, no un documento | Aceptada | 2026-08-18 |
 
 ---
 
@@ -1466,6 +1467,113 @@ bajar del 100 % a algo cercano al reparto natural del calendario.
 **Tercero, sobre datos reales.** La medicion es sobre serie sintetica, porque H1.1
 sigue abierta. Cuando existan las series de CHIRPS hay que repetirla. Si sobre
 datos reales el ajuste unico no separara las estaciones, este registro se reabre.
+
+---
+
+## D-20 · La matriz de trazabilidad es un artefacto derivado, no un documento
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, por el acuerdo A16.1 del acta de revision
+
+### Contexto
+
+`docs/05-matriz-trazabilidad.md` era el archivo mas conflictivo del repositorio.
+Lo tocaban las cuatro personas, casi siempre sobre el mismo bloque de filas, y
+**ninguna herramienta lo comprobaba**.
+
+En dos dias produjo tres conflictos de fusion, tres duenos desfasados —H2.2, H2.3 y
+H8.2— y cuatro historias cerradas sin fila —H6.4, H8.5, H8.6 y H10.8—.
+
+El defecto de los duenos no fue cosmetico. Luna leyo la matriz, vio dos historias
+suyas a nombre de otro y las dio por ajenas: reporto que se quedaba sin trabajo
+disponible cuando tenia tres historias libres. **Un dia perdido por un documento
+que mentia.**
+
+Ninguno de los diez se detecto leyendo. Aparecieron al auditar, cuatro dias
+despues del primero.
+
+### Decision
+
+**La matriz deja de escribirse a mano.** Se genera con
+`docs/herramientas/generar_matriz.py` desde cuatro fuentes, y **ninguna de las
+cuatro es compartida entre dos personas**:
+
+| Fuente | Que aporta | Quien la edita |
+|---|---|---|
+| `docs/backlog.csv` | Dueno y rubrica | Alejandro |
+| `docs/tareas/<persona>.md` | Si la historia esta cerrada | Su dueno, solo su archivo |
+| `docs/trazabilidad.csv` | Requisito, modulo y prueba | Alejandro |
+| `docs/evidencias/` | El archivo de evidencia, buscado en disco | Su dueno |
+
+Quien cierra una historia marca `[x]` en su propio archivo y sube su evidencia. La
+fila aparece sola.
+
+`verificar_estado.py` comprueba en el CI que el archivo corresponda a sus fuentes,
+igual que `ruff format --check`. Editarlo a mano pasa a ser un defecto detectable.
+
+**Un conflicto de fusion sobre la matriz ya no se fusiona**, se regenera:
+
+    git checkout --ours docs/05-matriz-trazabilidad.md
+    python docs/herramientas/generar_matriz.py
+
+### Justificacion
+
+El problema no era falta de cuidado, y por eso pedir mas cuidado no lo resolvia.
+Era estructural: **un archivo que cuatro personas editan a mano, sobre las mismas
+lineas, sin ninguna comprobacion.** Con esas tres condiciones el desfase es cuestion
+de tiempo, y las tres se cumplian.
+
+Se elimina una de las tres. Las otras dos siguen —sigue siendo un archivo unico y
+confirmado— pero ya no hay edicion manual que se desincronice ni cambio que pase
+sin comprobar.
+
+Es el mismo patron que el proyecto ya aplico tres veces con resultado: **una sola
+fuente, vistas derivadas, y una maquina que comprueba que coincidan.** Se uso para
+las cifras de la documentacion, para el conteo de historias cerradas y para la
+version de contratos, que hasta esta semana estaba escrita a mano en
+`salud_simulada()`.
+
+La migracion se verifico comparando la tabla generada contra la escrita a mano:
+**las 35 filas salen identicas**, incluidas las notas de estado con matiz.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Pedir mas cuidado al editarla | Es lo que se venia haciendo. Fallo diez veces en dos dias, y ninguna se detecto leyendo |
+| Partirla en un archivo por epica | Reduce los choques pero no los elimina, y multiplica por trece los archivos que el evaluador tiene que abrir para ver la trazabilidad |
+| Dejar de confirmarla y generarla solo en el CI | Elimina los conflictos por completo. Se descarto porque la rubrica la evalua **como documento**: tiene que poder leerse en el repositorio sin ejecutar nada |
+| Agregar una columna de estado al backlog | Crearia un cuarto lugar que declara lo mismo, sobre el archivo que mas personas tocan. Es el problema, no la solucion |
+| Un controlador de fusion de git para ese archivo | Resuelve el sintoma sin resolver el desfase de contenido, que es lo que causo el dano real |
+
+### Consecuencias
+
+**Se gana** que la matriz no pueda contradecir a sus fuentes, que cerrar una
+historia sea marcar `[x]` en el propio archivo, y que los conflictos que queden se
+resuelvan con un comando en lugar de comparando filas.
+
+**Se pierde** la posibilidad de escribir en la matriz algo que no este en ninguna
+fuente. Es deliberado: cada columna tiene ahora un lugar declarado de donde sale.
+
+**Aparece un archivo compartido nuevo**, `docs/trazabilidad.csv`, con requisito,
+modulo y prueba. Entra a la lista de archivos que se modifican por solicitud de
+cambio. Es un archivo mas que gobernar, y a cambio saca a tres personas de la
+matriz.
+
+**El pipeline pasa de siete a ocho controles.**
+
+### Medicion
+
+Ningun conflicto de fusion sobre la matriz que haya que resolver comparando filas.
+Si aparece uno, se resuelve regenerando; si alguien lo fusiona a mano y el
+resultado no corresponde a las fuentes, el CI lo detecta.
+
+Ningun dueno ni estado desfasado en la matriz, porque ya no puede haberlo: salen
+del backlog y de los archivos de tareas.
+
+Se revisa al cierre del Sprint 2. Si en ese periodo aparece un desfase de la matriz
+que el verificador no haya detectado, la comprobacion quedo corta.
 
 ---
 
