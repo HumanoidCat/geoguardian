@@ -63,6 +63,13 @@ export const CAPAS_SUPERPUESTAS = [
     conOpacidad: true,
   },
   {
+    id: 'mapaCalor',
+    nombre: 'Mapa de calor',
+    descripcion: 'Probabilidad interpolada entre los ocho distritos',
+    conOpacidad: false,
+    conExponente: true,
+  },
+  {
     id: 'limites',
     nombre: 'Limites distritales',
     descripcion: 'Solo el contorno, sin relleno',
@@ -76,4 +83,25 @@ export const CAPAS_SUPERPUESTAS = [
   },
 ]
 
-export const CAPAS_INICIALES = { riesgo: true, limites: false, etiquetas: false }
+export const CAPAS_INICIALES = {
+  riesgo: true,
+  mapaCalor: false,
+  limites: false,
+  etiquetas: false,
+}
+
+/**
+ * Exponente de la interpolacion por distancia inversa.
+ *
+ * Decide cuanto pesa la cercania. Con 1 la superficie queda casi plana, un
+ * promedio general del canton. Con 4 cada distrito domina su entorno y aparecen
+ * "islas" con bordes marcados, que es engañoso porque sugiere una frontera que
+ * el dato no tiene.
+ *
+ * 2 es el valor convencional y el que se usa por defecto. Se deja ajustable
+ * porque la eleccion del exponente cambia la lectura del mapa, y esconderla
+ * seria presentar una decision como si fuera un hecho.
+ */
+export const EXPONENTE_IDW_INICIAL = 2
+export const EXPONENTE_IDW_MINIMO = 1
+export const EXPONENTE_IDW_MAXIMO = 4
