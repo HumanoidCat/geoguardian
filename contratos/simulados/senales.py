@@ -225,6 +225,7 @@ class ProcesadorSenalesSimulado:
         self,
         precipitacion: list[float | None],
         ventana_meses: int,
+        meses: list[int] | None = None,
     ) -> list[float | None]:
         """
         Aproximacion al Indice de Precipitacion Estandarizado.
@@ -247,9 +248,24 @@ class ProcesadorSenalesSimulado:
         Las primeras `ventana_meses` posiciones salen None porque no hay historia
         suficiente, y no se rellenan con ceros: un cero seria un valor de sequia
         neutra que nadie calculo.
+
+        **El parametro `meses` se acepta y se ignora, a proposito.** Existe en el
+        contrato desde la version 1.3.0 por la decision D-19: con el, una
+        implementacion real ajusta la distribucion por mes calendario. Este
+        simulado no ajusta ninguna distribucion —calcula una z— asi que no
+        tendria que hacer con el. Se acepta para que la firma cumpla el
+        protocolo y para que quien llame no tenga que ramificar segun este
+        hablando con el simulado o con la implementacion real.
         """
         if ventana_meses < 1:
             raise ValueError(f"La ventana debe ser al menos 1 mes, se recibio {ventana_meses}")
+
+        if meses is not None and len(meses) != len(precipitacion):
+            raise ValueError(
+                f"`meses` tiene {len(meses)} posiciones y la serie {len(precipitacion)}. "
+                "Sin correspondencia uno a uno no se puede saber a que mes pertenece "
+                "cada valor, que es justo para lo que sirve el parametro."
+            )
 
         n = len(precipitacion)
         acumulados: list[float | None] = [None] * n
