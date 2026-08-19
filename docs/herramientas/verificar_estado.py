@@ -9,9 +9,10 @@ desfasarse.
 Hoy el avance vive en dos sitios dentro del repositorio, y en las issues de GitHub
 fuera de el:
 
-    docs/tareas/<persona>.md      la marca [x] con fecha. ES LA FUENTE DE VERDAD.
-    docs/05-matriz-trazabilidad.md  el estado por historia, para la rubrica
-    issues de GitHub              las cierra cada quien al mergear su PR
+    docs/tareas/<persona>.md        la marca [x] con fecha. ES LA FUENTE DE VERDAD.
+    docs/05-matriz-trazabilidad.md  vista generada. Desde el 18 de agosto no se
+                                    edita a mano: la produce generar_matriz.py
+    issues de GitHub                las cierra cada quien al mergear su PR
 
 Nada comprobaba que los dos primeros coincidieran. La auditoria del 18 de agosto
 encontro **cuatro historias cerradas que no estaban en la matriz** —H6.4, H8.5,
@@ -27,6 +28,7 @@ QUE COMPRUEBA
 4. El dueno que declara la matriz es el del backlog.
 5. Ninguna historia esta marcada [x] en el archivo de dos personas.
 6. Toda historia marcada [x] existe en el backlog.
+7. La matriz corresponde a sus fuentes, o sea que nadie la edito a mano.
 
 QUE NO COMPRUEBA
 
@@ -46,6 +48,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -160,6 +163,21 @@ def main() -> int:
     for identificador in sorted(cerradas):
         if identificador not in backlog:
             problemas.append(f"{identificador} esta marcada como cerrada y no existe en el backlog")
+
+    # 7. La matriz corresponde a sus fuentes.
+    #
+    # Desde que la matriz se genera, editarla a mano es un defecto: el proximo que
+    # regenere pisa el cambio sin enterarse. Se comprueba igual que
+    # `ruff format --check`, comparando contra lo que produce la herramienta.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from generar_matriz import DESTINO, construir  # noqa: PLC0415
+
+    if DESTINO.read_text(encoding="utf-8") != construir():
+        problemas.append(
+            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes. "
+            "Se genera, no se edita a mano: correr "
+            "python docs/herramientas/generar_matriz.py"
+        )
 
     # ----------------------------------------------------------------------- #
     # Informe                                                                   #

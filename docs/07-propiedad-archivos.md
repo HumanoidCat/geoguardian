@@ -77,12 +77,45 @@ algo que no aporta ningun control real.
 Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
 `docs/evidencias/`, o modificar la evidencia de otra persona.
 
+## La matriz de trazabilidad no se edita: se genera
+
+`docs/05-matriz-trazabilidad.md` **es un archivo derivado**. Nadie lo abre para
+escribir en el, ni siquiera Alejandro.
+
+Se produce con:
+
+    python docs/herramientas/generar_matriz.py
+
+Para cambiar una fila se cambia su fuente:
+
+| Que queres cambiar | Donde se cambia | Quien puede |
+|---|---|---|
+| Que la historia figure como terminada | `docs/tareas/<persona>.md`, marcando `[x]` | Su dueno |
+| El archivo de evidencia que aparece | Subirlo a `docs/evidencias/`, con el nombre `<ID>-<algo>.md` | Su dueno |
+| El dueno o la rubrica | `docs/backlog.csv` | Alejandro |
+| El requisito, el modulo o la prueba | `docs/trazabilidad.csv` | Alejandro |
+
+**Por que.** Era el archivo mas conflictivo del repositorio: lo tocaban las cuatro
+personas, casi siempre en el mismo bloque de filas, y nada lo comprobaba. En dos
+dias produjo tres conflictos de fusion, tres duenos desfasados y cuatro historias
+cerradas sin fila. Uno de esos defectos le quito trabajo del plato a una persona
+durante un dia.
+
+**Si aparece un conflicto de fusion en la matriz, no se fusiona a mano:**
+
+    git checkout --ours docs/05-matriz-trazabilidad.md
+    python docs/herramientas/generar_matriz.py
+
+Es la misma idea que `ruff format`: un archivo derivado no se discute, se vuelve a
+producir. `verificar_estado.py` comprueba en el CI que corresponda a sus fuentes.
+
 ## Archivos compartidos
 
 **Se MODIFICAN solo por solicitud de cambio** aprobada por Alejandro y por el
 dueno del modulo afectado:
 
 - contratos/ (todo el contenido)
+- docs/trazabilidad.csv
 - docker-compose.yml
 - .env.example
 - requirements.txt

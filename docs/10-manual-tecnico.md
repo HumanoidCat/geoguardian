@@ -264,6 +264,13 @@ python docs/herramientas/verificar_estado.py
 python docs/herramientas/verificar_documentacion.py
 ```
 
+La matriz de trazabilidad **se genera, no se edita**. Si `verificar_estado.py`
+avisa que no corresponde a sus fuentes:
+
+```bash
+python docs/herramientas/generar_matriz.py
+```
+
 Los cinco existen por errores que ya ocurrieron: tres dependencias apuntaban a
 sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, 30 de
 82 historias no tenían carpeta de evidencia asignada, cuatro historias cerradas no
