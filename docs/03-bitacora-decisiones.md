@@ -19,7 +19,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-05 | Kubernetes con manifiestos y k3d local | Aceptada | 2026-08-03 |
 | D-06 | Contratos con `Protocol`, no con clases abstractas | Aceptada | 2026-08-03 |
 | D-07 | La ausencia de dato se representa como `None`, nunca como `0` | Aceptada | 2026-08-03 |
-| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada | 2026-08-03 |
+| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 | 2026-08-03 |
 | D-09 | Tres algoritmos comparados, con SVM descartado | Aceptada | 2026-08-03 |
 | D-10 | F1-macro como metrica principal de contraste | Aceptada | 2026-08-03 |
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
@@ -30,6 +30,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
+| D-19 | El SPI se ajusta por mes calendario: contratos a v1.3.0 | Aceptada | 2026-08-18 |
 
 ---
 
@@ -368,9 +369,39 @@ salga nulo. Las dos comprobaciones pasan.
 
 ## D-08 · Umbrales de riesgo tomados de estandares publicados
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **revisada el 2026-08-18**, ver la nota
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, Lead PM
+
+> **Nota de revision del 2026-08-18.** El principio se mantiene: los umbrales no
+> los inventa el equipo. Lo que estaba mal era **el nombre de uno de ellos**.
+>
+> La tabla de abajo decia que el umbral de lluvia intensa son "los percentiles
+> R95p y R99p" del ETCCDI. **No lo son.** R95p se define sobre precipitacion
+> **diaria de dias humedos**, de 1 mm o mas; nuestro umbral se calcula sobre el
+> **acumulado de 72 horas**. Luna implemento las dos cantidades en H2.7 y las
+> midio sobre 30 anios:
+>
+>     ETCCDI, diario de dias humedos      P95: 39,90 mm    P99: 54,86 mm
+>     acumulado de 72 h                   P95: 63,40 mm    P99: 87,70 mm
+>
+>     dias en riesgo alto con el umbral de acumulado :   110  (1,00 %)
+>     dias en riesgo alto con el umbral diario       :   934  (8,53 %)
+>
+> **El umbral no cambia.** El acumulado de 72 h es el adecuado para riesgo de
+> inundacion, porque un evento de lluvia intensa dura mas de un dia. Lo que cambia
+> es como se nombra: el corte **sigue el criterio** de percentiles extremos del
+> ETCCDI, que es otra cosa que **ser** uno de sus indices.
+>
+> Corregido en `contratos/enums.py` y en el texto que el visor muestra en
+> pantalla. El R95p propiamente dicho queda implementado y disponible para el
+> documento IEEE, donde si conviene reportarlo porque es lo comparable con la
+> literatura.
+>
+> El defecto es mio: la atribucion salio de esta decision y de ahi se propago al
+> contrato y al visor. Es el mismo patron de I-04 —forma valida, contenido
+> falso— y esta vez sobrevivio dos semanas porque nadie tenia las dos cantidades
+> calculadas para compararlas.
 
 ### Contexto
 
@@ -385,7 +416,7 @@ Los umbrales no los define el equipo, salvo uno:
 
 | Evento | Umbral | Fuente |
 |---|---|---|
-| Lluvia intensa | Percentiles R95p y R99p sobre precipitacion acumulada de 72 h | Indices ETCCDI, adoptados por la OMM |
+| Lluvia intensa | Percentiles 95 y 99 del acumulado de 72 h, por distrito. **No es el indice R95p**, ver la nota de revision | Criterio de percentiles extremos del ETCCDI |
 | Sequia | SPI a tres meses | McKee, Doesken y Kleist (1993) |
 | Incendio forestal | Percentil 90 de la distribucion historica de focos del distrito | Definido por el equipo |
 
@@ -1308,6 +1339,133 @@ distrito de la ficha y no el que sugiere el nombre.
 
 Si aparece un proceso automatico de asignacion por nombre, debe traer su propia
 prueba con el caso de Rio Chiquito: dos candidatos, ninguno elegido en solitario.
+
+---
+
+## D-19 · El SPI se ajusta por mes calendario: contratos a v1.3.0
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, a partir de la solicitud SC-02 de Luna
+
+### Contexto
+
+Al implementar H2.3, Luna encontro que **el contrato no permite calcular el SPI
+correctamente** y lo reporto en vez de rodearlo.
+
+El SPI de McKee, Doesken y Kleist (1993) ajusta una distribucion gamma **por cada
+mes calendario**: los eneros contra la distribucion historica de los eneros, los
+febreros contra los febreros. Eso es lo que lo convierte en un indice de
+**anomalia** y no en una descripcion de la estacionalidad.
+
+La firma congelada, `spi(precipitacion, ventana_meses)`, no recibe fechas. Sin
+saber a que mes pertenece cada posicion, la implementacion solo puede ajustar una
+distribucion unica para toda la serie.
+
+En un clima con estacion seca marcada eso no es una perdida de precision: cambia
+lo que el indice mide.
+
+### Decision
+
+**`ProcesadorSenales.spi` recibe `meses: list[int] | None = None`.** Contratos
+suben a **v1.3.0**.
+
+1. El parametro va **al final y con valor por defecto**, asi que el cambio es
+   aditivo y ninguna llamada existente se rompe.
+2. Cuando llega, la distribucion se ajusta por separado para cada mes del anio.
+3. Cuando llega en `None`, quien implementa **debe documentar que el resultado no
+   es un SPI de anomalia**. No es un modo equivalente: es un modo degradado y
+   tiene que decirlo.
+4. El simulado lo acepta y lo ignora, porque calcula una puntuacion z y no ajusta
+   ninguna distribucion. Valida el largo igual, para que un error de
+   correspondencia salga en el simulado y no tres historias despues.
+5. **H3.0 no usa el SPI para etiquetar hasta que la implementacion acepte el
+   parametro.**
+
+### Justificacion
+
+Se decidio con la medicion de `docs/herramientas/medir_spi_por_mes.py`, sobre 35
+anios de serie sintetica con el regimen del Pacifico Norte, SPI-3. La reproduje en
+una copia limpia del repositorio y da lo mismo:
+
+    SPI medio por estacion (deberia rondar 0 en las dos)
+                             ajuste unico   ajuste por mes
+      estacion seca                 -0,84            -0,00
+      estacion lluviosa              0,60            -0,00
+
+**Un indice de anomalia cuya media es -0,84 en una estacion y +0,60 en la otra no
+esta midiendo anomalia.** Eso se lee sin recurrir a ninguna autoridad.
+
+El dato que cierra la discusion es otro: de los **99 meses que el ajuste unico
+declara en sequia, los 99 caen en estacion seca**. El indice no detecta sequia,
+detecta que es verano. Un sistema de alerta construido sobre eso declararia sequia
+todos los anios, en los mismos meses, lloviera lo que lloviera.
+
+La correlacion entre ambos metodos es **0,425**, que impide el argumento facil de
+"es lo mismo con menos precision". De los 73 episodios que detecta el ajuste por
+mes, el unico coincide en 21: se pierden 52 sequias reales y se declaran 78 que no
+lo son.
+
+**Por que importa para el modelado, que es donde se paga.** Con ajuste unico la
+etiqueta de sequia queda correlacionada con el mes calendario. Un modelo entrenado
+sobre ella aprenderia el calendario en lugar del clima **y en la evaluacion se
+veria bien**, porque la estacion seca es predecible. Es la misma familia de
+resultado enganoso que la fuga temporal que **D-04** prohibe, y por el mismo
+motivo: la metrica sale alta y no significa lo que parece.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Inferir el mes desde la posicion, suponiendo que la serie empieza en enero | La suposicion no esta en el contrato, no se puede verificar desde dentro de la funcion, y una serie que empezara en otro mes quedaria mal calculada **sin ningun sintoma visible**. Es exactamente el modo de fallo de I-04 |
+| Recibir fechas completas en vez del mes | Mas informacion de la que el calculo necesita. El SPI solo distingue por mes del anio; pasar fechas invita a que alguien las use para otra cosa dentro de la funcion |
+| Dejarlo como esta y documentar la limitacion | Es lo que hizo H2.3 provisionalmente, y estuvo bien como medida temporal. Como decision permanente significa publicar un indice que lleva el nombre de un estandar y no cumple su definicion |
+| Cambiar de indice, a percentiles de precipitacion mensual | Resuelve la estacionalidad pero pierde comparabilidad con la literatura, que es la razon por la que se eligio el SPI en D-08 |
+| Un parametro obligatorio en vez de opcional | Rompe las llamadas existentes y obligaria a tocar el simulado y las pruebas de otras historias en el mismo cambio. Se prefiere aditivo |
+
+### Consecuencias
+
+**Se gana** un SPI que significa lo que su nombre dice, comparable con la
+literatura, y una etiqueta de sequia que no arrastra el calendario al modelo.
+
+**Se pierde** la congelacion del contrato, que era una regla del proyecto y ya se
+habia roto una vez, en v1.2.0 por I-04. Dos cambios en quince dias sobre algo
+declarado congelado es un patron que hay que mirar: en los dos casos el defecto
+estaba en el contrato original y lo encontro quien fue a implementarlo.
+
+**La leccion no es "congelar mejor", es que un contrato escrito antes de
+implementar nada se equivoca.** Lo que funciono las dos veces fue que quien lo
+encontro lo reporto en vez de rodearlo, y que el cambio fue aditivo.
+
+**Cuesta una hora de trabajo** a Luna, segun su propia estimacion: el ajuste
+gamma, la correccion de ceros y el tratamiento de huecos no cambian; solo se hace
+el ajuste una vez por mes en lugar de una para toda la serie.
+
+**H2.3 no se reabre.** El codigo esta bien construido y probado. Lo que cambia es
+el alcance de lo que puede calcular, y eso queda anotado en la matriz.
+
+**Deuda de verificacion declarada.** La atribucion del ajuste por mes calendario a
+la guia operativa WMO-No. 1090 **no se pudo confirmar textualmente**, ni por mi ni
+por Luna, y se retiro de la solicitud. La decision no depende de ella: se sostiene
+sobre la medicion. Antes de que la afirmacion pase al documento IEEE hay que
+verificarla contra el texto original, que son 16 paginas.
+
+### Medicion
+
+Se comprueba con tres cosas.
+
+**Primero, que el contrato lo exija.** `contratos/verificar.py` incorpora dos
+comprobaciones nuevas: que `spi` acepte el mes calendario de cada posicion, y que
+rechace una lista de meses de otro largo. Son las comprobaciones 32 y 33.
+
+**Segundo, que la implementacion lo use.** Cuando H2.3 se actualice, repetir
+`medir_spi_por_mes.py` contra la implementacion real: la media por estacion tiene
+que rondar cero en las dos, y la proporcion de sequias en estacion seca tiene que
+bajar del 100 % a algo cercano al reparto natural del calendario.
+
+**Tercero, sobre datos reales.** La medicion es sobre serie sintetica, porque H1.1
+sigue abierta. Cuando existan las series de CHIRPS hay que repetirla. Si sobre
+datos reales el ajuste unico no separara las estaciones, este registro se reabre.
 
 ---
 

@@ -51,14 +51,37 @@ class ProcesadorSenales(Protocol):
         self,
         precipitacion: list[float | None],
         ventana_meses: int,
+        meses: list[int] | None = None,
     ) -> list[float | None]:
         """
         Indice de Precipitacion Estandarizado por convolucion de ventana movil.
 
         Referencia: McKee, Doesken y Kleist (1993), adoptado por la OMM.
 
-        Las primeras `ventana_meses` posiciones salen None porque no hay historia
-        suficiente para calcularlas. No se rellenan con ceros.
+        La serie entra **cruda**, sin filtrar. Ver la decision D-17.
+
+        Args:
+            precipitacion: acumulado mensual en mm, con None en los meses sin
+                dato.
+            ventana_meses: 1 para SPI-1, 3 para SPI-3.
+            meses: mes calendario de cada posicion, de 1 a 12, del mismo largo
+                que `precipitacion`. **Con este dato la distribucion se ajusta
+                por separado para cada mes del anio**, que es lo que convierte
+                al SPI en un indice de anomalia. Sin el, el ajuste es unico
+                para toda la serie y el indice sigue la estacionalidad en lugar
+                de la anomalia.
+
+        Returns:
+            Las primeras `ventana_meses` posiciones salen None porque no hay
+            historia suficiente para calcularlas. No se rellenan con ceros.
+
+        Nota del contrato, version 1.3.0. El parametro `meses` se agrega por la
+        decision **D-19**, a partir de la solicitud SC-02 y de la medicion de
+        `docs/herramientas/medir_spi_por_mes.py`. Es opcional para no romper las
+        llamadas existentes, pero **una implementacion que aspire a producir un
+        SPI comparable con la literatura tiene que aceptarlo y usarlo**. Cuando
+        llega en None, quien implementa debe documentar que el resultado no es
+        un SPI de anomalia.
         """
         ...
 

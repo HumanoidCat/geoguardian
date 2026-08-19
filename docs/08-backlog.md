@@ -1,6 +1,6 @@
 # Backlog completo
 
-**83 historias · 417 puntos · 614 horas** (incluye 20 % de revision)
+**84 historias · 422 puntos · 618.7 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -10,17 +10,37 @@ La consistencia se comprueba con `python docs/herramientas/verificar_backlog.py`
 dependencias hacia historias inexistentes, hacia sprints posteriores,
 dependencias circulares y carga por persona.
 
+## Avance
+
+**Este archivo no registra que historias estan terminadas, y es deliberado.** El
+avance vive en `docs/tareas/<persona>.md`, donde cada quien marca su propio trabajo
+con `[x]` y la fecha. Anotarlo tambien aqui crearia un cuarto lugar donde el estado
+puede desfasarse, que es exactamente el problema que este proyecto ya tuvo tres
+veces.
+
+Para saber como va, sin contar a mano:
+
+    python docs/herramientas/verificar_estado.py
+
+Imprime historias y puntos cerrados, por persona y por sprint, calculados desde el
+repositorio. Y **falla si los archivos de tareas y la matriz de trazabilidad no
+dicen lo mismo**, que es la comprobacion que faltaba: la auditoria del 18 de agosto
+encontro cuatro historias cerradas sin fila en la matriz y dos con el dueno
+equivocado.
+
+Al 18 de agosto de 2026: **16 historias cerradas de 84**, 84 puntos de 422.
+
 ## Carga por persona y sprint
 
 Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 22.8 | 54.7** | 35.7 | 52.8** | 202 | 118 |
+| Alejandro | 35.9 | 22.8 | 59.5** | 35.7 | 52.8** | 206.7 | 123 |
 | Cesar | 18.3 | 30.9 | 31.5 | 39.2** | 34.0 | 154 | 125 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 |
 | Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 115 | 94 |
-| **Equipo** | 83 | 107 | 148 | 120 | 155 | **614** | **417** |
+| **Equipo** | 83.0 | 107.3 | 152.8 | 120.2 | 155.4 | **618.7** | **422** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -66,13 +86,14 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.5b** Estado del arte de Costa Rica | luna | 5 | 13.2 | IEEE | H10.5a | H10.5c |
 | **H4.3** Catalogo de 12 o mas eventos historicos del canton con fuente | luna | 8 | 21.1 | OE3 | - | H4.4, H7.3 |
 
-## Sprint 2 · semanas 6-7 · 21 historias · 148.0 h
+## Sprint 2 · semanas 6-7 · 22 historias · 152.8 h
 
 **Foco.** Modelos entrenados, despliegue continuo y demo de extremo a extremo  
 **Hito.** **Primer avance (semana 7)**
 
 | Historia | Responsable | Pts | h | Rubrica | Depende de | Bloquea a |
 |---|---|---|---|---|---|---|
+| **H6.6** El visor consume la API real en lugar de los JSON estaticos | alejandro | 5 | 4.8 | Arq | H6.1 | — |
 | **H11.2** CD: despliegue automatico al entorno de desarrollo al mergear a main | alejandro | 5 | 7.8 | CICD | H11.1 | H11.3, H12.3 |
 | **H11.3** CD: despliegue a staging en namespace propio, con aprobacion manual | alejandro | 3 | 4.7 | CICD | H11.2 | H11.4 |
 | **H11.4** CD: despliegue a produccion con aprobacion explicita y rollback automatico | alejandro | 5 | 7.8 | CICD | H11.3 | H13.2 |

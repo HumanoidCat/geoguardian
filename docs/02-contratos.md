@@ -8,7 +8,21 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.2.0** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.3.0** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.2.0 -> v1.3.0 (18 de agosto).** `ProcesadorSenales.spi` recibe un
+parametro nuevo, `meses: list[int] | None = None`, con el mes calendario de cada
+posicion de la serie. Con el, la distribucion se ajusta por separado para cada mes
+del anio, que es lo que convierte al SPI en un indice de **anomalia**.
+
+El cambio es **aditivo**: el parametro va al final y con valor por defecto, asi
+que ninguna llamada existente se rompe y el simulado lo acepta e ignora, porque no
+ajusta ninguna distribucion.
+
+Sale de la solicitud **SC-02**, que Luna redacto al implementar H2.3 en vez de
+cambiar el contrato por su cuenta, y de la medicion que la sostiene: con ajuste
+unico, **los 99 meses declarados en sequia caian, los 99, en estacion seca**. El
+indice no detectaba sequia, detectaba que era verano. Ver la decision **D-19**.
 
 **Cambio v1.1.0 -> v1.2.0 (11 de agosto).** Los codigos de distrito pasan de
 `50501`-`50508` a los oficiales `50801`-`50808`. Tilaran es el canton **08** de
@@ -40,7 +54,7 @@ plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-`python -m contratos.verificar` ejecuta **31 comprobaciones** agrupadas en ocho
+`python -m contratos.verificar` ejecuta **33 comprobaciones** agrupadas en ocho
 bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
 respeten las tres invariantes del proyecto.
 

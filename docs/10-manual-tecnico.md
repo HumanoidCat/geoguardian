@@ -3,7 +3,7 @@
 **Proyecto:** GeoGuardian — estimación del riesgo climático por distrito en el
 cantón de Tilarán, Costa Rica
 **Historia:** H10.4 · **Rúbrica:** MVP · **Responsable:** Alejandro
-**Estado del sistema al 16 de agosto de 2026**
+**Estado del sistema al 18 de agosto de 2026**
 
 Este manual está escrito para alguien que **no participó en el desarrollo**: un
 evaluador, un profesor, o quien tenga que mantener el sistema el próximo
@@ -28,15 +28,21 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 31 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 33 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
+| Procesamiento de señales: filtrado, SPI y percentiles de lluvia intensa | Funciona, con 57 pruebas |
 
 **Lo que todavía no existe.** Los extractores de datos climáticos y de focos de
-calor, el módulo de señales, el de modelado y la API REST. Sus carpetas están
-creadas y reservadas, pero vacías. El visor consume datos **simulados**, y lo
-declara con una banda permanente en pantalla.
+calor, el módulo de modelado y la API REST. Sus carpetas están creadas y
+reservadas, pero vacías. El visor consume datos **simulados**, y lo declara con una
+banda permanente en pantalla.
+
+El módulo de señales sí existe y está probado, pero **todavía no ha corrido sobre
+datos reales**: sus pruebas usan los simulados, porque H1.1 sigue abierta. Es la
+diferencia entre "funciona" y "produce resultados del cantón", y conviene no
+confundirlas.
 
 Este manual no promete nada que no se pueda ejecutar. Si un comando de aquí falla
 en una máquina limpia, es un defecto del manual.
@@ -211,7 +217,7 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **31 comprobaciones**
+Debe terminar en **"Todas las verificaciones pasaron"** con **33 comprobaciones**
 y declarar **"Contratos version 1.2.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
@@ -254,11 +260,19 @@ Get-Content basedatos\consultas\verificar_transaccion.sql | docker compose exec 
 python docs/herramientas/verificar_backlog.py
 python docs/herramientas/verificar_adr.py
 python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+python docs/herramientas/verificar_estado.py
+python docs/herramientas/verificar_documentacion.py
 ```
 
-Los tres existen por errores que ya ocurrieron: tres dependencias apuntaban a
-sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, y 30
-de 82 historias no tenían carpeta de evidencia asignada.
+Los cinco existen por errores que ya ocurrieron: tres dependencias apuntaban a
+sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, 30 de
+82 historias no tenían carpeta de evidencia asignada, cuatro historias cerradas no
+figuraban en la matriz de trazabilidad, y cinco cifras escritas en la
+documentación habían dejado de ser ciertas.
+
+**`verificar_estado.py` imprime además el avance del proyecto** —historias y puntos
+cerrados, por persona y por sprint— calculado desde el repositorio. Es la forma de
+saber cómo va sin contar a mano.
 
 ### 5.6 Estilo del código
 
@@ -399,7 +413,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 18 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 19 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

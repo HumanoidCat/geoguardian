@@ -97,6 +97,21 @@ def main() -> int:
     comprobar("el espectro rechaza una serie con huecos", espectro_rechaza)
     indice = senales.spi([float(i % 30) for i in range(60)], 3)
     comprobar("el SPI deja en None lo que no puede calcular", indice[:3] == [None, None, None])
+
+    # Contratos v1.3.0, decision D-19. Un SPI que no puede saber a que mes
+    # pertenece cada valor sigue la estacionalidad en vez de la anomalia, asi que
+    # el parametro tiene que existir en la firma y validarse.
+    meses = [(i % 12) + 1 for i in range(60)]
+    comprobar(
+        "el SPI acepta el mes calendario de cada posicion",
+        senales.spi([float(i % 30) for i in range(60)], 3, meses)[:3] == [None, None, None],
+    )
+    rechaza_meses_mal = False
+    try:
+        senales.spi([1.0, 2.0, 3.0], 1, [1, 2])
+    except ValueError:
+        rechaza_meses_mal = True
+    comprobar("el SPI rechaza una lista de meses de otro largo", rechaza_meses_mal)
     comprobar(
         "una ventana mayoritariamente vacia no se promedia",
         senales.remuestrear([1.0, None, None, None], 4, "media") == [None],

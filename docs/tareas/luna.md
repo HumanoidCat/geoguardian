@@ -44,13 +44,13 @@
 - [ ] **H1.5** · Reporte formal de calidad de datos: faltantes, atipicos, sesgos
   - `E1` · 8 pts · 12.5 h · rubrica: OE1 · depende de: H1.1
 
-- [ ] **H2.1** · Filtrar ruido de las series con justificacion del filtro
+- [x] **H2.1** · Filtrar ruido de las series con justificacion del filtro (2026-08-18)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H1.4 · **bloquea a: H2.2, H2.3, H2.4, H2.7**
 
-- [ ] **H2.3** · SPI de 1 y 3 meses por convolucion de ventana movil
+- [x] **H2.3** · SPI de 1 y 3 meses por convolucion de ventana movil (2026-08-18)
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H2.5, H3.0**
 
-- [ ] **H2.7** · Calcular percentiles R95p y R99p de precipitacion acumulada por distrito
+- [x] **H2.7** · Calcular percentiles R95p y R99p de precipitacion acumulada por distrito (2026-08-18)
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H3.0**
 
 

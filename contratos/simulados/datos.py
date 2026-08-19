@@ -6,6 +6,7 @@ import logging
 import random
 from datetime import date, timedelta
 
+from .. import VERSION_CONTRATOS
 from ..enums import Algoritmo, MetodoImputacion, ModoOperacion, NivelRiesgo, TipoEvento
 from ..esquemas import (
     Distrito,
@@ -263,7 +264,7 @@ def salud_simulada() -> Salud:
     """Estado que la API expone mientras corre con simulados."""
     return Salud(
         version_api="0.1.0",
-        version_contratos="1.2.0",
+        version_contratos=VERSION_CONTRATOS,
         modo=ModoOperacion.SIMULADO,
         base_datos_conectada=False,
         ultima_ingesta=None,

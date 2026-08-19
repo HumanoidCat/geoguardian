@@ -88,6 +88,17 @@ def historias_del_backlog() -> int:
         return sum(1 for _ in csv.DictReader(archivo))
 
 
+def puntos_del_backlog() -> int:
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return sum(int(f["puntos"]) for f in csv.DictReader(archivo))
+
+
+def horas_del_backlog() -> str:
+    """Total de horas con un decimal, que es como lo escriben los documentos."""
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return f"{sum(float(f['horas']) for f in csv.DictReader(archivo)):.1f}"
+
+
 def registros_adr() -> int:
     texto = (RAIZ / "docs" / "03-bitacora-decisiones.md").read_text(encoding="utf-8")
     return len(re.findall(r"^## D-\d+", texto, re.M))
@@ -156,6 +167,7 @@ AFIRMACIONES = [
             ("docs/ARRANQUE.md", r"pasar las \*\*(\d+) verificaciones\*\*"),
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
+            ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
         ],
     ),
     Afirmacion(
@@ -167,10 +179,36 @@ AFIRMACIONES = [
             ("docs/02-contratos.md", r"Version de contratos: \*\*([\d.]+)\*\*"),
         ],
     ),
+    # Los tres inventarios del backlog se comprueban en los tres documentos que
+    # los declaran. La auditoria del 18 de agosto encontro que `08-backlog.md` y
+    # `tareas/README.md` seguian en 83 historias y 417 puntos, y que la tabla de
+    # `tareas/README.md` tenia ademas mal el reparto de Avril entre S1 y S2,
+    # desde que H1.6 se adelanto de sprint. Ninguno de los dos estaba cubierto.
     Afirmacion(
         "historias del backlog",
         historias_del_backlog,
-        [("README.md", r"Backlog \| (\d+) historias")],
+        [
+            ("README.md", r"Backlog \| (\d+) historias"),
+            ("docs/08-backlog.md", r"\*\*(\d+) historias · "),
+            ("docs/tareas/README.md", r"\*\*(\d+) historias · "),
+        ],
+    ),
+    Afirmacion(
+        "puntos del backlog",
+        puntos_del_backlog,
+        [
+            ("README.md", r"historias, (\d+) puntos"),
+            ("docs/08-backlog.md", r"historias · (\d+) puntos"),
+            ("docs/tareas/README.md", r"historias · (\d+) puntos"),
+        ],
+    ),
+    Afirmacion(
+        "horas del backlog",
+        horas_del_backlog,
+        [
+            ("docs/08-backlog.md", r"puntos · ([\d.]+) horas"),
+            ("docs/tareas/README.md", r"puntos · ([\d.]+) horas"),
+        ],
     ),
     Afirmacion(
         "trabajos del pipeline de CI",
@@ -191,10 +229,19 @@ AFIRMACIONES = [
     ),
 ]
 
+# El avance escrito en docs/08-backlog.md. Se agrego el 18 de agosto: el archivo
+# declara cuantas historias van cerradas y nada lo comprobaba.
+AFIRMACIONES.append(
+    Afirmacion(
+        "historias cerradas",
+        historias_cerradas,
+        [("docs/08-backlog.md", r"\*\*(\d+) historias cerradas de")],
+    )
+)
+
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
 # mano al redactar: la herramienta las imprime para que nadie las cuente a mano.
 INFORMATIVAS = [
-    ("historias cerradas", historias_cerradas),
     ("incidencias registradas", incidencias),
 ]
 

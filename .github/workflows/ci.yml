@@ -40,6 +40,8 @@ jobs:
         run: python docs/herramientas/verificar_adr.py
       - name: Toda historia tiene carpeta de evidencia
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+      - name: El avance dice lo mismo en los archivos de tareas y en la matriz
+        run: python docs/herramientas/verificar_estado.py
       # Necesita pydantic porque corre contratos.verificar para contar sus
       # comprobaciones en lugar de confiar en un numero escrito a mano.
       - name: Instalar lo minimo para contar las comprobaciones de contratos
@@ -135,13 +137,18 @@ jobs:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
         run: |
-          # El salto solo sigue aqui porque este arreglo tiene que entrar antes
-          # que el PR #110, que es el que trae la primera prueba. Apenas ese PR
-          # este integrado, el salto se convierte en fallo: si no hay pruebas es
-          # que alguien las borro, y eso tiene que salir en rojo.
+          # La suite existe desde el PR #110. El paso ya no se salta.
+          #
+          # Mientras se saltaba, este trabajo salio en verde dos semanas sin haber
+          # ejecutado nunca, y el defecto que escondia solo aparecio cuando alguien
+          # escribio la primera prueba. Es la incidencia I-06: un paso protegido
+          # por una condicion que lo salta no es un control, es un control apagado
+          # que se ve igual que uno encendido.
+          #
+          # Si no hay pruebas, es que alguien las borro. Eso tiene que salir en rojo.
           if [ -z "$(find backend/tests -name 'test_*.py' -print -quit)" ]; then
-            echo "Sin pruebas todavia. Pendiente del PR #110."
-            exit 0
+            echo "::error::No hay ninguna prueba en backend/tests. La suite existe desde el PR #110; si desaparecio, es un defecto."
+            exit 1
           fi
           # Se invoca con `python -m` a proposito, igual que el resto de los
           # controles del proyecto. El script `pytest` a secas no agrega el
