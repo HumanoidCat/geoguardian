@@ -63,6 +63,21 @@ jobs:
         run: ruff check .
       - name: Revisar formato
         run: ruff format --check .
+      # Una marca de conflicto sin resolver puede pasar los demas controles: si
+      # las dos versiones del bloque son iguales, el archivo dice lo correcto y
+      # los verificadores lo dan por bueno. Paso en el PR #126. Ver I-07.
+      #
+      # Una marca son exactamente siete caracteres. El separador va anclado al
+      # final del renglon, porque las salidas de los verificadores que se pegan
+      # en las evidencias llevan lineas de 66 y 74 signos de igual, y sin anclar
+      # darian falso positivo en cuatro archivos.
+      - name: Ninguna marca de conflicto sin resolver
+        run: |
+          if git grep -nE "^(<{7} |={7}$|>{7} )" -- . ; then
+            echo "::error::Hay marcas de conflicto de fusion sin resolver."
+            exit 1
+          fi
+          echo "Sin marcas de conflicto."
 
   frontend:
     name: Frontend
