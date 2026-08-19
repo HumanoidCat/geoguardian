@@ -28,11 +28,7 @@ dicen lo mismo**, que es la comprobacion que faltaba: la auditoria del 18 de ago
 encontro cuatro historias cerradas sin fila en la matriz y dos con el dueno
 equivocado.
 
-<<<<<<< HEAD
 Al 19 de agosto de 2026: **19 historias cerradas de 84**, 102 puntos de 422.
-=======
-Al 19 de agosto de 2026: **19 historias cerradas de 84**, 102 puntos de 422.
->>>>>>> origin/dev
 
 ## Carga por persona y sprint
 
