@@ -62,7 +62,7 @@
 
 ## Sprint 3 (semanas 8-9) — 25.0 h
 
-- [ ] **H5.4** · Mapa de calor por interpolacion IDW
+- [x] **H5.4** · Mapa de calor por interpolacion IDW (2026-08-18)
   - `E5` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa

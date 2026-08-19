@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { CAPAS_BASE } from '../datos/capasBase'
+import CapaMapaCalor from './CapaMapaCalor'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
@@ -63,25 +64,41 @@ function AjustarEncuadre({ coleccion }) {
     const limites = L.geoJSON(coleccion).getBounds()
     if (!limites.isValid()) return
 
-    const ajustar = () => {
-      mapa.invalidateSize()
-      mapa.fitBounds(limites, { padding: [32, 32] })
-    }
-
     // El contenedor del mapa todavia esta creciendo cuando este efecto corre.
     // Leaflet mide el tamano que hay en ese instante, y si es mas chico que el
     // final elige un zoom demasiado abierto: se ve medio pais en lugar del
     // canton. Esperar un cuadro de render no alcanza, porque el alto lo termina
     // de resolver la rejilla de CSS despues.
     //
-    // ResizeObserver avisa cada vez que el contenedor cambia de tamano de
-    // verdad, incluida esa ultima vez. Tambien cubre el cambio de tamano de la
-    // ventana. No entra en bucle: invalidateSize no altera el tamano del
-    // contenedor, solo hace que Leaflet lo relea.
-    const observador = new ResizeObserver(ajustar)
-    observador.observe(mapa.getContainer())
+    // Por eso se observa el contenedor. Pero se encuadra UNA SOLA VEZ, en cuanto
+    // el contenedor tiene un tamano utilizable, y despues se deja de observar.
+    //
+    // La version anterior reencuadraba en cada cambio de tamano, y eso tenia dos
+    // problemas. El visible: prender una capa hace crecer la columna del panel,
+    // el mapa cambia de alto y se reencuadraba en mal momento, quedando abierto
+    // sobre media provincia. El de fondo, peor: el mapa le peleaba a la persona.
+    // Si alguien hacia zoom sobre un distrito y prendia una capa, la vista se
+    // reseteaba sola. Una vista que el usuario eligio no se pisa.
+    let encuadrado = false
+    let observador = null
 
-    return () => observador.disconnect()
+    const ajustarUnaVez = () => {
+      if (encuadrado) return
+
+      const { clientWidth, clientHeight } = mapa.getContainer()
+      if (clientWidth < 50 || clientHeight < 50) return
+
+      mapa.invalidateSize()
+      mapa.fitBounds(limites, { padding: [32, 32] })
+      encuadrado = true
+      observador?.disconnect()
+    }
+
+    observador = new ResizeObserver(ajustarUnaVez)
+    observador.observe(mapa.getContainer())
+    ajustarUnaVez()
+
+    return () => observador?.disconnect()
   }, [coleccion, mapa])
 
   return null
@@ -135,6 +152,8 @@ export default function MapaCanton({
   capaBase,
   superpuestas,
   opacidad,
+  exponente,
+  centroides,
 }) {
   const base = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0]
 
@@ -248,6 +267,16 @@ export default function MapaCanton({
 
         {coleccion && (
           <>
+            {/* Va primero para que quede debajo de los poligonos: la superficie
+                es contexto, no el dato principal. */}
+            {superpuestas.mapaCalor && (
+              <CapaMapaCalor
+                centroides={centroides}
+                riesgos={riesgos}
+                exponente={exponente}
+              />
+            )}
+
             {superpuestas.riesgo && (
               <GeoJSON key={clave} data={coleccion} style={estilo} onEachFeature={porCadaDistrito} />
             )}

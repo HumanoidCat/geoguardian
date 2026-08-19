@@ -624,6 +624,56 @@ body {
   display: inline-block;
 }
 
+/* -------------------------------------------------------------------------- *
+ * Mapa de calor
+ * -------------------------------------------------------------------------- */
+
+/* La superficie interpolada. La opacidad se aplica al dibujar el canvas, no
+   aca, para que quede escrita junto al calculo y no repartida en dos lugares. */
+.superficie-calor {
+  pointer-events: none;
+}
+
+/* Los puntos de origen de la interpolacion. Se dibujan encima de la superficie
+   a proposito: con ocho puntos, la superficie parece un analisis fino y no lo
+   es. Ver de donde salio cada valor es lo que impide leerla como una medicion
+   continua del terreno. */
+.punto-origen {
+  fill: var(--superficie);
+  fill-opacity: 1;
+  stroke: var(--texto);
+  stroke-width: 2;
+}
+
+.barra-gradiente {
+  height: 0.75rem;
+  border-radius: var(--radio);
+  border: 1px solid var(--borde);
+  margin-bottom: var(--espacio-1);
+}
+
+.barra-extremos {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.leyenda-nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  line-height: 1.35;
+}
+
+.control-nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--texto-tenue);
+  line-height: 1.35;
+}
+
 /* Los controles de Leaflet tienen que quedar sobre el mapa pero debajo del
    aviso de modo simulado. */
 .leaflet-top,
