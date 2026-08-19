@@ -54,8 +54,9 @@
 - [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
   - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**
 
-- [ ] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints
+- [x] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints (2026-08-19)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H11.1, H6.0, H6.2, H6.5, H7.2, H8.3**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md`
 
 - [ ] **H6.2** · Patron Repository con pruebas unitarias sin base de datos
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1 · **bloquea a: H10.2, H6.3**
