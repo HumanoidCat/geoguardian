@@ -24,7 +24,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 
 | Historia | Requisito | Modulo | Prueba | Evidencia | Rubrica | Dueno | Estado |
 |---|---|---|---|---|---|---|---|
-| H1.1 | Series climaticas diarias, 10 anios | backend/etl | test_extractor_power | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
+| H1.1 | Series climaticas diarias, 10 anios | backend/etl | test_extractor_power | docs/evidencias/bases-de-datos/H1.1-series-climaticas.md | BD-1 | Cesar | **Con evidencia** |
 | H1.2 | Historico de focos de calor | backend/etl | test_extractor_firms | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
 | H1.3 | Geometrias de distritos en 3FN con SRID validado | basedatos/ddl, backend/etl | basedatos/verificar_h13.py, consultas/verificar_modelo.sql, consultas/verificar_transaccion.sql | docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md | BD-1, BD-3 | Cesar | **Con evidencia** |
 | H1.5 | Reporte de calidad de datos | backend/calidad | test_reporte_calidad | docs/evidencias/objetivos/ | OE1 | Luna | Pendiente |
