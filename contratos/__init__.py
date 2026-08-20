@@ -9,6 +9,12 @@ Cada contrato tiene un simulado en contratos/simulados/ que lo respeta, para que
 nadie quede bloqueado esperando codigo ajeno.
 """
 
+# 1.3.3 · 2026-08-20 · El quinto sitio: `ExtractorFocosSimulado` sorteaba
+#         tambien contra un generador con estado. SC-04 no lo cubrio porque la
+#         busqueda se limito a `RepositorioSimulado` y el archivo tiene otra
+#         clase. Lo encontro Cesar. Ademas: `_es_hueco` ya depende del distrito,
+#         `contar_focos` deja de tener techo de un foco por dia, y se quita el
+#         generador compartido que quedaba sin uso. Ver SC-04, seccion final.
 # 1.3.2 · 2026-08-20 · El resto de `RepositorioSimulado` se vuelve determinista:
 #         `obtener_mediciones`, `contar_focos` y `obtener_indices`. Lo encontro
 #         Cesar revisando SC-03: el arreglo de 1.3.1 cubria solo el riesgo. En
@@ -26,4 +32,4 @@ nadie quede bloqueado esperando codigo ajeno.
 #         Defecto detectado por Cesar contra el WFS del SNIT. Ver incidencia I-04.
 # 1.1.0 · Tercer tipo de evento: lluvia intensa.
 # 1.0.0 · Contratos iniciales.
-VERSION_CONTRATOS = "1.3.2"
+VERSION_CONTRATOS = "1.3.3"

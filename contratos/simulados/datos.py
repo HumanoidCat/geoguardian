@@ -74,8 +74,16 @@ def _es_hueco(codigo_distrito: str, fecha: date) -> bool:
     version anterior usaba `i % 20 == 7` sobre el indice del bucle, asi que un
     mismo dia era hueco o no segun donde cayera en la consulta. Lo detecto Cesar
     revisando SC-03.
+
+    Y depende TAMBIEN del distrito. La primera version recibia `codigo_distrito`
+    y no lo miraba, con el resultado de que los ocho distritos tenian hueco
+    exactamente los mismos dias. Lo detecto Cesar revisando SC-04, y son dos
+    problemas: el parametro prometia algo que la funcion no hacia, y no se podia
+    escribir una prueba con un distrito con dato y otro sin el. Ese caso es el
+    normal cuando una estacion se cae, y es justo lo que H1.4 reconvertida en
+    verificacion de completitud tiene que saber detectar.
     """
-    return fecha.toordinal() % 20 == 7
+    return _sorteo(codigo_distrito, fecha.isoformat(), "hueco").random() < 0.05
 
 
 def _nivel_desde(probabilidad: float) -> NivelRiesgo:
@@ -123,8 +131,11 @@ class RepositorioSimulado:
     """Cumple el protocolo Repositorio. No toca ninguna base de datos."""
 
     def __init__(self) -> None:
+        # No hay generador compartido, y es a proposito: cada metodo siembra el
+        # suyo con `_sorteo`. Dejar uno aqui sin usar seria una invitacion a que
+        # alguien vuelva a sortear contra el, que es el defecto de I-08. Lo
+        # senalo Cesar al revisar SC-04.
         log.warning("RepositorioSimulado en uso: los datos NO son reales")
-        self._rnd = random.Random(SEMILLA)
 
     # -- Territorio --------------------------------------------------------- #
 
@@ -198,7 +209,11 @@ class RepositorioSimulado:
         while actual <= hasta:
             # Un dia sin deteccion es un CERO, no un hueco. Es la distincion de
             # D-22: FIRMS informa ausencia de focos, no ausencia de dato.
-            total += _sorteo(codigo_distrito, actual.isoformat(), "focos").randint(0, 1)
+            # De 0 a 3 y no de 0 a 1. Con un solo foco por dia como maximo, una
+            # ventana de 7 dias tenia un techo duro de 7, que en FIRMS no existe:
+            # un distrito puede tener varias detecciones el mismo dia. Lo midio
+            # Cesar sobre 400 dias al revisar SC-04.
+            total += _sorteo(codigo_distrito, actual.isoformat(), "focos").randint(0, 3)
             actual += timedelta(days=1)
         return total
 
@@ -352,24 +367,38 @@ class ExtractorFocosSimulado:
 
     def __init__(self) -> None:
         log.warning("ExtractorFocosSimulado en uso: los datos NO son reales")
-        self._rnd = random.Random(SEMILLA)
 
     def disponible(self) -> bool:
         return True
 
     def extraer(self, desde: date, hasta: date) -> list[FocoCalor]:
-        return [
-            FocoCalor(
-                fecha=desde + timedelta(days=self._rnd.randint(0, max(0, (hasta - desde).days))),
-                latitud=round(self._rnd.uniform(10.40, 10.55), 4),
-                longitud=round(self._rnd.uniform(-85.05, -84.85), 4),
-                confianza=self._rnd.randint(30, 100),
-                brillo_k=round(self._rnd.uniform(300, 360), 1),
-                satelite="SIMULADO",
-                codigo_distrito=None,
+        """
+        Doce focos simulados en el rango, DETERMINISTAS.
+
+        Este era el quinto sitio que sorteaba contra un generador con estado, y
+        SC-04 no lo cubrio porque busque solo dentro de `RepositorioSimulado`. Lo
+        encontro Cesar: el archivo tiene otra clase.
+
+        Importa para H1.2, que implementa `ExtractorFocosCalor` de verdad: si el
+        doble contra el que se compara no es reproducible, la prueba no prueba
+        nada.
+        """
+        dias = max(0, (hasta - desde).days)
+        focos = []
+        for i in range(12):
+            sorteo = _sorteo(desde.isoformat(), hasta.isoformat(), "foco", i)
+            focos.append(
+                FocoCalor(
+                    fecha=desde + timedelta(days=sorteo.randint(0, dias)),
+                    latitud=round(sorteo.uniform(10.40, 10.55), 4),
+                    longitud=round(sorteo.uniform(-85.05, -84.85), 4),
+                    confianza=sorteo.randint(30, 100),
+                    brillo_k=round(sorteo.uniform(300, 360), 1),
+                    satelite="SIMULADO",
+                    codigo_distrito=None,
+                )
             )
-            for _ in range(12)
-        ]
+        return focos
 
 
 def salud_simulada() -> Salud:

@@ -8,7 +8,18 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.3.2** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.3.3** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.3.2 -> v1.3.3 (20 de agosto).** El quinto sitio:
+`ExtractorFocosSimulado` sorteaba tambien contra un generador con estado, y SC-04
+no lo cubrio porque la busqueda se limito a `RepositorioSimulado`. Lo encontro
+Cesar. Le importa a **H1.2**, que implementa `ExtractorFocosCalor` de verdad: un
+doble no reproducible hace que la prueba no pruebe nada.
+
+En la misma revision: `_es_hueco` recibia el codigo de distrito y no lo miraba, de
+modo que los ocho tenian hueco los mismos dias; `contar_focos` tenia un techo duro
+de un foco por dia, que en FIRMS no existe; y quedaba un generador compartido sin
+uso, que era una invitacion a repetir el defecto.
 
 **Cambio v1.3.1 -> v1.3.2 (20 de agosto).** Los otros tres metodos de
 `RepositorioSimulado` que sorteaban contra el generador compartido pasan a ser
@@ -79,7 +90,7 @@ plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-`python -m contratos.verificar` ejecuta **40 comprobaciones** agrupadas en diez
+`python -m contratos.verificar` ejecuta **44 comprobaciones** agrupadas en once
 bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
 respeten las invariantes del proyecto.
 
@@ -93,8 +104,9 @@ respeten las invariantes del proyecto.
     El vocabulario del dominio esta cerrado           5
     El riesgo es reproducible y coherente con D-21    3
     La serie no cambia segun como se la pida          4
+    Los extractores simulados son reproducibles       4
                                                      --
-                                                     40
+                                                     44
 
 Los dos ultimos bloques se agregaron el 20 de agosto con SC-03 y SC-04, y las
 siete comprobaciones fallaban antes de sus arreglos. Comprueban una propiedad que
