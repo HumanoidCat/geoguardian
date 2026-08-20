@@ -19,17 +19,22 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-05 | Kubernetes con manifiestos y k3d local | Aceptada | 2026-08-03 |
 | D-06 | Contratos con `Protocol`, no con clases abstractas | Aceptada | 2026-08-03 |
 | D-07 | La ausencia de dato se representa como `None`, nunca como `0` | Aceptada | 2026-08-03 |
-| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada | 2026-08-03 |
+| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 | 2026-08-03 |
 | D-09 | Tres algoritmos comparados, con SVM descartado | Aceptada | 2026-08-03 |
 | D-10 | F1-macro como metrica principal de contraste | Aceptada | 2026-08-03 |
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
-| D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
+| D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada · revisada por D-23 | 2026-08-12 |
 | D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
+| D-19 | El SPI se ajusta por mes calendario: contratos a v1.3.0 | Aceptada | 2026-08-18 |
+| D-20 | La matriz de trazabilidad es un artefacto derivado, no un documento | Aceptada | 2026-08-18 |
+| D-21 | `probabilidad` es P(nivel = alto), no la confianza del modelo | Aceptada | 2026-08-20 |
+| D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
+| D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
 
 ---
 
@@ -219,9 +224,47 @@ Pendiente. El contraste contra la linea base es H3.6.
 
 ## D-05 · Kubernetes con manifiestos y k3d local
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **alcance precisado el 2026-08-20**
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, con aprobacion del profesor de Arquitectura de Software
+
+> ### Precision del 2026-08-20: esta decision es del trimestre, no del producto
+>
+> Al preguntar el PM como se despliega el sistema aparecio que **la palabra
+> "produccion" de esta decision significa un espacio de nombres dentro de un
+> cluster que corre en una laptop**. `infra/k8s/local/produccion/`. No hay dominio,
+> no hay servidor y **el sistema no es accesible desde fuera del equipo**.
+>
+> Eso es coherente con lo decidido, esta bien registrado en la evidencia de H8.6 y
+> en el encabezado de `docker-compose.yml`, y para la rubrica de CI/CD alcanza:
+> lo que se evalua es que el pipeline exista y despliegue, y un pipeline que
+> despliega a k3d despliega.
+>
+> **Pero contradice el proposito del producto, y conviene que quede escrito.**
+> GeoGuardian existe para que el Comite Municipal de Emergencias y la poblacion
+> del canton puedan **consultar el riesgo del dia**. Un sistema de informacion
+> cuyo unico modo de consulta es que alguien lleve una computadora no cumple ese
+> proposito, por bien construido que este.
+>
+> **El estado objetivo es un sistema publicado y actualizandose solo.** La
+> restriccion es de tiempo y de presupuesto de un trimestre, no de diseno: la
+> arquitectura ya lo permite. La API no guarda estado, el ETL es idempotente
+> (H1.1, CA-11) y el visor habla con la API por una ruta relativa a proposito
+> (D-23), de modo que funciona igual detras de cualquier servidor.
+>
+> **Lo que se hace este trimestre.** La historia **H11.5** publica el visor como
+> sitio estatico, que es posible sin backend gracias a la degradacion de D-23, y
+> declara en pantalla que los datos son simulados. Da una URL real para H9.2 y
+> para la defensa sin abrir la puerta a operar infraestructura.
+>
+> **Lo que queda como trabajo futuro, en este orden.** Publicar la API y la base;
+> automatizar la ingesta diaria para que el dato se actualice sin intervencion; y
+> recien entonces retirar el aviso de datos simulados. Los tres pasos dependen de
+> que exista un modelo entrenado: publicar antes seria publicar un mapa que no
+> estima nada.
+>
+> **Si el equipo termina con holgura, esto se hace.** No es un extra: es lo que
+> convierte el proyecto en la herramienta que dice ser.
 
 ### Contexto
 
@@ -368,9 +411,39 @@ salga nulo. Las dos comprobaciones pasan.
 
 ## D-08 · Umbrales de riesgo tomados de estandares publicados
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **revisada el 2026-08-18**, ver la nota
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, Lead PM
+
+> **Nota de revision del 2026-08-18.** El principio se mantiene: los umbrales no
+> los inventa el equipo. Lo que estaba mal era **el nombre de uno de ellos**.
+>
+> La tabla de abajo decia que el umbral de lluvia intensa son "los percentiles
+> R95p y R99p" del ETCCDI. **No lo son.** R95p se define sobre precipitacion
+> **diaria de dias humedos**, de 1 mm o mas; nuestro umbral se calcula sobre el
+> **acumulado de 72 horas**. Luna implemento las dos cantidades en H2.7 y las
+> midio sobre 30 anios:
+>
+>     ETCCDI, diario de dias humedos      P95: 39,90 mm    P99: 54,86 mm
+>     acumulado de 72 h                   P95: 63,40 mm    P99: 87,70 mm
+>
+>     dias en riesgo alto con el umbral de acumulado :   110  (1,00 %)
+>     dias en riesgo alto con el umbral diario       :   934  (8,53 %)
+>
+> **El umbral no cambia.** El acumulado de 72 h es el adecuado para riesgo de
+> inundacion, porque un evento de lluvia intensa dura mas de un dia. Lo que cambia
+> es como se nombra: el corte **sigue el criterio** de percentiles extremos del
+> ETCCDI, que es otra cosa que **ser** uno de sus indices.
+>
+> Corregido en `contratos/enums.py` y en el texto que el visor muestra en
+> pantalla. El R95p propiamente dicho queda implementado y disponible para el
+> documento IEEE, donde si conviene reportarlo porque es lo comparable con la
+> literatura.
+>
+> El defecto es mio: la atribucion salio de esta decision y de ahi se propago al
+> contrato y al visor. Es el mismo patron de I-04 —forma valida, contenido
+> falso— y esta vez sobrevivio dos semanas porque nadie tenia las dos cantidades
+> calculadas para compararlas.
 
 ### Contexto
 
@@ -385,7 +458,7 @@ Los umbrales no los define el equipo, salvo uno:
 
 | Evento | Umbral | Fuente |
 |---|---|---|
-| Lluvia intensa | Percentiles R95p y R99p sobre precipitacion acumulada de 72 h | Indices ETCCDI, adoptados por la OMM |
+| Lluvia intensa | Percentiles 95 y 99 del acumulado de 72 h, por distrito. **No es el indice R95p**, ver la nota de revision | Criterio de percentiles extremos del ETCCDI |
 | Sequia | SPI a tres meses | McKee, Doesken y Kleist (1993) |
 | Incendio forestal | Percentil 90 de la distribucion historica de focos del distrito | Definido por el equipo |
 
@@ -733,9 +806,15 @@ documentacion propia se desfasa y ningun verificador lo detecta.
 
 ## D-14 · El frontend consume los simulados exportados a JSON estatico
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **revisada por D-23 el 2026-08-20**
 **Fecha.** 2026-08-12
 **Decide.** Alejandro, a propuesta de Avril
+
+> **Que cambio.** H6.6 sustituyo el origen por la API, que era lo que esta
+> decision preveia. Los archivos estaticos no se borran: pasan de ser el origen a
+> ser el respaldo cuando la API no responde. Y la frase *"el cambio es la URL del
+> `fetch`"* resulto optimista: hubo que traducir la forma. Todo cupo en el mismo
+> modulo, que es lo que esta decision existia para conseguir. Ver **D-23**.
 
 ### Contexto
 
@@ -1308,6 +1387,551 @@ distrito de la ficha y no el que sugiere el nombre.
 
 Si aparece un proceso automatico de asignacion por nombre, debe traer su propia
 prueba con el caso de Rio Chiquito: dos candidatos, ninguno elegido en solitario.
+
+---
+
+## D-19 · El SPI se ajusta por mes calendario: contratos a v1.3.0
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, a partir de la solicitud SC-02 de Luna
+
+### Contexto
+
+Al implementar H2.3, Luna encontro que **el contrato no permite calcular el SPI
+correctamente** y lo reporto en vez de rodearlo.
+
+El SPI de McKee, Doesken y Kleist (1993) ajusta una distribucion gamma **por cada
+mes calendario**: los eneros contra la distribucion historica de los eneros, los
+febreros contra los febreros. Eso es lo que lo convierte en un indice de
+**anomalia** y no en una descripcion de la estacionalidad.
+
+La firma congelada, `spi(precipitacion, ventana_meses)`, no recibe fechas. Sin
+saber a que mes pertenece cada posicion, la implementacion solo puede ajustar una
+distribucion unica para toda la serie.
+
+En un clima con estacion seca marcada eso no es una perdida de precision: cambia
+lo que el indice mide.
+
+### Decision
+
+**`ProcesadorSenales.spi` recibe `meses: list[int] | None = None`.** Contratos
+suben a **v1.3.0**.
+
+1. El parametro va **al final y con valor por defecto**, asi que el cambio es
+   aditivo y ninguna llamada existente se rompe.
+2. Cuando llega, la distribucion se ajusta por separado para cada mes del anio.
+3. Cuando llega en `None`, quien implementa **debe documentar que el resultado no
+   es un SPI de anomalia**. No es un modo equivalente: es un modo degradado y
+   tiene que decirlo.
+4. El simulado lo acepta y lo ignora, porque calcula una puntuacion z y no ajusta
+   ninguna distribucion. Valida el largo igual, para que un error de
+   correspondencia salga en el simulado y no tres historias despues.
+5. **H3.0 no usa el SPI para etiquetar hasta que la implementacion acepte el
+   parametro.**
+
+### Justificacion
+
+Se decidio con la medicion de `docs/herramientas/medir_spi_por_mes.py`, sobre 35
+anios de serie sintetica con el regimen del Pacifico Norte, SPI-3. La reproduje en
+una copia limpia del repositorio y da lo mismo:
+
+    SPI medio por estacion (deberia rondar 0 en las dos)
+                             ajuste unico   ajuste por mes
+      estacion seca                 -0,84            -0,00
+      estacion lluviosa              0,60            -0,00
+
+**Un indice de anomalia cuya media es -0,84 en una estacion y +0,60 en la otra no
+esta midiendo anomalia.** Eso se lee sin recurrir a ninguna autoridad.
+
+El dato que cierra la discusion es otro: de los **99 meses que el ajuste unico
+declara en sequia, los 99 caen en estacion seca**. El indice no detecta sequia,
+detecta que es verano. Un sistema de alerta construido sobre eso declararia sequia
+todos los anios, en los mismos meses, lloviera lo que lloviera.
+
+La correlacion entre ambos metodos es **0,425**, que impide el argumento facil de
+"es lo mismo con menos precision". De los 73 episodios que detecta el ajuste por
+mes, el unico coincide en 21: se pierden 52 sequias reales y se declaran 78 que no
+lo son.
+
+**Por que importa para el modelado, que es donde se paga.** Con ajuste unico la
+etiqueta de sequia queda correlacionada con el mes calendario. Un modelo entrenado
+sobre ella aprenderia el calendario en lugar del clima **y en la evaluacion se
+veria bien**, porque la estacion seca es predecible. Es la misma familia de
+resultado enganoso que la fuga temporal que **D-04** prohibe, y por el mismo
+motivo: la metrica sale alta y no significa lo que parece.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Inferir el mes desde la posicion, suponiendo que la serie empieza en enero | La suposicion no esta en el contrato, no se puede verificar desde dentro de la funcion, y una serie que empezara en otro mes quedaria mal calculada **sin ningun sintoma visible**. Es exactamente el modo de fallo de I-04 |
+| Recibir fechas completas en vez del mes | Mas informacion de la que el calculo necesita. El SPI solo distingue por mes del anio; pasar fechas invita a que alguien las use para otra cosa dentro de la funcion |
+| Dejarlo como esta y documentar la limitacion | Es lo que hizo H2.3 provisionalmente, y estuvo bien como medida temporal. Como decision permanente significa publicar un indice que lleva el nombre de un estandar y no cumple su definicion |
+| Cambiar de indice, a percentiles de precipitacion mensual | Resuelve la estacionalidad pero pierde comparabilidad con la literatura, que es la razon por la que se eligio el SPI en D-08 |
+| Un parametro obligatorio en vez de opcional | Rompe las llamadas existentes y obligaria a tocar el simulado y las pruebas de otras historias en el mismo cambio. Se prefiere aditivo |
+
+### Consecuencias
+
+**Se gana** un SPI que significa lo que su nombre dice, comparable con la
+literatura, y una etiqueta de sequia que no arrastra el calendario al modelo.
+
+**Se pierde** la congelacion del contrato, que era una regla del proyecto y ya se
+habia roto una vez, en v1.2.0 por I-04. Dos cambios en quince dias sobre algo
+declarado congelado es un patron que hay que mirar: en los dos casos el defecto
+estaba en el contrato original y lo encontro quien fue a implementarlo.
+
+**La leccion no es "congelar mejor", es que un contrato escrito antes de
+implementar nada se equivoca.** Lo que funciono las dos veces fue que quien lo
+encontro lo reporto en vez de rodearlo, y que el cambio fue aditivo.
+
+**Cuesta una hora de trabajo** a Luna, segun su propia estimacion: el ajuste
+gamma, la correccion de ceros y el tratamiento de huecos no cambian; solo se hace
+el ajuste una vez por mes en lugar de una para toda la serie.
+
+**H2.3 no se reabre.** El codigo esta bien construido y probado. Lo que cambia es
+el alcance de lo que puede calcular, y eso queda anotado en la matriz.
+
+**Deuda de verificacion declarada.** La atribucion del ajuste por mes calendario a
+la guia operativa WMO-No. 1090 **no se pudo confirmar textualmente**, ni por mi ni
+por Luna, y se retiro de la solicitud. La decision no depende de ella: se sostiene
+sobre la medicion. Antes de que la afirmacion pase al documento IEEE hay que
+verificarla contra el texto original, que son 16 paginas.
+
+### Medicion
+
+Se comprueba con tres cosas.
+
+**Primero, que el contrato lo exija.** `contratos/verificar.py` incorpora dos
+comprobaciones nuevas: que `spi` acepte el mes calendario de cada posicion, y que
+rechace una lista de meses de otro largo. Son las comprobaciones 32 y 33.
+
+**Segundo, que la implementacion lo use.** Cuando H2.3 se actualice, repetir
+`medir_spi_por_mes.py` contra la implementacion real: la media por estacion tiene
+que rondar cero en las dos, y la proporcion de sequias en estacion seca tiene que
+bajar del 100 % a algo cercano al reparto natural del calendario.
+
+**Tercero, sobre datos reales.** La medicion es sobre serie sintetica, porque H1.1
+sigue abierta. Cuando existan las series de CHIRPS hay que repetirla. Si sobre
+datos reales el ajuste unico no separara las estaciones, este registro se reabre.
+
+---
+
+## D-20 · La matriz de trazabilidad es un artefacto derivado, no un documento
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-18
+**Decide.** Alejandro, por el acuerdo A16.1 del acta de revision
+
+### Contexto
+
+`docs/05-matriz-trazabilidad.md` era el archivo mas conflictivo del repositorio.
+Lo tocaban las cuatro personas, casi siempre sobre el mismo bloque de filas, y
+**ninguna herramienta lo comprobaba**.
+
+En dos dias produjo tres conflictos de fusion, tres duenos desfasados —H2.2, H2.3 y
+H8.2— y cuatro historias cerradas sin fila —H6.4, H8.5, H8.6 y H10.8—.
+
+El defecto de los duenos no fue cosmetico. Luna leyo la matriz, vio dos historias
+suyas a nombre de otro y las dio por ajenas: reporto que se quedaba sin trabajo
+disponible cuando tenia tres historias libres. **Un dia perdido por un documento
+que mentia.**
+
+Ninguno de los diez se detecto leyendo. Aparecieron al auditar, cuatro dias
+despues del primero.
+
+### Decision
+
+**La matriz deja de escribirse a mano.** Se genera con
+`docs/herramientas/generar_matriz.py` desde cuatro fuentes, y **ninguna de las
+cuatro es compartida entre dos personas**:
+
+| Fuente | Que aporta | Quien la edita |
+|---|---|---|
+| `docs/backlog.csv` | Dueno y rubrica | Alejandro |
+| `docs/tareas/<persona>.md` | Si la historia esta cerrada | Su dueno, solo su archivo |
+| `docs/trazabilidad.csv` | Requisito, modulo y prueba | Alejandro |
+| `docs/evidencias/` | El archivo de evidencia, buscado en disco | Su dueno |
+
+Quien cierra una historia marca `[x]` en su propio archivo y sube su evidencia. La
+fila aparece sola.
+
+`verificar_estado.py` comprueba en el CI que el archivo corresponda a sus fuentes,
+igual que `ruff format --check`. Editarlo a mano pasa a ser un defecto detectable.
+
+**Un conflicto de fusion sobre la matriz ya no se fusiona**, se regenera:
+
+    git checkout --ours docs/05-matriz-trazabilidad.md
+    python docs/herramientas/generar_matriz.py
+
+### Justificacion
+
+El problema no era falta de cuidado, y por eso pedir mas cuidado no lo resolvia.
+Era estructural: **un archivo que cuatro personas editan a mano, sobre las mismas
+lineas, sin ninguna comprobacion.** Con esas tres condiciones el desfase es cuestion
+de tiempo, y las tres se cumplian.
+
+Se elimina una de las tres. Las otras dos siguen —sigue siendo un archivo unico y
+confirmado— pero ya no hay edicion manual que se desincronice ni cambio que pase
+sin comprobar.
+
+Es el mismo patron que el proyecto ya aplico tres veces con resultado: **una sola
+fuente, vistas derivadas, y una maquina que comprueba que coincidan.** Se uso para
+las cifras de la documentacion, para el conteo de historias cerradas y para la
+version de contratos, que hasta esta semana estaba escrita a mano en
+`salud_simulada()`.
+
+La migracion se verifico comparando la tabla generada contra la escrita a mano:
+**las 35 filas salen identicas**, incluidas las notas de estado con matiz.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Pedir mas cuidado al editarla | Es lo que se venia haciendo. Fallo diez veces en dos dias, y ninguna se detecto leyendo |
+| Partirla en un archivo por epica | Reduce los choques pero no los elimina, y multiplica por trece los archivos que el evaluador tiene que abrir para ver la trazabilidad |
+| Dejar de confirmarla y generarla solo en el CI | Elimina los conflictos por completo. Se descarto porque la rubrica la evalua **como documento**: tiene que poder leerse en el repositorio sin ejecutar nada |
+| Agregar una columna de estado al backlog | Crearia un cuarto lugar que declara lo mismo, sobre el archivo que mas personas tocan. Es el problema, no la solucion |
+| Un controlador de fusion de git para ese archivo | Resuelve el sintoma sin resolver el desfase de contenido, que es lo que causo el dano real |
+
+### Consecuencias
+
+**Se gana** que la matriz no pueda contradecir a sus fuentes, que cerrar una
+historia sea marcar `[x]` en el propio archivo, y que los conflictos que queden se
+resuelvan con un comando en lugar de comparando filas.
+
+**Se pierde** la posibilidad de escribir en la matriz algo que no este en ninguna
+fuente. Es deliberado: cada columna tiene ahora un lugar declarado de donde sale.
+
+**Aparece un archivo compartido nuevo**, `docs/trazabilidad.csv`, con requisito,
+modulo y prueba. Entra a la lista de archivos que se modifican por solicitud de
+cambio. Es un archivo mas que gobernar, y a cambio saca a tres personas de la
+matriz.
+
+**El pipeline pasa de siete a ocho controles.**
+
+### Medicion
+
+Ningun conflicto de fusion sobre la matriz que haya que resolver comparando filas.
+Si aparece uno, se resuelve regenerando; si alguien lo fusiona a mano y el
+resultado no corresponde a las fuentes, el CI lo detecta.
+
+Ningun dueno ni estado desfasado en la matriz, porque ya no puede haberlo: salen
+del backlog y de los archivos de tareas.
+
+Se revisa al cierre del Sprint 2. Si en ese periodo aparece un desfase de la matriz
+que el verificador no haya detectado, la comprobacion quedo corta.
+
+---
+
+## D-21 · `probabilidad` es P(nivel = alto), no la confianza del modelo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro
+
+### Contexto
+
+`contratos/esquemas.py` declara `probabilidad: float | None` entre 0 y 1 y dice
+cuando es `None`, pero **no dice que magnitud es**. Hay dos lecturas posibles y no
+son la misma cosa:
+
+1. **Confianza del modelo** en la clase que asigno: P(nivel asignado).
+2. **Probabilidad del nivel mas severo**: P(nivel = alto).
+
+La ambiguedad no era teorica. Avril construyo el mapa de calor de H5.4
+interpolando ese campo, y su propio comentario supone la primera lectura: *"la
+probabilidad de la estimacion no es el nivel estimado"*. H3.x lo va a implementar
+en los proximos dias, y hasta ahora nadie habia tenido que elegir.
+
+### Decision
+
+**`probabilidad` es P(nivel = alto)**: la probabilidad que el modelo asigna a la
+clase mas severa del evento, con independencia de cual sea el `nivel` devuelto.
+
+1. Se documenta en el contrato, sin cambiar la firma ni la version: es una
+   precision de significado, no un cambio de interfaz.
+2. **No es la confianza del modelo.** Un distrito con `nivel` bajo y
+   `probabilidad` 0,05 esta diciendo que el modelo lo ve tranquilo, no que este
+   poco seguro.
+3. La confianza en la clase asignada **no se expone**. Si alguna vez hace falta,
+   entra como campo propio y no reinterpretando este.
+
+### Justificacion
+
+La eleccion se decide por lo que pasa al **ordenar distritos**, que es lo que hace
+el visor.
+
+Con la lectura de confianza, un distrito con nivel bajo y confianza 0,95 tendria
+un valor mas alto que uno con nivel alto y confianza 0,45. **El mapa de calor
+pintaria mas intenso al distrito tranquilo.** No es un defecto de la
+implementacion de Avril: es lo que produce interpolar confianza y llamarlo mapa de
+riesgo.
+
+Con P(nivel = alto) el campo es **monotono en el riesgo**: mas alto significa mas
+riesgo, siempre. Eso lo vuelve:
+
+- **Interpolable con sentido.** La superficie de H5.4 pasa a ser una superficie de
+  riesgo y no una de seguridad del modelo.
+- **Comparable entre distritos y entre eventos**, que es lo que el semaforo de
+  H7.1 necesita.
+- **Utilizable como umbral continuo**, sin depender de que la clase discreta caiga
+  de un lado u otro del corte.
+
+Hay un argumento adicional, y es de uso. La confianza del modelo es informacion
+util **para nosotros al diagnosticar**, y es ruido para quien tiene que decidir si
+evacua. El campo que viaja a la interfaz debe responder a la pregunta del usuario,
+no a la del desarrollador.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Confianza en la clase asignada | Rompe el orden: un distrito tranquilo con el modelo seguro puntua mas alto que uno en riesgo con el modelo dudando. Es lo que el mapa de calor pintaria |
+| Exponer el vector completo de las tres clases | Es lo mas informativo y lo mas dificil de consumir. Obliga a cada consumidor a decidir que hace con el, y esa decision volveria a tomarse distinto en cada lugar |
+| Dejarlo sin definir | Es lo que habia. Dos historias ya lo usan con supuestos distintos |
+| Definirlo como P(nivel asignado) y agregar otro campo con P(alto) | Dos campos que se parecen invitan a usar el equivocado. Si mas adelante hace falta la confianza, entra con nombre propio |
+
+### Consecuencias
+
+**Se gana** un campo con una interpretacion unica, monotona en el riesgo y
+comparable, que es lo que necesitan el mapa de calor, el semaforo y cualquier
+umbral continuo.
+
+**Se pierde** la confianza del modelo como dato expuesto. Para el analisis interno
+sigue estando dentro del estimador; simplemente no viaja por el contrato.
+
+**Afecta a H5.4, que ya esta integrada.** El mapa de calor no cambia de codigo:
+cambia lo que significa. Su leyenda dice "probabilidad interpolada" y el texto de
+`interpolacion.js` afirma que la probabilidad no es el nivel estimado. Con esta
+decision esa afirmacion sigue siendo cierta —una probabilidad continua no es una
+clase discreta— pero el matiz de "no confundir con riesgo" ya no aplica: **ahora
+si es una superficie de riesgo.** Hay que ajustar ese texto.
+
+**H3.x lo implementa asi desde el principio**, que es el motivo de decidirlo ahora
+y no despues de entrenar.
+
+### Medicion
+
+Cuando exista un modelo entrenado, comprobar sobre los ocho distritos que el orden
+por `probabilidad` **no contradice** el orden por `nivel`: ningun distrito con
+nivel bajo debe tener una probabilidad mayor que uno con nivel alto del mismo
+evento y fecha.
+
+Si eso ocurriera, o el campo no es P(nivel = alto) o el etiquetado y el modelo
+estan en desacuerdo, y las dos cosas hay que mirarlas.
+
+---
+
+## D-22 · H1.4 se reduce: no hay faltantes que imputar en las series climaticas
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
+
+### Contexto
+
+H1.4 —"Documentar y aplicar criterios de imputacion de faltantes", 5 puntos y 7,8
+horas— se planifico suponiendo que las series climaticas tendrian huecos.
+
+Al cargar H1.1 se comprobo que no los tienen:
+
+> No hay un solo faltante que imputar: cero nulos en las siete variables, en los
+> ocho distritos, en 12.784 dias.
+
+No es casualidad ni suerte: **CHIRPS y POWER son productos de malla**, generados
+por interpolacion y reanalisis sobre todo el dominio. Estan completos por
+construccion. La historia se planifico contra una intuicion de datos de estacion,
+que si tienen huecos, y las fuentes que se eligieron no lo son.
+
+### Decision
+
+**H1.4 no se cierra como no aplicable, pero se reduce**: de 5 puntos y 7,8 horas a
+**3 puntos y 4,7 horas**.
+
+Deja de tener la parte de "aplicar", que no tiene sobre que aplicarse, y conserva
+dos cosas que si hacen falta:
+
+1. **Declarar la regla de imputacion antes de necesitarla**, con su prueba contra
+   huecos inyectados. `MetodoImputacion` ya existe en el contrato con cuatro
+   valores; lo que falta es cual se usa, cuando, y que queda registrado.
+2. **Fijar la distincion entre ausencia de evento y ausencia de dato**, que es
+   donde el proyecto se puede equivocar de verdad.
+
+### Justificacion
+
+**Cerrarla del todo seria un error, y el motivo esta en las otras dos fuentes.**
+
+Las series climaticas no tienen huecos, pero:
+
+- **FIRMS** (H1.2) es un producto de eventos, no de malla. Un dia sin deteccion de
+  focos **no es un dato faltante: es un cero**. Confundirlos invertiria el sentido
+  del riesgo de incendio, que es exactamente la clase de defecto que **D-07**
+  existe para evitar y que ya produjo la incidencia I-04 con otros datos.
+- **Sentinel-2** (H1.6) descarta imagenes por nubosidad mayor al 20 %. Ahi si hay
+  huecos reales, y en estacion lluviosa van a ser muchos.
+
+O sea que la historia tenia razon de existir; se equivoco de fuente. Reducirla y
+reapuntarla cuesta menos que cerrarla ahora y volver a abrirla en dos semanas.
+
+**Lo que se conserva vale por si solo.** Una regla de imputacion escrita antes de
+que aparezca el primer hueco es una decision; escrita despues, es una
+racionalizacion de lo que ya se hizo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Cerrarla como no aplicable con la evidencia de H1.1 | Libera 7,8 h y deja al proyecto sin regla el dia que Sentinel-2 traiga huecos, que es seguro. El ahorro es aparente |
+| Dejarla como esta | Son 7,8 h con la mitad del alcance sin objeto. Estimar contra un supuesto que ya se sabe falso es lo que la replanificacion existe para corregir |
+| Fundirla con H1.5, el reporte de calidad | H1.5 **mide** lo que hay; H1.4 **decide** que hacer con lo que falta. Son cosas distintas y juntarlas haria que la decision se tome mientras se escribe un reporte |
+| Moverla al Sprint 2, despues de H1.6 | Tiene sentido por dependencia, pero H1.7 la espera y quedaria bloqueada mas tiempo. Se mantiene en S1 con el alcance reducido |
+
+### Consecuencias
+
+**Se ganan 3,1 horas** en el Sprint 1 de Cesar, que es el que esta mas cargado de
+los suyos, y una regla escrita antes de necesitarla.
+
+**Se pierde** la aplicacion practica sobre datos reales: la regla se va a probar
+contra huecos inyectados y no contra huecos observados. Es una limitacion menor y
+queda declarada en la propia historia.
+
+**La dependencia de H2.1 sobre H1.4 queda obsoleta**, porque H2.1 ya se cerro sin
+ella. Se retira del backlog: mantenerla haria que el verificador de dependencias
+declare satisfecha una relacion que nunca se cumplio.
+
+**H1.7 sigue dependiendo de H1.4** y esa si se mantiene: versionar el dataset
+consolidado requiere saber que se hizo con lo que falta, aunque hoy no falte nada.
+
+### Medicion
+
+La historia se cierra cuando exista, con prueba ejecutable:
+
+1. La regla escrita: que metodo se aplica a cada variable y con que limite de
+   huecos consecutivos.
+2. Una prueba que **inyecta huecos** en una serie completa y comprueba que se
+   imputan segun la regla y que **queda registro de cada imputacion**.
+3. La distincion entre ausencia de evento y ausencia de dato, escrita donde la vea
+   quien implemente H1.2.
+
+Y se comprueba contra la realidad cuando H1.6 traiga sus huecos por nubosidad: si
+la regla escrita hoy no sirve para ese caso, quedo corta y hay que revisarla.
+
+---
+
+## D-23 · El visor negocia su origen una sola vez y degrada al respaldo declarandolo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, desde H6.6
+**Revisa.** D-14
+
+### Contexto
+
+D-14 dejo al visor leyendo archivos JSON estaticos y prometio que el dia que
+existiera la API el cambio seria *"la URL del `fetch`, en un solo modulo"*. La API
+existe desde el 19 de agosto (H6.1). Al hacer el cambio aparecieron tres cosas que
+D-14 no habia previsto.
+
+**Primera: no es una URL, es una traduccion.** La API devuelve `list[Distrito]` y
+`list[Riesgo]`; el visor espera un `FeatureCollection` y un mapa indexado por
+codigo. La costura de D-14 estaba bien puesta —toda la traduccion cabe en
+`cliente.js` y ningun componente cambio— pero la promesa era optimista.
+
+**Segunda: el respaldo no se puede tirar.** La Definition of Done de H6.6 exige que
+el visor siga en pie si la API no responde. Los archivos de D-14 dejan de ser el
+origen y pasan a ser la degradacion. Eso significa que el visor tiene **dos**
+origenes posibles, no uno, y que hay que decidir cuando usa cada uno.
+
+**Tercera: dos origenes se pueden mezclar.** `App.jsx` pide la salud y los
+distritos a la vez con un `Promise.all`, y los riesgos en otro efecto. Si cada
+llamada decidiera por su cuenta, una podria dar con la API arriba y la siguiente
+con la API caida.
+
+### Decision
+
+**1. El origen se negocia una sola vez, al arrancar, y las tres llamadas usan lo
+que se haya negociado.** La negociacion es la propia consulta a `/salud`,
+memorizada como una promesa compartida: quien llegue primero la dispara y los
+demas esperan ese mismo resultado.
+
+**2. Si la API no responde, se lee el respaldo estatico y se declara en pantalla,
+con el motivo.** El visor no se queda en blanco ni muestra un error como si no
+hubiera datos.
+
+**3. `modo` y `origen` son dos campos distintos.** `modo` dice **que** son los
+datos —simulado o real— y lo decide la API segun que implementacion respondio.
+`origen` dice **por donde** llegaron —`api` o `estatico`— y lo decide el cliente.
+
+**4. El visor llega a la API por una ruta relativa, `/api`.** En desarrollo la
+reenvia el proxy de `vite.config.js`; en el despliegue, el mismo servidor que
+sirve el visor.
+
+### Justificacion
+
+**Por que un solo origen.** Hoy los dos coinciden: los dos salen del mismo
+`RepositorioSimulado` con la misma semilla, asi que una mezcla seria invisible.
+Cuando H6.2 traiga PostgreSQL dejaran de coincidir, y entonces el visor pintaria
+los riesgos de un mundo sobre los distritos de otro **sin que nada fallara**. La
+decision hay que tomarla ahora, mientras el error todavia no se puede cometer:
+despues seria un defecto que solo se ve mirando el mapa con atencion.
+
+**Por que dos campos y no uno.** Son ejes ortogonales. El caso peligroso es el que
+todavia no existe: el dia que la API sirva dato real y se caiga, el respaldo
+servira dato simulado viejo. Con un solo campo ese caso se veria igual que el
+normal. Con dos, la pantalla puede decir a la vez "datos simulados" y "la API no
+responde, esto es el respaldo del 16 de agosto".
+
+Y ya se observo: con el respaldo sin regenerar, el visor declaraba contratos
+v1.3.0 mientras la API declaraba v1.3.1. Es exactamente el riesgo que D-14 se
+habia anotado a si misma —*"si los contratos cambian y nadie vuelve a correr el
+exportador, el frontend trabaja contra datos viejos sin enterarse"*— y ahora es
+**visible en pantalla** en vez de estar solo escrito en un ADR.
+
+**Por que una ruta relativa y no `http://localhost:8000`.** Un origen absoluto
+obliga a habilitar CORS en `backend/api/aplicacion.py`, que es archivo de Cesar y
+que la excepcion de propiedad de H6.6 no autoriza. Pero aunque lo autorizara, la
+ruta relativa es la solucion correcta: en el despliegue el visor y la API van
+detras del mismo origen, asi que el permiso no haria falta y habria que quitarlo.
+La restriccion de propiedad y la buena arquitectura apuntaron al mismo lado.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Que cada llamada decida su origen | Permite mezclar dos mundos sin que nada falle. Es el defecto que no se ve |
+| Un solo campo que diga `simulado`, `real` o `respaldo` | Confunde que son los datos con por donde llegaron. El caso "dato real caido a respaldo simulado" se volveria indistinguible |
+| Borrar los archivos estaticos | Es el respaldo de la Definition of Done. Sin ellos, una API caida deja el visor en blanco |
+| Origen absoluto mas CORS en la API | Toca archivo ajeno, y en produccion sobra |
+| Reintentar la API en cada llamada | Un visor que cambia de origen a mitad de sesion tiene el mismo problema de mezcla, repartido en el tiempo |
+
+### Consecuencias
+
+Se gana un unico punto de decision y un visor que sobrevive a la API caida sin
+mentir sobre lo que muestra.
+
+Se pierde: **el origen no se renegocia**. Si la API vuelve durante la sesion, el
+visor sigue en el respaldo hasta que se recargue la pagina. Es a proposito —lo
+contrario permite la mezcla— y es el precio correcto para un visor que se abre y
+se deja abierto unas horas.
+
+Queda una deuda: el aviso en pantalla lo tiene que dibujar
+`AvisoModoSimulado.jsx`, que es de Avril. Va por solicitud de cambio, no por diff
+propio.
+
+### Medicion
+
+Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
+
+| Escenario | Resultado |
+|---|---|
+| API arriba | `origen: api`, 8 distritos, fecha de hoy, sin motivo de respaldo |
+| API caida | `origen: estatico`, `motivo: fetch failed`, 8 distritos |
+| API responde 502 | `origen: estatico`, `motivo: la API respondio 502` |
+| API arriba, sin estimacion para hoy | `origen: api`, **8 distritos sin estimacion**, no pantalla vacia |
+| Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
+
+31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
 
 ---
 

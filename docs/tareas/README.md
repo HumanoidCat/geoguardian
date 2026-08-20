@@ -1,23 +1,23 @@
 # Reparto del backlog
 
-**83 historias · 417 puntos · 614 horas** (incluye 20 % de revision)
+**85 historias · 423 puntos · 620.3 horas** (incluye 20 % de revision)
 
 > El detalle completo, con dependencias de cada historia, esta en
 > [`docs/08-backlog.md`](../08-backlog.md). Este archivo es solo el resumen.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total h | Puntos | h/semana |
 |---|---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 22.8 | 54.7 | 35.7 | 52.8 | 202 | 118 | 20.2 |
-| Cesar | 18.3 | 30.9 | 31.5 | 39.2 | 34.0 | 154 | 125 | 15.4 |
-| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 | 14.3 |
-| Avril | 2.9 | 11.5 | 38.6 | 25.0 | 36.6 | 115 | 94 | 11.5 |
-| **Equipo** | **83** | **100** | **156** | **120** | **155** | **614** | **417** | |
+| Alejandro | 35.9 | 22.8 | 59.5 | 35.7 | 52.8 | 206.7 | 123 | 20.7 |
+| Cesar | 18.3 | 30.9 | 31.5 | 39.2 | 34.0 | 153.9 | 125 | 15.4 |
+| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 | 14.3 |
+| Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6 | 114.6 | 94 | 11.5 |
+| **Equipo** | **83.0** | **107.3** | **152.8** | **120.2** | **155.4** | **618.7** | **422** | |
 
 ## Compromiso de tiempo: 18 horas por persona por semana
 
     4 personas x 18 h x 10 semanas = 720 h
     Utilizacion realista al 85 %   = 612 h
-    Esfuerzo requerido             = 614 h
+    Esfuerzo requerido             = 618.7 h
 
 No hay holgura. Una semana perdida no se recupera sola.
 
@@ -39,7 +39,7 @@ El detalle esta en `gestion/auditoria-dependencias-backlog.md`.
 
 ## Lo que sigue sin cuadrar, y hay que decirlo
 
-Alejandro queda en 202 h contra una capacidad de 180, con el Sprint 2 en 54.7 h y
+Alejandro queda en 206.7 h contra una capacidad de 180, con el Sprint 2 en 59.5 h y
 el Sprint 4 en 52.8 h. La descarga no alcanzo a cerrarlo del todo.
 
 Las dos concentraciones que quedan son estructurales, no de reparto:

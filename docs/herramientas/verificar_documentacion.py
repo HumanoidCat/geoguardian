@@ -88,6 +88,29 @@ def historias_del_backlog() -> int:
         return sum(1 for _ in csv.DictReader(archivo))
 
 
+def puntos_del_backlog() -> int:
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return sum(int(f["puntos"]) for f in csv.DictReader(archivo))
+
+
+def horas_del_backlog() -> str:
+    """Total de horas con un decimal, que es como lo escriben los documentos."""
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return f"{sum(float(f['horas']) for f in csv.DictReader(archivo)):.1f}"
+
+
+def horas_del_sprint(sprint: str) -> str:
+    """Horas comprometidas en un sprint, con un decimal."""
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        total = sum(float(f["horas"]) for f in csv.DictReader(archivo) if f["sprint"] == sprint)
+    return f"{total:.1f}"
+
+
+def historias_del_sprint(sprint: str) -> int:
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return sum(1 for f in csv.DictReader(archivo) if f["sprint"] == sprint)
+
+
 def registros_adr() -> int:
     texto = (RAIZ / "docs" / "03-bitacora-decisiones.md").read_text(encoding="utf-8")
     return len(re.findall(r"^## D-\d+", texto, re.M))
@@ -156,6 +179,13 @@ AFIRMACIONES = [
             ("docs/ARRANQUE.md", r"pasar las \*\*(\d+) verificaciones\*\*"),
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
+            ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
+            # La hoja de verificacion de la seccion 10 lleva la cifra en la
+            # columna de observaciones. Se agrego el 20 de agosto: decia 31
+            # cuando ya eran 36, y ninguno de los dos patrones de arriba la
+            # alcanzaba. Es la hoja que va a llenar una persona de OTRO equipo:
+            # una cifra vieja ahi la haria anotar un fallo que no existe.
+            ("docs/10-manual-tecnico.md", r"\| Contratos \| 5\.2 \| \| (\d+) comprobaciones \|"),
         ],
     ),
     Afirmacion(
@@ -165,12 +195,45 @@ AFIRMACIONES = [
             ("README.md", r"Contratos \| v([\d.]+), congelados"),
             ("docs/ARRANQUE.md", r'"Contratos version ([\d.]+)"'),
             ("docs/02-contratos.md", r"Version de contratos: \*\*([\d.]+)\*\*"),
+            # El manual afirma la version en su seccion 5.2, y NADIE la
+            # comprobaba: el verificador miraba el numero de comprobaciones y no
+            # la version. Se quedo en 1.2.0 mientras los contratos iban por
+            # 1.3.2, tres cambios de version despues. Lo detecto Cesar
+            # verificando el manual, y su diagnostico es el que importa: "un
+            # verificador que no mira ese dato deja que envejezca en silencio".
+            ("docs/10-manual-tecnico.md", r'declarar \*\*"Contratos version ([\d.]+)"\*\*'),
         ],
     ),
+    # Los tres inventarios del backlog se comprueban en los tres documentos que
+    # los declaran. La auditoria del 18 de agosto encontro que `08-backlog.md` y
+    # `tareas/README.md` seguian en 83 historias y 417 puntos, y que la tabla de
+    # `tareas/README.md` tenia ademas mal el reparto de Avril entre S1 y S2,
+    # desde que H1.6 se adelanto de sprint. Ninguno de los dos estaba cubierto.
     Afirmacion(
         "historias del backlog",
         historias_del_backlog,
-        [("README.md", r"Backlog \| (\d+) historias")],
+        [
+            ("README.md", r"Backlog \| (\d+) historias"),
+            ("docs/08-backlog.md", r"\*\*(\d+) historias · "),
+            ("docs/tareas/README.md", r"\*\*(\d+) historias · "),
+        ],
+    ),
+    Afirmacion(
+        "puntos del backlog",
+        puntos_del_backlog,
+        [
+            ("README.md", r"historias, (\d+) puntos"),
+            ("docs/08-backlog.md", r"historias · (\d+) puntos"),
+            ("docs/tareas/README.md", r"historias · (\d+) puntos"),
+        ],
+    ),
+    Afirmacion(
+        "horas del backlog",
+        horas_del_backlog,
+        [
+            ("docs/08-backlog.md", r"puntos · ([\d.]+) horas"),
+            ("docs/tareas/README.md", r"puntos · ([\d.]+) horas"),
+        ],
     ),
     Afirmacion(
         "trabajos del pipeline de CI",
@@ -191,10 +254,65 @@ AFIRMACIONES = [
     ),
 ]
 
+# El reparto por sprint de docs/08-backlog.md: el encabezado de cada sprint y la
+# columna de ese sprint en la fila del equipo de la tabla de carga.
+#
+# Se agrego el 20 de agosto, al insertar la historia H11.5. Toda la tabla de carga
+# estaba desfasada y nadie se habia enterado: Cesar figuraba con 30.9 h en el
+# Sprint 1 cuando ya eran 27.8 —D-22 le redujo H1.4 el dia anterior—, el total del
+# equipo decia 618.7 contra 620.3 y los puntos 422 contra 423.
+#
+# Es el defecto de I-07 en otra tabla: cifras derivadas escritas a mano. La
+# diferencia importante es que estas NO cambian al cerrar una historia, solo al
+# cambiar el backlog, que hace una sola persona. Por eso comprobarlas no le rompe
+# el CI a nadie por trabajo ajeno, que fue lo que obligo a retirar la linea de
+# avance.
+_COLUMNA_DEL_SPRINT = {"S0": 1, "S1": 2, "S2": 3, "S3": 4, "S4": 5}
+
+
+def _patron_fila_equipo(sprint: str) -> str:
+    """Captura la columna de ese sprint en la fila `| **Equipo** | ... |`."""
+    saltar = r"[\d.]+ \| " * (_COLUMNA_DEL_SPRINT[sprint] - 1)
+    return r"\| \*\*Equipo\*\* \| " + saltar + r"([\d.]+) \|"
+
+
+for _s in ("S0", "S1", "S2", "S3", "S4"):
+    AFIRMACIONES.append(
+        Afirmacion(
+            f"horas comprometidas en el {_s}",
+            (lambda s: lambda: horas_del_sprint(s))(_s),
+            [
+                (
+                    "docs/08-backlog.md",
+                    rf"## Sprint {_s[1]} · semanas [\d-]+ · \d+ historias · ([\d.]+) h",
+                ),
+                ("docs/08-backlog.md", _patron_fila_equipo(_s)),
+            ],
+        )
+    )
+    AFIRMACIONES.append(
+        Afirmacion(
+            f"historias del {_s}",
+            (lambda s: lambda: historias_del_sprint(s))(_s),
+            [
+                (
+                    "docs/08-backlog.md",
+                    rf"## Sprint {_s[1]} · semanas [\d-]+ · (\d+) historias",
+                )
+            ],
+        )
+    )
+
+# El avance ya NO se comprueba aqui: se saco de docs/08-backlog.md el 20 de
+# agosto. Era una cifra derivada que cambia cada vez que alguien cierra una
+# historia, y ponerla bajo verificacion obligatoria hacia que el CI se rompiera
+# para quien no la habia tocado. Ver la incidencia I-07.
+#
+# La imprime `verificar_estado.py`, que corre en el mismo trabajo del CI.
+
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
 # mano al redactar: la herramienta las imprime para que nadie las cuente a mano.
 INFORMATIVAS = [
-    ("historias cerradas", historias_cerradas),
     ("incidencias registradas", incidencias),
 ]
 

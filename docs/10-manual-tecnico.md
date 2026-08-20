@@ -3,7 +3,7 @@
 **Proyecto:** GeoGuardian — estimación del riesgo climático por distrito en el
 cantón de Tilarán, Costa Rica
 **Historia:** H10.4 · **Rúbrica:** MVP · **Responsable:** Alejandro
-**Estado del sistema al 16 de agosto de 2026**
+**Estado del sistema al 20 de agosto de 2026**
 
 Este manual está escrito para alguien que **no participó en el desarrollo**: un
 evaluador, un profesor, o quien tenga que mantener el sistema el próximo
@@ -28,15 +28,31 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 31 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 44 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
+| Procesamiento de señales: filtrado, SPI y percentiles de lluvia intensa | Funciona, con 65 pruebas |
+| **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos | Funciona |
+| **API REST** con OpenAPI y los esquemas del contrato | Funciona |
+| Roles de base de datos con mínimo privilegio, verificando las denegaciones | Funciona |
 
-**Lo que todavía no existe.** Los extractores de datos climáticos y de focos de
-calor, el módulo de señales, el de modelado y la API REST. Sus carpetas están
-creadas y reservadas, pero vacías. El visor consume datos **simulados**, y lo
-declara con una banda permanente en pantalla.
+**Lo que todavía no existe.** El extractor de focos de calor y el módulo de
+modelado. Sus carpetas están creadas y reservadas, pero vacías.
+
+**El visor consume la API desde el 20 de agosto**, historia H6.6. Los datos que
+sirve siguen siendo simulados, porque detrás de la API está el repositorio
+simulado hasta que llegue H6.2, y el visor lo declara con una banda permanente en
+pantalla.
+
+Si la API no responde, el visor **no se cae**: lee el respaldo estático de
+`frontend/public/simulados/` y declara también ese cambio de origen. Ver D-23.
+
+El módulo de señales existe y está probado, pero **sus pruebas corren contra los
+simulados**. Ahora que hay series reales cargadas, hay que volver a correrlas sobre
+ellas: una serie real tiene patrones distintos de los del simulado. Es la
+diferencia entre "funciona" y "produce resultados del cantón", y conviene no
+confundirlas.
 
 Este manual no promete nada que no se pueda ejecutar. Si un comando de aquí falla
 en una máquina limpia, es un defecto del manual.
@@ -185,9 +201,28 @@ npm run dev
 
 Queda en `http://localhost:5173`.
 
-El visor **no consume la API**, que todavía no existe: lee archivos JSON generados
-a partir de los simulados. El exportador solo lee `contratos/` y escribe dentro de
-`frontend/public/`. La decisión está registrada como D-14.
+**El visor habla con la API**, por la ruta relativa `/api`, que el proxy de
+`vite.config.js` reenvía a `localhost:8000`. Para verlo con datos hay que levantar
+también la API, sección 4.5.
+
+**Sin la API levantada el visor igual funciona:** cae al respaldo estático que
+genera `exportar_simulados.py` y lo declara en pantalla. Por eso el exportador
+sigue haciendo falta, aunque ya no sea el origen. Solo lee `contratos/` y escribe
+dentro de `frontend/public/`.
+
+Las decisiones son **D-14**, que puso la costura, y **D-23**, que la sustituyó por
+la API dejando los archivos como degradación.
+
+### 4.5 API
+
+```bash
+uvicorn backend.api.aplicacion:app --port 8000
+```
+
+Documentación interactiva en `http://localhost:8000/docs`.
+
+Todavía **no hay servicio de API en `docker-compose.yml`**: falta su Dockerfile,
+que es la historia H6.0. Hasta entonces se levanta a mano.
 
 ---
 
@@ -211,8 +246,8 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **31 comprobaciones**
-y declarar **"Contratos version 1.2.0"**.
+Debe terminar en **"Todas las verificaciones pasaron"** con **44 comprobaciones**
+y declarar **"Contratos version 1.3.3"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
 proyecto. Que un dato faltante se represente como nulo y nunca como cero; que una
@@ -254,11 +289,27 @@ Get-Content basedatos\consultas\verificar_transaccion.sql | docker compose exec 
 python docs/herramientas/verificar_backlog.py
 python docs/herramientas/verificar_adr.py
 python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+python docs/herramientas/verificar_estado.py
+python docs/herramientas/verificar_documentacion.py
 ```
 
-Los tres existen por errores que ya ocurrieron: tres dependencias apuntaban a
-sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, y 30
-de 82 historias no tenían carpeta de evidencia asignada.
+La matriz de trazabilidad y la linea de avance del backlog **se generan, no se
+editan**. Si `verificar_estado.py` o `verificar_documentacion.py` avisan que no
+corresponden a sus fuentes:
+
+```bash
+python docs/herramientas/generar_matriz.py
+```
+
+Los cinco existen por errores que ya ocurrieron: tres dependencias apuntaban a
+sprints posteriores, la rúbrica exige un mínimo de registros de arquitectura, 30 de
+82 historias no tenían carpeta de evidencia asignada, cuatro historias cerradas no
+figuraban en la matriz de trazabilidad, y cinco cifras escritas en la
+documentación habían dejado de ser ciertas.
+
+**`verificar_estado.py` imprime además el avance del proyecto** —historias y puntos
+cerrados, por persona y por sprint— calculado desde el repositorio. Es la forma de
+saber cómo va sin contar a mano.
 
 ### 5.6 Estilo del código
 
@@ -269,11 +320,22 @@ python -m ruff format --check .
 
 ### 5.7 Visor
 
+**Requiere haber hecho `npm install`**, sección 4.4. Sin eso los dos comandos
+fallan con *"eslint no se reconoce"* y *"vite no se reconoce"*, y el mensaje no da
+ninguna pista de qué falta. Node estar instalado no alcanza: las herramientas
+viven en `node_modules`.
+
 ```bash
 cd frontend
+npm install      # si no se corrió antes, sección 4.4
 npm run lint
 npm run build
 ```
+
+> Lo encontró César al verificar el manual el 19 de agosto. La sección 5 se
+> presenta como *"la que hay que ejecutar para comprobar que el sistema
+> funciona"*, lo que invita a correrla por su cuenta, y quien lo haga se topaba
+> con dos fallos sin explicación.
 
 ---
 
@@ -356,6 +418,27 @@ causa raíz en `docs/04-bitacora-incidencias.md`.
 
 ---
 
+### Una migración registrada en la base que no está en disco
+
+    003 003_seguridad_roles.sql: registrada en la base pero no esta en disco
+
+**No es un defecto: es la protección funcionando.** Pasa cuando la base tiene
+aplicada una migración que vive en una rama sin fusionar y el repositorio está
+parado en otra. El aplicador se niega antes de tocar nada, para que nadie trabaje
+contra una base que no corresponde a su código.
+
+La salida es fusionar la rama que trae esa migración, o recrear el volumen:
+
+```bash
+docker compose down -v && docker compose up -d
+python -m basedatos.aplicar_migraciones
+```
+
+Lo señaló César al verificar el manual el 19 de agosto, y le va a pasar a
+cualquiera que lo verifique mientras haya migraciones en ramas sin fusionar.
+
+---
+
 ## 10. Hoja de verificación para quien revisa
 
 Esta sección la completa **una persona ajena al desarrollo**, siguiendo el manual
@@ -375,7 +458,7 @@ no es un manual.
 | 8 | Cargar geometrías | 4.3 | | |
 | 9 | Cargar geometrías **por segunda vez** | 4.3 | | Debe seguir habiendo 8 filas |
 | 10 | PostGIS y esquemas | 5.1 | | Cuatro esquemas |
-| 11 | Contratos | 5.2 | | 31 comprobaciones |
+| 11 | Contratos | 5.2 | | 44 comprobaciones |
 | 12 | Criterios del modelo territorial | 5.3 | | |
 | 13 | Modelo y transacciones | 5.4 | | Los `ERROR` son esperados |
 | 14 | Documentación y backlog | 5.5 | | |
@@ -399,7 +482,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 18 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 23 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

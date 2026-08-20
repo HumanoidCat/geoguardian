@@ -1,6 +1,6 @@
 # Backlog completo
 
-**83 historias · 417 puntos · 614 horas** (incluye 20 % de revision)
+**85 historias · 423 puntos · 620.3 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -10,17 +10,52 @@ La consistencia se comprueba con `python docs/herramientas/verificar_backlog.py`
 dependencias hacia historias inexistentes, hacia sprints posteriores,
 dependencias circulares y carga por persona.
 
+## Avance
+
+**Este archivo no registra que historias estan terminadas, y es deliberado.** El
+avance vive en `docs/tareas/<persona>.md`, donde cada quien marca su propio trabajo
+con `[x]` y la fecha. Anotarlo tambien aqui crearia un cuarto lugar donde el estado
+puede desfasarse, que es exactamente el problema que este proyecto ya tuvo tres
+veces.
+
+Para saber como va, sin contar a mano:
+
+    python docs/herramientas/verificar_estado.py
+
+Imprime historias y puntos cerrados, por persona y por sprint, calculados desde el
+repositorio. Y **falla si los archivos de tareas y la matriz de trazabilidad no
+dicen lo mismo**, que es la comprobacion que faltaba: la auditoria del 18 de agosto
+encontro cuatro historias cerradas sin fila en la matriz y dos con el dueno
+equivocado.
+
+**El avance no se escribe aqui.** Lo imprime la herramienta, calculado desde el
+repositorio en el momento en que se pregunta:
+
+    python docs/herramientas/verificar_estado.py
+
+Historias y puntos cerrados, por persona y por sprint. **Corre ademas en cada
+cambio del CI**, asi que la cifra del dia queda en el registro de la ejecucion.
+
+Estuvo escrita aqui del 18 al 20 de agosto y hubo que quitarla: era una cifra
+derivada que cambia cada vez que alguien cierra una historia, y el verificador la
+comprobaba. Rompio el CI de quien no la habia tocado **tres veces en dos dias**,
+incluida una en que dos Pull Requests correctos por separado dejaban `dev` en rojo
+al integrarse los dos. Generarla en vez de escribirla redujo el problema pero no
+lo elimino: cualquier par de PR que cierre historias sigue chocando en esta linea.
+
+Ver la incidencia **I-07**. Lo propuso Cesar desde el primer dia y tenia razon.
+
 ## Carga por persona y sprint
 
 Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 22.8 | 54.7** | 35.7 | 52.8** | 202 | 118 |
-| Cesar | 18.3 | 30.9 | 31.5 | 39.2** | 34.0 | 154 | 125 |
-| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 144 | 80 |
-| Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 115 | 94 |
-| **Equipo** | 83 | 107 | 148 | 120 | 155 | **614** | **417** |
+| Alejandro | 35.9 | 22.8 | 59.5** | 40.4** | 52.8** | 211.4 | 126 |
+| Cesar | 18.3 | 27.8 | 31.5 | 39.2** | 34.0 | 150.8 | 123 |
+| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
+| Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 114.6 | 94 |
+| **Equipo** | 83.0 | 104.2 | 152.8 | 124.9 | 155.4 | **620.3** | **423** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -43,7 +78,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.1** Plan de pruebas con casos por modulo | luna | 5 | 4.8 | QA | contratos | — |
 | **H10.5a** Recopilar 15 referencias IEEE con ficha de contenido | luna | 8 | 21.1 | IEEE | - | H10.5b |
 
-## Sprint 1 · semanas 4-5 · 15 historias · 107.3 h
+## Sprint 1 · semanas 4-5 · 15 historias · 104.2 h
 
 **Foco.** Dataset consolidado, API y reporte de calidad  
 **Hito.** Entrega institucional (semana 4)
@@ -66,13 +101,14 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.5b** Estado del arte de Costa Rica | luna | 5 | 13.2 | IEEE | H10.5a | H10.5c |
 | **H4.3** Catalogo de 12 o mas eventos historicos del canton con fuente | luna | 8 | 21.1 | OE3 | - | H4.4, H7.3 |
 
-## Sprint 2 · semanas 6-7 · 21 historias · 148.0 h
+## Sprint 2 · semanas 6-7 · 22 historias · 152.8 h
 
 **Foco.** Modelos entrenados, despliegue continuo y demo de extremo a extremo  
 **Hito.** **Primer avance (semana 7)**
 
 | Historia | Responsable | Pts | h | Rubrica | Depende de | Bloquea a |
 |---|---|---|---|---|---|---|
+| **H6.6** El visor consume la API real en lugar de los JSON estaticos | alejandro | 5 | 4.8 | Arq | H6.1 | — |
 | **H11.2** CD: despliegue automatico al entorno de desarrollo al mergear a main | alejandro | 5 | 7.8 | CICD | H11.1 | H11.3, H12.3 |
 | **H11.3** CD: despliegue a staging en namespace propio, con aprobacion manual | alejandro | 3 | 4.7 | CICD | H11.2 | H11.4 |
 | **H11.4** CD: despliegue a produccion con aprobacion explicita y rollback automatico | alejandro | 5 | 7.8 | CICD | H11.3 | H13.2 |
@@ -95,7 +131,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H2.3** SPI de 1 y 3 meses por convolucion de ventana movil | luna | 5 | 7.8 | Senales | H2.1 | H2.5, H3.0 |
 | **H2.7** Calcular percentiles R95p y R99p de precipitacion acumulada por distrito | luna | 5 | 7.8 | Senales | H2.1 | H3.0 |
 
-## Sprint 3 · semanas 8-9 · 16 historias · 120.2 h
+## Sprint 3 · semanas 8-9 · 17 historias · 124.9 h
 
 **Foco.** Explicabilidad, visor completo y pruebas  
 **Hito.** —
@@ -118,6 +154,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H2.2** Analisis espectral de la lluvia e interpretacion fisica | luna | 5 | 7.8 | Senales | H2.1 | — |
 | **H2.4** Anomalias respecto a la normal climatologica 1991-2020 | luna | 3 | 2.9 | Senales | H2.1 | H7.4 |
 | **H9.1** Preparar SUS, guion de entrevista y dosier de 3 casos | luna | 5 | 4.8 | OE4 | - | H9.2 |
+| **H11.5** Publicar el visor como sitio estatico con datos declarados simulados | alejandro | 3 | 4.7 | CICD | H5.4, H6.6 | H9.2 |
 
 ## Sprint 4 · semanas 10-11 · 20 historias · 155.4 h
 

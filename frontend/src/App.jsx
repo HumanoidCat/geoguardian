@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AvisoModoSimulado from './componentes/AvisoModoSimulado'
+import ControlCapas from './componentes/ControlCapas'
 import LeyendaRiesgo from './componentes/LeyendaRiesgo'
 import MapaCanton from './componentes/MapaCanton'
 import PanelDistrito from './componentes/PanelDistrito'
 import SelectorEvento from './componentes/SelectorEvento'
+import { CAPAS_INICIALES, CAPA_BASE_INICIAL, EXPONENTE_IDW_INICIAL } from './datos/capasBase'
 import { obtenerDistritos, obtenerRiesgos, obtenerSalud } from './datos/cliente'
 import { nombreDeEvento } from './datos/eventos'
+import { centroidesDeColeccion } from './datos/interpolacion'
+import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 
 const EVENTO_INICIAL = 'sequia'
+
+// Mismo valor que --riesgo-opacidad en tokens.css. Se repite aca porque el
+// estado de React necesita un numero inicial; el CSS sigue siendo el dueno del
+// valor por defecto cuando el deslizador no se ha tocado.
+const OPACIDAD_INICIAL = 0.85
 
 export default function App() {
   const [salud, setSalud] = useState(null)
@@ -18,6 +27,11 @@ export default function App() {
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [cargandoRiesgos, setCargandoRiesgos] = useState(true)
+
+  const [capaBase, setCapaBase] = useState(CAPA_BASE_INICIAL)
+  const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
+  const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
+  const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -82,10 +96,16 @@ export default function App() {
     setEvento(nuevo)
   }, [])
 
+  const alternarSuperpuesta = useCallback((id) => {
+    setSuperpuestas((previas) => ({ ...previas, [id]: !previas[id] }))
+  }, [])
+
   const distritoSeleccionado = useMemo(() => {
     if (!coleccion || !seleccionado) return null
     return coleccion.features.find((r) => r.properties.codigo === seleccionado)?.properties ?? null
   }, [coleccion, seleccionado])
+
+  const centroides = useMemo(() => centroidesDeColeccion(coleccion), [coleccion])
 
   const nombreEvento = nombreDeEvento(evento)
   const riesgos = paqueteRiesgos?.riesgos ?? null
@@ -127,10 +147,26 @@ export default function App() {
               riesgos={riesgos}
               seleccionado={seleccionado}
               alSeleccionar={setSeleccionado}
+              capaBase={capaBase}
+              superpuestas={superpuestas}
+              opacidad={opacidad}
+              exponente={exponente}
+              centroides={centroides}
             />
           </div>
 
           <div className="columna-panel">
+            <ControlCapas
+              capaBase={capaBase}
+              alCambiarCapaBase={setCapaBase}
+              superpuestas={superpuestas}
+              alAlternarSuperpuesta={alternarSuperpuesta}
+              opacidad={opacidad}
+              alCambiarOpacidad={setOpacidad}
+              exponente={exponente}
+              alCambiarExponente={setExponente}
+            />
+
             {cargandoRiesgos ? (
               <div className="leyenda">
                 <div className="pulso-cargando barra-carga" />
@@ -141,6 +177,14 @@ export default function App() {
                 nombreEvento={nombreEvento}
                 riesgos={riesgos}
                 simulado={paqueteRiesgos?.simulado}
+              />
+            )}
+
+            {superpuestas.mapaCalor && !cargandoRiesgos && (
+              <LeyendaMapaCalor
+                centroides={centroides}
+                riesgos={riesgos}
+                exponente={exponente}
               />
             )}
 

@@ -38,6 +38,7 @@ def main() -> int:
         ExtractorClimaSimulado,
         ExtractorFocosSimulado,
         RepositorioSimulado,
+        _nivel_desde,
         salud_simulada,
     )
     from .simulados.modelado import EstimadorSimulado, EvaluadorSimulado
@@ -97,6 +98,21 @@ def main() -> int:
     comprobar("el espectro rechaza una serie con huecos", espectro_rechaza)
     indice = senales.spi([float(i % 30) for i in range(60)], 3)
     comprobar("el SPI deja en None lo que no puede calcular", indice[:3] == [None, None, None])
+
+    # Contratos v1.3.0, decision D-19. Un SPI que no puede saber a que mes
+    # pertenece cada valor sigue la estacionalidad en vez de la anomalia, asi que
+    # el parametro tiene que existir en la firma y validarse.
+    meses = [(i % 12) + 1 for i in range(60)]
+    comprobar(
+        "el SPI acepta el mes calendario de cada posicion",
+        senales.spi([float(i % 30) for i in range(60)], 3, meses)[:3] == [None, None, None],
+    )
+    rechaza_meses_mal = False
+    try:
+        senales.spi([1.0, 2.0, 3.0], 1, [1, 2])
+    except ValueError:
+        rechaza_meses_mal = True
+    comprobar("el SPI rechaza una lista de meses de otro largo", rechaza_meses_mal)
     comprobar(
         "una ventana mayoritariamente vacia no se promedia",
         senales.remuestrear([1.0, None, None, None], 4, "media") == [None],
@@ -173,6 +189,139 @@ def main() -> int:
         "los ocho codigos son 50801 a 50808 y no se repiten",
         codigos == [f"508{n:02d}" for n in range(1, 9)],
     )
+
+    # SC-03, incidencia I-08. Las dos fallaban antes del arreglo.
+    #
+    # La primera existe porque el repositorio de H6.2 sera determinista al leer filas, y el
+    # repositorio de H6.2 lo sera. La segunda, porque D-21 fijo que
+    # `probabilidad` es P(nivel = alto) y hasta el 20 de agosto el simulado
+    # sorteaba nivel y probabilidad por separado: producia filas imposibles
+    # como nivel `bajo` con probabilidad 0,90.
+    print("\nEl riesgo simulado es reproducible y coherente con D-21:")
+
+    otro_repo = RepositorioSimulado()
+    fecha_prueba, evento_prueba = date(2026, 8, 16), TipoEvento.SEQUIA
+    una = repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+    otra = repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+    tercera = otro_repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+
+    def firma(lote: list) -> list[tuple]:
+        return [(r.codigo_distrito, r.nivel, r.probabilidad) for r in lote]
+
+    comprobar(
+        "dos llamadas iguales al mismo repositorio devuelven lo mismo",
+        firma(una) == firma(otra),
+    )
+    comprobar(
+        "dos instancias distintas devuelven lo mismo",
+        firma(una) == firma(tercera),
+    )
+
+    incoherentes = [
+        r
+        for dias in range(0, 360, 9)
+        for ev in TipoEvento
+        for r in repo.obtener_riesgos_por_fecha(date(2026, 1, 1) + timedelta(days=dias), ev)
+        if r.nivel != _nivel_desde(r.probabilidad)
+    ]
+    comprobar(
+        "ninguna fila contradice a D-21: el nivel se deriva de la probabilidad",
+        incoherentes == [],
+    )
+
+    # SC-04. Lo encontro Cesar al revisar SC-03: el arreglo cubria solo el riesgo,
+    # y `obtener_mediciones` tenia el mismo defecto con una forma peor. Un mismo
+    # dia devolvia dos temperaturas segun el rango en que se lo pidiera, asi que
+    # una serie no se podia pedir en tandas. Le pegaba a las ventanas moviles de
+    # H2.5 y al etiquetado por ventana de 7 dias de H3.0.
+    print("\nLa serie no cambia segun como se la pida:")
+
+    def por_fecha(lote: list) -> dict:
+        return {m.fecha: (m.temp_max_c, m.precipitacion_mm) for m in lote}
+
+    tramo_a = por_fecha(repo.obtener_mediciones("50801", date(2026, 8, 1), date(2026, 8, 5)))
+    tramo_b = por_fecha(otro_repo.obtener_mediciones("50801", date(2026, 8, 3), date(2026, 8, 7)))
+    comunes = sorted(set(tramo_a) & set(tramo_b))
+    comprobar(
+        "dos rangos que se solapan coinciden en los dias comunes",
+        bool(comunes) and all(tramo_a[f] == tramo_b[f] for f in comunes),
+    )
+
+    larga = repo.obtener_mediciones("50801", date(2026, 1, 1), date(2026, 3, 1))
+    corta = repo.obtener_mediciones("50801", date(2026, 1, 15), date(2026, 3, 1))
+    fechas_cortas = {m.fecha for m in corta}
+    comprobar(
+        "un dia es hueco por su fecha, no por su posicion en el rango",
+        {m.fecha for m in larga if m.temp_max_c is None and m.fecha in fechas_cortas}
+        == {m.fecha for m in corta if m.temp_max_c is None},
+    )
+
+    entero = repo.contar_focos("50801", date(2026, 1, 1), date(2026, 1, 14))
+    mitades = repo.contar_focos("50801", date(2026, 1, 1), date(2026, 1, 7)) + repo.contar_focos(
+        "50801", date(2026, 1, 8), date(2026, 1, 14)
+    )
+    comprobar("contar focos en dos tramos da lo mismo que en uno", entero == mitades)
+
+    comprobar(
+        "los indices derivados coinciden entre instancias",
+        [
+            (x.fecha, x.spi_3m)
+            for x in repo.obtener_indices("50801", date(2026, 1, 1), date(2026, 3, 1))
+        ]
+        == [
+            (x.fecha, x.spi_3m)
+            for x in otro_repo.obtener_indices("50801", date(2026, 1, 1), date(2026, 3, 1))
+        ],
+    )
+
+    # SC-04, quinto sitio. Lo encontro Cesar: la busqueda de SC-04 se limito a
+    # `RepositorioSimulado` y el archivo tiene otra clase. Le importa a H1.2, que
+    # implementa `ExtractorFocosCalor` de verdad: si el doble contra el que se
+    # compara no es reproducible, la prueba no prueba nada.
+    print("\nLos extractores simulados tambien son reproducibles:")
+    otro_focos = ExtractorFocosSimulado()
+    una_extraccion = focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+    otra_extraccion = focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+    tercera_extraccion = otro_focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+
+    def firma_focos(lote: list) -> list[tuple]:
+        return [(f.fecha, f.latitud, f.longitud, f.confianza) for f in lote]
+
+    comprobar(
+        "dos extracciones iguales del mismo extractor coinciden",
+        firma_focos(una_extraccion) == firma_focos(otra_extraccion),
+    )
+    comprobar(
+        "otra instancia del extractor devuelve lo mismo",
+        firma_focos(una_extraccion) == firma_focos(tercera_extraccion),
+    )
+
+    # Los ocho distritos tenian hueco los mismos dias, porque `_es_hueco` recibia
+    # el codigo y no lo miraba. Sin esto no se puede escribir una prueba con un
+    # distrito con dato y otro sin el, que es el caso normal cuando una estacion
+    # se cae, y es lo que H1.4 tiene que saber detectar.
+    def huecos_de(codigo: str) -> set:
+        return {
+            m.fecha
+            for m in repo.obtener_mediciones(codigo, date(2026, 1, 1), date(2026, 6, 30))
+            if m.temp_max_c is None
+        }
+
+    comprobar(
+        "dos distritos no tienen hueco exactamente los mismos dias",
+        huecos_de("50801") != huecos_de("50807"),
+    )
+
+    # Con `randint(0, 1)` una ventana de 7 dias tenia un techo duro de 7 focos,
+    # que en FIRMS no existe: un distrito puede tener varias detecciones el mismo
+    # dia. Lo midio Cesar sobre 400 dias.
+    ventanas = [
+        repo.contar_focos(
+            "50801", date(2026, 1, 1) + timedelta(days=d), date(2026, 1, 7) + timedelta(days=d)
+        )
+        for d in range(0, 200, 7)
+    ]
+    comprobar("una ventana de 7 dias puede superar los 7 focos", max(ventanas) > 7)
 
     if fallos:
         print(f"\n{len(fallos)} verificaciones fallaron:")

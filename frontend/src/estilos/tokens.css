@@ -88,6 +88,11 @@
   --simulado-trama: #455a64;
   --simulado-acento: #4dd0e1;
 
+  /* Fondo de los avisos de advertencia: opacidad no fiable, respaldo sin API.
+     Ambar y no rojo. El rojo esta reservado para riesgo alto, y una advertencia
+     roja sobre la procedencia del dato se leeria como alerta climatica. */
+  --aviso-fondo: #fff8e1;
+
   /* ---------------------------------------------------------------------- *
    * Interfaz
    * ---------------------------------------------------------------------- */

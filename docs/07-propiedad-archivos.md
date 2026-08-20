@@ -21,6 +21,46 @@ cambio fuera de tu carpeta, se pide, no se hace.
 | docs (resto) | Alejandro | Documento IEEE, bitacoras, matrices, roadmap, manuales |
 | frontend | Avril | Visor, tablero, componentes, estilos |
 
+## Las carpetas que faltaban en esta tabla
+
+Lo pregunto Avril el 20 de agosto, al quedar bloqueada en H1.6: **`datos/` no
+figuraba en ninguna parte**, ni antes ni despues de D-16. Tampoco `notebooks/`.
+Dos carpetas de primer nivel sin dueno declarado, y una de ellas es donde
+escriben tres personas.
+
+| Carpeta | Regla | Por que |
+|---|---|---|
+| `datos/` | **Escritura libre**, como `docs/evidencias/` | Todo su contenido esta en `.gitignore` y nunca se versiona. Lo que se escribe ahi no puede colisionar entre ramas, asi que pedir permiso no controla nada |
+| `notebooks/` | **Escritura libre**, con una regla | Cada quien crea los suyos con su prefijo: `avril-`, `cesar-`, `luna-`, `arz-`. Nadie edita el de otro |
+| `contratos/` | **Archivo compartido**, no carpeta con dueno | Ya estaba en la lista de archivos compartidos de mas abajo. Se anota aca para que no haya que buscarlo en dos sitios |
+
+**Sobre `datos/`, una advertencia que vale mas que la regla.** Que sea de escritura
+libre no significa que lo que hay dentro sea compartido: **cada quien tiene su
+propia copia y hoy nadie puede decir si son la misma.** Eso lo resuelve **H1.7**,
+versionar el dataset consolidado, que sigue abierta. Mientras tanto, un resultado
+calculado sobre `datos/` no es reproducible por otra persona.
+
+## Excepcion: la descarga de Sentinel-2, para H1.6
+
+`backend/etl/` es de Cesar. La historia **H1.6** —descargar imagenes Sentinel-2 de
+estacion seca— es de Avril, y su script es un extractor: pertenece ahi y no en
+`frontend/`.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Avril | `backend/etl/fuentes/sentinel.py` y su prueba en `backend/tests/` | H1.6, y nada mas |
+
+**Por que ahi y no en la carpeta de Avril.** Un extractor que vive en `frontend/`
+porque lo escribio la persona del frontend es organizar el codigo por autor en vez
+de por funcion. El dia que alguien busque de donde salen las imagenes, va a mirar
+donde estan los otros extractores.
+
+Es el mismo criterio de **D-16** y la misma forma que la excepcion de H6.6:
+**estrecha, por historia, y escrita.** Si hiciera falta tocar otro archivo de
+`backend/etl/`, se pide.
+
+**Cesar revisa el Pull Request**, como dueno de la carpeta.
+
 ## Excepcion: backend/senales y backend/modelado
 
 Las dos carpetas se reparten historias entre tres personas, asi que la regla de un
@@ -42,18 +82,91 @@ volviera a ocurrir en lugar de despues.
 La regla que se aplica es la misma que salio de aquel caso: **la propiedad sigue al
 trabajo asignado, no al reves.**
 
+## Excepcion: frontend/src/datos/cliente.js, para H6.6
+
+`frontend/` es de Avril. La historia **H6.6** —cambiar el origen de datos del visor
+de los JSON estaticos a la API real— es de Alejandro, y toca ese archivo.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/src/datos/cliente.js` y la configuracion de entorno del visor | H6.6, y nada mas |
+
+**Que resulto ser "la configuracion de entorno del visor".** Al ejecutar H6.6 el
+20 de agosto fue exactamente **un archivo mas**: el bloque `server.proxy` de
+`frontend/vite.config.js`, para que el visor llegue a la API por una ruta relativa
+y no haga falta CORS. El resto de ese archivo no se toco. Se anota aca con nombre
+propio para que la excepcion no quede abierta a interpretacion.
+
+`frontend/public/simulados/*.json` se **regeneraron** corriendo
+`exportar_simulados.py`, que es de Avril y no se modifico. Son artefactos
+derivados: sin regenerar, el respaldo declaraba contratos v1.3.0 mientras la API
+declaraba v1.3.1.
+
+**Por que no se le asigna a Avril.** El cambio no es de presentacion: es de
+arquitectura, sustituye la costura que D-14 dejo puesta a proposito y depende de
+conocer los esquemas de la API. Avril diseño el archivo justamente para que esto
+fuera un cambio de una constante y ningun componente se enterara; el trabajo esta
+del lado de la API, no del visor.
+
+**Por que la excepcion es tan estrecha.** Solo ese archivo y la configuracion. Los
+componentes, los estilos y el exportador siguen siendo de Avril sin excepcion. Si
+hiciera falta tocar un componente, se pide.
+
+Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
+asignado, y se declara por historia y no en general.
+
 ## Excepcion: docs/evidencias/
 
 `docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**
 para todo el equipo. Cada integrante sube la evidencia de sus propias historias
 sin pedir autorizacion.
 
-La razon es practica: son 82 historias, cada una con su evidencia. Exigir una
+La razon es practica: son 84 historias, cada una con su evidencia. Exigir una
 solicitud de cambio por cada una convertiria al Lead PM en cuello de botella de
 algo que no aporta ningun control real.
 
 Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
 `docs/evidencias/`, o modificar la evidencia de otra persona.
+
+## Lo que se genera no se edita
+
+Dos cosas son **artefactos derivados**. Nadie las abre para escribir en ellas, ni
+siquiera Alejandro:
+
+- `docs/05-matriz-trazabilidad.md`, la tabla completa.
+- La **linea de avance** de `docs/08-backlog.md`, la que dice cuantas historias
+  van cerradas. El resto de ese archivo si se edita a mano.
+
+Se produce con:
+
+    python docs/herramientas/generar_matriz.py
+
+Para cambiar una fila se cambia su fuente:
+
+| Que queres cambiar | Donde se cambia | Quien puede |
+|---|---|---|
+| Que la historia figure como terminada | `docs/tareas/<persona>.md`, marcando `[x]` | Su dueno |
+| El archivo de evidencia que aparece | Subirlo a `docs/evidencias/`, con el nombre `<ID>-<algo>.md` | Su dueno |
+| El dueno o la rubrica | `docs/backlog.csv` | Alejandro |
+| El requisito, el modulo o la prueba | `docs/trazabilidad.csv` | Alejandro |
+
+**Por que.** Era el archivo mas conflictivo del repositorio: lo tocaban las cuatro
+personas, casi siempre en el mismo bloque de filas, y nada lo comprobaba. En dos
+dias produjo tres conflictos de fusion, tres duenos desfasados y cuatro historias
+cerradas sin fila. Uno de esos defectos le quito trabajo del plato a una persona
+durante un dia.
+
+**La linea de avance** se agrego el 19 de agosto por la incidencia **I-07**: era
+una cifra derivada escrita a mano, y rompia el CI de quien cerrara la siguiente
+historia sin haber roto nada.
+
+**Si aparece un conflicto de fusion en la matriz, no se fusiona a mano:**
+
+    git checkout --ours docs/05-matriz-trazabilidad.md
+    python docs/herramientas/generar_matriz.py
+
+Es la misma idea que `ruff format`: un archivo derivado no se discute, se vuelve a
+producir. `verificar_estado.py` comprueba en el CI que corresponda a sus fuentes.
 
 ## Archivos compartidos
 
@@ -61,6 +174,7 @@ Sigue requiriendo solicitud: crear una carpeta nueva de primer nivel dentro de
 dueno del modulo afectado:
 
 - contratos/ (todo el contenido)
+- docs/trazabilidad.csv
 - docker-compose.yml
 - .env.example
 - requirements.txt
@@ -102,7 +216,7 @@ cada quien revisa territorio que conoce.
 Alejandro es el dueno de `docs/` porque tiene el contexto completo del proyecto y
 es quien puede sostener la coherencia entre arquitectura, resultados y redaccion.
 
-Luna es duena de `docs/investigacion/`, que alimenta al documento IEEE con
+Luna es dueno de `docs/investigacion/`, que alimenta al documento IEEE con
 insumos que no requieren contexto arquitectonico: referencias, estado del arte,
 catalogo de eventos historicos y plan de pruebas.
 

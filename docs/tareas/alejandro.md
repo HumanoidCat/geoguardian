@@ -9,7 +9,7 @@
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
-**Total asignado:** 118 puntos · 202 horas · 20.2 h por semana en promedio
+**Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
 
 ## Carga por sprint
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 22.8 | 36 | holgado |
-| S2 | semanas 6-7 | 54.7 | 36 | SOBRECARGA +19 h |
+| S2 | semanas 6-7 | 59.5 | 36 | SOBRECARGA +23.5 h |
 | S3 | semanas 8-9 | 35.7 | 36 | ajustado |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
@@ -68,7 +68,23 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 54.7 h
+## Sprint 2 (semanas 6-7) — 59.5 h
+
+- [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
+  - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
+  - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
+    el cambio de origen de datos del visor, y esta en la ruta critica del
+    prototipo. Al cerrarla hay que anotar **D-14** como revisada.
+  - Excepcion de propiedad: autoriza a tocar `frontend/src/datos/cliente.js` y la
+    configuracion de entorno del visor, nada mas. Ver `docs/07-propiedad-archivos.md`.
+  - **D-14 anotada como revisada por D-23.** Ningun componente cambio, que era la
+    prueba de que la costura estaba bien puesta. Produjo ademas **SC-03**,
+    contratos a v1.3.1, e **I-08**: la API devolvia un valor distinto en cada
+    lectura y, desde D-21, filas imposibles.
+  - Queda fuera de esta historia, por bloqueo de **H6.0**: el servicio de API en
+    `docker-compose.yml`. La verificacion se hizo con `uvicorn` a mano.
+  - Queda pendiente de Avril, por solicitud: pintar `origen` y `motivo_respaldo`
+    en `AvisoModoSimulado.jsx`. El cliente ya los devuelve.
 
 - [ ] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1 · **bloquea a: H11.3, H12.3**
@@ -102,6 +118,17 @@
 
 - [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
+
+- [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2**
+  - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
+    publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
+    espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite
+    Municipal de H9.2 eso obliga a llevar la maquina.
+  - Es barata porque **H6.6 la dejo posible sin querer**: la degradacion al
+    respaldo estatico hace que `npm run build` produzca algo que funciona solo,
+    sin API ni base. Ver D-23.
+  - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
 ## Sprint 4 (semanas 10-11) — 52.8 h

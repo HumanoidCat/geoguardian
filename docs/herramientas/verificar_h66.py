@@ -1,0 +1,222 @@
+"""
+Comprueba los criterios de aceptacion de H6.6: el visor consume la API real.
+
+POR QUE ESTA EN docs/herramientas Y NO EN backend/api
+
+El verificador de H6.1 vive en `backend/api/verificar_h61.py` porque esa carpeta
+es de Cesar y la historia era suya. Esta comprueba una historia de Alejandro que
+cruza las dos orillas: la forma que devuelve la API, que es de Cesar, y el modulo
+que la consume, que es de Avril salvo por la excepcion de H6.6. No cabe en
+ninguna de las dos carpetas sin invadirla, y `docs/herramientas/` ya es donde
+viven los verificadores de Alejandro.
+
+QUE COMPRUEBA
+
+Sin levantar ningun servidor: usa el cliente de pruebas de FastAPI contra la
+aplicacion de H6.1, y lee `frontend/src/datos/cliente.js` como texto.
+
+    CA-1  el origen se resuelve una sola vez y no se mezcla
+    CA-4  origen y modo son campos distintos
+    CA-5  la fecha se arma en hora local, no en UTC
+    CA-6  no hay ningun origen absoluto ni CORS
+    I-08  la lectura es idempotente
+    D-21  el nivel es coherente con la probabilidad
+
+Y la que de verdad importa: que **cada campo que leen los componentes de Avril
+exista en lo que produce el camino de la API**. Un campo que se pierde en la
+traduccion no rompe nada: deja un hueco en pantalla.
+
+Uso, desde la raiz del repositorio:
+
+    python docs/herramientas/verificar_h66.py
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from datetime import date
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[2]
+if str(RAIZ) not in sys.path:
+    sys.path.insert(0, str(RAIZ))
+
+CLIENTE = RAIZ / "frontend" / "src" / "datos" / "cliente.js"
+CONFIG_VITE = RAIZ / "frontend" / "vite.config.js"
+RESPALDO = RAIZ / "frontend" / "public" / "simulados"
+COMPONENTES = RAIZ / "frontend" / "src" / "componentes"
+
+# Los campos que los componentes de Avril leen de verdad. Salen de buscarlos en
+# frontend/src/, no de suponerlos.
+CAMPOS_DISTRITO = ("codigo", "nombre", "area_km2", "poblacion")
+CAMPOS_RIESGO = ("nivel", "probabilidad", "version_modelo")
+
+fallos: list[str] = []
+
+
+def comprobar(descripcion: str, condicion: bool) -> None:
+    print(f"  {'OK  ' if condicion else 'FALLO'}  {descripcion}")
+    if not condicion:
+        fallos.append(descripcion)
+
+
+def sin_comentarios(codigo: str) -> str:
+    """
+    Quita comentarios antes de buscar en el codigo.
+
+    No es refinamiento: la primera version de este verificador daba FALLO en
+    "no se usa toISOString" porque `cliente.js` **explica en un comentario** por
+    que no lo usa. Buscar en el texto crudo confunde lo que el codigo hace con lo
+    que el codigo cuenta.
+    """
+    codigo = re.sub(r"/\*.*?\*/", "", codigo, flags=re.S)
+    return re.sub(r"^\s*//.*$", "", codigo, flags=re.M)
+
+
+def a_coleccion(distritos: list[dict]) -> dict:
+    """La misma traduccion que hace cliente.js. Si una cambia, esta comprobacion
+    deja de valer: por eso se comparan campos y no se copia la funcion entera."""
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": d["geometria"],
+                "properties": {campo: d[campo] for campo in CAMPOS_DISTRITO},
+            }
+            for d in distritos
+        ],
+    }
+
+
+def main() -> int:
+    from fastapi.testclient import TestClient
+
+    from backend.api.aplicacion import crear_aplicacion
+
+    print("\nH6.6: el visor consume la API real\n")
+
+    cliente = TestClient(crear_aplicacion())
+    texto_cliente = sin_comentarios(CLIENTE.read_text(encoding="utf-8"))
+
+    # ---------------------------------------------------------------- CA-6 -- #
+    print("CA-6, el visor no necesita CORS:")
+    comprobar(
+        "cliente.js no escribe ningun origen absoluto",
+        not re.search(r"https?://", texto_cliente),
+    )
+    comprobar(
+        "la ruta de la API es relativa",
+        "'/api'" in texto_cliente,
+    )
+    comprobar(
+        "vite.config.js reenvia /api",
+        "proxy" in sin_comentarios(CONFIG_VITE.read_text(encoding="utf-8")),
+    )
+    comprobar(
+        "la API de H6.1 sigue sin middleware de CORS",
+        "CORS" not in (RAIZ / "backend" / "api" / "aplicacion.py").read_text(encoding="utf-8"),
+    )
+
+    # ---------------------------------------------------------------- CA-1 -- #
+    print("\nCA-1, el origen se resuelve una sola vez:")
+    comprobar(
+        "hay una unica promesa de negociacion memorizada",
+        "let negociacion = null" in texto_cliente,
+    )
+    comprobar(
+        "las tres funciones publicas la esperan",
+        texto_cliente.count("await resolverOrigen()") == 3,
+    )
+
+    # ---------------------------------------------------------------- CA-4 -- #
+    print("\nCA-4, origen y modo son dos campos distintos:")
+    comprobar("obtenerSalud agrega el origen", "origen," in texto_cliente)
+    comprobar("y el motivo de la degradacion", "motivo_respaldo" in texto_cliente)
+    comprobar(
+        "el modo no se sobreescribe: sigue viniendo de /salud",
+        "modo:" not in texto_cliente,
+    )
+
+    # ---------------------------------------------------------------- CA-5 -- #
+    print("\nCA-5, la fecha es local y no UTC:")
+    comprobar("no se usa toISOString para armar la fecha", "toISOString" not in texto_cliente)
+    comprobar("se arma con getFullYear/getMonth/getDate", "getFullYear()" in texto_cliente)
+
+    # ---------------------------------------------------------------- CA-2 -- #
+    print("\nCA-2, ningun componente cambia:")
+    comprobar(
+        "los componentes siguen sin saber de la API",
+        not any("/api" in ruta.read_text(encoding="utf-8") for ruta in COMPONENTES.glob("*.jsx")),
+    )
+    comprobar(
+        "ningun componente hace su propio fetch",
+        not any("fetch(" in ruta.read_text(encoding="utf-8") for ruta in COMPONENTES.glob("*.jsx")),
+    )
+
+    # ------------------------------------------------------- forma de la API - #
+    print("\nLa API produce todo lo que los componentes leen:")
+
+    distritos = cliente.get("/distritos").json()
+    comprobar("GET /distritos devuelve los ocho", len(distritos) == 8)
+
+    coleccion = a_coleccion(distritos)
+    propiedades = coleccion["features"][0]["properties"]
+    for campo in CAMPOS_DISTRITO:
+        comprobar(f"el distrito traducido conserva '{campo}'", campo in propiedades)
+    comprobar(
+        "la geometria llega como GeoJSON dibujable",
+        coleccion["features"][0]["geometry"].get("type") == "Polygon",
+    )
+
+    hoy = date.today().isoformat()
+    lista = cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": "sequia"}).json()
+    comprobar("GET /riesgos responde para la fecha de hoy", isinstance(lista, list))
+    for campo in CAMPOS_RIESGO:
+        comprobar(f"el riesgo trae '{campo}'", all(campo in r for r in lista))
+
+    # ---------------------------------------------------------------- I-08 -- #
+    print("\nI-08, la lectura es idempotente:")
+    tres = [
+        cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": "sequia"}).json()
+        for _ in range(3)
+    ]
+    comprobar("tres peticiones identicas devuelven lo mismo", tres[0] == tres[1] == tres[2])
+
+    # ---------------------------------------------------------------- D-21 -- #
+    print("\nD-21, la probabilidad es P(nivel = alto) y el nivel la respeta:")
+
+    def esperado(probabilidad: float) -> str:
+        if probabilidad >= 2 / 3:
+            return "alto"
+        return "medio" if probabilidad >= 1 / 3 else "bajo"
+
+    incoherentes = [
+        r
+        for evento in ("sequia", "incendio", "lluvia_intensa")
+        for r in cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": evento}).json()
+        if r["nivel"] is not None and r["nivel"] != esperado(r["probabilidad"])
+    ]
+    comprobar("ninguna fila con nivel bajo y probabilidad alta", incoherentes == [])
+
+    # ---------------------------------------------------------------- CA-3 -- #
+    print("\nCA-3, el respaldo estatico sigue completo:")
+    for nombre in ("salud.json", "distritos.geojson"):
+        comprobar(f"existe {nombre}", (RESPALDO / nombre).exists())
+    for evento in ("sequia", "incendio", "lluvia_intensa"):
+        comprobar(f"existe riesgos-{evento}.json", (RESPALDO / f"riesgos-{evento}.json").exists())
+
+    if fallos:
+        print(f"\n{len(fallos)} criterios fallaron:\n")
+        for f in fallos:
+            print(f"  - {f}")
+        print()
+        return 1
+
+    print("\nLos criterios de H6.6 se cumplen.\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

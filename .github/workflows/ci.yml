@@ -40,6 +40,8 @@ jobs:
         run: python docs/herramientas/verificar_adr.py
       - name: Toda historia tiene carpeta de evidencia
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+      - name: El avance dice lo mismo en los archivos de tareas y en la matriz
+        run: python docs/herramientas/verificar_estado.py
       # Necesita pydantic porque corre contratos.verificar para contar sus
       # comprobaciones en lugar de confiar en un numero escrito a mano.
       - name: Instalar lo minimo para contar las comprobaciones de contratos
@@ -61,6 +63,21 @@ jobs:
         run: ruff check .
       - name: Revisar formato
         run: ruff format --check .
+      # Una marca de conflicto sin resolver puede pasar los demas controles: si
+      # las dos versiones del bloque son iguales, el archivo dice lo correcto y
+      # los verificadores lo dan por bueno. Paso en el PR #126. Ver I-07.
+      #
+      # Una marca son exactamente siete caracteres. El separador va anclado al
+      # final del renglon, porque las salidas de los verificadores que se pegan
+      # en las evidencias llevan lineas de 66 y 74 signos de igual, y sin anclar
+      # darian falso positivo en cuatro archivos.
+      - name: Ninguna marca de conflicto sin resolver
+        run: |
+          if git grep -nE "^(<{7} |={7}$|>{7} )" -- . ; then
+            echo "::error::Hay marcas de conflicto de fusion sin resolver."
+            exit 1
+          fi
+          echo "Sin marcas de conflicto."
 
   frontend:
     name: Frontend
@@ -135,13 +152,18 @@ jobs:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
         run: |
-          # El salto solo sigue aqui porque este arreglo tiene que entrar antes
-          # que el PR #110, que es el que trae la primera prueba. Apenas ese PR
-          # este integrado, el salto se convierte en fallo: si no hay pruebas es
-          # que alguien las borro, y eso tiene que salir en rojo.
+          # La suite existe desde el PR #110. El paso ya no se salta.
+          #
+          # Mientras se saltaba, este trabajo salio en verde dos semanas sin haber
+          # ejecutado nunca, y el defecto que escondia solo aparecio cuando alguien
+          # escribio la primera prueba. Es la incidencia I-06: un paso protegido
+          # por una condicion que lo salta no es un control, es un control apagado
+          # que se ve igual que uno encendido.
+          #
+          # Si no hay pruebas, es que alguien las borro. Eso tiene que salir en rojo.
           if [ -z "$(find backend/tests -name 'test_*.py' -print -quit)" ]; then
-            echo "Sin pruebas todavia. Pendiente del PR #110."
-            exit 0
+            echo "::error::No hay ninguna prueba en backend/tests. La suite existe desde el PR #110; si desaparecio, es un defecto."
+            exit 1
           fi
           # Se invoca con `python -m` a proposito, igual que el resto de los
           # controles del proyecto. El script `pytest` a secas no agrega el
@@ -149,3 +171,19 @@ jobs:
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
           python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+
+      # Los dos verificadores de criterios de aceptacion viven aca porque este es
+      # el unico trabajo que instala requirements.txt, y los dos necesitan
+      # FastAPI. No necesitan la base: usan el cliente de pruebas.
+      #
+      # El de H6.1 estaba escrito desde el 19 de agosto y no lo corria nadie mas
+      # que su autor a mano. Un control que solo se ejecuta cuando alguien se
+      # acuerda no es un control.
+      #
+      # Se invocan con `python -m` por la misma razon que la suite: ejecutar
+      # `python backend/api/verificar_h61.py` a secas falla con "No module named
+      # 'backend'". Es el mismo defecto de la incidencia I-06.
+      - name: Los criterios de H6.1 se cumplen
+        run: python -m backend.api.verificar_h61
+      - name: Los criterios de H6.6 se cumplen
+        run: python docs/herramientas/verificar_h66.py

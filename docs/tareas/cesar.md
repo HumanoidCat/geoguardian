@@ -23,11 +23,12 @@
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
 
-- [ ] **H1.1** · Descargar 35 anios de series climaticas diarias (1991-2025), reejecutable e idempotente
+- [x] **H1.1** · Descargar 35 anios de series climaticas diarias (1991-2025), reejecutable e idempotente (2026-08-19)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.4, H1.5, H8.2**
   - Fuente: CHIRPS para precipitacion, NASA POWER para el resto. Ver **D-15** e **I-05**
   - Antes de implementar: verificar que CHIRPS si diferencia entre distritos, con
     el mismo test de dos puntos que descarto a POWER
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.1-series-climaticas.md`
 
 - [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
@@ -48,14 +49,16 @@
 - [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4
 
-- [ ] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio
+- [x] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio (2026-08-19)
   - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9, H10.7**
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.8-roles-minimo-privilegio.md`
 
 - [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
   - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**
 
-- [ ] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints
+- [x] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints (2026-08-19)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H11.1, H6.0, H6.2, H6.5, H7.2, H8.3**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md`
 
 - [ ] **H6.2** · Patron Repository con pruebas unitarias sin base de datos
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1 · **bloquea a: H10.2, H6.3**

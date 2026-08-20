@@ -300,3 +300,298 @@ haberse revisado: el autor de la primera prueba del proyecto habria pasado horas
 buscando un error inexistente en su codigo, y la conclusion natural —"las pruebas
 automatizadas dan problemas"— es cara de revertir en un equipo que apenas empieza
 a escribirlas.
+
+## I-07 · Una cifra derivada escrita a mano rompia el CI de quien no la toco
+
+**Fecha.** 2026-08-19
+
+**Quien lo detecto.** Cesar, al cerrar H1.8 y ver su Pull Request en rojo por algo
+que no habia escrito.
+
+**Que paso.** `docs/08-backlog.md` declaraba cuantas historias van cerradas:
+
+    Al 18 de agosto de 2026: **18 historias cerradas de 84**, 84 puntos de 422.
+
+Es una cifra que se calcula contando las marcas de `docs/tareas/*.md`, y que por
+lo tanto **cambia cada vez que cualquiera cierra una historia**. El verificador de
+documentacion la comprueba y es obligatorio en el CI.
+
+El resultado: **el siguiente Pull Request de quien sea sale en rojo sin haber roto
+nada.** Le toco a Cesar, y le habria tocado a los cuatro por turnos. Quedaban 65
+historias por cerrar, o sea 65 ocasiones.
+
+**La demostracion, que aparecio sola.** Cesar tenia dos Pull Requests abiertos,
+#125 y #126. Los dos corrigieron la linea al mismo valor, 19, y cada uno era
+correcto por separado. Al integrar los dos el valor real pasaba a 20, asi que **la
+fusion de dos PR individualmente correctos dejaba `dev` en rojo**. Se comprobo
+integrando ambos en una copia local antes de mergear:
+
+    historias cerradas: 20
+      - docs/08-backlog.md: dice '19' y el valor real es '20'
+
+**Causa raiz.** La introduje yo el 18 de agosto, un dia despues de escribir la
+decision **D-20**, que dice exactamente que un dato calculable no se escribe a
+mano. Agregue la linea al backlog y la puse a comprobar por el verificador, sin
+aplicarle el principio que acababa de registrar.
+
+Es la tercera vez que el mismo patron aparece en el proyecto: I-04 con los codigos
+de distrito, la matriz de trazabilidad con los duenos, y ahora esta linea.
+
+**Accion tomada.** La linea la escribe `docs/herramientas/generar_matriz.py`, que
+pasa a generar los dos artefactos derivados de la documentacion: la matriz y esta
+cifra. **No agrega ningun paso**: quien cierra una historia ya tenia que correr esa
+herramienta, porque la fila de la matriz tambien cambia.
+
+Se fecha con el **ultimo cierre** y no con el dia de hoy. Con la fecha actual,
+regenerar sin haber cerrado nada produciria un cambio en el archivo y el CI
+empezaria a fallar por el paso del tiempo.
+
+Al hacerlo aparecio un segundo defecto: la cifra de **puntos** de esa misma linea
+decia 84 y el valor real era 97. Ese numero **no lo comprobaba nadie**, asi que
+llevaba desfasado sin que se notara. Lo detecto Cesar tambien.
+
+**Aprendizaje.** Un verificador convierte un dato desactualizado en un fallo
+ruidoso, que es una mejora. Pero **si el dato es derivado y el verificador es
+obligatorio, el fallo le cae a quien no lo causo**, y eso es peor que el problema
+original: castiga al que trabaja.
+
+La regla que sale de aqui, y que completa a D-20:
+
+> Antes de poner una cifra bajo verificacion obligatoria, hay que preguntarse
+> **quien la actualiza**. Si la respuesta es "el proximo que pase por aqui", la
+> cifra tiene que generarse, no comprobarse.
+
+**Impacto.** Un Pull Request bloqueado y el tiempo de Cesar en diagnosticarlo, que
+uso bien: en vez de corregir el numero y seguir, escribio el analisis del patron y
+propuso la solucion. Sin ese diagnostico, el siguiente en toparselo habria vuelto a
+corregir a mano.
+
+### Segundo punto ciego, encontrado el mismo dia
+
+Al arreglar lo anterior aparecio un defecto peor, y lo encontro Cesar siguiendo la
+instruccion que le di.
+
+Su Pull Request #126 quedo con las **tres marcas de conflicto dentro del archivo**.
+Las dos versiones del bloque eran identicas —las dos ramas escribieron la misma
+cifra— asi que el conflicto era de forma y no de contenido, y no se noto al
+resolverlo.
+
+**Ningun control lo detecto.** Los ocho pasaron:
+
+- `verificar_documentacion` encontro la linea buena entre las marcas y la dio por
+  correcta.
+- `generar_matriz` tenia el mismo punto ciego: sustituia la linea que coincidia y,
+  como el resultado era igual a la entrada, informaba **"al dia con sus fuentes"**
+  con las marcas todavia adentro.
+
+Lo segundo es lo grave: **la instruccion que da el proyecto para resolver un
+conflicto en un archivo derivado es regenerar, y regenerar no lo arreglaba.**
+Cesar lo comprobo al intentarlo y tuvo que quitar las tres lineas a mano.
+
+**Accion tomada.**
+
+1. `generar_matriz.py` **se niega a trabajar** sobre un archivo con marcas, en vez
+   de informar que esta al dia. El mensaje dice que regenerar no lo arregla.
+2. Un paso nuevo en el trabajo de calidad del CI busca marcas en todo el
+   repositorio. El pipeline pasa a **nueve controles**.
+
+**El detalle del patron de busqueda, que aporto Cesar.** La version ingenua
+`^=======` produce falsos positivos: las salidas de los verificadores que se pegan
+en las evidencias llevan lineas de separacion de 66 y 74 signos de igual, y hay
+cuatro en dos archivos. Una marca de conflicto son **exactamente siete
+caracteres**, y el separador va solo en su renglon:
+
+    ^(<{7} |={7}$|>{7} )
+
+Comprobado contra el repositorio completo: cero falsos positivos.
+
+**Aprendizaje.** Un control que busca un dato correcto no detecta la basura que lo
+rodea. Y una herramienta que informa "al dia" cuando no pudo hacer su trabajo es
+peor que una que falla: **el silencio se lee como exito.**
+
+La regla que se agrega:
+
+> Una herramienta que sustituye contenido tiene que comprobar que la entrada esta
+> en un estado que le permita trabajar, y negarse si no. Devolver "sin cambios" es
+> ambiguo entre "ya estaba bien" y "no pude".
+
+
+---
+
+## I-08 · La misma consulta a la API devolvia un valor distinto cada vez
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al empezar H6.6 y llamar dos veces al mismo
+endpoint para comparar la respuesta con lo que espera el visor.
+
+**Que paso.** Tres peticiones identicas a
+`GET /riesgos?fecha=2026-08-16&tipo_evento=sequia`:
+
+| Intento | 50801 | 50802 | 50803 |
+|---|---|---|---|
+| 1 | bajo · 0,46 | alto · 0,53 | medio · 0,79 |
+| 2 | alto · 0,70 | bajo · 0,90 | alto · 0,75 |
+| 3 | medio · 0,56 | alto · 0,73 | bajo · 0,64 |
+
+**Causa raiz.** `RepositorioSimulado.obtener_riesgo` sorteaba contra `self._rnd`,
+un generador **con estado** que avanza en cada llamada. La instancia se cachea una
+vez por proceso —correcto, y bien razonado en `backend/api/dependencias.py`— y el
+efecto secundario es que el generador nunca vuelve al principio.
+
+**Lo que se habria visto.** El mapa repintando los ocho distritos con colores
+distintos cada vez que el usuario cambia de evento y regresa. Habria parecido un
+defecto de las coropletas de H5.3, que estan bien. Es el segundo caso en el
+proyecto de un sintoma que apunta a la persona equivocada.
+
+**Por que no lo vio H6.1.** Cesar verifico que cada endpoint devolviera la forma
+acordada, que es lo que la historia pedia. Llamar dos veces con los mismos
+parametros y comparar no forma parte de comprobar una forma. Hizo falta un
+consumidor que preguntara dos veces, y el primero es el visor.
+
+**El detalle que lo hace peor de lo que parece.** La primera linea de
+`contratos/simulados/datos.py` dice:
+
+> *"Repositorio y extractores simulados. Datos deterministas, reproducibles y
+> falsos."*
+
+El archivo ya se comprometia a esto. Cumplia entre construcciones —dos procesos
+que instancian y llaman una vez coinciden, y por eso el exportador de Avril
+producia archivos estables— y dejaba de cumplir a la segunda llamada. **Una
+promesa escrita en la primera linea del archivo y no comprobada por nada.**
+
+**El segundo hallazgo, del mismo dia.** El intento 2 tiene el distrito 50802 con
+nivel `bajo` y probabilidad `0,90`. Desde **D-21**, `probabilidad` es
+P(nivel = alto): esa fila es imposible. El simulado sorteaba nivel y probabilidad
+por separado, que era coherente mientras el contrato no decia que magnitud era
+`probabilidad`, y dejo de serlo el 19 de agosto. **D-21 quedo a medias**: defini
+el campo en el contrato y no arregle el unico productor de ese campo que existe.
+Es mi omision.
+
+**Accion tomada.** Solicitud de cambio **SC-03**, contratos a **v1.3.1**:
+
+- `obtener_riesgo` siembra un generador propio con `(codigo, fecha, tipo_evento)`.
+  La misma consulta devuelve siempre lo mismo, en este proceso y en el siguiente.
+- El nivel se **deriva** de la probabilidad en vez de sortearse aparte, de forma
+  monotona: una probabilidad mayor nunca da un nivel menor.
+- Tres comprobaciones nuevas en `contratos/verificar.py`, que fallaban antes del
+  arreglo: dos llamadas iguales al mismo repositorio, dos instancias distintas, y
+  960 filas contrastadas contra la regla de D-21.
+
+**Aprendizaje.** Un doble se sustituye por el original **por sus propiedades, no
+por su forma**. `contratos.verificar` comprobaba con `isinstance` que el simulado
+cumpliera el protocolo, que es comprobar la forma. La propiedad que hace util a un
+repositorio de solo lectura —preguntar dos veces lo mismo y recibir lo mismo— no
+la miraba nada.
+
+La regla que se agrega:
+
+> De un simulado hay que comprobar tambien lo que promete su docstring. Si dice
+> "deterministas", hay una comprobacion que lo llama dos veces y compara.
+
+---
+
+## I-09 · La mitad de los commits del Lead PM no quedaron atribuidos a su cuenta
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al ver en el Pull Request de H6.6 un commit suyo
+sin su foto de perfil.
+
+**Que paso.** El repositorio tenia **dos identidades distintas para la misma
+persona**:
+
+| Nombre en Git | Correo | Commits | De donde salen |
+|---|---|---|---|
+| `humanoidcat` | alejo**.**rz93@gmail.com | 42 | `git commit` desde la maquina |
+| `Alejandro` | alejo**rz.**93@icloud.com | 39 | Merges hechos desde la web de GitHub |
+
+La cuenta de GitHub `HumanoidCat`, que es la dueña del repositorio, tiene
+verificado **el de iCloud**. El de Gmail no le pertenece a esa cuenta.
+
+Consecuencia: **42 de los 81 commits del Lead PM no estan vinculados a su
+perfil.** GitHub los muestra con avatar generico y no los cuenta en el grafico de
+contribuciones. Con la calificacion individual saliendo del historial, es una
+perdida de trazabilidad, no un detalle cosmetico.
+
+**Causa raiz.** La configuracion global de Git de la maquina quedo con el correo
+de Gmail. Nadie contrasto esa configuracion contra la cuenta que es dueña del
+repositorio, y el contraste es **un solo comando**:
+
+    git log --format='%an <%ae>' | sort -u
+
+Los dos correos se leen casi identicos —el punto cae en distinto lugar— y esa
+semejanza es la que dejo pasar el error durante 42 commits.
+
+**Accion tomada.** Identidad fijada **a nivel del repositorio**, que gana sobre la
+global:
+
+    git config --local user.name  "humanoidcat"
+    git config --local user.email "alejorz.93@icloud.com"
+
+Se elige el ambito local a proposito: arregla este repositorio sin depender de que
+la configuracion global de la maquina este bien, y sobrevive a que alguien la
+cambie.
+
+**Los 42 commits anteriores se quedan como estan.** Reescribir el autor exige
+reescribir los identificadores de todos los commits posteriores y forzar el
+empuje, lo que romperia las copias de las otras tres personas en mitad del Sprint
+2. El costo supera al beneficio. La alternativa sin reescritura seria agregar el
+correo de Gmail como secundario verificado en la cuenta de GitHub, que atribuiria
+los 42 de forma retroactiva; se descarta porque esa direccion no pertenece a la
+cuenta y agregarla resolveria el sintoma ensuciando la identidad.
+
+**Aprendizaje.** La identidad con la que se firma el trabajo es parte de la
+trazabilidad del proyecto y nadie la estaba comprobando. Es el mismo patron de
+I-04: un dato con forma valida y contenido equivocado, que ninguna validacion
+automatica detecta porque la forma esta bien.
+
+La regla que se agrega:
+
+> Al clonar el repositorio, cada quien fija `user.name` y `user.email` **locales**
+> y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
+> mirando que el commit propio salga con la foto de perfil en el Pull Request.
+
+### Actualizacion del 2026-08-20: el arreglo estaba incompleto
+
+**Lo encontro Cesar al revisar SC-03**, comprobando lo que yo no comprobe: si el
+mismo defecto estaba en otro metodo. Estaba en tres.
+
+`obtener_mediciones`, `contar_focos` y `obtener_indices` sorteaban tambien contra
+el generador compartido. Y en mediciones el defecto tenia una forma peor:
+
+    Rango A: 1 al 5 de agosto.   Rango B: 3 al 7 de agosto.
+
+      2026-08-03:  A = 31.2   B = 30.6   DISTINTO
+      2026-08-04:  A = 27.2   B = 27.4   DISTINTO
+      2026-08-05:  A = 31.1   B = 27.8   DISTINTO
+
+**Un mismo dia con dos temperaturas segun por donde se lo pidiera.** Le habria
+pegado a H2.5, que trabaja sobre ventanas moviles, y el sintoma habria apuntado al
+algoritmo de Luna en vez de al simulado.
+
+Cesar encontro ademas un segundo defecto dentro del primero: los huecos salian de
+`i % 20 == 7`, la posicion dentro del rango pedido, no la fecha. Un mismo dia era
+hueco o no segun donde cayera en la consulta.
+
+Se corrige en **SC-04**, contratos **v1.3.2**, con cuatro comprobaciones nuevas.
+
+**Y una correccion al razonamiento de esta incidencia.** Decia que el defecto
+importaba porque *"un GET es idempotente por definicion"*. Es falso: la
+idempotencia de HTTP restringe el efecto sobre el servidor, no la representacion
+devuelta. Un `GET /hora-actual` es idempotente y responde distinto cada vez. El
+simulado viejo no violaba ninguna regla de HTTP.
+
+El argumento correcto es el de **sustituibilidad**, que ya estaba y es mas fuerte:
+el repositorio de H6.2 sera determinista porque lee filas guardadas, y eso es
+propiedad del repositorio, no del protocolo. Corregido en el docstring, en SC-03,
+en los criterios de H6.6 y en el verificador.
+
+**Aprendizaje, segunda parte.** El primero fue que de un simulado hay que comprobar
+lo que promete su docstring. El segundo es mio y sale de esta correccion:
+
+> **Arreglar el caso senalado no es arreglar el defecto.** Cuando aparece un
+> patron —un generador con estado usado donde hacia falta reproducibilidad— hay
+> que buscar todas sus apariciones antes de declarar el problema resuelto. SC-03
+> corrigio un sintoma y dio por cerrado el problema.
+

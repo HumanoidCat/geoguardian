@@ -2,7 +2,8 @@
 
 **Proyecto:** GeoGuardian · Proyecto Integrador TICE · III Trimestre 2026
 **Historia:** H13.1 · **Rúbrica:** Scrum · **Responsable:** Alejandro (Scrum Master)
-**Periodo cubierto:** Sprint 0 (semanas 2-3) y Sprint 1 en curso (semanas 4-5)
+**Periodo cubierto:** Sprint 0, cerrado el 13 de agosto, y Sprint 1 en curso
+**Ultima actualizacion:** 18 de agosto de 2026, dia 5 de 14 del Sprint 1
 
 ## Integrantes
 
@@ -680,7 +681,7 @@ escrito una vez y nunca vuelto a comprobar.
 | 12.1 | Corregir los cinco documentos desfasados | Alejandro | Cumplida el 16 ago |
 | 12.2 | Agregar un verificador de documentación desfasada al CI | Alejandro | Cumplida el 16 ago |
 | 12.3 | Calcular la velocidad real del Sprint 0 | Alejandro | Cumplida el 16 ago |
-| 12.4 | Registrar horas reales en el cuerpo del PR, para poder recalibrar el modelo de esfuerzo | Todo el equipo | **Abierta** |
+| 12.4 | Registrar horas reales en el cuerpo del PR, para poder recalibrar el modelo de esfuerzo | Todo el equipo | **En curso**: César, dos historias el 19 ago |
 
 ### Resultado de las acciones 12.2 y 12.3
 
@@ -703,19 +704,283 @@ acción 12.4, que cuesta una línea por Pull Request.
 
 ---
 
+## ACTA 13 · Revisión de incremento · PR #107 a #111
+
+| | |
+|---|---|
+| **Tipo de ceremonia** | Sprint Review |
+| **Sprint** | 1 |
+| **Fecha** | 17 y 18 de agosto de 2026 |
+| **Modalidad** | Asincrónica |
+| **Revisa** | Alejandro |
+| **Evidencia** | PR #107, #108, #109, #110, #111 |
+
+### Incremento presentado
+
+| PR | Historia | Autor | Resultado |
+|---|---|---|---|
+| #107 | H4.3 catálogo de 46 eventos históricos | Luna | Aprobado |
+| #108 | Caso de variación espacial en el plan de pruebas | Luna | Aprobado |
+| #109 | H10.5b estado del arte de Costa Rica | Luna | Aprobado tras resolver conflicto |
+| #110 | H2.1 filtrado de ruido, primera suite de pruebas | Luna | Aprobado tras arreglo de CI |
+| #111 | H5.3 coropletas de riesgo por evento | Avril | **Cambios solicitados** |
+
+### Observaciones de la revisión
+
+**Sobre #107.** El catálogo excluye la ficha `1973-85` de DesInventar, un
+deslizamiento cuya observación dice "Epicentro en Río Chiquito": es el terremoto de
+Tilarán del 14 de abril de 1973. Mapeado por tipo habría entrado un sismo al
+catálogo de lluvia intensa y en H4.4 habría contado como fallo del modelo. La
+revisión verificó el evento contra la Red Sismológica Nacional.
+
+El mismo PR levanta que **no hay ningún incendio forestal en 56 años de registro**
+del cantón, lo que deja a H4.4 sin forma de contrastar ese evento contra historia.
+
+**Sobre #109.** Trae al documento el Sistema de Alerta Temprana de Incendios
+Forestales del IMN, operativo desde 2020. La revisión verificó la cita textual
+contra el sitio del IMN. Sin esa sección el estado del arte afirmaba un vacío que
+no existe.
+
+**Sobre #111, y es el hallazgo de la revisión.** Las coropletas **pintaban los
+datos del evento anterior**. Se detectó muestreando los píxeles de las capturas
+adjuntas y comparándolos distrito por distrito contra los JSON exportados:
+coincidían 8 de 8, pero cruzados.
+
+El defecto pasaba las dos verificaciones obvias —los colores cambian al cambiar de
+evento, y la leyenda cuadra con la salida del exportador— porque la leyenda sí
+estaba correcta. La capa del mapa se recreaba antes de que llegaran los datos
+nuevos y ya no se volvía a recrear.
+
+### Acuerdos
+
+**A13.1 · Una verificación visual se hace contra el dato, no contra el cambio.**
+Comprobar que "los colores cambian" no comprueba nada: hay que contrastar el color
+de cada distrito contra el archivo que lo declara.
+
+**A13.2 · Las capturas del defecto se conservan.** Avril las dejó en el
+repositorio como `antes-evento-cruzado-*.png`, junto a las corregidas. Un error
+documentado vale más que un error borrado, y este va a la sección de calidad del
+documento IEEE.
+
+---
+
+## ACTA 14 · Reporte de impedimento · Luna
+
+| | |
+|---|---|
+| **Tipo de ceremonia** | Daily Scrum, equivalente asincrónico |
+| **Sprint** | 1 |
+| **Fecha** | 18 de agosto de 2026 |
+| **Modalidad** | Asincrónica. Reportado por escrito con la salida del CI |
+| **Reporta** | Luna |
+| **Responde** | Alejandro, el mismo día |
+| **Evidencia** | Incidencia **I-06**, PR #112 |
+
+### Impedimento
+
+El PR #110 quedaba en rojo en el trabajo de pruebas del CI mientras la misma suite
+pasaba en la máquina de quien la escribió. Los otros cuatro trabajos salían en
+verde, así que el fallo parecía un defecto de la historia.
+
+### Diagnóstico
+
+**El defecto era del pipeline, no de la historia.** El flujo invocaba `pytest`
+como script de consola, que no agrega el directorio actual al camino de
+importación; `python -m pytest` sí lo hace. La recolección fallaba antes de
+ejecutar una sola prueba.
+
+El paso llevaba **dos semanas saliendo en verde sin haber corrido nunca**, porque
+una condición lo saltaba mientras no existieran pruebas. El PR de Luna es el
+primero que lo hace ejecutar.
+
+### Acuerdos
+
+**A14.1 · Un control que nunca falló no está probado.** Es el mismo argumento con
+el que se validó el verificador de documentación inyectándole un número falso, y
+no se había aplicado al pipeline.
+
+**A14.2 · El CI y la máquina de quien escribe no pueden discrepar.** El arreglo va
+en dos lugares a propósito: el flujo usa `python -m`, y `pyproject.toml` declara
+`pythonpath`, de modo que las dos formas de invocar den el mismo resultado.
+
+**A14.3 · Un paso desactivado a la espera de algo se prueba el mismo día o se
+declara apagado.** Que aparezca en verde en la interfaz no significa que haya
+corrido.
+
+---
+
+## ACTA 15 · Refinamiento · solicitud de cambio de contrato SC-02
+
+| | |
+|---|---|
+| **Tipo de ceremonia** | Refinamiento del backlog |
+| **Sprint** | 1 |
+| **Fecha** | 18 de agosto de 2026 |
+| **Modalidad** | Asincrónica. Solicitud escrita, medición y decisión |
+| **Solicita** | Luna |
+| **Decide** | Alejandro |
+| **Evidencia** | `docs/investigacion/solicitud-cambio-spi-mes.md`, decisión **D-19** |
+
+### Asunto
+
+Al implementar H2.3, Luna encontró que el contrato congelado **no permite calcular
+el SPI correctamente**: la firma no recibe fechas, así que no se puede ajustar la
+distribución por mes calendario, que es lo que convierte al SPI en un índice de
+anomalía.
+
+### Cómo se tramitó
+
+**No se cambió el contrato por cuenta propia.** Se implementó lo que el contrato
+permite, se midió el costo de la limitación y se redactó una solicitud con la firma
+propuesta.
+
+La medición decidió el asunto sin recurrir a ninguna autoridad: con ajuste único,
+los 99 meses declarados en sequía caían, los 99, en estación seca. El índice
+detectaba el calendario, no la sequía.
+
+### Acuerdos
+
+**A15.1 · Contratos suben a v1.3.0** con `meses: list[int] | None = None`. Cambio
+aditivo. Registrado como **D-19**.
+
+**A15.2 · H3.0 no usa el SPI para etiquetar** hasta que la implementación acepte el
+parámetro. Un modelo entrenado sobre una etiqueta correlacionada con el mes
+aprendería el calendario y **acertaría en la evaluación**, que es lo que lo vuelve
+peligroso. Es la misma familia que la fuga temporal que D-04 prohíbe.
+
+**A15.3 · Dos cambios de contrato en quince días sobre algo declarado congelado.**
+En los dos casos —I-04 y este— el defecto estaba en el contrato original y lo
+encontró quien fue a implementarlo. La lección no es congelar mejor: es que un
+contrato escrito antes de implementar nada se equivoca, y lo que funciona es que
+quien lo encuentra lo reporte en vez de rodearlo.
+
+---
+
+## ACTA 16 · Revisión de incremento · PR #112 a #117
+
+| | |
+|---|---|
+| **Tipo de ceremonia** | Sprint Review |
+| **Sprint** | 1 |
+| **Fecha** | 18 de agosto de 2026 |
+| **Modalidad** | Asincrónica |
+| **Revisa** | Alejandro; César revisa los incrementos del Scrum Master |
+| **Evidencia** | PR #112 a #117 |
+
+### Incremento presentado
+
+| PR | Contenido | Autor | Resultado |
+|---|---|---|---|
+| #112 | Arreglo del CI e incidencia I-06 | Alejandro | Aprobado |
+| #113 | Decisiones D-17 y D-18 con su herramienta de medición | Alejandro | Aprobado |
+| #114 | Integración de `dev` a `main`, siete PR | Alejandro | Integrado |
+| #115 | H6.6 y auditoría de los inventarios del backlog | Alejandro | Aprobado |
+| #116 | H2.3 SPI y solicitud SC-02 | Luna | Aprobado |
+| #117 | H2.7 percentiles de lluvia intensa | Luna | Aprobado |
+
+### Observaciones de la revisión
+
+**Sobre #113.** D-17 decide que la precipitación no se filtra, y lo decide
+midiendo: el filtro produce **12,5 % de días con lluvia negativa** y convierte en
+húmedos el **31,6 % de los días secos**, lo que reescribe el denominador de los
+índices. El Scrum Master entró a la decisión inclinado por otra opción y la
+medición la descartó.
+
+**Sobre #115.** La auditoría encontró que `08-backlog.md` y `tareas/README.md`
+seguían declarando 83 historias y 417 puntos, que la tabla de reparto tenía mal la
+carga de Avril entre dos sprints desde el 11 de agosto, y que **cuatro historias
+cerradas no estaban en la matriz de trazabilidad**.
+
+**Sobre #117, y es el segundo hallazgo de fondo del sprint.** El proyecto llamaba
+**R95p del ETCCDI** a un umbral que no lo es: R95p se define sobre precipitación
+diaria de días húmedos y el umbral del proyecto es sobre acumulado de 72 horas.
+Medido sobre 30 años, confundirlos **multiplica por 8,5** los días declarados en
+riesgo alto.
+
+El umbral no cambia, porque el acumulado de 72 h es el adecuado para riesgo de
+inundación. Lo que cambia es cómo se nombra. Corregido en el contrato, en D-08 y en
+el texto que el visor muestra en pantalla.
+
+### Acuerdos
+
+**A16.1 · La matriz de trazabilidad es el archivo más frágil del repositorio.** La
+tocan las cuatro personas en casi todos los PR, siempre en el mismo bloque, y
+ningún verificador la comprueba. Generó tres conflictos en un día.
+
+> **Cumplida el mismo día.** La matriz pasa a generarse desde el backlog, los
+> archivos de tareas de cada quien, `docs/trazabilidad.csv` y los archivos que
+> existan en `docs/evidencias/`. Nadie vuelve a editarla a mano y el CI comprueba
+> que corresponda a sus fuentes. Registrado como **D-20**.
+
+**A16.2 · Una atribución no verificada se retira, no se sustituye.** Luna quitó dos
+citas que no pudo confirmar contra el texto original —una de ellas escrita por el
+propio Scrum Master en una revisión— en lugar de reemplazarlas por otras
+plausibles. Quedan como deuda de verificación declarada en D-19.
+
+---
+
+## ACTA 17 · Lectura de velocidad a mitad del Sprint 1
+
+| | |
+|---|---|
+| **Tipo de ceremonia** | Seguimiento de sprint |
+| **Sprint** | 1, día 5 de 14 |
+| **Fecha** | 18 de agosto de 2026 |
+| **Modalidad** | Asincrónica. Cálculo sobre el repositorio |
+| **Evidencia** | `docs/12-velocidad.md` |
+
+### Lectura
+
+**El Sprint 1 no está cerrado.** Va por el día 5 de 14 y esta acta registra una
+lectura parcial, no un cierre.
+
+| | Historias | Puntos |
+|---|---|---|
+| Comprometido en el Sprint 1 | 15 | 74 |
+| Entregado del Sprint 1 | 4 | 25 |
+| Entregado del Sprint 2, adelantado | 3 | 13 |
+| Arrastre del Sprint 0, cerrado ahora | 1 | 3 |
+| **Producción total del período** | **8** | **41** |
+
+**41 puntos en cinco días.** El Sprint 0 entregó 43 puntos en dos semanas. El ritmo
+actual es aproximadamente **2,7 veces** el del Sprint 0.
+
+### Lo que la cifra no dice, y hay que decirlo
+
+**26 de los 41 puntos son de una sola persona.** Luna cerró cinco historias en el
+período. El resto del equipo suma 15 puntos.
+
+**Una parte importante del período es documentación e investigación**, que se
+mueve más rápido que el modelado y el despliegue que vienen después. Proyectar 57
+puntos por semana sobre lo que queda sería optimista.
+
+**H1.1 y H1.2 siguen abiertas desde el Sprint 0.** Son 12,5 horas que destraban a
+las cuatro personas, y mientras no entren, tres de los cuatro trabajan sobre
+simulados.
+
+### Acuerdos
+
+**A17.1 · La lectura se declara parcial.** Se recalcula al cierre real del Sprint 1
+y ahí se compara contra el compromiso.
+
+**A17.2 · La prioridad del sprint es H1.1 y H1.2**, por encima de cualquier otra
+cosa. Ninguna historia de modelado empieza sin ellas.
+
+---
+
 # Anexo · Cobertura de la rúbrica de Scrum
 
 | Elemento evaluado | Dónde se demuestra |
 |---|---|
 | Sprints de duración fija | Cinco sprints de dos semanas alineados a las entregas institucionales, `docs/06-roadmap.md` |
-| Backlog priorizado y estimado | 83 historias con puntos, horas, dependencias y responsable, verificado en cada cambio por el CI |
+| Backlog priorizado y estimado | 84 historias con puntos, horas, dependencias y responsable, verificado en cada cambio por el CI |
 | Capacidad medida, no supuesta | Modelo de horas por punto según acelerabilidad, con impuesto de revisión del 20 %. Acta 01 |
 | Sprint Planning | Actas 01 y 02 |
 | Replanificación justificada | Actas 02 y 07 |
-| Daily Scrum | Actas 03, 05, 08 y 10. Cuatro impedimentos, los cuatro con respuesta el mismo día |
-| Sprint Review | Actas 04, 06, 09 y 11. Doce Pull Requests revisados, tres devueltos |
-| Retrospectiva | Acta 12, sobre cinco incidencias con aprendizaje aplicado |
-| Refinamiento | Acta 02 y los criterios de aceptación previos a implementar de H1.3, H1.8 y H1.1 |
+| Daily Scrum | Actas 03, 05, 08, 10 y 14. Cinco impedimentos, los cinco con respuesta el mismo día |
+| Sprint Review | Actas 04, 06, 09, 11, 13 y 16. **25 Pull Requests integrados** en `dev`, sin contar los dos de arranque, y cuatro devueltos con cambios solicitados |
+| Retrospectiva | Acta 12, sobre cinco incidencias con aprendizaje aplicado. La sexta, I-06, alimenta la del Sprint 1 |
+| Refinamiento | Actas 02 y 15, y los criterios de aceptación previos a implementar de H1.3, H1.8 y H1.1 |
 | Definition of Ready y of Done | `CONTRIBUTING.md`, aplicadas en cada revisión |
 | Roles Scrum asignados | Tabla de integrantes, con Product Owner y Scrum Master identificados |
 
@@ -726,8 +991,11 @@ asincrónica está declarada en cada acta y se decidió al arrancar, no después
 
 **El modelo de horas por punto recalibrado**, porque nadie registró horas reales y
 comparar estimación contra estimación daría 1,0 por construcción. La velocidad en
-puntos sí está medida —43 de 54 comprometidos en el Sprint 0— y vive en
-`docs/12-velocidad.md`.
+puntos sí está medida —43 de 54 comprometidos en el Sprint 0, y una lectura parcial
+del Sprint 1 en el acta 17— y vive en `docs/12-velocidad.md`.
+
+**El cierre del Sprint 1**, porque el sprint va por el día 5 de 14. Lo que hay es
+una lectura parcial, declarada como tal.
 
 Ambas ausencias se declaran en lugar de rellenarse. Es la misma regla que el
 proyecto aplica a sus datos: lo que no existe se reporta vacío, no se inventa.

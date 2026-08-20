@@ -32,7 +32,7 @@
 - [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
   - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
 
-- [ ] **H5.2** · Cuatro o mas capas conmutables con control de opacidad
+- [x] **H5.2** · Cuatro o mas capas conmutables con control de opacidad (2026-08-17)
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
 
 - [x] **H5.3** · Coropletas de riesgo por evento con rampa de color y leyenda (2026-08-17)
@@ -62,7 +62,7 @@
 
 ## Sprint 3 (semanas 8-9) — 25.0 h
 
-- [ ] **H5.4** · Mapa de calor por interpolacion IDW
+- [x] **H5.4** · Mapa de calor por interpolacion IDW (2026-08-18)
   - `E5` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
