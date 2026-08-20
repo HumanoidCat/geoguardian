@@ -168,6 +168,12 @@ AFIRMACIONES = [
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
+            # La hoja de verificacion de la seccion 10 lleva la cifra en la
+            # columna de observaciones. Se agrego el 20 de agosto: decia 31
+            # cuando ya eran 36, y ninguno de los dos patrones de arriba la
+            # alcanzaba. Es la hoja que va a llenar una persona de OTRO equipo:
+            # una cifra vieja ahi la haria anotar un fallo que no existe.
+            ("docs/10-manual-tecnico.md", r"\| Contratos \| 5\.2 \| \| (\d+) comprobaciones \|"),
         ],
     ),
     Afirmacion(

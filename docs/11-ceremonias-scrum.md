@@ -681,7 +681,7 @@ escrito una vez y nunca vuelto a comprobar.
 | 12.1 | Corregir los cinco documentos desfasados | Alejandro | Cumplida el 16 ago |
 | 12.2 | Agregar un verificador de documentación desfasada al CI | Alejandro | Cumplida el 16 ago |
 | 12.3 | Calcular la velocidad real del Sprint 0 | Alejandro | Cumplida el 16 ago |
-| 12.4 | Registrar horas reales en el cuerpo del PR, para poder recalibrar el modelo de esfuerzo | Todo el equipo | **Abierta** |
+| 12.4 | Registrar horas reales en el cuerpo del PR, para poder recalibrar el modelo de esfuerzo | Todo el equipo | **En curso**: César, dos historias el 19 ago |
 
 ### Resultado de las acciones 12.2 y 12.3
 

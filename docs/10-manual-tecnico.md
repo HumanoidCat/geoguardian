@@ -403,7 +403,7 @@ no es un manual.
 | 8 | Cargar geometrías | 4.3 | | |
 | 9 | Cargar geometrías **por segunda vez** | 4.3 | | Debe seguir habiendo 8 filas |
 | 10 | PostGIS y esquemas | 5.1 | | Cuatro esquemas |
-| 11 | Contratos | 5.2 | | 31 comprobaciones |
+| 11 | Contratos | 5.2 | | 36 comprobaciones |
 | 12 | Criterios del modelo territorial | 5.3 | | |
 | 13 | Modelo y transacciones | 5.4 | | Los `ERROR` son esperados |
 | 14 | Documentación y backlog | 5.5 | | |
