@@ -78,6 +78,29 @@ body {
   white-space: nowrap;
 }
 
+/* Aviso de respaldo: los datos no vienen de la API sino de los archivos
+   estaticos. Va en ambar y no en rojo, porque el rojo esta reservado para riesgo
+   alto y una banda roja aqui se leeria como alerta climatica. Advierte sobre la
+   procedencia del dato, no sobre el clima. */
+.aviso-respaldo {
+  background: var(--aviso-fondo);
+  border-bottom: 1px solid var(--riesgo-medio);
+  border-left: 4px solid var(--riesgo-medio);
+  color: var(--texto);
+  padding: var(--espacio-3) var(--espacio-6);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  font-size: var(--texto-sm);
+}
+
+.aviso-respaldo strong {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--texto-xs);
+  white-space: nowrap;
+}
+
 /* -------------------------------------------------------------------------- *
  * Estados de carga y error
  * -------------------------------------------------------------------------- */
