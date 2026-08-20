@@ -38,6 +38,7 @@ def main() -> int:
         ExtractorClimaSimulado,
         ExtractorFocosSimulado,
         RepositorioSimulado,
+        _nivel_desde,
         salud_simulada,
     )
     from .simulados.modelado import EstimadorSimulado, EvaluadorSimulado
@@ -187,6 +188,45 @@ def main() -> int:
     comprobar(
         "los ocho codigos son 50801 a 50808 y no se repiten",
         codigos == [f"508{n:02d}" for n in range(1, 9)],
+    )
+
+    # SC-03, incidencia I-08. Las dos fallaban antes del arreglo.
+    #
+    # La primera existe porque un GET es idempotente por definicion y el
+    # repositorio de H6.2 lo sera. La segunda, porque D-21 fijo que
+    # `probabilidad` es P(nivel = alto) y hasta el 20 de agosto el simulado
+    # sorteaba nivel y probabilidad por separado: producia filas imposibles
+    # como nivel `bajo` con probabilidad 0,90.
+    print("\nEl riesgo simulado es reproducible y coherente con D-21:")
+
+    otro_repo = RepositorioSimulado()
+    fecha_prueba, evento_prueba = date(2026, 8, 16), TipoEvento.SEQUIA
+    una = repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+    otra = repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+    tercera = otro_repo.obtener_riesgos_por_fecha(fecha_prueba, evento_prueba)
+
+    def firma(lote: list) -> list[tuple]:
+        return [(r.codigo_distrito, r.nivel, r.probabilidad) for r in lote]
+
+    comprobar(
+        "dos llamadas iguales al mismo repositorio devuelven lo mismo",
+        firma(una) == firma(otra),
+    )
+    comprobar(
+        "dos instancias distintas devuelven lo mismo",
+        firma(una) == firma(tercera),
+    )
+
+    incoherentes = [
+        r
+        for dias in range(0, 360, 9)
+        for ev in TipoEvento
+        for r in repo.obtener_riesgos_por_fecha(date(2026, 1, 1) + timedelta(days=dias), ev)
+        if r.nivel != _nivel_desde(r.probabilidad)
+    ]
+    comprobar(
+        "ninguna fila contradice a D-21: el nivel se deriva de la probabilidad",
+        incoherentes == [],
     )
 
     if fallos:

@@ -415,3 +415,139 @@ La regla que se agrega:
 > en un estado que le permita trabajar, y negarse si no. Devolver "sin cambios" es
 > ambiguo entre "ya estaba bien" y "no pude".
 
+
+---
+
+## I-08 · La misma consulta a la API devolvia un valor distinto cada vez
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al empezar H6.6 y llamar dos veces al mismo
+endpoint para comparar la respuesta con lo que espera el visor.
+
+**Que paso.** Tres peticiones identicas a
+`GET /riesgos?fecha=2026-08-16&tipo_evento=sequia`:
+
+| Intento | 50801 | 50802 | 50803 |
+|---|---|---|---|
+| 1 | bajo · 0,46 | alto · 0,53 | medio · 0,79 |
+| 2 | alto · 0,70 | bajo · 0,90 | alto · 0,75 |
+| 3 | medio · 0,56 | alto · 0,73 | bajo · 0,64 |
+
+**Causa raiz.** `RepositorioSimulado.obtener_riesgo` sorteaba contra `self._rnd`,
+un generador **con estado** que avanza en cada llamada. La instancia se cachea una
+vez por proceso —correcto, y bien razonado en `backend/api/dependencias.py`— y el
+efecto secundario es que el generador nunca vuelve al principio.
+
+**Lo que se habria visto.** El mapa repintando los ocho distritos con colores
+distintos cada vez que el usuario cambia de evento y regresa. Habria parecido un
+defecto de las coropletas de H5.3, que estan bien. Es el segundo caso en el
+proyecto de un sintoma que apunta a la persona equivocada.
+
+**Por que no lo vio H6.1.** Cesar verifico que cada endpoint devolviera la forma
+acordada, que es lo que la historia pedia. Llamar dos veces con los mismos
+parametros y comparar no forma parte de comprobar una forma. Hizo falta un
+consumidor que preguntara dos veces, y el primero es el visor.
+
+**El detalle que lo hace peor de lo que parece.** La primera linea de
+`contratos/simulados/datos.py` dice:
+
+> *"Repositorio y extractores simulados. Datos deterministas, reproducibles y
+> falsos."*
+
+El archivo ya se comprometia a esto. Cumplia entre construcciones —dos procesos
+que instancian y llaman una vez coinciden, y por eso el exportador de Avril
+producia archivos estables— y dejaba de cumplir a la segunda llamada. **Una
+promesa escrita en la primera linea del archivo y no comprobada por nada.**
+
+**El segundo hallazgo, del mismo dia.** El intento 2 tiene el distrito 50802 con
+nivel `bajo` y probabilidad `0,90`. Desde **D-21**, `probabilidad` es
+P(nivel = alto): esa fila es imposible. El simulado sorteaba nivel y probabilidad
+por separado, que era coherente mientras el contrato no decia que magnitud era
+`probabilidad`, y dejo de serlo el 19 de agosto. **D-21 quedo a medias**: defini
+el campo en el contrato y no arregle el unico productor de ese campo que existe.
+Es mi omision.
+
+**Accion tomada.** Solicitud de cambio **SC-03**, contratos a **v1.3.1**:
+
+- `obtener_riesgo` siembra un generador propio con `(codigo, fecha, tipo_evento)`.
+  La misma consulta devuelve siempre lo mismo, en este proceso y en el siguiente.
+- El nivel se **deriva** de la probabilidad en vez de sortearse aparte, de forma
+  monotona: una probabilidad mayor nunca da un nivel menor.
+- Tres comprobaciones nuevas en `contratos/verificar.py`, que fallaban antes del
+  arreglo: dos llamadas iguales al mismo repositorio, dos instancias distintas, y
+  960 filas contrastadas contra la regla de D-21.
+
+**Aprendizaje.** Un doble se sustituye por el original **por sus propiedades, no
+por su forma**. `contratos.verificar` comprobaba con `isinstance` que el simulado
+cumpliera el protocolo, que es comprobar la forma. La propiedad que hace util a un
+repositorio de solo lectura —preguntar dos veces lo mismo y recibir lo mismo— no
+la miraba nada.
+
+La regla que se agrega:
+
+> De un simulado hay que comprobar tambien lo que promete su docstring. Si dice
+> "deterministas", hay una comprobacion que lo llama dos veces y compara.
+
+---
+
+## I-09 · La mitad de los commits del Lead PM no quedaron atribuidos a su cuenta
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al ver en el Pull Request de H6.6 un commit suyo
+sin su foto de perfil.
+
+**Que paso.** El repositorio tenia **dos identidades distintas para la misma
+persona**:
+
+| Nombre en Git | Correo | Commits | De donde salen |
+|---|---|---|---|
+| `humanoidcat` | alejo**.**rz93@gmail.com | 42 | `git commit` desde la maquina |
+| `Alejandro` | alejo**rz.**93@icloud.com | 39 | Merges hechos desde la web de GitHub |
+
+La cuenta de GitHub `HumanoidCat`, que es la dueña del repositorio, tiene
+verificado **el de iCloud**. El de Gmail no le pertenece a esa cuenta.
+
+Consecuencia: **42 de los 81 commits del Lead PM no estan vinculados a su
+perfil.** GitHub los muestra con avatar generico y no los cuenta en el grafico de
+contribuciones. Con la calificacion individual saliendo del historial, es una
+perdida de trazabilidad, no un detalle cosmetico.
+
+**Causa raiz.** La configuracion global de Git de la maquina quedo con el correo
+de Gmail. Nadie contrasto esa configuracion contra la cuenta que es dueña del
+repositorio, y el contraste es **un solo comando**:
+
+    git log --format='%an <%ae>' | sort -u
+
+Los dos correos se leen casi identicos —el punto cae en distinto lugar— y esa
+semejanza es la que dejo pasar el error durante 42 commits.
+
+**Accion tomada.** Identidad fijada **a nivel del repositorio**, que gana sobre la
+global:
+
+    git config --local user.name  "humanoidcat"
+    git config --local user.email "alejorz.93@icloud.com"
+
+Se elige el ambito local a proposito: arregla este repositorio sin depender de que
+la configuracion global de la maquina este bien, y sobrevive a que alguien la
+cambie.
+
+**Los 42 commits anteriores se quedan como estan.** Reescribir el autor exige
+reescribir los identificadores de todos los commits posteriores y forzar el
+empuje, lo que romperia las copias de las otras tres personas en mitad del Sprint
+2. El costo supera al beneficio. La alternativa sin reescritura seria agregar el
+correo de Gmail como secundario verificado en la cuenta de GitHub, que atribuiria
+los 42 de forma retroactiva; se descarta porque esa direccion no pertenece a la
+cuenta y agregarla resolveria el sintoma ensuciando la identidad.
+
+**Aprendizaje.** La identidad con la que se firma el trabajo es parte de la
+trazabilidad del proyecto y nadie la estaba comprobando. Es el mismo patron de
+I-04: un dato con forma valida y contenido equivocado, que ninguna validacion
+automatica detecta porque la forma esta bien.
+
+La regla que se agrega:
+
+> Al clonar el repositorio, cada quien fija `user.name` y `user.email` **locales**
+> y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
+> mirando que el commit propio salga con la foto de perfil en el Pull Request.

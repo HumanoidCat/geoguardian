@@ -51,6 +51,17 @@ de los JSON estaticos a la API real— es de Alejandro, y toca ese archivo.
 |---|---|---|
 | Alejandro | `frontend/src/datos/cliente.js` y la configuracion de entorno del visor | H6.6, y nada mas |
 
+**Que resulto ser "la configuracion de entorno del visor".** Al ejecutar H6.6 el
+20 de agosto fue exactamente **un archivo mas**: el bloque `server.proxy` de
+`frontend/vite.config.js`, para que el visor llegue a la API por una ruta relativa
+y no haga falta CORS. El resto de ese archivo no se toco. Se anota aca con nombre
+propio para que la excepcion no quede abierta a interpretacion.
+
+`frontend/public/simulados/*.json` se **regeneraron** corriendo
+`exportar_simulados.py`, que es de Avril y no se modifico. Son artefactos
+derivados: sin regenerar, el respaldo declaraba contratos v1.3.0 mientras la API
+declaraba v1.3.1.
+
 **Por que no se le asigna a Avril.** El cambio no es de presentacion: es de
 arquitectura, sustituye la costura que D-14 dejo puesta a proposito y depende de
 conocer los esquemas de la API. Avril diseño el archivo justamente para que esto

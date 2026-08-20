@@ -6,49 +6,49 @@
   "riesgos": {
     "50801": {
       "nivel": "medio",
-      "probabilidad": 0.56,
+      "probabilidad": 0.65,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50802": {
       "nivel": "alto",
-      "probabilidad": 0.73,
+      "probabilidad": 0.88,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50803": {
-      "nivel": "bajo",
-      "probabilidad": 0.64,
+      "nivel": "medio",
+      "probabilidad": 0.36,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50804": {
-      "nivel": "alto",
-      "probabilidad": 0.8,
+      "nivel": "medio",
+      "probabilidad": 0.51,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50805": {
-      "nivel": "alto",
-      "probabilidad": 0.83,
+      "nivel": "bajo",
+      "probabilidad": 0.19,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50806": {
-      "nivel": "bajo",
-      "probabilidad": 0.89,
+      "nivel": "alto",
+      "probabilidad": 0.84,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50807": {
       "nivel": "medio",
-      "probabilidad": 0.86,
+      "probabilidad": 0.41,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50808": {
       "nivel": "bajo",
-      "probabilidad": 0.39,
+      "probabilidad": 0.23,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     }

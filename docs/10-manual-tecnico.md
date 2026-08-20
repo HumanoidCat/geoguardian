@@ -28,7 +28,7 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 33 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 36 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
@@ -223,7 +223,7 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **33 comprobaciones**
+Debe terminar en **"Todas las verificaciones pasaron"** con **36 comprobaciones**
 y declarar **"Contratos version 1.2.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
@@ -427,7 +427,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 22 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 23 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

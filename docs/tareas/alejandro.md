@@ -70,13 +70,21 @@
 
 ## Sprint 2 (semanas 6-7) — 59.5 h
 
-- [ ] **H6.6** · El visor consume la API real en lugar de los JSON estaticos
+- [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
     el cambio de origen de datos del visor, y esta en la ruta critica del
     prototipo. Al cerrarla hay que anotar **D-14** como revisada.
   - Excepcion de propiedad: autoriza a tocar `frontend/src/datos/cliente.js` y la
     configuracion de entorno del visor, nada mas. Ver `docs/07-propiedad-archivos.md`.
+  - **D-14 anotada como revisada por D-23.** Ningun componente cambio, que era la
+    prueba de que la costura estaba bien puesta. Produjo ademas **SC-03**,
+    contratos a v1.3.1, e **I-08**: la API devolvia un valor distinto en cada
+    lectura y, desde D-21, filas imposibles.
+  - Queda fuera de esta historia, por bloqueo de **H6.0**: el servicio de API en
+    `docker-compose.yml`. La verificacion se hizo con `uvicorn` a mano.
+  - Queda pendiente de Avril, por solicitud: pintar `origen` y `motivo_respaldo`
+    en `AvisoModoSimulado.jsx`. El cliente ya los devuelve.
 
 - [ ] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1 · **bloquea a: H11.3, H12.3**

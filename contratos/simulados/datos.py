@@ -44,6 +44,29 @@ _DISTRITOS = [
 ]
 
 
+def _nivel_desde(probabilidad: float) -> NivelRiesgo:
+    """
+    Deriva el nivel de la probabilidad, en vez de sortearlo aparte.
+
+    D-21 fijo que `probabilidad` es P(nivel = alto). Sortear las dos cosas por
+    separado producia filas imposibles bajo esa definicion: el 20 de agosto, el
+    distrito 50802 salio con nivel `bajo` y probabilidad 0,90. Ver SC-03.
+
+    Los cortes en tercios son ARBITRARIOS y se declaran como tales. No son el
+    umbral de ningun modelo: cuando H3.4 entrene un clasificador, sera el quien
+    decida nivel y probabilidad de forma conjunta y esta funcion desaparece.
+
+    Lo que no es arbitrario es la MONOTONIA: una probabilidad mayor nunca da un
+    nivel menor. De esa propiedad dependen el mapa de calor de H5.4, que
+    interpola la probabilidad, y el semaforo continuo de H7.1.
+    """
+    if probabilidad >= 2 / 3:
+        return NivelRiesgo.ALTO
+    if probabilidad >= 1 / 3:
+        return NivelRiesgo.MEDIO
+    return NivelRiesgo.BAJO
+
+
 def _cuadro(i: int) -> dict:
     """Poligono ficticio, solo para que el visor tenga algo que dibujar."""
     lon, lat = -84.97 + (i % 3) * 0.09, 10.47 - (i // 3) * 0.07
@@ -148,13 +171,39 @@ class RepositorioSimulado:
     def obtener_riesgo(
         self, codigo_distrito: str, fecha: date, tipo_evento: TipoEvento
     ) -> Riesgo | None:
-        nivel = self._rnd.choice(list(NivelRiesgo))
+        """
+        Riesgo simulado, DETERMINISTA en sus tres argumentos.
+
+        No usa `self._rnd`. Ese generador tiene estado y avanza en cada llamada,
+        asi que la misma consulta devolvia un valor distinto cada vez. Medido el
+        20 de agosto sobre `GET /riesgos`, tres peticiones identicas dieron tres
+        respuestas distintas. Ver SC-03 e incidencia I-08.
+
+        Importa porque un GET es idempotente por definicion y porque el
+        repositorio de H6.2 lo sera, al consultar filas. Un doble que no cumple
+        la propiedad por la que se lo puede sustituir por el original no sirve
+        para sustituirlo.
+
+        La semilla se arma con los argumentos, de modo que dos instancias
+        distintas y dos procesos distintos coinciden. `random.Random` con una
+        cadena la deriva por SHA-512, que es estable entre corridas: `hash()` no
+        lo seria, porque Python la aleatoriza por proceso.
+        """
+        sorteo = random.Random(
+            f"{SEMILLA}|{codigo_distrito}|{fecha.isoformat()}|{tipo_evento.value}"
+        )
+
+        # El rango arranca en 0,05 y no en 0,3 para que los tres niveles sean
+        # alcanzables. Con el minimo en 0,3 la probabilidad casi siempre caia por
+        # encima del corte de un tercio y el nivel `bajo` no aparecia nunca.
+        probabilidad = round(sorteo.uniform(0.05, 0.95), 2)
+
         return Riesgo(
             codigo_distrito=codigo_distrito,
             fecha=fecha,
             tipo_evento=tipo_evento,
-            nivel=nivel,
-            probabilidad=round(self._rnd.uniform(0.3, 0.95), 2),
+            nivel=_nivel_desde(probabilidad),
+            probabilidad=probabilidad,
             algoritmo=Algoritmo.XGBOOST,
             version_modelo="simulado-0.0.0",
             explicacion=None,
