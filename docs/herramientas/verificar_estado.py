@@ -182,9 +182,19 @@ def main() -> int:
 
     if DESTINO.read_text(encoding="utf-8") != construir():
         problemas.append(
-            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes. "
-            "Se genera, no se edita a mano: correr "
-            "python docs/herramientas/generar_matriz.py"
+            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes.\n"
+            "      Se arregla con UN comando:  "
+            "python docs/herramientas/generar_matriz.py\n"
+            "\n"
+            "      Casi siempre pasa por una de estas tres, y en ninguna hay que\n"
+            "      tocar la matriz a mano:\n"
+            "        - subiste un archivo nuevo a docs/evidencias/\n"
+            "        - marcaste una historia con [x] en docs/tareas/<persona>.md\n"
+            "        - cambio el dueno o la rubrica en docs/backlog.csv\n"
+            "\n"
+            "      La matriz es una VISTA de esas fuentes. Cambiar la fuente y no\n"
+            "      regenerarla deja la vista desfasada, y eso es lo que este\n"
+            "      control detecta."
         )
 
     # ----------------------------------------------------------------------- #
