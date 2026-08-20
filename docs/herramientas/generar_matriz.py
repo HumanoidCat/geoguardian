@@ -152,22 +152,40 @@ def rubrica_del_backlog(fila: dict[str, str]) -> str:
 
 def evidencia_de(identificador: str, carpeta: str) -> str:
     """
-    El archivo de evidencia si existe en disco; si no, la carpeta destino.
+    TODOS los archivos de evidencia que existan en disco; si no hay, la carpeta.
 
     Se busca en disco en lugar de escribirlo a mano porque el nombre del archivo
     lo elige quien cierra la historia, y la matriz declaraba rutas que no
     existian.
+
+    POR QUE SE LISTAN TODOS Y NO EL PRIMERO
+
+    Hasta el 20 de agosto esta funcion devolvia el primero por orden alfabetico y
+    descartaba el resto **en silencio**. El defecto aparecio cuando Avril agrego
+    una segunda evidencia a H6.6, `H6.6-aviso-de-origen.md`: como la `a` va antes
+    que la `v`, la matriz paso a apuntar a la suya y **la evidencia principal de
+    la historia desaparecio de la tabla**. Ella regenero correctamente; el
+    verificador dio verde; nadie se habria enterado.
+
+    Una historia puede tener mas de una evidencia con todo derecho: la parte de
+    backend y la de frontend, o un cierre en dos tandas. Elegir una y callar la
+    otra es perder trazabilidad, que es justo lo que esta matriz existe para dar.
     """
     directorio = RAIZ / carpeta
-    if directorio.is_dir():
-        for archivo in sorted(directorio.glob(f"{identificador}-*.md")):
-            # Los criterios de aceptacion NO son la evidencia de la historia: se
-            # escriben ANTES de implementar y pertenecen a la Definition of
-            # Ready. La evidencia es lo que demuestra que quedo hecha.
-            if archivo.name.endswith("-criterios-aceptacion.md"):
-                continue
-            return archivo.relative_to(RAIZ).as_posix()
-    return carpeta
+    if not directorio.is_dir():
+        return carpeta
+
+    archivos = [
+        archivo.relative_to(RAIZ).as_posix()
+        for archivo in sorted(directorio.glob(f"{identificador}-*.md"))
+        # Los criterios de aceptacion NO son la evidencia de la historia: se
+        # escriben ANTES de implementar y pertenecen a la Definition of Ready.
+        # La evidencia es lo que demuestra que quedo hecha.
+        if not archivo.name.endswith("-criterios-aceptacion.md")
+    ]
+    # Separador de linea de HTML: la celda es de una tabla Markdown, donde un
+    # salto de linea real rompe la fila.
+    return "<br>".join(archivos) if archivos else carpeta
 
 
 def estado_de(identificador: str, cerradas: set[str], nota: str) -> str:

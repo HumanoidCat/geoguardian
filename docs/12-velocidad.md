@@ -79,6 +79,30 @@ recalibran tres tasas con eso, y forzarlo daría un modelo que parece medido y n
 está. Lo único que ya está descartado es la afirmación anterior de este documento
 —que nadie había registrado horas— que dejó de ser cierta el 19 de agosto.
 
+### Las cuatro historias de frontend anteriores a H7.1 no tienen horas, y es a propósito
+
+Avril planteó el 20 de agosto si convenía estimarlas retrospectivamente. **Se
+decidió que no.**
+
+El estimado habría quedado **anclado a la estimación original del backlog**, que
+ella conoce, y habría producido razones cercanas a 1,0 por construcción. Con dos
+mediciones reales y cinco estimados de ese tipo, el promedio miente más que con las
+dos mediciones solas: el 0,47 de H6.1 —el único dato que se aleja y por lo tanto el
+único que enseña algo— quedaría diluido hasta parecer un caso raro.
+
+Tres de esas cuatro historias, además, se estimaron con la misma tasa: H5.1 a 0,97,
+H5.2 a 0,96 y H5.3 a 0,96 h/pt. Un estimado anclado ahí solo puede confirmar lo que
+ya supuso quien armó el backlog.
+
+**Se declara la ausencia en lugar de rellenarla.** Es D-07 aplicado a la medición
+del propio proceso: un dato que no se pudo obtener no se sustituye por uno
+plausible.
+
+Lo que sí se pidió, y no es una medición: **una línea por historia diciendo si se
+sintió más corta o más larga de lo estimado, y por qué.** Nombrar la variable vale
+más que inventar el número, que es lo que aportó la lectura de César sobre las
+interfaces congeladas.
+
 ### Qué falta
 
 Que las otras tres personas registren, **una línea en el cuerpo del Pull Request**:

@@ -274,6 +274,55 @@ def main() -> int:
         ],
     )
 
+    # SC-04, quinto sitio. Lo encontro Cesar: la busqueda de SC-04 se limito a
+    # `RepositorioSimulado` y el archivo tiene otra clase. Le importa a H1.2, que
+    # implementa `ExtractorFocosCalor` de verdad: si el doble contra el que se
+    # compara no es reproducible, la prueba no prueba nada.
+    print("\nLos extractores simulados tambien son reproducibles:")
+    otro_focos = ExtractorFocosSimulado()
+    una_extraccion = focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+    otra_extraccion = focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+    tercera_extraccion = otro_focos.extraer(date(2024, 1, 1), date(2024, 12, 31))
+
+    def firma_focos(lote: list) -> list[tuple]:
+        return [(f.fecha, f.latitud, f.longitud, f.confianza) for f in lote]
+
+    comprobar(
+        "dos extracciones iguales del mismo extractor coinciden",
+        firma_focos(una_extraccion) == firma_focos(otra_extraccion),
+    )
+    comprobar(
+        "otra instancia del extractor devuelve lo mismo",
+        firma_focos(una_extraccion) == firma_focos(tercera_extraccion),
+    )
+
+    # Los ocho distritos tenian hueco los mismos dias, porque `_es_hueco` recibia
+    # el codigo y no lo miraba. Sin esto no se puede escribir una prueba con un
+    # distrito con dato y otro sin el, que es el caso normal cuando una estacion
+    # se cae, y es lo que H1.4 tiene que saber detectar.
+    def huecos_de(codigo: str) -> set:
+        return {
+            m.fecha
+            for m in repo.obtener_mediciones(codigo, date(2026, 1, 1), date(2026, 6, 30))
+            if m.temp_max_c is None
+        }
+
+    comprobar(
+        "dos distritos no tienen hueco exactamente los mismos dias",
+        huecos_de("50801") != huecos_de("50807"),
+    )
+
+    # Con `randint(0, 1)` una ventana de 7 dias tenia un techo duro de 7 focos,
+    # que en FIRMS no existe: un distrito puede tener varias detecciones el mismo
+    # dia. Lo midio Cesar sobre 400 dias.
+    ventanas = [
+        repo.contar_focos(
+            "50801", date(2026, 1, 1) + timedelta(days=d), date(2026, 1, 7) + timedelta(days=d)
+        )
+        for d in range(0, 200, 7)
+    ]
+    comprobar("una ventana de 7 dias puede superar los 7 focos", max(ventanas) > 7)
+
     if fallos:
         print(f"\n{len(fallos)} verificaciones fallaron:")
         for f in fallos:

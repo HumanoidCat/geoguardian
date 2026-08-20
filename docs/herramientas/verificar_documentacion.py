@@ -195,6 +195,13 @@ AFIRMACIONES = [
             ("README.md", r"Contratos \| v([\d.]+), congelados"),
             ("docs/ARRANQUE.md", r'"Contratos version ([\d.]+)"'),
             ("docs/02-contratos.md", r"Version de contratos: \*\*([\d.]+)\*\*"),
+            # El manual afirma la version en su seccion 5.2, y NADIE la
+            # comprobaba: el verificador miraba el numero de comprobaciones y no
+            # la version. Se quedo en 1.2.0 mientras los contratos iban por
+            # 1.3.2, tres cambios de version despues. Lo detecto Cesar
+            # verificando el manual, y su diagnostico es el que importa: "un
+            # verificador que no mira ese dato deja que envejezca en silencio".
+            ("docs/10-manual-tecnico.md", r'declarar \*\*"Contratos version ([\d.]+)"\*\*'),
         ],
     ),
     # Los tres inventarios del backlog se comprueban en los tres documentos que
