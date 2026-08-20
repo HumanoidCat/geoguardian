@@ -48,8 +48,9 @@
 - [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4
 
-- [ ] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio
+- [x] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio (2026-08-19)
   - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9, H10.7**
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.8-roles-minimo-privilegio.md`
 
 - [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
   - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**

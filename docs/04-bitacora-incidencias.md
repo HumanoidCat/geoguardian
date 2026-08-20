@@ -365,3 +365,53 @@ La regla que sale de aqui, y que completa a D-20:
 uso bien: en vez de corregir el numero y seguir, escribio el analisis del patron y
 propuso la solucion. Sin ese diagnostico, el siguiente en toparselo habria vuelto a
 corregir a mano.
+
+### Segundo punto ciego, encontrado el mismo dia
+
+Al arreglar lo anterior aparecio un defecto peor, y lo encontro Cesar siguiendo la
+instruccion que le di.
+
+Su Pull Request #126 quedo con las **tres marcas de conflicto dentro del archivo**.
+Las dos versiones del bloque eran identicas —las dos ramas escribieron la misma
+cifra— asi que el conflicto era de forma y no de contenido, y no se noto al
+resolverlo.
+
+**Ningun control lo detecto.** Los ocho pasaron:
+
+- `verificar_documentacion` encontro la linea buena entre las marcas y la dio por
+  correcta.
+- `generar_matriz` tenia el mismo punto ciego: sustituia la linea que coincidia y,
+  como el resultado era igual a la entrada, informaba **"al dia con sus fuentes"**
+  con las marcas todavia adentro.
+
+Lo segundo es lo grave: **la instruccion que da el proyecto para resolver un
+conflicto en un archivo derivado es regenerar, y regenerar no lo arreglaba.**
+Cesar lo comprobo al intentarlo y tuvo que quitar las tres lineas a mano.
+
+**Accion tomada.**
+
+1. `generar_matriz.py` **se niega a trabajar** sobre un archivo con marcas, en vez
+   de informar que esta al dia. El mensaje dice que regenerar no lo arregla.
+2. Un paso nuevo en el trabajo de calidad del CI busca marcas en todo el
+   repositorio. El pipeline pasa a **nueve controles**.
+
+**El detalle del patron de busqueda, que aporto Cesar.** La version ingenua
+`^=======` produce falsos positivos: las salidas de los verificadores que se pegan
+en las evidencias llevan lineas de separacion de 66 y 74 signos de igual, y hay
+cuatro en dos archivos. Una marca de conflicto son **exactamente siete
+caracteres**, y el separador va solo en su renglon:
+
+    ^(<{7} |={7}$|>{7} )
+
+Comprobado contra el repositorio completo: cero falsos positivos.
+
+**Aprendizaje.** Un control que busca un dato correcto no detecta la basura que lo
+rodea. Y una herramienta que informa "al dia" cuando no pudo hacer su trabajo es
+peor que una que falla: **el silencio se lee como exito.**
+
+La regla que se agrega:
+
+> Una herramienta que sustituye contenido tiene que comprobar que la entrada esta
+> en un estado que le permita trabajar, y negarse si no. Devolver "sin cambios" es
+> ambiguo entre "ya estaba bien" y "no pude".
+

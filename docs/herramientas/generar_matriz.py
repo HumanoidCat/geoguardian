@@ -86,6 +86,13 @@ PATRON_AVANCE = re.compile(
     r"^Al .+?: \*\*\d+ historias cerradas de \d+\*\*, \d+ puntos de \d+\.$", re.M
 )
 
+# Marca de conflicto de fusion sin resolver. Son exactamente siete caracteres:
+# `<<<<<<< ` y `>>>>>>> ` llevan el nombre de la rama detras, y `=======` va solo
+# en su linea. Anclar el separador al final del renglon es lo que evita los falsos
+# positivos con las lineas de separacion de las salidas de los verificadores, que
+# en las evidencias tienen 66 y 74 caracteres. Lo preciso Cesar el 19 de agosto.
+PATRON_CONFLICTO = re.compile(r"^(<{7} |={7}$|>{7} )", re.M)
+
 MESES = (
     "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
@@ -156,8 +163,32 @@ def linea_de_avance() -> str:
     )
 
 
+def sin_marcas_de_conflicto(ruta: Path) -> None:
+    """
+    Se niega a trabajar sobre un archivo con un conflicto sin resolver.
+
+    Sin esta comprobacion la herramienta tenia un punto ciego: sustituia la linea
+    que coincidia y, si el bloque en conflicto contenia dos versiones identicas,
+    el resultado era igual al de entrada. Informaba "al dia" con las tres marcas
+    todavia dentro del archivo.
+
+    Lo encontro Cesar el 19 de agosto, al seguir la instruccion de regenerar en
+    lugar de fusionar a mano y comprobar que no lo arreglaba.
+    """
+    encontrado = PATRON_CONFLICTO.search(ruta.read_text(encoding="utf-8"))
+    if encontrado:
+        linea = ruta.read_text(encoding="utf-8")[: encontrado.start()].count("\n") + 1
+        raise SystemExit(
+            f"ERROR: {ruta.relative_to(RAIZ).as_posix()} tiene una marca de conflicto "
+            f"sin resolver en la linea {linea}.\n"
+            "Regenerar no lo arregla: hay que quitar las tres lineas de marca primero.\n"
+            'Para encontrarlas todas:  git grep -nE "^(<{7} |={7}$|>{7} )"'
+        )
+
+
 def escribir_avance(revisar: bool) -> bool:
     """Sustituye la linea de avance en docs/08-backlog.md. Devuelve si estaba al dia."""
+    sin_marcas_de_conflicto(BACKLOG_MD)
     texto = BACKLOG_MD.read_text(encoding="utf-8")
     esperada = linea_de_avance()
 
@@ -275,6 +306,8 @@ def construir() -> str:
 
 
 def main() -> int:
+    if DESTINO.exists():
+        sin_marcas_de_conflicto(DESTINO)
     contenido = construir()
     revisar = "--revisar" in sys.argv
 
