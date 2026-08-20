@@ -168,6 +168,39 @@ historia sin haber roto nada.
 Es la misma idea que `ruff format`: un archivo derivado no se discute, se vuelve a
 producir. `verificar_estado.py` comprueba en el CI que corresponda a sus fuentes.
 
+### Antes de regenerar hay que estar al dia con `dev`
+
+Un artefacto derivado no se genera desde el disco solamente: se genera desde **el
+disco que tenga esa rama**. Regenerarlo en una rama vieja produce un archivo
+correcto para el pasado y equivocado para el presente, y el CI lo rechaza igual.
+
+**El orden es este, y no el otro:**
+
+    git checkout <mi-rama>
+    git merge origin/dev                            # 1. traer dev PRIMERO
+    python docs/herramientas/generar_matriz.py      # 2. regenerar DESPUES
+    git add -A && git commit -m "merge: traer dev y regenerar la matriz"
+
+**Por que.** El 20 de agosto, `feature/lal-h1.5-calidad-datos` estaba **18 commits
+detras de dev**. En esos 18 commits habian cambiado dos clases de cosas, y las dos
+entran en la matriz:
+
+| Que cambio en dev | Efecto sobre la matriz regenerada en la rama vieja |
+|---|---|
+| `docs/herramientas/generar_matriz.py` | La genera el **generador viejo**, que listaba una sola evidencia por historia en vez de todas |
+| Tres archivos nuevos en `docs/evidencias/` | Sus filas apuntan a la carpeta y no al archivo, porque en esa rama el archivo no existe |
+
+Regenerar primero y traer `dev` despues no arregla nada: el `git merge` posterior
+abre conflicto en la matriz, y quien lo resuelva a mano vuelve a caer en lo que
+esta seccion prohibe.
+
+**Como se reconoce.** Si el CI sigue rojo despues de regenerar, casi siempre es
+esto. Se comprueba con:
+
+    git log --oneline HEAD..origin/dev | wc -l
+
+Si no da cero, la rama esta atrasada y hay que fusionar antes de volver a generar.
+
 ## Archivos compartidos
 
 **Se MODIFICAN solo por solicitud de cambio** aprobada por Alejandro y por el
