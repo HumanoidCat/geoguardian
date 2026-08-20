@@ -415,3 +415,76 @@ La regla que se agrega:
 > en un estado que le permita trabajar, y negarse si no. Devolver "sin cambios" es
 > ambiguo entre "ya estaba bien" y "no pude".
 
+
+---
+
+## I-08 · La misma consulta a la API devolvia un valor distinto cada vez
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al empezar H6.6 y llamar dos veces al mismo
+endpoint para comparar la respuesta con lo que espera el visor.
+
+**Que paso.** Tres peticiones identicas a
+`GET /riesgos?fecha=2026-08-16&tipo_evento=sequia`:
+
+| Intento | 50801 | 50802 | 50803 |
+|---|---|---|---|
+| 1 | bajo · 0,46 | alto · 0,53 | medio · 0,79 |
+| 2 | alto · 0,70 | bajo · 0,90 | alto · 0,75 |
+| 3 | medio · 0,56 | alto · 0,73 | bajo · 0,64 |
+
+**Causa raiz.** `RepositorioSimulado.obtener_riesgo` sorteaba contra `self._rnd`,
+un generador **con estado** que avanza en cada llamada. La instancia se cachea una
+vez por proceso —correcto, y bien razonado en `backend/api/dependencias.py`— y el
+efecto secundario es que el generador nunca vuelve al principio.
+
+**Lo que se habria visto.** El mapa repintando los ocho distritos con colores
+distintos cada vez que el usuario cambia de evento y regresa. Habria parecido un
+defecto de las coropletas de H5.3, que estan bien. Es el segundo caso en el
+proyecto de un sintoma que apunta a la persona equivocada.
+
+**Por que no lo vio H6.1.** Cesar verifico que cada endpoint devolviera la forma
+acordada, que es lo que la historia pedia. Llamar dos veces con los mismos
+parametros y comparar no forma parte de comprobar una forma. Hizo falta un
+consumidor que preguntara dos veces, y el primero es el visor.
+
+**El detalle que lo hace peor de lo que parece.** La primera linea de
+`contratos/simulados/datos.py` dice:
+
+> *"Repositorio y extractores simulados. Datos deterministas, reproducibles y
+> falsos."*
+
+El archivo ya se comprometia a esto. Cumplia entre construcciones —dos procesos
+que instancian y llaman una vez coinciden, y por eso el exportador de Avril
+producia archivos estables— y dejaba de cumplir a la segunda llamada. **Una
+promesa escrita en la primera linea del archivo y no comprobada por nada.**
+
+**El segundo hallazgo, del mismo dia.** El intento 2 tiene el distrito 50802 con
+nivel `bajo` y probabilidad `0,90`. Desde **D-21**, `probabilidad` es
+P(nivel = alto): esa fila es imposible. El simulado sorteaba nivel y probabilidad
+por separado, que era coherente mientras el contrato no decia que magnitud era
+`probabilidad`, y dejo de serlo el 19 de agosto. **D-21 quedo a medias**: defini
+el campo en el contrato y no arregle el unico productor de ese campo que existe.
+Es mi omision.
+
+**Accion tomada.** Solicitud de cambio **SC-03**, contratos a **v1.3.1**:
+
+- `obtener_riesgo` siembra un generador propio con `(codigo, fecha, tipo_evento)`.
+  La misma consulta devuelve siempre lo mismo, en este proceso y en el siguiente.
+- El nivel se **deriva** de la probabilidad en vez de sortearse aparte, de forma
+  monotona: una probabilidad mayor nunca da un nivel menor.
+- Tres comprobaciones nuevas en `contratos/verificar.py`, que fallaban antes del
+  arreglo: dos llamadas iguales al mismo repositorio, dos instancias distintas, y
+  960 filas contrastadas contra la regla de D-21.
+
+**Aprendizaje.** Un doble se sustituye por el original **por sus propiedades, no
+por su forma**. `contratos.verificar` comprobaba con `isinstance` que el simulado
+cumpliera el protocolo, que es comprobar la forma. La propiedad que hace util a un
+repositorio de solo lectura —preguntar dos veces lo mismo y recibir lo mismo— no
+la miraba nada.
+
+La regla que se agrega:
+
+> De un simulado hay que comprobar tambien lo que promete su docstring. Si dice
+> "deterministas", hay una comprobacion que lo llama dos veces y compara.

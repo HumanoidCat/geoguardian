@@ -8,7 +8,21 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.3.0** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.3.1** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.3.0 -> v1.3.1 (20 de agosto).** `RepositorioSimulado.obtener_riesgo`
+pasa a ser **determinista** en sus tres argumentos, y su `nivel` se **deriva** de
+la `probabilidad` en vez de sortearse aparte.
+
+Ninguna firma cambia y ningun esquema cambia: lo que cambia son las garantias.
+Antes, tres peticiones identicas a `GET /riesgos` devolvian tres respuestas
+distintas, porque el simulado sorteaba contra un generador con estado que avanza
+en cada llamada. Y desde D-21 producia filas imposibles, como nivel `bajo` con
+probabilidad 0,90, porque `probabilidad` es P(nivel = alto).
+
+Sale de la solicitud **SC-03**, redactada al implementar H6.6. Ver la incidencia
+**I-08**. Tres comprobaciones nuevas en el verificador lo sostienen, y las tres
+fallaban antes del arreglo.
 
 **Cambio v1.2.0 -> v1.3.0 (18 de agosto).** `ProcesadorSenales.spi` recibe un
 parametro nuevo, `meses: list[int] | None = None`, con el mes calendario de cada
@@ -54,7 +68,7 @@ plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-`python -m contratos.verificar` ejecuta **33 comprobaciones** agrupadas en ocho
+`python -m contratos.verificar` ejecuta **36 comprobaciones** agrupadas en ocho
 bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
 respeten las tres invariantes del proyecto.
 

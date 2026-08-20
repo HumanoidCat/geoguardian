@@ -171,3 +171,19 @@ jobs:
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
           python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+
+      # Los dos verificadores de criterios de aceptacion viven aca porque este es
+      # el unico trabajo que instala requirements.txt, y los dos necesitan
+      # FastAPI. No necesitan la base: usan el cliente de pruebas.
+      #
+      # El de H6.1 estaba escrito desde el 19 de agosto y no lo corria nadie mas
+      # que su autor a mano. Un control que solo se ejecuta cuando alguien se
+      # acuerda no es un control.
+      #
+      # Se invocan con `python -m` por la misma razon que la suite: ejecutar
+      # `python backend/api/verificar_h61.py` a secas falla con "No module named
+      # 'backend'". Es el mismo defecto de la incidencia I-06.
+      - name: Los criterios de H6.1 se cumplen
+        run: python -m backend.api.verificar_h61
+      - name: Los criterios de H6.6 se cumplen
+        run: python docs/herramientas/verificar_h66.py

@@ -25,7 +25,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
-| D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada | 2026-08-12 |
+| D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada · revisada por D-23 | 2026-08-12 |
 | D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
@@ -34,6 +34,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-20 | La matriz de trazabilidad es un artefacto derivado, no un documento | Aceptada | 2026-08-18 |
 | D-21 | `probabilidad` es P(nivel = alto), no la confianza del modelo | Aceptada | 2026-08-20 |
 | D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
+| D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
 
 ---
 
@@ -767,9 +768,15 @@ documentacion propia se desfasa y ningun verificador lo detecta.
 
 ## D-14 · El frontend consume los simulados exportados a JSON estatico
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **revisada por D-23 el 2026-08-20**
 **Fecha.** 2026-08-12
 **Decide.** Alejandro, a propuesta de Avril
+
+> **Que cambio.** H6.6 sustituyo el origen por la API, que era lo que esta
+> decision preveia. Los archivos estaticos no se borran: pasan de ser el origen a
+> ser el respaldo cuando la API no responde. Y la frase *"el cambio es la URL del
+> `fetch`"* resulto optimista: hubo que traducir la forma. Todo cupo en el mismo
+> modulo, que es lo que esta decision existia para conseguir. Ver **D-23**.
 
 ### Contexto
 
@@ -1771,6 +1778,122 @@ La historia se cierra cuando exista, con prueba ejecutable:
 
 Y se comprueba contra la realidad cuando H1.6 traiga sus huecos por nubosidad: si
 la regla escrita hoy no sirve para ese caso, quedo corta y hay que revisarla.
+
+---
+
+## D-23 · El visor negocia su origen una sola vez y degrada al respaldo declarandolo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, desde H6.6
+**Revisa.** D-14
+
+### Contexto
+
+D-14 dejo al visor leyendo archivos JSON estaticos y prometio que el dia que
+existiera la API el cambio seria *"la URL del `fetch`, en un solo modulo"*. La API
+existe desde el 19 de agosto (H6.1). Al hacer el cambio aparecieron tres cosas que
+D-14 no habia previsto.
+
+**Primera: no es una URL, es una traduccion.** La API devuelve `list[Distrito]` y
+`list[Riesgo]`; el visor espera un `FeatureCollection` y un mapa indexado por
+codigo. La costura de D-14 estaba bien puesta —toda la traduccion cabe en
+`cliente.js` y ningun componente cambio— pero la promesa era optimista.
+
+**Segunda: el respaldo no se puede tirar.** La Definition of Done de H6.6 exige que
+el visor siga en pie si la API no responde. Los archivos de D-14 dejan de ser el
+origen y pasan a ser la degradacion. Eso significa que el visor tiene **dos**
+origenes posibles, no uno, y que hay que decidir cuando usa cada uno.
+
+**Tercera: dos origenes se pueden mezclar.** `App.jsx` pide la salud y los
+distritos a la vez con un `Promise.all`, y los riesgos en otro efecto. Si cada
+llamada decidiera por su cuenta, una podria dar con la API arriba y la siguiente
+con la API caida.
+
+### Decision
+
+**1. El origen se negocia una sola vez, al arrancar, y las tres llamadas usan lo
+que se haya negociado.** La negociacion es la propia consulta a `/salud`,
+memorizada como una promesa compartida: quien llegue primero la dispara y los
+demas esperan ese mismo resultado.
+
+**2. Si la API no responde, se lee el respaldo estatico y se declara en pantalla,
+con el motivo.** El visor no se queda en blanco ni muestra un error como si no
+hubiera datos.
+
+**3. `modo` y `origen` son dos campos distintos.** `modo` dice **que** son los
+datos —simulado o real— y lo decide la API segun que implementacion respondio.
+`origen` dice **por donde** llegaron —`api` o `estatico`— y lo decide el cliente.
+
+**4. El visor llega a la API por una ruta relativa, `/api`.** En desarrollo la
+reenvia el proxy de `vite.config.js`; en el despliegue, el mismo servidor que
+sirve el visor.
+
+### Justificacion
+
+**Por que un solo origen.** Hoy los dos coinciden: los dos salen del mismo
+`RepositorioSimulado` con la misma semilla, asi que una mezcla seria invisible.
+Cuando H6.2 traiga PostgreSQL dejaran de coincidir, y entonces el visor pintaria
+los riesgos de un mundo sobre los distritos de otro **sin que nada fallara**. La
+decision hay que tomarla ahora, mientras el error todavia no se puede cometer:
+despues seria un defecto que solo se ve mirando el mapa con atencion.
+
+**Por que dos campos y no uno.** Son ejes ortogonales. El caso peligroso es el que
+todavia no existe: el dia que la API sirva dato real y se caiga, el respaldo
+servira dato simulado viejo. Con un solo campo ese caso se veria igual que el
+normal. Con dos, la pantalla puede decir a la vez "datos simulados" y "la API no
+responde, esto es el respaldo del 16 de agosto".
+
+Y ya se observo: con el respaldo sin regenerar, el visor declaraba contratos
+v1.3.0 mientras la API declaraba v1.3.1. Es exactamente el riesgo que D-14 se
+habia anotado a si misma —*"si los contratos cambian y nadie vuelve a correr el
+exportador, el frontend trabaja contra datos viejos sin enterarse"*— y ahora es
+**visible en pantalla** en vez de estar solo escrito en un ADR.
+
+**Por que una ruta relativa y no `http://localhost:8000`.** Un origen absoluto
+obliga a habilitar CORS en `backend/api/aplicacion.py`, que es archivo de Cesar y
+que la excepcion de propiedad de H6.6 no autoriza. Pero aunque lo autorizara, la
+ruta relativa es la solucion correcta: en el despliegue el visor y la API van
+detras del mismo origen, asi que el permiso no haria falta y habria que quitarlo.
+La restriccion de propiedad y la buena arquitectura apuntaron al mismo lado.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Que cada llamada decida su origen | Permite mezclar dos mundos sin que nada falle. Es el defecto que no se ve |
+| Un solo campo que diga `simulado`, `real` o `respaldo` | Confunde que son los datos con por donde llegaron. El caso "dato real caido a respaldo simulado" se volveria indistinguible |
+| Borrar los archivos estaticos | Es el respaldo de la Definition of Done. Sin ellos, una API caida deja el visor en blanco |
+| Origen absoluto mas CORS en la API | Toca archivo ajeno, y en produccion sobra |
+| Reintentar la API en cada llamada | Un visor que cambia de origen a mitad de sesion tiene el mismo problema de mezcla, repartido en el tiempo |
+
+### Consecuencias
+
+Se gana un unico punto de decision y un visor que sobrevive a la API caida sin
+mentir sobre lo que muestra.
+
+Se pierde: **el origen no se renegocia**. Si la API vuelve durante la sesion, el
+visor sigue en el respaldo hasta que se recargue la pagina. Es a proposito —lo
+contrario permite la mezcla— y es el precio correcto para un visor que se abre y
+se deja abierto unas horas.
+
+Queda una deuda: el aviso en pantalla lo tiene que dibujar
+`AvisoModoSimulado.jsx`, que es de Avril. Va por solicitud de cambio, no por diff
+propio.
+
+### Medicion
+
+Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
+
+| Escenario | Resultado |
+|---|---|
+| API arriba | `origen: api`, 8 distritos, fecha de hoy, sin motivo de respaldo |
+| API caida | `origen: estatico`, `motivo: fetch failed`, 8 distritos |
+| API responde 502 | `origen: estatico`, `motivo: la API respondio 502` |
+| API arriba, sin estimacion para hoy | `origen: api`, **8 distritos sin estimacion**, no pantalla vacia |
+| Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
+
+31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
 
 ---
 

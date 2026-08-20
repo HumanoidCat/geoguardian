@@ -1,18 +1,94 @@
 /**
  * Unico modulo que sabe de donde vienen los datos.
  *
- * Hoy lee los archivos estaticos que genera
- * frontend/herramientas/exportar_simulados.py, porque la API todavia no existe:
- * segun el roadmap llega en la semana 6.
+ * Historia H6.6. Hasta el 20 de agosto de 2026 leia los archivos estaticos que
+ * genera frontend/herramientas/exportar_simulados.py, segun la decision D-14.
+ * Ahora habla con la API de H6.1 y deja esos archivos como respaldo.
  *
- * Cuando exista, se cambian las constantes de abajo por las rutas de la API y
- * ningun componente se entera. Ese es el motivo de que todo pase por aca en vez
- * de que cada componente haga su propio fetch.
+ * D-14 prometia que el cambio seria "la URL del fetch, en un solo modulo". El
+ * modulo si es uno solo y ningun componente cambio. Pero no fue una URL: la API
+ * devuelve listas de objetos del contrato y el visor espera un FeatureCollection
+ * y un mapa indexado por codigo. Esa traduccion es lo que ocupa la mitad de abajo
+ * de este archivo, y su lugar es este por la misma razon por la que existe el
+ * archivo. Ver D-23.
+ *
+ * SOBRE LA PROPIEDAD DE ESTE ARCHIVO
+ *
+ * frontend/ es de Avril. La excepcion de docs/07-propiedad-archivos.md autoriza a
+ * Alejandro a tocar unicamente este archivo y la configuracion de entorno del
+ * visor, para H6.6 y nada mas.
  */
 
-const ORIGEN_DISTRITOS = '/simulados/distritos.geojson'
-const ORIGEN_SALUD = '/simulados/salud.json'
-const ORIGEN_RIESGOS = (evento) => `/simulados/riesgos-${evento}.json`
+/**
+ * Ruta de la API. Relativa a proposito: nunca un origen absoluto.
+ *
+ * En desarrollo la reenvia el proxy de vite.config.js; en el despliegue, el mismo
+ * servidor que sirve el visor. Asi el navegador siempre hace peticiones del mismo
+ * origen y no hace falta CORS en backend/api/, que ademas es carpeta de Cesar.
+ *
+ * VITE_API_URL solo existe para apuntar a otra maquina en una prueba puntual.
+ */
+const RUTA_API = import.meta.env.VITE_API_URL ?? '/api'
+
+/** Los archivos de D-14. Ya no son el origen: son la degradacion. */
+const RESPALDO = {
+  salud: '/simulados/salud.json',
+  distritos: '/simulados/distritos.geojson',
+  riesgos: (evento) => `/simulados/riesgos-${evento}.json`,
+}
+
+/**
+ * Cuanto se espera a la API antes de darla por caida.
+ *
+ * Sin limite, una API colgada —no caida: colgada— dejaria el visor en "Cargando"
+ * para siempre, que es peor que declarar el respaldo. Tres segundos es de sobra
+ * para una consulta local y poco para que alguien se quede mirando.
+ */
+const LIMITE_MS = 3000
+
+export const ORIGEN_API = 'api'
+export const ORIGEN_ESTATICO = 'estatico'
+
+// --------------------------------------------------------------------------- //
+// Resolucion del origen                                                         //
+// --------------------------------------------------------------------------- //
+
+/**
+ * Promesa memorizada de la negociacion. Se resuelve UNA sola vez.
+ *
+ * Es lo que impide que los distritos vengan de la API y los riesgos del respaldo.
+ * Hoy los dos origenes coinciden, porque salen del mismo RepositorioSimulado con
+ * la misma semilla, asi que una mezcla seria invisible. Cuando H6.2 traiga PostgreSQL
+ * dejaran de coincidir y la mezcla pintaria los riesgos de un mundo sobre los
+ * distritos de otro sin que nada fallara.
+ *
+ * Ademas resuelve una carrera real: App.jsx pide la salud y los distritos con un
+ * Promise.all, o sea a la vez. Si cada llamada decidiera su propio origen, la de
+ * distritos podria decidir antes de que la de salud terminara.
+ */
+let negociacion = null
+
+function resolverOrigen() {
+  if (!negociacion) negociacion = negociar()
+  return negociacion
+}
+
+async function negociar() {
+  try {
+    const respuesta = await fetch(`${RUTA_API}/salud`, {
+      signal: AbortSignal.timeout(LIMITE_MS),
+    })
+    if (!respuesta.ok) {
+      throw new Error(`la API respondio ${respuesta.status}`)
+    }
+    return { origen: ORIGEN_API, salud: await respuesta.json(), motivo: null }
+  } catch (causa) {
+    // Que la API no este no es un error del visor: es el escenario que la
+    // historia pide sostener. Se cae al respaldo y se DECLARA por que.
+    const salud = await leerJson(RESPALDO.salud, 'estado del sistema')
+    return { origen: ORIGEN_ESTATICO, salud, motivo: causa.message }
+  }
+}
 
 async function leerJson(ruta, queEs) {
   let respuesta
@@ -35,21 +111,111 @@ async function leerJson(ruta, queEs) {
 }
 
 /**
- * Estado de la fuente de datos. El visor lo consulta al arrancar para saber si
- * tiene que mostrar el aviso de modo simulado.
+ * El dia de hoy en hora local, no en UTC.
+ *
+ * `toISOString()` devuelve UTC. Costa Rica es UTC-6, asi que a partir de las 18:00
+ * el visor pediria el riesgo de manana, todas las noches, y la API no tendria nada
+ * que devolver.
+ */
+function fechaDeHoy() {
+  const ahora = new Date()
+  const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+  const dia = String(ahora.getDate()).padStart(2, '0')
+  return `${ahora.getFullYear()}-${mes}-${dia}`
+}
+
+// --------------------------------------------------------------------------- //
+// Traduccion de la forma de la API a la que esperan los componentes             //
+// --------------------------------------------------------------------------- //
+
+/**
+ * `list[Distrito]` a FeatureCollection.
+ *
+ * No se agrega `geometria_simulada`, que el archivo estatico si trae. La API no
+ * dice si la geometria es de marcador de posicion, y deducirlo del modo seria
+ * inventar un dato que nadie afirmo. Ningun componente lo lee.
+ */
+function aColeccion(distritos) {
+  return {
+    type: 'FeatureCollection',
+    name: 'distritos_tilaran',
+    features: distritos.map((distrito) => ({
+      type: 'Feature',
+      geometry: distrito.geometria,
+      properties: {
+        codigo: distrito.codigo,
+        nombre: distrito.nombre,
+        area_km2: distrito.area_km2,
+        // null sigue siendo null. Un distrito sin dato censal no tiene cero
+        // habitantes: no se sabe cuantos. Es la regla D-07.
+        poblacion: distrito.poblacion,
+      },
+    })),
+  }
+}
+
+/**
+ * `list[Riesgo]` al paquete indexado por codigo que consumen los componentes.
+ *
+ * Los distritos que la API no devuelve se completan con una entrada explicita sin
+ * estimacion. La API solo manda los que tienen: con el simulado siempre son los
+ * ocho, pero con datos reales van a faltar, y un distrito ausente del mapa no lo
+ * contaria la leyenda. Ocho distritos sin estimacion tienen que verse como ocho
+ * sin estimacion, no como una pantalla a medio cargar.
+ */
+function aPaquete(lista, evento, fecha, codigosConocidos, simulado) {
+  const riesgos = {}
+  for (const codigo of codigosConocidos) {
+    riesgos[codigo] = { nivel: null, probabilidad: null, algoritmo: null, version_modelo: null }
+  }
+  for (const riesgo of lista) {
+    riesgos[riesgo.codigo_distrito] = riesgo
+  }
+
+  return { tipo_evento: evento, fecha, simulado, riesgos }
+}
+
+// --------------------------------------------------------------------------- //
+// Lo que consume App.jsx. Estas tres firmas no cambiaron.                       //
+// --------------------------------------------------------------------------- //
+
+/**
+ * Estado de la fuente de datos, mas de donde llego.
+ *
+ * `modo` dice QUE son los datos: simulado o real. Lo decide la API segun que
+ * implementacion del repositorio respondio, asi que no puede mentir.
+ *
+ * `origen` dice POR DONDE llegaron: la API o el respaldo estatico. Son dos ejes
+ * distintos y hay que declararlos por separado, porque el dia que la API sirva
+ * dato real y se caiga, el respaldo servira dato simulado viejo. Ese es el caso
+ * peligroso, y con un solo campo se veria igual que el normal.
  */
 export async function obtenerSalud() {
-  return leerJson(ORIGEN_SALUD, 'estado del sistema')
+  const { origen, salud, motivo } = await resolverOrigen()
+  return { ...salud, origen, motivo_respaldo: motivo }
 }
 
 /**
  * Los ocho distritos del canton como FeatureCollection listo para Leaflet.
  *
- * No se normaliza ni se completa nada: lo que el origen no trae, no se inventa.
- * Si `poblacion` viene null, sigue siendo null al llegar al componente.
+ * Memorizado: el territorio no cambia durante una sesion, y `obtenerRiesgos` lo
+ * necesita para saber que codigos completar. Memorizarlo evita una segunda
+ * peticion y evita una carrera entre los dos efectos de App.jsx.
  */
-export async function obtenerDistritos() {
-  const coleccion = await leerJson(ORIGEN_DISTRITOS, 'los distritos')
+let coleccionEnCurso = null
+
+export function obtenerDistritos() {
+  if (!coleccionEnCurso) coleccionEnCurso = pedirDistritos()
+  return coleccionEnCurso
+}
+
+async function pedirDistritos() {
+  const { origen } = await resolverOrigen()
+
+  const coleccion =
+    origen === ORIGEN_API
+      ? aColeccion(await leerJson(`${RUTA_API}/distritos`, 'los distritos'))
+      : await leerJson(RESPALDO.distritos, 'los distritos')
 
   if (coleccion?.type !== 'FeatureCollection' || !Array.isArray(coleccion.features)) {
     throw new Error('El origen de los distritos no devolvio un FeatureCollection valido.')
@@ -65,19 +231,42 @@ export async function obtenerDistritos() {
 /**
  * Riesgo de un tipo de evento para todos los distritos.
  *
- * Devuelve el paquete completo, no solo el mapa de riesgos, porque trae la
- * fecha y la marca de simulado que el visor necesita declarar en pantalla.
+ * Devuelve el paquete completo, no solo el mapa de riesgos, porque trae la fecha y
+ * la marca de simulado que el visor necesita declarar en pantalla.
  *
- * Un distrito puede venir con `nivel` en null: el contrato lo permite mientras
- * no exista un modelo entrenado. Eso no se corrige aca, se muestra como
- * ausencia de estimacion.
+ * Contra la API se pide el dia de hoy. Si no hay estimacion para hoy, los ocho
+ * distritos quedan sin estimacion y asi se muestra: no se cae hacia atras a una
+ * fecha anterior. Ensenar la estimacion de ayer rotulada como la de hoy es un dato
+ * con forma valida y contenido falso, que es como empezo la incidencia I-04.
+ *
+ * Un distrito puede venir con `nivel` en null: el contrato lo permite mientras no
+ * exista un modelo entrenado. Eso no se corrige aca, se muestra como ausencia de
+ * estimacion.
  */
 export async function obtenerRiesgos(evento) {
-  const paquete = await leerJson(ORIGEN_RIESGOS(evento), `los riesgos de ${evento}`)
+  const { origen, salud } = await resolverOrigen()
 
-  if (!paquete?.riesgos || typeof paquete.riesgos !== 'object') {
-    throw new Error(`El origen de los riesgos de ${evento} no devolvio un mapa de riesgos.`)
+  if (origen !== ORIGEN_API) {
+    const paquete = await leerJson(RESPALDO.riesgos(evento), `los riesgos de ${evento}`)
+    if (!paquete?.riesgos || typeof paquete.riesgos !== 'object') {
+      throw new Error(`El origen de los riesgos de ${evento} no devolvio un mapa de riesgos.`)
+    }
+    return paquete
   }
 
-  return paquete
+  const fecha = fechaDeHoy()
+  const consulta = new URLSearchParams({ fecha, tipo_evento: evento })
+  const lista = await leerJson(`${RUTA_API}/riesgos?${consulta}`, `los riesgos de ${evento}`)
+
+  if (!Array.isArray(lista)) {
+    throw new Error(`El origen de los riesgos de ${evento} no devolvio una lista.`)
+  }
+
+  const coleccion = await obtenerDistritos()
+  const codigos = coleccion.features.map((rasgo) => rasgo.properties.codigo)
+
+  // `simulado` se DERIVA de /salud en vez de leerse escrito dentro del paquete.
+  // El archivo estatico lo trae en duro como true, y ese true seguiria diciendo
+  // true el dia que los datos fueran reales.
+  return aPaquete(lista, evento, fecha, codigos, salud.modo === 'simulado')
 }

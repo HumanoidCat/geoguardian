@@ -18,4 +18,4 @@ nadie quede bloqueado esperando codigo ajeno.
 #         Defecto detectado por Cesar contra el WFS del SNIT. Ver incidencia I-04.
 # 1.1.0 · Tercer tipo de evento: lluvia intensa.
 # 1.0.0 · Contratos iniciales.
-VERSION_CONTRATOS = "1.3.0"
+VERSION_CONTRATOS = "1.3.1"
