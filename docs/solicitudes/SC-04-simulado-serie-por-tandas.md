@@ -8,7 +8,8 @@
 **Módulos que lo consumen.** `backend/api` (H6.1), `backend/senales` (H2.5 de
 Luna), `backend/modelado` (H3.0), `backend/calidad`
 **Fecha.** 2026-08-20
-**Estado.** Pendiente de aprobación
+**Estado.** **Aprobada** por César el 2026-08-20. Integrada en contratos **v1.3.3**.
+Ver la resolución al final: su revisión encontró un quinto sitio.
 
 ---
 
@@ -106,8 +107,9 @@ distinción que D-22 usó para no cerrar H1.4, y ahora el simulado la respeta.
 
 ## Versión
 
-**v1.3.2.** Cambio de comportamiento de un simulado, sin cambio de forma ni de
-firma. Ningún consumidor tiene que adaptarse.
+**v1.3.2** al proponerse. Quedó en **v1.3.3** al integrarse, porque la revisión de
+César encontró un quinto sitio. Cambio de comportamiento de un simulado, sin cambio
+de forma ni de firma: ningún consumidor tiene que adaptarse.
 
 ---
 
@@ -121,7 +123,8 @@ antes:
 - Contar focos en dos tramos da lo mismo que en uno.
 - Los índices derivados coinciden entre instancias.
 
-Total del verificador: **40 comprobaciones**.
+Total del verificador al proponerse: **40 comprobaciones**. Quedó en **44** con
+las cuatro que agregó el quinto sitio.
 
 ## Lo que queda pendiente, y es de César
 
