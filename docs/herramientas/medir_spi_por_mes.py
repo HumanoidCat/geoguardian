@@ -1,12 +1,23 @@
 """
 Mide cuanto se desvia el SPI de ajuste unico respecto del SPI por mes calendario.
 
-Por que existe: la firma del contrato `spi(precipitacion, ventana_meses)` no
-recibe fechas, asi que la implementacion de H2.3 ajusta una sola distribucion
-gamma para toda la serie. El SPI de McKee ajusta una por mes calendario.
+Por que existe: se escribio para sostener la solicitud de cambio SC-02, cuando
+la firma del contrato no recibia fechas y el ajuste solo podia ser unico para
+toda la serie.
 
-Esta herramienta cuantifica la diferencia en vez de argumentarla, para que la
-solicitud de cambio de contrato se apoye en numeros y no en una opinion.
+**SC-02 fue aprobada.** El contrato v1.3.0 incorpora el parametro `meses` por
+la decision D-19, y `backend/senales/spi.py` ya hace el ajuste por mes
+calendario. La herramienta se conserva porque sigue cumpliendo dos funciones:
+
+1. **Cuantifica lo que se gana**, comparando las dos formas de llamar al mismo
+   codigo. Sirve de regresion: si alguien rompiera el ajuste por mes, las dos
+   salidas volverian a parecerse.
+2. **Es la evidencia de la decision.** D-19 se tomo con estos numeros y conviene
+   que sigan siendo reproducibles.
+
+Las dos salidas provienen de la misma implementacion, la de
+`backend/senales/spi.py`. Esta herramienta ya no tiene su propia copia de la
+logica: lo que mide es el codigo que se entrega.
 
 La serie es sintetica y reproduce el regimen del Pacifico Norte de Costa Rica:
 estacion seca marcada de diciembre a abril y maximos en setiembre y octubre. No
@@ -24,12 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from backend.senales.spi import (  # noqa: E402
-    CalculadorSPI,
-    _a_normal_estandar,
-    acumular,
-    ajustar_gamma,
-)
+from backend.senales.spi import CalculadorSPI  # noqa: E402
 
 SEMILLA = 20260818
 ANIOS = 35
@@ -58,36 +64,6 @@ def generar_serie(anios: int = ANIOS) -> tuple[list[float | None], list[int]]:
     return serie, meses
 
 
-def spi_por_mes(
-    precipitacion: list[float | None],
-    meses: list[int],
-    ventana: int,
-) -> list[float | None]:
-    """
-    SPI de McKee: una gamma por mes calendario.
-
-    Es lo que la implementacion de H2.3 no puede hacer con la firma actual del
-    contrato. Se escribe aqui, fuera de backend/, solo para medir la diferencia.
-    """
-    acumulados = acumular(precipitacion, ventana)
-    salida: list[float | None] = [None] * len(precipitacion)
-
-    for mes in range(1, 13):
-        posiciones = [i for i, m in enumerate(meses) if m == mes and acumulados[i] is not None]
-        muestra = [acumulados[i] for i in posiciones]
-        if len(muestra) < 4:
-            continue
-
-        forma, escala, prob_cero = ajustar_gamma(muestra)  # type: ignore[arg-type]
-        if forma is None:
-            continue
-
-        for i in posiciones:
-            salida[i] = _a_normal_estandar(acumulados[i], forma, escala, prob_cero)  # type: ignore[arg-type]
-
-    return salida
-
-
 def _promedio(valores: list[float]) -> float:
     return sum(valores) / len(valores) if valores else float("nan")
 
@@ -95,8 +71,13 @@ def _promedio(valores: list[float]) -> float:
 def main() -> int:
     serie, meses = generar_serie()
 
-    unico = CalculadorSPI().spi(serie, VENTANA)
-    por_mes = spi_por_mes(serie, meses, VENTANA)
+    # Las dos salidas provienen de la MISMA implementacion, la de
+    # backend/senales/spi.py. Desde D-19 el ajuste por mes vive alli y esta
+    # herramienta ya no necesita su propia copia: lo que se mide es el codigo
+    # que se entrega, no una reimplementacion parecida.
+    calculador = CalculadorSPI()
+    unico = calculador.spi(serie, VENTANA)
+    por_mes = calculador.spi(serie, VENTANA, meses)
 
     comunes = [i for i in range(len(serie)) if unico[i] is not None and por_mes[i] is not None]
 

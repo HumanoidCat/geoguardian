@@ -35,6 +35,45 @@ def serie_larga() -> list[float | None]:
     return [round(rnd.gammavariate(2.0, 50.0), 1) for _ in range(420)]
 
 
+# Media mensual del regimen del Pacifico Norte, enero a diciembre. Estacion
+# seca de diciembre a abril, maximos en setiembre y octubre.
+MEDIA_MENSUAL = [8, 5, 6, 30, 190, 230, 160, 190, 300, 320, 110, 25]
+MESES_SECOS = {12, 1, 2, 3, 4}
+
+
+@pytest.fixture
+def serie_estacional() -> tuple[list[float | None], list[int]]:
+    """
+    35 anios con estacion seca marcada, y el mes calendario de cada posicion.
+
+    Es la serie con la que se demuestra el problema que D-19 resuelve: sin el
+    parametro `meses`, el SPI de esta serie sigue la estacionalidad.
+    """
+    rnd = random.Random(SEMILLA)
+    serie: list[float | None] = []
+    meses: list[int] = []
+
+    for _ in range(35):
+        for mes in range(12):
+            media = MEDIA_MENSUAL[mes]
+            serie.append(round(rnd.gammavariate(2.0, media / 2.0), 1))
+            meses.append(mes + 1)
+
+    return serie, meses
+
+
+def _media_por_estacion(
+    salida: list[float | None],
+    meses: list[int],
+) -> tuple[float, float]:
+    """Devuelve (media en estacion seca, media en estacion lluviosa)."""
+    secos = [v for v, m in zip(salida, meses, strict=True) if v is not None and m in MESES_SECOS]
+    lluviosos = [
+        v for v, m in zip(salida, meses, strict=True) if v is not None and m not in MESES_SECOS
+    ]
+    return sum(secos) / len(secos), sum(lluviosos) / len(lluviosos)
+
+
 # --------------------------------------------------------------------------- #
 # Forma del resultado: obligatorio en las dos implementaciones                  #
 # --------------------------------------------------------------------------- #
@@ -162,6 +201,132 @@ def test_spi_admite_meses_de_cero(serie_larga):
     salida = CalculadorSPI().spi(serie, 1)
 
     assert any(v is not None for v in salida)
+
+
+# --------------------------------------------------------------------------- #
+# Ajuste por mes calendario (D-19)                                              #
+# --------------------------------------------------------------------------- #
+
+
+def test_con_meses_desaparece_el_sesgo_estacional(serie_estacional):
+    """
+    Lo que D-19 existe para resolver, comprobado.
+
+    Un indice de anomalia debe rondar cero en las dos estaciones. Sin `meses`,
+    sobre esta misma serie, la media era -0,84 en estacion seca y +0,60 en
+    lluviosa: el indice seguia el calendario. Con el ajuste por mes ambas deben
+    quedar cerca de cero.
+    """
+    serie, meses = serie_estacional
+
+    salida = CalculadorSPI().spi(serie, 3, meses)
+    media_seca, media_lluviosa = _media_por_estacion(salida, meses)
+
+    assert abs(media_seca) < 0.15
+    assert abs(media_lluviosa) < 0.15
+
+
+def test_sin_meses_el_indice_sigue_la_estacionalidad(serie_estacional):
+    """
+    El comportamiento sin `meses` se congela como prueba, no se deja implicito.
+
+    No es una prueba de que el modulo funcione bien: es una prueba de que el
+    problema que motivo D-19 existe y es grande. Si alguna vez esta prueba
+    empieza a fallar porque las medias se acercan a cero, significa que el
+    ajuste unico cambio de comportamiento y hay que revisar por que.
+    """
+    serie, meses = serie_estacional
+
+    salida = CalculadorSPI().spi(serie, 3)
+    media_seca, media_lluviosa = _media_por_estacion(salida, meses)
+
+    assert media_seca < -0.5
+    assert media_lluviosa > 0.3
+
+
+def test_sin_meses_se_advierte_por_registro(serie_estacional, caplog):
+    """
+    El contrato v1.3.0 exige documentar que el resultado no es un SPI de
+    anomalia cuando `meses` llega en None. Se hace por registro, no solo en el
+    docstring, para que quede en la salida de quien lo ejecuta.
+    """
+    serie, _ = serie_estacional
+
+    with caplog.at_level("WARNING"):
+        CalculadorSPI().spi(serie, 3)
+
+    assert "no es un indice de anomalia" in caplog.text.lower()
+
+
+def test_con_meses_no_se_advierte(serie_estacional, caplog):
+    serie, meses = serie_estacional
+
+    with caplog.at_level("WARNING"):
+        CalculadorSPI().spi(serie, 3, meses)
+
+    assert "no es un indice de anomalia" not in caplog.text.lower()
+
+
+def test_meses_de_largo_distinto_es_error(serie_larga):
+    """
+    Asignar el mes por posicion supondria que la serie empieza en enero y no
+    tiene meses ausentes. Esa suposicion no esta en el contrato.
+    """
+    with pytest.raises(ValueError, match="empieza en enero"):
+        CalculadorSPI().spi(serie_larga, 3, [1, 2, 3])
+
+
+def test_meses_fuera_de_rango_es_error(serie_estacional):
+    serie, meses = serie_estacional
+    meses_malos = list(meses)
+    meses_malos[0] = 13
+
+    with pytest.raises(ValueError, match="entre 1 y 12"):
+        CalculadorSPI().spi(serie, 3, meses_malos)
+
+
+def test_un_mes_sin_muestra_suficiente_sale_none():
+    """
+    Un mes con pocos datos no se ajusta, y **no** se recurre a la distribucion
+    conjunta como respaldo: eso reintroduciria en ese mes exactamente el sesgo
+    que el ajuste por mes elimina, y de forma invisible.
+    """
+    # Diez anios completos, salvo que solo hay dos eneros con dato.
+    serie: list[float | None] = []
+    meses: list[int] = []
+    rnd = random.Random(SEMILLA)
+
+    for anio in range(10):
+        for mes in range(1, 13):
+            hay_dato = mes != 1 or anio < 2
+            serie.append(round(rnd.gammavariate(2.0, 50.0), 1) if hay_dato else None)
+            meses.append(mes)
+
+    salida = CalculadorSPI().spi(serie, 1, meses)
+
+    eneros = [v for v, m in zip(salida, meses, strict=True) if m == 1]
+    febreros = [v for v, m in zip(salida, meses, strict=True) if m == 2]
+
+    assert all(v is None for v in eneros)
+    assert any(v is not None for v in febreros)
+
+
+def test_el_ajuste_por_mes_conserva_la_monotonia(serie_estacional):
+    """Dentro de un mismo mes, mas lluvia nunca puede dar un SPI menor."""
+    serie, meses = serie_estacional
+
+    salida = CalculadorSPI().spi(serie, 3, meses)
+    acumulados = acumular(serie, 3)
+
+    pares = [
+        (a, s)
+        for a, s, m in zip(acumulados, salida, meses, strict=True)
+        if m == 9 and a is not None and s is not None
+    ]
+    pares.sort()
+
+    for (_, menor), (_, mayor) in zip(pares, pares[1:], strict=False):
+        assert mayor >= menor - 1e-9
 
 
 # --------------------------------------------------------------------------- #
