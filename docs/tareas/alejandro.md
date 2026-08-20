@@ -119,6 +119,17 @@
 - [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
+- [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2**
+  - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
+    publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
+    espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite
+    Municipal de H9.2 eso obliga a llevar la maquina.
+  - Es barata porque **H6.6 la dejo posible sin querer**: la degradacion al
+    respaldo estatico hace que `npm run build` produzca algo que funciona solo,
+    sin API ni base. Ver D-23.
+  - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
+
 
 ## Sprint 4 (semanas 10-11) — 52.8 h
 

@@ -493,6 +493,30 @@ quedan publicadas para repetirlas sobre los datos reales.
 La validación con el Comité Municipal de Emergencias y el cálculo del puntaje SUS
 no se han realizado.
 
+### F. El sistema no está publicado, y esa es la limitación más grande
+
+GeoGuardian se desplegó sobre Kubernetes local con k3d, según la decisión D-05: el
+curso exige orquestación de contenedores y tres entornos, y operar un clúster
+gestionado excedía el presupuesto del equipo. La decisión se cumple —los tres
+entornos existen y funcionan— pero **"producción" es un espacio de nombres dentro
+de un clúster que corre en una computadora del equipo.** No hay dominio ni acceso
+externo.
+
+La consecuencia es de fondo y no de infraestructura. Un sistema cuyo propósito es
+que un comité de emergencias consulte el riesgo del día **no cumple ese propósito
+si la única forma de consultarlo es que alguien lleve una computadora.** La
+arquitectura no es el obstáculo: la API no guarda estado, la ingesta es idempotente
+y el visor llega a la API por una ruta relativa justamente para funcionar detrás de
+cualquier servidor (D-23). El obstáculo es el tiempo y el costo de operación dentro
+de un trimestre.
+
+Dentro del alcance se publica el visor como sitio estático con los datos declarados
+como simulados, que es posible sin backend por la degradación que introdujo D-23.
+Queda como trabajo futuro, en este orden: publicar la API y la base, automatizar la
+ingesta diaria, y solo entonces retirar el aviso de simulación. Los tres pasos
+dependen de que exista un modelo entrenado; publicar antes sería publicar un mapa
+que no estima nada.
+
 ---
 
 ## IX. Conclusiones
