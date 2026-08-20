@@ -3,7 +3,7 @@
 **Proyecto:** GeoGuardian — estimación del riesgo climático por distrito en el
 cantón de Tilarán, Costa Rica
 **Historia:** H10.4 · **Rúbrica:** MVP · **Responsable:** Alejandro
-**Estado del sistema al 18 de agosto de 2026**
+**Estado del sistema al 20 de agosto de 2026**
 
 Este manual está escrito para alguien que **no participó en el desarrollo**: un
 evaluador, un profesor, o quien tenga que mantener el sistema el próximo
@@ -32,15 +32,21 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
-| Procesamiento de señales: filtrado, SPI y percentiles de lluvia intensa | Funciona, con 57 pruebas |
+| Procesamiento de señales: filtrado, SPI y percentiles de lluvia intensa | Funciona, con 65 pruebas |
+| **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos | Funciona |
+| **API REST** con OpenAPI y los esquemas del contrato | Funciona |
+| Roles de base de datos con mínimo privilegio, verificando las denegaciones | Funciona |
 
-**Lo que todavía no existe.** Los extractores de datos climáticos y de focos de
-calor, el módulo de modelado y la API REST. Sus carpetas están creadas y
-reservadas, pero vacías. El visor consume datos **simulados**, y lo declara con una
-banda permanente en pantalla.
+**Lo que todavía no existe.** El extractor de focos de calor y el módulo de
+modelado. Sus carpetas están creadas y reservadas, pero vacías.
 
-El módulo de señales sí existe y está probado, pero **todavía no ha corrido sobre
-datos reales**: sus pruebas usan los simulados, porque H1.1 sigue abierta. Es la
+**El visor sigue consumiendo datos simulados**, y lo declara con una banda
+permanente en pantalla. La API ya existe, pero el visor todavía no la consume: es
+la historia H6.6.
+
+El módulo de señales existe y está probado, pero **sus pruebas corren contra los
+simulados**. Ahora que hay series reales cargadas, hay que volver a correrlas sobre
+ellas: una serie real tiene patrones distintos de los del simulado. Es la
 diferencia entre "funciona" y "produce resultados del cantón", y conviene no
 confundirlas.
 
@@ -191,8 +197,8 @@ npm run dev
 
 Queda en `http://localhost:5173`.
 
-El visor **no consume la API**, que todavía no existe: lee archivos JSON generados
-a partir de los simulados. El exportador solo lee `contratos/` y escribe dentro de
+El visor **todavía no consume la API**, aunque la API ya exista: lee archivos JSON
+generados a partir de los simulados. Cambiarlo es la historia H6.6. El exportador solo lee `contratos/` y escribe dentro de
 `frontend/public/`. La decisión está registrada como D-14.
 
 ---
@@ -421,7 +427,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 20 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 22 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

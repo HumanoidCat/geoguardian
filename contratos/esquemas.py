@@ -112,6 +112,20 @@ class Riesgo(_Base):
     `probabilidad` y `explicacion` son None mientras no exista un modelo
     entrenado. Un riesgo sin modelo detras no se rellena con un valor plausible:
     se devuelve nulo y el frontend lo muestra como no disponible.
+
+    **`probabilidad` es P(nivel = alto)**, la probabilidad que el modelo asigna a
+    la clase mas severa del evento, con independencia de cual sea el `nivel`
+    devuelto. Decision **D-21**.
+
+    NO es la confianza del modelo en la clase que asigno. Un distrito con `nivel`
+    bajo y `probabilidad` 0,05 esta diciendo que el modelo lo ve tranquilo, no que
+    este poco seguro.
+
+    El motivo es el orden: con la confianza, un distrito tranquilo con el modelo
+    seguro puntuaria mas alto que uno en riesgo con el modelo dudando, y el mapa
+    de calor pintaria mas intenso al equivocado. Con P(nivel = alto) el campo es
+    monotono en el riesgo, comparable entre distritos y entre eventos, y sirve
+    como umbral continuo.
     """
 
     codigo_distrito: str

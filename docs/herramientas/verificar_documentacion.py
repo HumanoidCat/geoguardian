@@ -229,15 +229,12 @@ AFIRMACIONES = [
     ),
 ]
 
-# El avance escrito en docs/08-backlog.md. Se agrego el 18 de agosto: el archivo
-# declara cuantas historias van cerradas y nada lo comprobaba.
-AFIRMACIONES.append(
-    Afirmacion(
-        "historias cerradas",
-        historias_cerradas,
-        [("docs/08-backlog.md", r"\*\*(\d+) historias cerradas de")],
-    )
-)
+# El avance ya NO se comprueba aqui: se saco de docs/08-backlog.md el 20 de
+# agosto. Era una cifra derivada que cambia cada vez que alguien cierra una
+# historia, y ponerla bajo verificacion obligatoria hacia que el CI se rompiera
+# para quien no la habia tocado. Ver la incidencia I-07.
+#
+# La imprime `verificar_estado.py`, que corre en el mismo trabajo del CI.
 
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
 # mano al redactar: la herramienta las imprime para que nadie las cuente a mano.
