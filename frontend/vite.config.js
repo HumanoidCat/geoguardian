@@ -23,6 +23,13 @@ import react from '@vitejs/plugin-react'
  * Si la API no esta levantada, el proxy responde con error y cliente.js cae al
  * respaldo estatico declarandolo. Eso es lo que pide el criterio CA-3 de H6.6.
  *
+ * El destino va escrito y no leido de `process.env`: el `eslint.config.js` de
+ * Avril aplica los globales del NAVEGADOR a todos los `.js`, asi que `process`
+ * es `no-undef` y el trabajo de frontend del CI sale en rojo. Arreglarlo del
+ * lado del linter significaria tocar su archivo, que esta fuera de la excepcion
+ * de H6.6. Y no hace falta: para apuntar a otra maquina esta `VITE_API_URL`,
+ * que Vite si expone al visor.
+ *
  * https://vite.dev/config/
  */
 export default defineConfig({
@@ -30,7 +37,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.API_URL ?? 'http://localhost:8000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (ruta) => ruta.replace(/^\/api/, ''),
       },

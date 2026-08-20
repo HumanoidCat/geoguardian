@@ -488,3 +488,66 @@ La regla que se agrega:
 
 > De un simulado hay que comprobar tambien lo que promete su docstring. Si dice
 > "deterministas", hay una comprobacion que lo llama dos veces y compara.
+
+---
+
+## I-09 · La mitad de los commits del Lead PM no quedaron atribuidos a su cuenta
+
+**Fecha.** 2026-08-20
+
+**Quien lo detecto.** Alejandro, al ver en el Pull Request de H6.6 un commit suyo
+sin su foto de perfil.
+
+**Que paso.** El repositorio tenia **dos identidades distintas para la misma
+persona**:
+
+| Nombre en Git | Correo | Commits | De donde salen |
+|---|---|---|---|
+| `humanoidcat` | alejo**.**rz93@gmail.com | 42 | `git commit` desde la maquina |
+| `Alejandro` | alejo**rz.**93@icloud.com | 39 | Merges hechos desde la web de GitHub |
+
+La cuenta de GitHub `HumanoidCat`, que es la dueña del repositorio, tiene
+verificado **el de iCloud**. El de Gmail no le pertenece a esa cuenta.
+
+Consecuencia: **42 de los 81 commits del Lead PM no estan vinculados a su
+perfil.** GitHub los muestra con avatar generico y no los cuenta en el grafico de
+contribuciones. Con la calificacion individual saliendo del historial, es una
+perdida de trazabilidad, no un detalle cosmetico.
+
+**Causa raiz.** La configuracion global de Git de la maquina quedo con el correo
+de Gmail. Nadie contrasto esa configuracion contra la cuenta que es dueña del
+repositorio, y el contraste es **un solo comando**:
+
+    git log --format='%an <%ae>' | sort -u
+
+Los dos correos se leen casi identicos —el punto cae en distinto lugar— y esa
+semejanza es la que dejo pasar el error durante 42 commits.
+
+**Accion tomada.** Identidad fijada **a nivel del repositorio**, que gana sobre la
+global:
+
+    git config --local user.name  "humanoidcat"
+    git config --local user.email "alejorz.93@icloud.com"
+
+Se elige el ambito local a proposito: arregla este repositorio sin depender de que
+la configuracion global de la maquina este bien, y sobrevive a que alguien la
+cambie.
+
+**Los 42 commits anteriores se quedan como estan.** Reescribir el autor exige
+reescribir los identificadores de todos los commits posteriores y forzar el
+empuje, lo que romperia las copias de las otras tres personas en mitad del Sprint
+2. El costo supera al beneficio. La alternativa sin reescritura seria agregar el
+correo de Gmail como secundario verificado en la cuenta de GitHub, que atribuiria
+los 42 de forma retroactiva; se descarta porque esa direccion no pertenece a la
+cuenta y agregarla resolveria el sintoma ensuciando la identidad.
+
+**Aprendizaje.** La identidad con la que se firma el trabajo es parte de la
+trazabilidad del proyecto y nadie la estaba comprobando. Es el mismo patron de
+I-04: un dato con forma valida y contenido equivocado, que ninguna validacion
+automatica detecta porque la forma esta bien.
+
+La regla que se agrega:
+
+> Al clonar el repositorio, cada quien fija `user.name` y `user.email` **locales**
+> y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
+> mirando que el commit propio salga con la foto de perfil en el Pull Request.

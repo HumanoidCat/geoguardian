@@ -116,6 +116,34 @@ cd geoguardian
 git checkout dev
 ```
 
+### 4.1. Fijá tu identidad en este repositorio
+
+Con **el correo que tenés verificado en tu cuenta de GitHub**, no cualquiera:
+
+```powershell
+git config --local user.name  "tu-usuario-de-github"
+git config --local user.email "el-correo-de-tu-cuenta@ejemplo.com"
+```
+
+**Comprobalo antes de seguir.** Estas dos líneas tienen que devolver lo mismo:
+
+```powershell
+git config --local user.email
+gh api user/emails --jq '.[] | select(.primary) | .email'
+```
+
+**Por qué importa.** Si el correo no está verificado en tu cuenta, GitHub no puede
+vincular tus commits a tu perfil: salen con avatar genérico y **no cuentan en tu
+gráfico de contribuciones**. La calificación individual sale del historial, así que
+es trazabilidad perdida, no un detalle visual.
+
+Pasó de verdad: 42 commits del Lead PM quedaron sin atribuir porque su
+configuración global tenía otro correo suyo, casi idéntico al bueno. Ver la
+incidencia **I-09**.
+
+Se usa `--local` y no `--global` a propósito: arregla este repositorio sin depender
+de cómo esté configurada la máquina para todo lo demás.
+
 ## 5. Configurar el entorno
 
 ```powershell
