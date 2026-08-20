@@ -27,9 +27,12 @@ LIMITACION CONOCIDA: el ajuste no es por mes calendario. Ver la nota extensa en
 
 from __future__ import annotations
 
+import logging
 import math
 
 from scipy.stats import gamma, norm
+
+log = logging.getLogger(__name__)
 
 # La OMM recomienda al menos 30 anios de registro para un SPI estable. Por
 # debajo de esto el ajuste existe pero sus colas no son confiables, y es
@@ -51,6 +54,7 @@ class CalculadorSPI:
         self,
         precipitacion: list[float | None],
         ventana_meses: int,
+        meses: list[int] | None = None,
     ) -> list[float | None]:
         """
         Indice de Precipitacion Estandarizado por convolucion de ventana movil.
@@ -61,6 +65,11 @@ class CalculadorSPI:
                 (D-17).
             ventana_meses: 1 para SPI-1, 3 para SPI-3. El proyecto usa SPI-3
                 para el umbral de sequia de `contratos/enums.py`.
+            meses: mes calendario de cada posicion, de 1 a 12. **Con este dato
+                la gamma se ajusta por separado para cada mes del anio**, que es
+                lo que convierte al SPI en un indice de anomalia (D-19). Sin el,
+                el ajuste es unico y el indice sigue la estacionalidad: ver la
+                advertencia que se registra en ese caso.
 
         Returns:
             Una lista del mismo largo que la entrada. Las primeras
@@ -68,9 +77,14 @@ class CalculadorSPI:
             suficiente para calcularlas, y no se rellenan con ceros: un cero es
             un valor de sequia neutra que nadie calculo.
 
+            Una posicion cuyo mes no reune muestra suficiente sale None, aunque
+            su acumulado exista. Es preferible a mezclarla con la distribucion
+            de otros meses.
+
         Raises:
-            ValueError: si `ventana_meses` es menor que 1, o si algun valor de
-                precipitacion es negativo.
+            ValueError: si `ventana_meses` es menor que 1, si algun valor de
+                precipitacion es negativo, o si `meses` no tiene el mismo largo
+                que la serie o contiene valores fuera de 1 a 12.
         """
         if ventana_meses < 1:
             raise ValueError(f"La ventana debe ser al menos 1 mes, se recibio {ventana_meses}")
@@ -84,22 +98,102 @@ class CalculadorSPI:
                 "decision D-17 prohibe filtrar precipitacion, justamente por esto."
             )
 
+        if meses is not None:
+            _validar_meses(meses, len(precipitacion))
+
         acumulados = acumular(precipitacion, ventana_meses)
 
+        if meses is None:
+            log.warning(
+                "SPI calculado sin el parametro 'meses': el ajuste es unico para toda "
+                "la serie y el resultado NO es un indice de anomalia. En un clima con "
+                "estacion seca marcada sigue la estacionalidad: medido sobre 35 anios "
+                "sinteticos, los 99 meses declarados en sequia caian los 99 en estacion "
+                "seca. No usar para etiquetar la variable objetivo. Ver D-19 y "
+                "docs/investigacion/solicitud-cambio-spi-mes.md"
+            )
+            return self._ajuste_unico(acumulados, len(precipitacion))
+
+        return self._ajuste_por_mes(acumulados, meses, len(precipitacion))
+
+    # ----------------------------------------------------------------- internos
+
+    def _ajuste_unico(
+        self,
+        acumulados: list[float | None],
+        largo: int,
+    ) -> list[float | None]:
+        """Una sola gamma para toda la serie. Comportamiento previo a D-19."""
         muestra = [v for v in acumulados if v is not None]
         if len(muestra) < MINIMO_AJUSTE:
             # Sin muestra suficiente no se ajusta nada. Se devuelve todo None y
             # no ceros: la ausencia de resultado no es un resultado neutro.
-            return [None] * len(precipitacion)
+            return [None] * largo
 
         forma, escala, prob_cero = ajustar_gamma(muestra)
         if forma is None:
-            return [None] * len(precipitacion)
+            return [None] * largo
 
         return [
             None if v is None else _a_normal_estandar(v, forma, escala, prob_cero)
             for v in acumulados
         ]
+
+    def _ajuste_por_mes(
+        self,
+        acumulados: list[float | None],
+        meses: list[int],
+        largo: int,
+    ) -> list[float | None]:
+        """
+        Una gamma por mes calendario. Es el SPI de McKee (D-19).
+
+        Cada acumulado se compara contra la distribucion historica **de su
+        propio mes**: los eneros contra los eneros, los febreros contra los
+        febreros. Eso descuenta la estacionalidad y deja solo la anomalia.
+
+        Un mes con menos de `MINIMO_AJUSTE` acumulados no se ajusta y sus
+        posiciones salen None. No se recurre a la distribucion conjunta como
+        respaldo: eso reintroduciria en ese mes exactamente el sesgo que este
+        ajuste existe para eliminar, y lo haria de forma invisible.
+        """
+        salida: list[float | None] = [None] * largo
+
+        for mes in range(1, 13):
+            posiciones = [i for i in range(largo) if meses[i] == mes and acumulados[i] is not None]
+            muestra = [acumulados[i] for i in posiciones]
+
+            if len(muestra) < MINIMO_AJUSTE:
+                continue
+
+            forma, escala, prob_cero = ajustar_gamma(muestra)  # type: ignore[arg-type]
+            if forma is None:
+                continue
+
+            for i in posiciones:
+                salida[i] = _a_normal_estandar(
+                    acumulados[i],  # type: ignore[arg-type]
+                    forma,
+                    escala,
+                    prob_cero,
+                )
+
+        return salida
+
+
+def _validar_meses(meses: list[int], largo_serie: int) -> None:
+    """El mes de cada posicion debe existir y estar entre 1 y 12."""
+    if len(meses) != largo_serie:
+        raise ValueError(
+            f"'meses' tiene {len(meses)} elementos y la serie {largo_serie}. "
+            "Sin correspondencia uno a uno no se sabe a que mes pertenece cada "
+            "acumulado, y asignarlo por posicion seria suponer que la serie "
+            "empieza en enero y no tiene meses ausentes."
+        )
+
+    invalidos = sorted({m for m in meses if not 1 <= m <= 12})
+    if invalidos:
+        raise ValueError(f"Los meses deben estar entre 1 y 12; se recibieron {invalidos}")
 
 
 def acumular(serie: list[float | None], ventana: int) -> list[float | None]:
@@ -212,9 +306,35 @@ def _a_normal_estandar(
     cortas. El limite equivale a un SPI de aproximadamente +-3,7, mas alla del
     cual la clasificacion de sequia no distingue nada: los umbrales del
     proyecto estan en -1,0 y -1,5.
+
+    **El caso del acumulado cero, y una atribucion que hay que verificar.**
+
+    Con la distribucion mixta, en x = 0 se tiene G(0) = 0 y por lo tanto
+    H(0) = q. La lectura directa seria entonces `ppf(q)`.
+
+    Aqui se usa `ppf(q / 2)`, que es la variante de centro de masa: reparte la
+    masa de probabilidad de los ceros en lugar de acumularla toda en su extremo
+    superior, y evita la discontinuidad que produce usar q entre el ultimo cero
+    y el primer valor positivo.
+
+    **La eleccion se mantiene; lo que no esta resuelto es a quien se atribuye.**
+    Una version anterior de este archivo la atribuia a la OMM, lo cual es
+    incorrecto: WMO-No. 1090 plantea la distribucion mixta pero no se verifico
+    que recomiende la mitad. Se sugirio Stagge et al. (2015), *Candidate
+    Distributions for Climatological Drought Indices (SPI and SPEI)*, Int. J.
+    Climatology 35(13), 4027-4040, DOI 10.1002/joc.4267. Se confirmo que ese
+    articulo existe con esos datos, pero **no** que sea la fuente de esta
+    correccion en particular.
+
+    Queda pendiente confirmarlo contra el texto de una de las dos fuentes antes
+    de que la afirmacion pase al documento IEEE. Mientras tanto no se cita
+    ninguna: es preferible una decision sin atribucion a una atribucion falsa.
+
+    Con 35 anios y SPI-3 el efecto numerico entre `q` y `q / 2` es menor.
     """
     if acumulado <= 0:
-        probabilidad = prob_cero / 2  # convencion de la OMM para la masa en cero
+        # ATRIBUCION PENDIENTE DE VERIFICAR. Ver la nota de abajo.
+        probabilidad = prob_cero / 2
     else:
         probabilidad = prob_cero + (1 - prob_cero) * gamma.cdf(acumulado, forma, scale=escala)
 
