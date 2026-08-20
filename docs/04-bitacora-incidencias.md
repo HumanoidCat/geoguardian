@@ -551,3 +551,47 @@ La regla que se agrega:
 > Al clonar el repositorio, cada quien fija `user.name` y `user.email` **locales**
 > y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
 > mirando que el commit propio salga con la foto de perfil en el Pull Request.
+
+### Actualizacion del 2026-08-20: el arreglo estaba incompleto
+
+**Lo encontro Cesar al revisar SC-03**, comprobando lo que yo no comprobe: si el
+mismo defecto estaba en otro metodo. Estaba en tres.
+
+`obtener_mediciones`, `contar_focos` y `obtener_indices` sorteaban tambien contra
+el generador compartido. Y en mediciones el defecto tenia una forma peor:
+
+    Rango A: 1 al 5 de agosto.   Rango B: 3 al 7 de agosto.
+
+      2026-08-03:  A = 31.2   B = 30.6   DISTINTO
+      2026-08-04:  A = 27.2   B = 27.4   DISTINTO
+      2026-08-05:  A = 31.1   B = 27.8   DISTINTO
+
+**Un mismo dia con dos temperaturas segun por donde se lo pidiera.** Le habria
+pegado a H2.5, que trabaja sobre ventanas moviles, y el sintoma habria apuntado al
+algoritmo de Luna en vez de al simulado.
+
+Cesar encontro ademas un segundo defecto dentro del primero: los huecos salian de
+`i % 20 == 7`, la posicion dentro del rango pedido, no la fecha. Un mismo dia era
+hueco o no segun donde cayera en la consulta.
+
+Se corrige en **SC-04**, contratos **v1.3.2**, con cuatro comprobaciones nuevas.
+
+**Y una correccion al razonamiento de esta incidencia.** Decia que el defecto
+importaba porque *"un GET es idempotente por definicion"*. Es falso: la
+idempotencia de HTTP restringe el efecto sobre el servidor, no la representacion
+devuelta. Un `GET /hora-actual` es idempotente y responde distinto cada vez. El
+simulado viejo no violaba ninguna regla de HTTP.
+
+El argumento correcto es el de **sustituibilidad**, que ya estaba y es mas fuerte:
+el repositorio de H6.2 sera determinista porque lee filas guardadas, y eso es
+propiedad del repositorio, no del protocolo. Corregido en el docstring, en SC-03,
+en los criterios de H6.6 y en el verificador.
+
+**Aprendizaje, segunda parte.** El primero fue que de un simulado hay que comprobar
+lo que promete su docstring. El segundo es mio y sale de esta correccion:
+
+> **Arreglar el caso senalado no es arreglar el defecto.** Cuando aparece un
+> patron —un generador con estado usado donde hacia falta reproducibilidad— hay
+> que buscar todas sus apariciones antes de declarar el problema resuelto. SC-03
+> corrigio un sintoma y dio por cerrado el problema.
+

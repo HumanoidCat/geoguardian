@@ -219,7 +219,7 @@ Comprobá que todo está en su lugar:
 python -m contratos.verificar
 ```
 
-Tienen que pasar las **36 verificaciones**, y arriba debe decir **"Contratos version 1.3.1"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
+Tienen que pasar las **40 verificaciones**, y arriba debe decir **"Contratos version 1.3.2"**. Dos de ellas comprueban que los códigos de distrito sean los oficiales del cantón de Tilarán, `508xx`.
 
 Si dice una versión anterior, tu copia del repositorio está vieja: hacé `git pull` en `dev`.
 
