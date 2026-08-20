@@ -270,3 +270,21 @@ export async function obtenerRiesgos(evento) {
   // true el dia que los datos fueran reales.
   return aPaquete(lista, evento, fecha, codigos, salud.modo === 'simulado')
 }
+
+/**
+ * Riesgo de varios eventos a la vez, indexado por evento.
+ *
+ * El mapa muestra un evento por vez; el semaforo de H7.1 muestra los tres
+ * juntos, que es justamente lo que el mapa no puede.
+ *
+ * Se piden en paralelo y no en serie: son tres consultas independientes y
+ * encadenarlas triplicaria la espera sin ninguna ventaja.
+ *
+ * Si una falla, falla la llamada entera. Devolver dos eventos de tres y no
+ * decirlo dejaria una columna vacia que se leeria como "sin riesgo" en vez de
+ * "no se pudo consultar".
+ */
+export async function obtenerRiesgosDeVariosEventos(eventos) {
+  const paquetes = await Promise.all(eventos.map((evento) => obtenerRiesgos(evento)))
+  return Object.fromEntries(eventos.map((evento, indice) => [evento, paquetes[indice]]))
+}

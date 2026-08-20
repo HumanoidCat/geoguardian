@@ -6,8 +6,14 @@ import MapaCanton from './componentes/MapaCanton'
 import PanelDistrito from './componentes/PanelDistrito'
 import SelectorEvento from './componentes/SelectorEvento'
 import { CAPAS_INICIALES, CAPA_BASE_INICIAL, EXPONENTE_IDW_INICIAL } from './datos/capasBase'
-import { obtenerDistritos, obtenerRiesgos, obtenerSalud } from './datos/cliente'
-import { nombreDeEvento } from './datos/eventos'
+import {
+  obtenerDistritos,
+  obtenerRiesgos,
+  obtenerRiesgosDeVariosEventos,
+  obtenerSalud,
+} from './datos/cliente'
+import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
+import TableroSemaforo from './componentes/TableroSemaforo'
 import { centroidesDeColeccion } from './datos/interpolacion'
 import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 
@@ -32,6 +38,7 @@ export default function App() {
   const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
   const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
   const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
+  const [paquetesTodos, setPaquetesTodos] = useState(null)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -91,10 +98,44 @@ export default function App() {
     }
   }, [evento])
 
+  // Los tres eventos a la vez, para el semaforo de H7.1. Es una carga aparte
+  // porque responde otra pregunta: el mapa muestra donde esta el riesgo de un
+  // evento, y el semaforo cual de los tres hay que atender primero.
+  //
+  // Si falla, el semaforo simplemente no se dibuja. No se propaga al error
+  // general: el mapa sigue siendo util sin la tabla, y una pantalla en rojo por
+  // una parte accesoria seria peor que la ausencia de esa parte.
+  useEffect(() => {
+    let vigente = true
+
+    obtenerRiesgosDeVariosEventos(IDS_EVENTOS)
+      .then((paquetes) => {
+        if (vigente) setPaquetesTodos(paquetes)
+      })
+      .catch(() => {
+        if (vigente) setPaquetesTodos(null)
+      })
+
+    return () => {
+      vigente = false
+    }
+  }, [])
+
   const cambiarEvento = useCallback((nuevo) => {
     setCargandoRiesgos(true)
     setEvento(nuevo)
   }, [])
+
+  // Desde el semaforo: seleccionar un distrito lleva el mapa a ese evento y a ese
+  // distrito. Sin eso la tabla seria un tablero muerto, y la relacion entre las
+  // dos vistas quedaria a cargo de la memoria de quien mira.
+  const seleccionarDesdeTablero = useCallback(
+    (codigo, eventoDeLaCelda) => {
+      setSeleccionado(codigo)
+      if (eventoDeLaCelda !== evento) cambiarEvento(eventoDeLaCelda)
+    },
+    [evento, cambiarEvento],
+  )
 
   const alternarSuperpuesta = useCallback((id) => {
     setSuperpuestas((previas) => ({ ...previas, [id]: !previas[id] }))
@@ -106,6 +147,11 @@ export default function App() {
   }, [coleccion, seleccionado])
 
   const centroides = useMemo(() => centroidesDeColeccion(coleccion), [coleccion])
+
+  const distritos = useMemo(
+    () => coleccion?.features.map((rasgo) => rasgo.properties) ?? [],
+    [coleccion],
+  )
 
   const nombreEvento = nombreDeEvento(evento)
   const riesgos = paqueteRiesgos?.riesgos ?? null
@@ -177,6 +223,7 @@ export default function App() {
                 nombreEvento={nombreEvento}
                 riesgos={riesgos}
                 simulado={paqueteRiesgos?.simulado}
+                fecha={paqueteRiesgos?.fecha}
               />
             )}
 
@@ -195,6 +242,15 @@ export default function App() {
             />
           </div>
         </main>
+      )}
+
+      {!cargando && coleccion && paquetesTodos && (
+        <TableroSemaforo
+          distritos={distritos}
+          paquetes={paquetesTodos}
+          seleccionado={seleccionado}
+          alSeleccionar={seleccionarDesdeTablero}
+        />
       )}
     </div>
   )
