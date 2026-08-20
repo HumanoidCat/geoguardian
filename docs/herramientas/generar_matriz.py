@@ -1,9 +1,4 @@
-"""Genera los artefactos derivados de la documentacion.
-
-Produce dos cosas, las dos desde las mismas fuentes:
-
-    docs/05-matriz-trazabilidad.md   la tabla completa
-    docs/08-backlog.md               la linea de avance, solo esa linea
+"""Genera docs/05-matriz-trazabilidad.md desde las fuentes que ya existen.
 
 
 POR QUE EXISTE
@@ -46,20 +41,15 @@ QUE COMPRUEBA verificar_estado.py
 Que el archivo del repositorio sea identico al que produce esta herramienta. Si
 alguien lo edita a mano, el CI lo detecta, igual que `ruff format --check`.
 
-LA LINEA DE AVANCE
+LA LINEA DE AVANCE, QUE ESTUVO AQUI Y SE FUE
 
-`docs/08-backlog.md` declara cuantas historias van cerradas. Era una cifra
-derivada mantenida a mano, y eso rompia el CI de quien cerrara la siguiente
-historia **sin haber roto nada**: el verificador de documentacion la comprueba y
-el numero cambia cada vez que cualquiera marca `[x]`.
+Del 18 al 20 de agosto esta herramienta escribia tambien la cifra de avance de
+`docs/08-backlog.md`. Se quito: generarla redujo el problema pero no lo elimino,
+porque **cualquier par de Pull Requests que cierre historias sigue chocando en esa
+linea**, y el segundo en integrarse deja `dev` en rojo hasta que alguien regenere.
 
-Lo detecto Cesar el 19 de agosto al cerrar H1.8, y quedo demostrado enseguida: sus
-dos Pull Requests escribieron la misma linea con el mismo valor, cada uno correcto
-por separado, y al integrarse los dos el numero real pasaba a ser otro. Ver la
-incidencia **I-07**.
-
-Ahora la escribe esta herramienta, que es la que ya hay que correr al cerrar una
-historia porque la matriz tambien cambia. No agrega ningun paso.
+Ahora la imprime `verificar_estado.py`, que corre en el mismo trabajo del CI. Es
+lo que Cesar propuso el primer dia. Ver la incidencia **I-07**.
 
 Uso:
     python docs/herramientas/generar_matriz.py            escribe los archivos
@@ -76,16 +66,6 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 
 DESTINO = RAIZ / "docs" / "05-matriz-trazabilidad.md"
-BACKLOG_MD = RAIZ / "docs" / "08-backlog.md"
-
-# La linea de avance de docs/08-backlog.md. Era una cifra derivada mantenida a
-# mano, y por eso rompia el CI de quien cerrara la siguiente historia sin haber
-# roto nada. Lo detecto Cesar el 19 de agosto al cerrar H1.8. Ver incidencia
-# I-07 y decision D-20, que es el mismo principio.
-PATRON_AVANCE = re.compile(
-    r"^Al .+?: \*\*\d+ historias cerradas de \d+\*\*, \d+ puntos de \d+\.$", re.M
-)
-
 # Marca de conflicto de fusion sin resolver. Son exactamente siete caracteres:
 # `<<<<<<< ` y `>>>>>>> ` llevan el nombre de la rama detras, y `=======` va solo
 # en su linea. Anclar el separador al final del renglon es lo que evita los falsos
@@ -93,16 +73,9 @@ PATRON_AVANCE = re.compile(
 # en las evidencias tienen 66 y 74 caracteres. Lo preciso Cesar el 19 de agosto.
 PATRON_CONFLICTO = re.compile(r"^(<{7} |={7}$|>{7} )", re.M)
 
-MESES = (
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-)  # fmt: skip
 PERSONAS = ("alejandro", "cesar", "luna", "avril")
 
 PATRON_CERRADA = re.compile(r"^- \[x\] \*\*(H[0-9.]+[a-z]?)\*\*", re.M)
-PATRON_CERRADA_CON_FECHA = re.compile(
-    r"^- \[x\] \*\*(H[0-9.]+[a-z]?)\*\*[^\n]*?\((\d{4}-\d{2}-\d{2})\)", re.M
-)
 
 ENCABEZADO = """# Matriz de trazabilidad
 
@@ -136,33 +109,6 @@ Completar con el resto del backlog conforme entren al sprint: se agrega la fila 
 """
 
 
-def linea_de_avance() -> str:
-    """
-    La cifra de avance, con la fecha de la ultima historia cerrada.
-
-    Se fecha con el ultimo cierre y no con el dia de hoy a proposito: si llevara
-    la fecha actual, regenerar sin haber cerrado nada produciria un cambio en el
-    archivo, y el CI empezaria a fallar por el paso del tiempo.
-    """
-    backlog = {fila["id"]: fila for fila in leer_csv(RAIZ / "docs" / "backlog.csv")}
-    cerradas: dict[str, str] = {}
-
-    for persona in PERSONAS:
-        texto = (RAIZ / "docs" / "tareas" / f"{persona}.md").read_text(encoding="utf-8")
-        for identificador, fecha in PATRON_CERRADA_CON_FECHA.findall(texto):
-            cerradas[identificador] = fecha
-
-    puntos = sum(int(backlog[h]["puntos"]) for h in cerradas if h in backlog)
-    ultima = max(cerradas.values()) if cerradas else "0000-00-00"
-    anio, mes, dia = ultima.split("-")
-    fecha = f"{int(dia)} de {MESES[int(mes) - 1]} de {anio}"
-
-    return (
-        f"Al {fecha}: **{len(cerradas)} historias cerradas de {len(backlog)}**, "
-        f"{puntos} puntos de {sum(int(f['puntos']) for f in backlog.values())}."
-    )
-
-
 def sin_marcas_de_conflicto(ruta: Path) -> None:
     """
     Se niega a trabajar sobre un archivo con un conflicto sin resolver.
@@ -184,28 +130,6 @@ def sin_marcas_de_conflicto(ruta: Path) -> None:
             "Regenerar no lo arregla: hay que quitar las tres lineas de marca primero.\n"
             'Para encontrarlas todas:  git grep -nE "^(<{7} |={7}$|>{7} )"'
         )
-
-
-def escribir_avance(revisar: bool) -> bool:
-    """Sustituye la linea de avance en docs/08-backlog.md. Devuelve si estaba al dia."""
-    sin_marcas_de_conflicto(BACKLOG_MD)
-    texto = BACKLOG_MD.read_text(encoding="utf-8")
-    esperada = linea_de_avance()
-
-    if not PATRON_AVANCE.search(texto):
-        raise SystemExit(
-            f"ERROR: no se encontro la linea de avance en {BACKLOG_MD.name}. "
-            "Tiene que existir una linea con la forma "
-            "'Al <fecha>: **N historias cerradas de M**, P puntos de Q.'"
-        )
-
-    nuevo = PATRON_AVANCE.sub(esperada.replace("\\", "\\\\"), texto)
-    if nuevo == texto:
-        return True
-
-    if not revisar:
-        BACKLOG_MD.write_text(nuevo, encoding="utf-8")
-    return False
 
 
 def leer_csv(ruta: Path) -> list[dict[str, str]]:
@@ -309,23 +233,13 @@ def main() -> int:
     if DESTINO.exists():
         sin_marcas_de_conflicto(DESTINO)
     contenido = construir()
+
     revisar = "--revisar" in sys.argv
 
     actual = DESTINO.read_text(encoding="utf-8") if DESTINO.exists() else ""
-    avance_al_dia = escribir_avance(revisar)
 
-    if actual == contenido and avance_al_dia:
-        print("La matriz y la linea de avance estan al dia con sus fuentes.")
-        return 0
-
-    if actual == contenido and not avance_al_dia:
-        if revisar:
-            print(
-                "La linea de avance de docs/08-backlog.md no corresponde.\n"
-                "Regenerar con: python docs/herramientas/generar_matriz.py"
-            )
-            return 1
-        print(f"Linea de avance actualizada: {linea_de_avance()}")
+    if actual == contenido:
+        print("La matriz esta al dia con sus fuentes.")
         return 0
 
     if revisar:
@@ -343,8 +257,6 @@ def main() -> int:
 
     DESTINO.write_text(contenido, encoding="utf-8")
     print(f"Matriz regenerada: {contenido.count(chr(10) + '| H')} filas.")
-    if not avance_al_dia:
-        print(f"Linea de avance actualizada: {linea_de_avance()}")
     return 0
 
 

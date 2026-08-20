@@ -32,6 +32,8 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
 | D-19 | El SPI se ajusta por mes calendario: contratos a v1.3.0 | Aceptada | 2026-08-18 |
 | D-20 | La matriz de trazabilidad es un artefacto derivado, no un documento | Aceptada | 2026-08-18 |
+| D-21 | `probabilidad` es P(nivel = alto), no la confianza del modelo | Aceptada | 2026-08-20 |
+| D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
 
 ---
 
@@ -1574,6 +1576,201 @@ del backlog y de los archivos de tareas.
 
 Se revisa al cierre del Sprint 2. Si en ese periodo aparece un desfase de la matriz
 que el verificador no haya detectado, la comprobacion quedo corta.
+
+---
+
+## D-21 · `probabilidad` es P(nivel = alto), no la confianza del modelo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro
+
+### Contexto
+
+`contratos/esquemas.py` declara `probabilidad: float | None` entre 0 y 1 y dice
+cuando es `None`, pero **no dice que magnitud es**. Hay dos lecturas posibles y no
+son la misma cosa:
+
+1. **Confianza del modelo** en la clase que asigno: P(nivel asignado).
+2. **Probabilidad del nivel mas severo**: P(nivel = alto).
+
+La ambiguedad no era teorica. Avril construyo el mapa de calor de H5.4
+interpolando ese campo, y su propio comentario supone la primera lectura: *"la
+probabilidad de la estimacion no es el nivel estimado"*. H3.x lo va a implementar
+en los proximos dias, y hasta ahora nadie habia tenido que elegir.
+
+### Decision
+
+**`probabilidad` es P(nivel = alto)**: la probabilidad que el modelo asigna a la
+clase mas severa del evento, con independencia de cual sea el `nivel` devuelto.
+
+1. Se documenta en el contrato, sin cambiar la firma ni la version: es una
+   precision de significado, no un cambio de interfaz.
+2. **No es la confianza del modelo.** Un distrito con `nivel` bajo y
+   `probabilidad` 0,05 esta diciendo que el modelo lo ve tranquilo, no que este
+   poco seguro.
+3. La confianza en la clase asignada **no se expone**. Si alguna vez hace falta,
+   entra como campo propio y no reinterpretando este.
+
+### Justificacion
+
+La eleccion se decide por lo que pasa al **ordenar distritos**, que es lo que hace
+el visor.
+
+Con la lectura de confianza, un distrito con nivel bajo y confianza 0,95 tendria
+un valor mas alto que uno con nivel alto y confianza 0,45. **El mapa de calor
+pintaria mas intenso al distrito tranquilo.** No es un defecto de la
+implementacion de Avril: es lo que produce interpolar confianza y llamarlo mapa de
+riesgo.
+
+Con P(nivel = alto) el campo es **monotono en el riesgo**: mas alto significa mas
+riesgo, siempre. Eso lo vuelve:
+
+- **Interpolable con sentido.** La superficie de H5.4 pasa a ser una superficie de
+  riesgo y no una de seguridad del modelo.
+- **Comparable entre distritos y entre eventos**, que es lo que el semaforo de
+  H7.1 necesita.
+- **Utilizable como umbral continuo**, sin depender de que la clase discreta caiga
+  de un lado u otro del corte.
+
+Hay un argumento adicional, y es de uso. La confianza del modelo es informacion
+util **para nosotros al diagnosticar**, y es ruido para quien tiene que decidir si
+evacua. El campo que viaja a la interfaz debe responder a la pregunta del usuario,
+no a la del desarrollador.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Confianza en la clase asignada | Rompe el orden: un distrito tranquilo con el modelo seguro puntua mas alto que uno en riesgo con el modelo dudando. Es lo que el mapa de calor pintaria |
+| Exponer el vector completo de las tres clases | Es lo mas informativo y lo mas dificil de consumir. Obliga a cada consumidor a decidir que hace con el, y esa decision volveria a tomarse distinto en cada lugar |
+| Dejarlo sin definir | Es lo que habia. Dos historias ya lo usan con supuestos distintos |
+| Definirlo como P(nivel asignado) y agregar otro campo con P(alto) | Dos campos que se parecen invitan a usar el equivocado. Si mas adelante hace falta la confianza, entra con nombre propio |
+
+### Consecuencias
+
+**Se gana** un campo con una interpretacion unica, monotona en el riesgo y
+comparable, que es lo que necesitan el mapa de calor, el semaforo y cualquier
+umbral continuo.
+
+**Se pierde** la confianza del modelo como dato expuesto. Para el analisis interno
+sigue estando dentro del estimador; simplemente no viaja por el contrato.
+
+**Afecta a H5.4, que ya esta integrada.** El mapa de calor no cambia de codigo:
+cambia lo que significa. Su leyenda dice "probabilidad interpolada" y el texto de
+`interpolacion.js` afirma que la probabilidad no es el nivel estimado. Con esta
+decision esa afirmacion sigue siendo cierta —una probabilidad continua no es una
+clase discreta— pero el matiz de "no confundir con riesgo" ya no aplica: **ahora
+si es una superficie de riesgo.** Hay que ajustar ese texto.
+
+**H3.x lo implementa asi desde el principio**, que es el motivo de decidirlo ahora
+y no despues de entrenar.
+
+### Medicion
+
+Cuando exista un modelo entrenado, comprobar sobre los ocho distritos que el orden
+por `probabilidad` **no contradice** el orden por `nivel`: ningun distrito con
+nivel bajo debe tener una probabilidad mayor que uno con nivel alto del mismo
+evento y fecha.
+
+Si eso ocurriera, o el campo no es P(nivel = alto) o el etiquetado y el modelo
+estan en desacuerdo, y las dos cosas hay que mirarlas.
+
+---
+
+## D-22 · H1.4 se reduce: no hay faltantes que imputar en las series climaticas
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
+
+### Contexto
+
+H1.4 —"Documentar y aplicar criterios de imputacion de faltantes", 5 puntos y 7,8
+horas— se planifico suponiendo que las series climaticas tendrian huecos.
+
+Al cargar H1.1 se comprobo que no los tienen:
+
+> No hay un solo faltante que imputar: cero nulos en las siete variables, en los
+> ocho distritos, en 12.784 dias.
+
+No es casualidad ni suerte: **CHIRPS y POWER son productos de malla**, generados
+por interpolacion y reanalisis sobre todo el dominio. Estan completos por
+construccion. La historia se planifico contra una intuicion de datos de estacion,
+que si tienen huecos, y las fuentes que se eligieron no lo son.
+
+### Decision
+
+**H1.4 no se cierra como no aplicable, pero se reduce**: de 5 puntos y 7,8 horas a
+**3 puntos y 4,7 horas**.
+
+Deja de tener la parte de "aplicar", que no tiene sobre que aplicarse, y conserva
+dos cosas que si hacen falta:
+
+1. **Declarar la regla de imputacion antes de necesitarla**, con su prueba contra
+   huecos inyectados. `MetodoImputacion` ya existe en el contrato con cuatro
+   valores; lo que falta es cual se usa, cuando, y que queda registrado.
+2. **Fijar la distincion entre ausencia de evento y ausencia de dato**, que es
+   donde el proyecto se puede equivocar de verdad.
+
+### Justificacion
+
+**Cerrarla del todo seria un error, y el motivo esta en las otras dos fuentes.**
+
+Las series climaticas no tienen huecos, pero:
+
+- **FIRMS** (H1.2) es un producto de eventos, no de malla. Un dia sin deteccion de
+  focos **no es un dato faltante: es un cero**. Confundirlos invertiria el sentido
+  del riesgo de incendio, que es exactamente la clase de defecto que **D-07**
+  existe para evitar y que ya produjo la incidencia I-04 con otros datos.
+- **Sentinel-2** (H1.6) descarta imagenes por nubosidad mayor al 20 %. Ahi si hay
+  huecos reales, y en estacion lluviosa van a ser muchos.
+
+O sea que la historia tenia razon de existir; se equivoco de fuente. Reducirla y
+reapuntarla cuesta menos que cerrarla ahora y volver a abrirla en dos semanas.
+
+**Lo que se conserva vale por si solo.** Una regla de imputacion escrita antes de
+que aparezca el primer hueco es una decision; escrita despues, es una
+racionalizacion de lo que ya se hizo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Cerrarla como no aplicable con la evidencia de H1.1 | Libera 7,8 h y deja al proyecto sin regla el dia que Sentinel-2 traiga huecos, que es seguro. El ahorro es aparente |
+| Dejarla como esta | Son 7,8 h con la mitad del alcance sin objeto. Estimar contra un supuesto que ya se sabe falso es lo que la replanificacion existe para corregir |
+| Fundirla con H1.5, el reporte de calidad | H1.5 **mide** lo que hay; H1.4 **decide** que hacer con lo que falta. Son cosas distintas y juntarlas haria que la decision se tome mientras se escribe un reporte |
+| Moverla al Sprint 2, despues de H1.6 | Tiene sentido por dependencia, pero H1.7 la espera y quedaria bloqueada mas tiempo. Se mantiene en S1 con el alcance reducido |
+
+### Consecuencias
+
+**Se ganan 3,1 horas** en el Sprint 1 de Cesar, que es el que esta mas cargado de
+los suyos, y una regla escrita antes de necesitarla.
+
+**Se pierde** la aplicacion practica sobre datos reales: la regla se va a probar
+contra huecos inyectados y no contra huecos observados. Es una limitacion menor y
+queda declarada en la propia historia.
+
+**La dependencia de H2.1 sobre H1.4 queda obsoleta**, porque H2.1 ya se cerro sin
+ella. Se retira del backlog: mantenerla haria que el verificador de dependencias
+declare satisfecha una relacion que nunca se cumplio.
+
+**H1.7 sigue dependiendo de H1.4** y esa si se mantiene: versionar el dataset
+consolidado requiere saber que se hizo con lo que falta, aunque hoy no falte nada.
+
+### Medicion
+
+La historia se cierra cuando exista, con prueba ejecutable:
+
+1. La regla escrita: que metodo se aplica a cada variable y con que limite de
+   huecos consecutivos.
+2. Una prueba que **inyecta huecos** en una serie completa y comprueba que se
+   imputan segun la regla y que **queda registro de cada imputacion**.
+3. La distincion entre ausencia de evento y ausencia de dato, escrita donde la vea
+   quien implemente H1.2.
+
+Y se comprueba contra la realidad cuando H1.6 traiga sus huecos por nubosidad: si
+la regla escrita hoy no sirve para ese caso, quedo corta y hay que revisarla.
 
 ---
 

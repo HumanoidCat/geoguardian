@@ -41,7 +41,7 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E1,S0,BD-1,BD-3,cesar",S0,cesar,6,5.8
-H1.4,H1.4 Documentar y aplicar criterios de imputacion de faltantes,"Epica E1 | 5 puntos | 7.8 h estimadas
+H1.4,H1.4 Declarar los criterios de imputacion y probarlos contra huecos inyectados,"Epica E1 | 3 puntos | 4.7 h estimadas
 
 Rubrica o objetivo: BD-1
 Depende de: H1.1
@@ -52,7 +52,14 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-1,cesar",S1,cesar,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia
+
+Alcance reducido por D-22. Las series climaticas de H1.1 no tienen un solo
+faltante en 12.784 dias: CHIRPS y POWER son productos de malla, completos
+por construccion. Deja de tener la parte de aplicar y conserva declarar la
+regla, probarla contra huecos inyectados, y fijar la distincion entre
+ausencia de evento y ausencia de dato, que es lo que necesita H1.2 con FIRMS
+y lo que va a necesitar H1.6 con Sentinel-2.","E1,S1,BD-1,cesar",S1,cesar,3,4.7
 H1.5,"H1.5 Reporte formal de calidad de datos: faltantes, atipicos, sesgos","Epica E1 | 8 puntos | 12.5 h estimadas
 
 Rubrica o objetivo: OE1
@@ -164,7 +171,7 @@ Definition of Done:
 H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: Senales
-Depende de: H1.4
+Depende de: -
 Sprint: S2 (semanas 4-5)
 
 Definition of Done:

@@ -1,6 +1,6 @@
 # Backlog completo
 
-**84 historias · 422 puntos · 618.7 horas** (incluye 20 % de revision)
+**84 historias · 420 puntos · 615.6 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -28,7 +28,22 @@ dicen lo mismo**, que es la comprobacion que faltaba: la auditoria del 18 de ago
 encontro cuatro historias cerradas sin fila en la matriz y dos con el dueno
 equivocado.
 
-Al 19 de agosto de 2026: **21 historias cerradas de 84**, 112 puntos de 422.
+**El avance no se escribe aqui.** Lo imprime la herramienta, calculado desde el
+repositorio en el momento en que se pregunta:
+
+    python docs/herramientas/verificar_estado.py
+
+Historias y puntos cerrados, por persona y por sprint. **Corre ademas en cada
+cambio del CI**, asi que la cifra del dia queda en el registro de la ejecucion.
+
+Estuvo escrita aqui del 18 al 20 de agosto y hubo que quitarla: era una cifra
+derivada que cambia cada vez que alguien cierra una historia, y el verificador la
+comprobaba. Rompio el CI de quien no la habia tocado **tres veces en dos dias**,
+incluida una en que dos Pull Requests correctos por separado dejaban `dev` en rojo
+al integrarse los dos. Generarla en vez de escribirla redujo el problema pero no
+lo elimino: cualquier par de PR que cierre historias sigue chocando en esta linea.
+
+Ver la incidencia **I-07**. Lo propuso Cesar desde el primer dia y tenia razon.
 
 ## Carga por persona y sprint
 
