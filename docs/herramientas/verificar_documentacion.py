@@ -99,6 +99,18 @@ def horas_del_backlog() -> str:
         return f"{sum(float(f['horas']) for f in csv.DictReader(archivo)):.1f}"
 
 
+def horas_del_sprint(sprint: str) -> str:
+    """Horas comprometidas en un sprint, con un decimal."""
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        total = sum(float(f["horas"]) for f in csv.DictReader(archivo) if f["sprint"] == sprint)
+    return f"{total:.1f}"
+
+
+def historias_del_sprint(sprint: str) -> int:
+    with (RAIZ / "docs" / "backlog.csv").open(encoding="utf-8-sig") as archivo:
+        return sum(1 for f in csv.DictReader(archivo) if f["sprint"] == sprint)
+
+
 def registros_adr() -> int:
     texto = (RAIZ / "docs" / "03-bitacora-decisiones.md").read_text(encoding="utf-8")
     return len(re.findall(r"^## D-\d+", texto, re.M))
@@ -234,6 +246,55 @@ AFIRMACIONES = [
         [("docs/10-manual-tecnico.md", r"Las (\d+) decisiones de arquitectura")],
     ),
 ]
+
+# El reparto por sprint de docs/08-backlog.md: el encabezado de cada sprint y la
+# columna de ese sprint en la fila del equipo de la tabla de carga.
+#
+# Se agrego el 20 de agosto, al insertar la historia H11.5. Toda la tabla de carga
+# estaba desfasada y nadie se habia enterado: Cesar figuraba con 30.9 h en el
+# Sprint 1 cuando ya eran 27.8 —D-22 le redujo H1.4 el dia anterior—, el total del
+# equipo decia 618.7 contra 620.3 y los puntos 422 contra 423.
+#
+# Es el defecto de I-07 en otra tabla: cifras derivadas escritas a mano. La
+# diferencia importante es que estas NO cambian al cerrar una historia, solo al
+# cambiar el backlog, que hace una sola persona. Por eso comprobarlas no le rompe
+# el CI a nadie por trabajo ajeno, que fue lo que obligo a retirar la linea de
+# avance.
+_COLUMNA_DEL_SPRINT = {"S0": 1, "S1": 2, "S2": 3, "S3": 4, "S4": 5}
+
+
+def _patron_fila_equipo(sprint: str) -> str:
+    """Captura la columna de ese sprint en la fila `| **Equipo** | ... |`."""
+    saltar = r"[\d.]+ \| " * (_COLUMNA_DEL_SPRINT[sprint] - 1)
+    return r"\| \*\*Equipo\*\* \| " + saltar + r"([\d.]+) \|"
+
+
+for _s in ("S0", "S1", "S2", "S3", "S4"):
+    AFIRMACIONES.append(
+        Afirmacion(
+            f"horas comprometidas en el {_s}",
+            (lambda s: lambda: horas_del_sprint(s))(_s),
+            [
+                (
+                    "docs/08-backlog.md",
+                    rf"## Sprint {_s[1]} · semanas [\d-]+ · \d+ historias · ([\d.]+) h",
+                ),
+                ("docs/08-backlog.md", _patron_fila_equipo(_s)),
+            ],
+        )
+    )
+    AFIRMACIONES.append(
+        Afirmacion(
+            f"historias del {_s}",
+            (lambda s: lambda: historias_del_sprint(s))(_s),
+            [
+                (
+                    "docs/08-backlog.md",
+                    rf"## Sprint {_s[1]} · semanas [\d-]+ · (\d+) historias",
+                )
+            ],
+        )
+    )
 
 # El avance ya NO se comprueba aqui: se saco de docs/08-backlog.md el 20 de
 # agosto. Era una cifra derivada que cambia cada vez que alguien cierra una

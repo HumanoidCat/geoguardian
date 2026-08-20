@@ -28,7 +28,7 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 36 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 40 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
@@ -40,9 +40,13 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 **Lo que todavía no existe.** El extractor de focos de calor y el módulo de
 modelado. Sus carpetas están creadas y reservadas, pero vacías.
 
-**El visor sigue consumiendo datos simulados**, y lo declara con una banda
-permanente en pantalla. La API ya existe, pero el visor todavía no la consume: es
-la historia H6.6.
+**El visor consume la API desde el 20 de agosto**, historia H6.6. Los datos que
+sirve siguen siendo simulados, porque detrás de la API está el repositorio
+simulado hasta que llegue H6.2, y el visor lo declara con una banda permanente en
+pantalla.
+
+Si la API no responde, el visor **no se cae**: lee el respaldo estático de
+`frontend/public/simulados/` y declara también ese cambio de origen. Ver D-23.
 
 El módulo de señales existe y está probado, pero **sus pruebas corren contra los
 simulados**. Ahora que hay series reales cargadas, hay que volver a correrlas sobre
@@ -197,9 +201,28 @@ npm run dev
 
 Queda en `http://localhost:5173`.
 
-El visor **todavía no consume la API**, aunque la API ya exista: lee archivos JSON
-generados a partir de los simulados. Cambiarlo es la historia H6.6. El exportador solo lee `contratos/` y escribe dentro de
-`frontend/public/`. La decisión está registrada como D-14.
+**El visor habla con la API**, por la ruta relativa `/api`, que el proxy de
+`vite.config.js` reenvía a `localhost:8000`. Para verlo con datos hay que levantar
+también la API, sección 4.5.
+
+**Sin la API levantada el visor igual funciona:** cae al respaldo estático que
+genera `exportar_simulados.py` y lo declara en pantalla. Por eso el exportador
+sigue haciendo falta, aunque ya no sea el origen. Solo lee `contratos/` y escribe
+dentro de `frontend/public/`.
+
+Las decisiones son **D-14**, que puso la costura, y **D-23**, que la sustituyó por
+la API dejando los archivos como degradación.
+
+### 4.5 API
+
+```bash
+uvicorn backend.api.aplicacion:app --port 8000
+```
+
+Documentación interactiva en `http://localhost:8000/docs`.
+
+Todavía **no hay servicio de API en `docker-compose.yml`**: falta su Dockerfile,
+que es la historia H6.0. Hasta entonces se levanta a mano.
 
 ---
 
@@ -223,7 +246,7 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **36 comprobaciones**
+Debe terminar en **"Todas las verificaciones pasaron"** con **40 comprobaciones**
 y declarar **"Contratos version 1.2.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
@@ -403,7 +426,7 @@ no es un manual.
 | 8 | Cargar geometrías | 4.3 | | |
 | 9 | Cargar geometrías **por segunda vez** | 4.3 | | Debe seguir habiendo 8 filas |
 | 10 | PostGIS y esquemas | 5.1 | | Cuatro esquemas |
-| 11 | Contratos | 5.2 | | 36 comprobaciones |
+| 11 | Contratos | 5.2 | | 40 comprobaciones |
 | 12 | Criterios del modelo territorial | 5.3 | | |
 | 13 | Modelo y transacciones | 5.4 | | Los `ERROR` son esperados |
 | 14 | Documentación y backlog | 5.5 | | |

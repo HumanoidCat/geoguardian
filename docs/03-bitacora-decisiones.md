@@ -224,9 +224,47 @@ Pendiente. El contraste contra la linea base es H3.6.
 
 ## D-05 · Kubernetes con manifiestos y k3d local
 
-**Estado.** Aceptada
+**Estado.** Aceptada · **alcance precisado el 2026-08-20**
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, con aprobacion del profesor de Arquitectura de Software
+
+> ### Precision del 2026-08-20: esta decision es del trimestre, no del producto
+>
+> Al preguntar el PM como se despliega el sistema aparecio que **la palabra
+> "produccion" de esta decision significa un espacio de nombres dentro de un
+> cluster que corre en una laptop**. `infra/k8s/local/produccion/`. No hay dominio,
+> no hay servidor y **el sistema no es accesible desde fuera del equipo**.
+>
+> Eso es coherente con lo decidido, esta bien registrado en la evidencia de H8.6 y
+> en el encabezado de `docker-compose.yml`, y para la rubrica de CI/CD alcanza:
+> lo que se evalua es que el pipeline exista y despliegue, y un pipeline que
+> despliega a k3d despliega.
+>
+> **Pero contradice el proposito del producto, y conviene que quede escrito.**
+> GeoGuardian existe para que el Comite Municipal de Emergencias y la poblacion
+> del canton puedan **consultar el riesgo del dia**. Un sistema de informacion
+> cuyo unico modo de consulta es que alguien lleve una computadora no cumple ese
+> proposito, por bien construido que este.
+>
+> **El estado objetivo es un sistema publicado y actualizandose solo.** La
+> restriccion es de tiempo y de presupuesto de un trimestre, no de diseno: la
+> arquitectura ya lo permite. La API no guarda estado, el ETL es idempotente
+> (H1.1, CA-11) y el visor habla con la API por una ruta relativa a proposito
+> (D-23), de modo que funciona igual detras de cualquier servidor.
+>
+> **Lo que se hace este trimestre.** La historia **H11.5** publica el visor como
+> sitio estatico, que es posible sin backend gracias a la degradacion de D-23, y
+> declara en pantalla que los datos son simulados. Da una URL real para H9.2 y
+> para la defensa sin abrir la puerta a operar infraestructura.
+>
+> **Lo que queda como trabajo futuro, en este orden.** Publicar la API y la base;
+> automatizar la ingesta diaria para que el dato se actualice sin intervencion; y
+> recien entonces retirar el aviso de datos simulados. Los tres pasos dependen de
+> que exista un modelo entrenado: publicar antes seria publicar un mapa que no
+> estima nada.
+>
+> **Si el equipo termina con holgura, esto se hace.** No es un extra: es lo que
+> convierte el proyecto en la herramienta que dice ser.
 
 ### Contexto
 
