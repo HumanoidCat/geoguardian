@@ -16,8 +16,13 @@
  *
  *    El nivel es una variable ordinal de tres categorias: bajo, medio, alto.
  *    Convertirlo a 1, 2, 3 e interpolar asumiria que la distancia entre "bajo" y
- *    "medio" es igual que entre "medio" y "alto", y eso nadie lo establecio. La
- *    probabilidad que devuelve el contrato si es continua, de 0 a 1.
+ *    "medio" es igual que entre "medio" y "alto", y eso nadie lo establecio.
+ *
+ *    Desde D-21, `probabilidad` esta definida como P(nivel = alto): la
+ *    probabilidad que el modelo asigna a la clase mas severa del evento. Eso la
+ *    vuelve continua, monotona en el riesgo y comparable entre distritos y entre
+ *    eventos, que son exactamente las tres propiedades que una interpolacion
+ *    necesita para significar algo.
  *
  *    Consecuencia: cuando no haya modelo entrenado, `probabilidad` viene en null
  *    y NO hay mapa de calor. La pantalla lo dice; no se dibuja una superficie
@@ -25,13 +30,21 @@
  *
  * 2. La paleta es distinta de la escala de riesgo, a proposito.
  *
- *    Si la superficie se pintara con la rampa amarillo-naranja-rojo, cualquiera
- *    leeria "rojo = riesgo alto". Y no es lo mismo: la probabilidad de la
- *    estimacion no es el nivel estimado. Se usa BuPu de ColorBrewer, una familia
- *    de color que no se puede confundir con la otra. Verificada igual que la
- *    rampa de riesgo: monotona en escala de grises, con al menos 42 niveles de
- *    separacion entre pasos vecinos, y el orden se conserva bajo protanopia y
- *    deuteranopia.
+ *    Las dos superficies representan riesgo, pero no la misma magnitud: la
+ *    coropleta pinta una CLASE de tres categorias y esta pinta una PROBABILIDAD
+ *    continua. Si compartieran rampa, un morado intermedio y un naranja "medio"
+ *    se leerian como lo mismo, y no lo son.
+ *
+ *    Se usa BuPu de ColorBrewer, una familia de color que no se puede confundir
+ *    con la otra. Verificada igual que la rampa de riesgo: monotona en escala de
+ *    grises, con al menos 42 niveles de separacion entre pasos vecinos, y el
+ *    orden se conserva bajo protanopia y deuteranopia.
+ *
+ *    NOTA HISTORICA. Antes de D-21 el contrato no decia que magnitud era
+ *    `probabilidad`. Se asumio "confianza del modelo", y con esa lectura la
+ *    superficie podia pintar mas intenso a un distrito de riesgo bajo con
+ *    estimacion muy confiable que a uno de riesgo alto con estimacion dudosa. La
+ *    definicion de D-21 elimina ese problema de raiz.
  *
  * ---------------------------------------------------------------------------
  * LIMITACION QUE HAY QUE DECLARAR
