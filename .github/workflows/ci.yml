@@ -42,6 +42,10 @@ jobs:
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
       - name: El avance dice lo mismo en los archivos de tareas y en la matriz
         run: python docs/herramientas/verificar_estado.py
+      # D-24: el modelo de estimacion es puntos por una constante. No se corrige
+      # todavia, se empieza a medir, y esto obliga a que el dato exista.
+      - name: Toda historia cerrada declara sus horas estimadas y reales
+        run: python docs/herramientas/verificar_horas.py
       # Necesita pydantic porque corre contratos.verificar para contar sus
       # comprobaciones en lugar de confiar en un numero escrito a mano.
       - name: Instalar lo minimo para contar las comprobaciones de contratos
