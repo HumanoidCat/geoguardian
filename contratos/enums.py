@@ -35,10 +35,30 @@ class NivelRiesgo(str, Enum):
       Sequia         -> SPI-3: bajo si SPI > -1.0; medio si -1.5 < SPI <= -1.0;
                         alto si SPI <= -1.5. McKee et al. (1993), adoptado por la OMM.
 
-      Incendio       -> focos FIRMS en ventana de 7 dias por distrito: bajo si 0;
-                        medio si 1 <= n <= P90; alto si n > P90.
-                        ATENCION: pendiente de verificar que el canton tenga
-                        suficientes focos historicos para entrenar. Ver riesgo R16.
+      Incendio       -> focos FIRMS en ventana de 7 dias por distrito:
+                        **alto si hay al menos un foco; bajo si no hay ninguno.**
+                        MEDIO NO EXISTE PARA ESTE EVENTO.
+
+                        El umbral anterior era por percentiles del conteo —bajo
+                        si 0, medio si 1 <= n <= P90, alto si n > P90— y **no
+                        producia tres clases sobre estos datos, producia dos**.
+                        Cesar midio R16 el 20 de agosto: 242 focos en 24 anios,
+                        con entre 97 % y 99,9 % de ventanas vacias, asi que el
+                        P90 vale 0,0 en los ocho distritos. La condicion
+                        `1 <= n <= 0` esta vacia y cualquier foco unico caia en
+                        ALTO. La regla vieja ya se comportaba como binaria: lo
+                        que cambia es que ahora lo declara.
+
+                        Al definir ALTO como «al menos un foco», la probabilidad
+                        que predice el modelo —P(al menos un foco)— **es**
+                        P(nivel = alto), y D-21 se cumple literalmente. Con la
+                        formulacion anterior serian dos magnitudes distintas
+                        bajo el mismo nombre.
+
+                        Que un evento use dos de los tres valores del enum es
+                        propiedad del evento, no defecto del vocabulario.
+
+                        Ver la solicitud SC-05 y la decision D-25. Cierra R16.
     """
 
     BAJO = "bajo"

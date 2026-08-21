@@ -86,9 +86,20 @@ def _es_hueco(codigo_distrito: str, fecha: date) -> bool:
     return _sorteo(codigo_distrito, fecha.isoformat(), "hueco").random() < 0.05
 
 
-def _nivel_desde(probabilidad: float) -> NivelRiesgo:
+def _nivel_desde(probabilidad: float, tipo_evento: TipoEvento) -> NivelRiesgo:
     """
     Deriva el nivel de la probabilidad, en vez de sortearlo aparte.
+
+    INCENDIO NO TIENE NIVEL MEDIO, y esta funcion lo respeta.
+
+    Desde SC-05, `alto` para incendio significa «al menos un foco en la ventana
+    de 7 dias». Es binario: o hay foco o no lo hay. El umbral viejo por
+    percentiles del conteo tampoco producia tres clases —el P90 vale 0,0 en los
+    ocho distritos, medido por Cesar sobre 242 focos en 24 anios— asi que emitir
+    MEDIO aqui seria producir un valor que el contrato ya no admite.
+
+    Un doble que emite valores imposibles bajo el contrato no sirve para
+    sustituir al original, que es el argumento de SC-03.
 
     D-21 fijo que `probabilidad` es P(nivel = alto). Sortear las dos cosas por
     separado producia filas imposibles bajo esa definicion: el 20 de agosto, el
@@ -102,6 +113,11 @@ def _nivel_desde(probabilidad: float) -> NivelRiesgo:
     nivel menor. De esa propiedad dependen el mapa de calor de H5.4, que
     interpola la probabilidad, y el semaforo continuo de H7.1.
     """
+    if tipo_evento is TipoEvento.INCENDIO:
+        # Binario. El corte en la mitad es tan arbitrario como los tercios y se
+        # declara igual: lo unico que el simulado garantiza es la monotonia.
+        return NivelRiesgo.ALTO if probabilidad >= 1 / 2 else NivelRiesgo.BAJO
+
     if probabilidad >= 2 / 3:
         return NivelRiesgo.ALTO
     if probabilidad >= 1 / 3:
@@ -280,7 +296,7 @@ class RepositorioSimulado:
             codigo_distrito=codigo_distrito,
             fecha=fecha,
             tipo_evento=tipo_evento,
-            nivel=_nivel_desde(probabilidad),
+            nivel=_nivel_desde(probabilidad, tipo_evento),
             probabilidad=probabilidad,
             algoritmo=Algoritmo.XGBOOST,
             version_modelo="simulado-0.0.0",

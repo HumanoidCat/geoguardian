@@ -207,10 +207,22 @@ Tres niveles —bajo, medio, alto— por evento y distrito:
 |---|---|---|
 | Lluvia intensa | Percentiles 95 y 99 del acumulado de 72 h, por distrito | Criterio de percentiles extremos del ETCCDI `[18]` |
 | Sequía | SPI-3: alto si ≤ −1,5; medio si −1,5 < SPI ≤ −1,0 | McKee et al. `[4]`, adoptado por la OMM |
-| Incendio forestal | Focos FIRMS en ventana de 7 días: alto sobre el percentil 90 histórico del distrito | **Criterio del equipo.** No hay estándar equivalente |
+| Incendio forestal | Focos FIRMS en ventana de 7 días: **alto si hay al menos un foco**. No existe nivel medio | **Criterio del equipo**, corregido tras medir. No hay estándar equivalente |
 
 El umbral de incendio es el único propio y se declara como tal en el sistema y en
 la interfaz. Se somete a validación externa con el Comité Municipal de Emergencias.
+
+**Y es el único de los tres que la medición obligó a rehacer.** La definición
+original —bajo si 0, medio si 1 ≤ n ≤ P90, alto si n > P90— no producía tres
+clases sobre estos datos sino dos: con **242 focos en 24 años** y entre el 97 % y
+el 99,9 % de ventanas vacías, el percentil 90 vale 0,0 en los ocho distritos y la
+condición intermedia queda vacía. Los dos umbrales tomados de estándares
+publicados resistieron la verificación; el propio, no. Ver D-25 y SC-05.
+
+El alcance del evento se acota además a **tres de los ocho distritos** —Santa
+Rosa, Líbano y Tierras Morenas, que concentran el 88 % de los focos—. Los otros
+cinco se reportan como «sin datos suficientes»: dos de ellos registran **un solo
+foco en veinticuatro años**.
 
 ### E. Modelos y validación
 
