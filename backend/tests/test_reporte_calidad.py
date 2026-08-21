@@ -17,6 +17,7 @@ import pytest
 from backend.calidad.reporte_calidad import (
     NO_REPORTAN_AUSENCIA,
     Serie,
+    _percentil,
     completitud,
     cruzar_con_catalogo,
     extremos_estadisticos,
@@ -91,6 +92,49 @@ def test_el_total_esperado_son_dias_de_calendario_no_filas():
     assert reporte.total_esperado == 10  # del 1 al 10 de enero
     assert reporte.total_presente == 3
     assert reporte.pct_faltantes == pytest.approx(70.0)
+
+
+def test_una_fila_duplicada_no_esconde_un_dia_faltante():
+    """
+    El defecto que encontro Alejandro revisando el PR #144.
+
+    La carga metio el 3 de enero dos veces y por eso nunca cargo el 9: diez
+    filas para nueve dias distintos. Contando filas, `presente` daba 10 sobre
+    9 esperados, el porcentaje salia negativo, y `max(pct, 0.0)` lo recortaba a
+    cero. El reporte decia **0 % de faltantes con un dia realmente ausente**,
+    que es exactamente la frase enganosa que este modulo existe para no
+    producir.
+
+    Ahora `total_presente` cuenta dias distintos, y el duplicado se reporta en
+    lugar de recortarse.
+    """
+    fechas = [
+        date(2020, 1, 1),
+        date(2020, 1, 2),
+        date(2020, 1, 3),
+        date(2020, 1, 3),  # repetido
+        date(2020, 1, 4),
+        date(2020, 1, 5),
+        date(2020, 1, 6),
+        date(2020, 1, 7),
+        date(2020, 1, 8),
+        date(2020, 1, 10),  # el 9 nunca se cargo
+    ]
+    serie = Serie("50801", "precipitacion_mm", fechas, [5.0] * 10)
+
+    reporte = completitud([serie])[0]
+
+    assert reporte.total_esperado == 10  # del 1 al 10 de enero
+    assert reporte.total_presente == 9  # dias distintos, no filas
+    assert reporte.pct_faltantes == pytest.approx(10.0)
+    assert "duplicadas" in reporte.observaciones
+
+
+def test_sin_duplicados_no_se_menciona_el_aviso():
+    """El aviso aparece solo cuando corresponde, para que signifique algo."""
+    reporte = completitud([_serie("50801", "precipitacion_mm", [5.0] * 30)])[0]
+
+    assert "duplicadas" not in reporte.observaciones
 
 
 def test_cero_faltantes_se_reporta_con_su_interpretacion():
@@ -281,6 +325,18 @@ def test_variables_no_son_identicas_entre_distritos():
 def test_la_variacion_espacial_necesita_al_menos_dos_distritos():
     """Con un solo distrito la pregunta no tiene sentido."""
     assert variacion_espacial([_serie("50801", "temp_max_c", [25.0] * 10)]) == {}
+
+
+def test_el_percentil_rechaza_la_muestra_vacia():
+    """
+    La proteccion vive en la funcion, no solo en el llamador.
+
+    Hoy `extremos_estadisticos` filtra las series cortas, asi que el caso no se
+    da. Desde otro punto de llamada esto reventaba con un IndexError que no
+    explicaba nada.
+    """
+    with pytest.raises(ValueError, match="vacia"):
+        _percentil([], 95)
 
 
 def test_las_fuentes_de_malla_estan_declaradas():

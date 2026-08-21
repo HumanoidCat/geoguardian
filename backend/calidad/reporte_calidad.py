@@ -134,6 +134,18 @@ def completitud(series: list[Serie]) -> list[ReporteCalidad]:
     fecha, no el numero de filas. Si la carga omitio dias enteros, contar filas
     daria 100 % de completitud sobre una serie con huecos: el hueco estaria en
     las filas que no existen.
+
+    **`total_presente` cuenta dias distintos, no filas.** Es la otra mitad del
+    mismo argumento y se corrigio tras la revision del PR #144.
+
+    Una fila duplicada compensa un dia ausente: si la carga metio el 3 de enero
+    dos veces y por eso nunca cargo el 9, hay diez filas para nueve dias y
+    contar filas daria 0 % de faltantes con un dia realmente ausente.
+
+    Los duplicados **se reportan**, no se recortan. La version anterior
+    recortaba el porcentaje negativo con `max(pct, 0.0)` para que no saliera un
+    numero sin sentido, y con eso borraba la unica senal de que habia
+    duplicados. Un porcentaje negativo no era un error de calculo: era el aviso.
     """
     por_variable: dict[str, list[Serie]] = defaultdict(list)
     for s in series:
@@ -150,7 +162,19 @@ def completitud(series: list[Serie]) -> list[ReporteCalidad]:
 
         distritos = len({s.codigo_distrito for s in grupo})
         esperado = dias_calendario * distritos
-        presente = sum(1 for s in grupo for v in s.valores if v is not None)
+
+        # Dias distintos con dato, no filas. Una fila repetida no aporta un dia
+        # nuevo y no puede compensar uno ausente.
+        dias_con_dato = {
+            (s.codigo_distrito, f)
+            for s in grupo
+            for f, v in zip(s.fechas, s.valores, strict=True)
+            if v is not None
+        }
+        presente = len(dias_con_dato)
+
+        filas_con_dato = sum(1 for s in grupo for v in s.valores if v is not None)
+        duplicados = filas_con_dato - presente
 
         pct = 0.0 if esperado == 0 else 100 * (esperado - presente) / esperado
 
@@ -164,7 +188,9 @@ def completitud(series: list[Serie]) -> list[ReporteCalidad]:
                 total_presente=presente,
                 pct_faltantes=round(min(max(pct, 0.0), 100.0), 4),
                 metodo_imputacion=MetodoImputacion.SIN_IMPUTAR,
-                observaciones=_observacion_de_completitud(fuente, pct, distritos, dias_calendario),
+                observaciones=_observacion_de_completitud(
+                    fuente, pct, distritos, dias_calendario, duplicados
+                ),
             )
         )
 
@@ -176,8 +202,21 @@ def _observacion_de_completitud(
     pct_faltantes: float,
     distritos: int,
     dias: int,
+    duplicados: int = 0,
 ) -> str:
     base = f"{distritos} distritos x {dias} dias de calendario."
+
+    # El duplicado va primero y siempre: es un defecto de la carga, y ademas
+    # puede estar tapando dias ausentes. Quien lea el reporte tiene que verlo
+    # antes que cualquier interpretacion del porcentaje.
+    if duplicados > 0:
+        base = (
+            f"{base} ATENCION: {duplicados} filas duplicadas, mismo distrito y "
+            "misma fecha mas de una vez. Revisar la carga: un INSERT sin "
+            "ON CONFLICT o un rango pedido dos veces lo produce. El porcentaje "
+            "de faltantes de abajo ya descuenta los duplicados, pero mientras "
+            "existan la serie no es lo que dice ser."
+        )
 
     if fuente not in NO_REPORTAN_AUSENCIA:
         return f"{base} Fuente sin caracterizar: interpretar el porcentaje con cuidado."
@@ -232,6 +271,14 @@ def extremos_estadisticos(
     Se reportan para poder cruzarlos contra el catalogo de eventos historicos de
     H4.3. Un extremo que coincide con un evento catalogado no es un dato
     sospechoso: es la confirmacion de que la serie capta los eventos reales.
+
+    **Solo mira la cola alta, y es deliberado.** Para lluvia intensa el extremo
+    es el maximo. Para sequia el extremo es la cola **baja** de precipitacion, y
+    ese caso no se cubre aqui a proposito: un dia de 0 mm en estacion seca es lo
+    normal, no un atipico, y lo que convierte una racha seca en sequia es su
+    duracion y no el valor de un dia. Eso lo resuelve el SPI-3 de H2.3, que
+    mide acumulados de tres meses contra la distribucion historica del mismo
+    mes. Buscarlo aqui produciria miles de falsos positivos cada verano.
     """
     salida: list[tuple[str, str, date, float]] = []
 
@@ -327,7 +374,18 @@ def variacion_espacial(series: list[Serie]) -> dict[str, float]:
 
 
 def _percentil(muestra: list[float], percentil: float) -> float:
-    """Interpolacion lineal, metodo 7 de Hyndman y Fan. Igual que en H2.7."""
+    """
+    Interpolacion lineal, metodo 7 de Hyndman y Fan. Igual que en H2.7.
+
+    Rechaza la muestra vacia en lugar de confiar en que quien llama la filtre.
+    Hoy `extremos_estadisticos` descarta las series de menos de 20 valores, asi
+    que el caso no se da; pero la proteccion vivia en el llamador y no en la
+    funcion, y desde otro punto de llamada esto reventaba con un `IndexError`
+    que no explicaba nada.
+    """
+    if not muestra:
+        raise ValueError("No se puede calcular un percentil de una muestra vacia")
+
     ordenada = sorted(muestra)
     n = len(ordenada)
     if n == 1:
