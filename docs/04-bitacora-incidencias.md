@@ -490,6 +490,82 @@ La regla que se agrega:
 > "deterministas", hay una comprobacion que lo llama dos veces y compara.
 
 ---
+### Actualizacion del 2026-08-20: el arreglo estaba incompleto
+
+**Lo encontro Cesar al revisar SC-03**, comprobando lo que yo no comprobe: si el
+mismo defecto estaba en otro metodo. Estaba en tres.
+
+`obtener_mediciones`, `contar_focos` y `obtener_indices` sorteaban tambien contra
+el generador compartido. Y en mediciones el defecto tenia una forma peor:
+
+    Rango A: 1 al 5 de agosto.   Rango B: 3 al 7 de agosto.
+
+      2026-08-03:  A = 31.2   B = 30.6   DISTINTO
+      2026-08-04:  A = 27.2   B = 27.4   DISTINTO
+      2026-08-05:  A = 31.1   B = 27.8   DISTINTO
+
+**Un mismo dia con dos temperaturas segun por donde se lo pidiera.** Le habria
+pegado a H2.5, que trabaja sobre ventanas moviles, y el sintoma habria apuntado al
+algoritmo de Luna en vez de al simulado.
+
+Cesar encontro ademas un segundo defecto dentro del primero: los huecos salian de
+`i % 20 == 7`, la posicion dentro del rango pedido, no la fecha. Un mismo dia era
+hueco o no segun donde cayera en la consulta.
+
+Se corrige en **SC-04**, propuesta como **v1.3.2**.
+
+### Y hubo un quinto sitio, en otra clase del mismo archivo
+
+Al revisar SC-04, Cesar encontro que el arreglo tampoco estaba completo. Yo habia
+buscado **todos los metodos de `RepositorioSimulado`**, y el archivo tiene otra
+clase: **`ExtractorFocosSimulado` sorteaba tambien contra un generador con
+estado.**
+
+    dos llamadas identicas al MISMO extractor coinciden : False
+      llamada 1, primer foco : 2024-03-28  10.4213  confianza 75
+      llamada 2, primer foco : 2024-03-26  10.4017  confianza 91
+
+    otra INSTANCIA coincide con la primera llamada : True
+
+La ultima linea es la firma exacta de I-08: una instancia nueva si coincide,
+porque el generador arranca de cero. **Le pega a H1.2**, que implementa
+`ExtractorFocosCalor` de verdad contra ese doble.
+
+La misma revision encontro tres cosas mas: `_es_hueco` recibia `codigo_distrito` y
+no lo miraba —los ocho distritos tenian hueco los mismos dias, y no se podia
+escribir la prueba de un distrito con dato y otro sin el—, `contar_focos` no podia
+devolver mas de un foco por dia, y el generador compartido quedaba sin uso en
+`__init__`, invitando a que alguien volviera a sortear contra el.
+
+Todo integrado en contratos **v1.3.3**. El verificador pasa de 40 a **44**
+comprobaciones.
+
+**Y una correccion al razonamiento de esta incidencia.** Decia que el defecto
+importaba porque *"un GET es idempotente por definicion"*. Es falso: la
+idempotencia de HTTP restringe el efecto sobre el servidor, no la representacion
+devuelta. Un `GET /hora-actual` es idempotente y responde distinto cada vez. El
+simulado viejo no violaba ninguna regla de HTTP.
+
+El argumento correcto es el de **sustituibilidad**, que ya estaba y es mas fuerte:
+el repositorio de H6.2 sera determinista porque lee filas guardadas, y eso es
+propiedad del repositorio, no del protocolo. Corregido en el docstring, en SC-03,
+en los criterios de H6.6 y en el verificador.
+
+**Aprendizaje, segunda parte.** El primero fue que de un simulado hay que comprobar
+lo que promete su docstring. El segundo es mio y sale de esta correccion:
+
+> **Arreglar el caso senalado no es arreglar el defecto.** Cuando aparece un
+> patron —un generador con estado usado donde hacia falta reproducibilidad— hay
+> que buscar todas sus apariciones antes de declarar el problema resuelto. SC-03
+> corrigio un sintoma y dio por cerrado el problema.
+
+**Y el aprendizaje se corrige a si mismo.** Escrito eso, volvi a hacerlo: busque
+en una clase y declare el archivo revisado. La version que queda:
+
+> **No alcanza con «buscar todas las apariciones del patron»: hay que decir
+> DONDE se busco.** Un alcance que no se declara no se puede revisar, y quien lea
+> el arreglo va a suponer que cubre lo que no cubre.
+
 
 ## I-09 · La mitad de los commits del Lead PM no quedaron atribuidos a su cuenta
 
@@ -551,47 +627,4 @@ La regla que se agrega:
 > Al clonar el repositorio, cada quien fija `user.name` y `user.email` **locales**
 > y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
 > mirando que el commit propio salga con la foto de perfil en el Pull Request.
-
-### Actualizacion del 2026-08-20: el arreglo estaba incompleto
-
-**Lo encontro Cesar al revisar SC-03**, comprobando lo que yo no comprobe: si el
-mismo defecto estaba en otro metodo. Estaba en tres.
-
-`obtener_mediciones`, `contar_focos` y `obtener_indices` sorteaban tambien contra
-el generador compartido. Y en mediciones el defecto tenia una forma peor:
-
-    Rango A: 1 al 5 de agosto.   Rango B: 3 al 7 de agosto.
-
-      2026-08-03:  A = 31.2   B = 30.6   DISTINTO
-      2026-08-04:  A = 27.2   B = 27.4   DISTINTO
-      2026-08-05:  A = 31.1   B = 27.8   DISTINTO
-
-**Un mismo dia con dos temperaturas segun por donde se lo pidiera.** Le habria
-pegado a H2.5, que trabaja sobre ventanas moviles, y el sintoma habria apuntado al
-algoritmo de Luna en vez de al simulado.
-
-Cesar encontro ademas un segundo defecto dentro del primero: los huecos salian de
-`i % 20 == 7`, la posicion dentro del rango pedido, no la fecha. Un mismo dia era
-hueco o no segun donde cayera en la consulta.
-
-Se corrige en **SC-04**, contratos **v1.3.2**, con cuatro comprobaciones nuevas.
-
-**Y una correccion al razonamiento de esta incidencia.** Decia que el defecto
-importaba porque *"un GET es idempotente por definicion"*. Es falso: la
-idempotencia de HTTP restringe el efecto sobre el servidor, no la representacion
-devuelta. Un `GET /hora-actual` es idempotente y responde distinto cada vez. El
-simulado viejo no violaba ninguna regla de HTTP.
-
-El argumento correcto es el de **sustituibilidad**, que ya estaba y es mas fuerte:
-el repositorio de H6.2 sera determinista porque lee filas guardadas, y eso es
-propiedad del repositorio, no del protocolo. Corregido en el docstring, en SC-03,
-en los criterios de H6.6 y en el verificador.
-
-**Aprendizaje, segunda parte.** El primero fue que de un simulado hay que comprobar
-lo que promete su docstring. El segundo es mio y sale de esta correccion:
-
-> **Arreglar el caso senalado no es arreglar el defecto.** Cuando aparece un
-> patron —un generador con estado usado donde hacia falta reproducibilidad— hay
-> que buscar todas sus apariciones antes de declarar el problema resuelto. SC-03
-> corrigio un sintoma y dio por cerrado el problema.
 
