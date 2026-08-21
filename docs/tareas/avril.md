@@ -53,7 +53,7 @@
 - [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
 
-- [ ] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados
+- [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
 
 - [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
