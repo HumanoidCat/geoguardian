@@ -912,6 +912,33 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E11,S2,CICD,alejandro",S2,alejandro,5,7.8
+H11.5,H11.5 Publicar el visor como sitio estatico con datos declarados simulados,"Epica E11 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H5.4, H6.6
+Sprint: S3 (semanas 8-9)
+
+Publicar el visor como sitio estatico en GitHub Pages, sirviendo los JSON
+exportados de contratos/simulados/ y declarando en pantalla que los datos son
+simulados y que el origen es el respaldo estatico.
+
+Es posible sin backend por la degradacion que H6.6 dejo puesta: cuando la API no
+responde, cliente.js cae al respaldo y lo declara. `npm run build` produce una
+carpeta que funciona sola. Ver D-23.
+
+Para que sirve: da una URL viva para la sesion de H9.2 con el Comite Municipal de
+Emergencias, y para la defensa del proyecto. Hoy la unica forma de mostrar el
+visor es levantarlo en una maquina.
+
+Lo que NO es: no publica la API ni la base de datos. Ver D-05 y su revision.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] La URL abre desde una maquina que no es la del equipo
+- [ ] El aviso de datos simulados y de origen estatico se ve sin desplazar
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado","E11,S3,CICD,alejandro",S3,alejandro,3,4.7
 H12.1,H12.1 Centralizar los logs de pipeline y aplicacion en control.bitacora_etl,"Epica E12 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: Troubleshoot

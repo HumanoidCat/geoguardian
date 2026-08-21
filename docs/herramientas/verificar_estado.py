@@ -141,11 +141,19 @@ def main() -> int:
                 "y no esta marcada en el archivo de tareas de nadie"
             )
 
-    # 3. El archivo de evidencia declarado existe.
+    # 3. Cada archivo de evidencia declarado existe.
+    #
+    # La celda puede traer VARIAS rutas separadas por `<br>`: una historia puede
+    # tener mas de una evidencia, y desde el 20 de agosto la matriz las lista
+    # todas en vez de quedarse con la primera por orden alfabetico. Antes de ese
+    # cambio, H5.1 tenia dos y solo una figuraba en la tabla.
     for identificador, fila in sorted(matriz.items()):
-        ruta = fila["evidencia"]
-        if ruta.endswith(".md") and not (RAIZ / ruta).exists():
-            problemas.append(f"{identificador} declara la evidencia {ruta} y el archivo no existe")
+        for ruta in fila["evidencia"].split("<br>"):
+            ruta = ruta.strip()
+            if ruta.endswith(".md") and not (RAIZ / ruta).exists():
+                problemas.append(
+                    f"{identificador} declara la evidencia {ruta} y el archivo no existe"
+                )
 
     # 4. El dueno coincide con el del backlog.
     for identificador, fila in sorted(matriz.items()):
@@ -174,9 +182,19 @@ def main() -> int:
 
     if DESTINO.read_text(encoding="utf-8") != construir():
         problemas.append(
-            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes. "
-            "Se genera, no se edita a mano: correr "
-            "python docs/herramientas/generar_matriz.py"
+            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes.\n"
+            "      Se arregla con UN comando:  "
+            "python docs/herramientas/generar_matriz.py\n"
+            "\n"
+            "      Casi siempre pasa por una de estas tres, y en ninguna hay que\n"
+            "      tocar la matriz a mano:\n"
+            "        - subiste un archivo nuevo a docs/evidencias/\n"
+            "        - marcaste una historia con [x] en docs/tareas/<persona>.md\n"
+            "        - cambio el dueno o la rubrica en docs/backlog.csv\n"
+            "\n"
+            "      La matriz es una VISTA de esas fuentes. Cambiar la fuente y no\n"
+            "      regenerarla deja la vista desfasada, y eso es lo que este\n"
+            "      control detecta."
         )
 
     # ----------------------------------------------------------------------- #

@@ -7,7 +7,8 @@
 `dependencias.py`), `frontend` (H5.3 y H5.4, de Avril, a través de la API),
 `frontend/herramientas/exportar_simulados.py`
 **Fecha.** 2026-08-20
-**Estado.** Pendiente de aprobación
+**Estado.** **Aprobada** por César el 2026-08-20. Integrada en contratos **v1.3.1**.
+Ver la resolución al final.
 
 > Aprueban: Alejandro por `contratos/`, y César como dueño del único módulo que
 > hoy instancia el repositorio. Avril queda notificada porque el cambio corrige
@@ -63,10 +64,21 @@ efecto secundario es que el generador nunca vuelve al principio.
 
 **Por qué hay que arreglarlo y no convivir con ello.**
 
-`GET` es idempotente por definición. El repositorio de H6.2 lo será, porque
-consulta filas de PostgreSQL. Un doble que no cumple la propiedad por la que se
-lo puede sustituir por el original no es un doble: es otra cosa que se le parece
-en la forma.
+El repositorio de H6.2 va a ser determinista **porque lee filas guardadas de
+PostgreSQL**. Un doble que no cumple la propiedad por la que se lo puede poner en
+lugar del original no es un doble: es otra cosa que se le parece en la forma.
+
+> **Corrección del 20 de agosto, aportada por César al aprobar esta solicitud.**
+> Este párrafo decía *"GET es idempotente por definición"*, y es falso. La
+> idempotencia de HTTP restringe el **efecto sobre el servidor**, no la
+> representación devuelta: MDN lo dice explícitamente —*"The response returned by
+> each request may differ"*—. Un `GET /hora-actual` es idempotente y responde algo
+> distinto cada vez, y el simulado viejo no violaba ninguna regla de HTTP.
+>
+> El argumento de sustituibilidad, que ya estaba, es el correcto y además el más
+> fuerte: no depende del protocolo sino de qué es un repositorio. Se corrige acá
+> porque este documento y el docstring del simulado son lo que va a leer quien
+> toque el código dentro de dos meses.
 
 La primera línea de `contratos/simulados/datos.py` dice:
 
@@ -165,3 +177,25 @@ Dos comprobaciones nuevas en `contratos/verificar.py`:
   de nivel bajo con probabilidad alta.
 
 La primera falla hoy. La segunda también.
+
+
+---
+
+## Resolución
+
+**Aprobada por César el 20 de agosto**, con revisión completa en el PR #133.
+Integrada en **contratos v1.3.1**.
+
+Su revisión aportó tres cosas más que la aprobación:
+
+1. **Midió lo que no estaba medido.** Sobre 8 distritos × 3 eventos × 40 fechas,
+   **642 de 960 filas eran incoherentes con D-21, el 66,9 %**. No era un caso raro:
+   con el nivel sorteado uniforme entre tres valores, acertar el que corresponde a
+   la probabilidad tiene probabilidad de un tercio. El peor caso, 50808 con nivel
+   bajo y probabilidad 0,95.
+2. **Verificó el arreglo ejecutándolo** sobre una copia parcheada, incluido el caso
+   entre procesos distintos, lanzando un subproceso.
+3. **Corrigió el argumento del GET**, arriba.
+
+Y encontró que **el arreglo estaba incompleto**: `obtener_riesgo` no era el único
+método que sorteaba contra el generador compartido. De ahí sale **SC-04**.

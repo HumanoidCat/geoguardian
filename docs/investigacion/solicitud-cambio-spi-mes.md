@@ -37,11 +37,22 @@ existente se rompe**.
 
 ## Por que no se puede resolver sin cambiar el contrato
 
-El SPI de McKee, Doesken y Kleist (1993), referencia `[4]`, y la guia operativa
-de la OMM WMO-No. 1090, referencia `[24]`, **ajustan una distribucion gamma por
-cada mes calendario**: los eneros contra la distribucion historica de los
-eneros, los febreros contra los febreros. Eso es lo que convierte al SPI en un
-indice de **anomalia**.
+El SPI de McKee, Doesken y Kleist (1993), referencia `[4]`, **ajusta una
+distribucion gamma por cada mes calendario**: los eneros contra la distribucion
+historica de los eneros, los febreros contra los febreros. Eso es lo que
+convierte al SPI en un indice de **anomalia**.
+
+*Nota de verificacion, agregada el 2026-08-19.* Una version anterior de esta
+solicitud atribuia el ajuste por mes **tambien** a la guia operativa de la OMM,
+WMO-No. 1090, referencia `[24]`. **Esa atribucion no se ha podido confirmar
+textualmente** y se retira hasta verificarla contra el documento. Es lo que
+hacen las implementaciones de referencia, pero eso es un argumento distinto de
+una cita.
+
+**La solicitud no dependia de la cita.** El argumento que la sostiene es la
+medicion de abajo, y ese se lee sin recurrir a ninguna autoridad: un indice de
+anomalia cuya media es -0,84 en una estacion y +0,60 en la otra no esta
+midiendo anomalia. La solicitud fue aprobada como **D-19** sobre esa base.
 
 La firma actual recibe `list[float | None]` y nada mas. **No hay forma de saber
 a que mes corresponde cada posicion**, asi que la implementacion solo puede

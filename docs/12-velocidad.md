@@ -43,24 +43,76 @@ El roadmap declara un modelo de esfuerzo con tres tasas de horas por punto segú
 qué tan acelerable es el trabajo: 0,8 para lo que la asistencia de IA acelera
 mucho, 1,3 para lo parcial y 2,2 para lo que no acelera nada.
 
-**Ese modelo no se puede recalibrar todavía, porque nadie registró horas reales.**
+**Ese modelo todavía no se puede recalibrar, pero ya no por falta absoluta de
+datos: hay dos mediciones y hacen falta más.**
 
-Lo que hay en el repositorio son las horas **estimadas** de cada historia. Comparar
-estimación contra estimación no dice nada: daría 1,0 siempre, por construcción.
+### Las dos primeras mediciones reales
 
-Se declara en lugar de inventar un número. Un modelo recalibrado con datos que no
-existen es peor que un modelo sin recalibrar, porque parece medido.
+César las reportó al grupo el 19 de agosto, por iniciativa propia. Son el primer
+cumplimiento de la acción **12.4**.
 
-### Qué haría falta para poder recalibrarlo
+| Historia | Pts | h estimadas | h reales | h/pt estimada | h/pt real | Desvío |
+|---|---|---|---|---|---|---|
+| H1.8 · Roles de mínimo privilegio | 5 | 4,8 | **4h40** | 0,96 | 0,93 | −3 % |
+| H6.1 · API REST con OpenAPI | 5 | 4,8 | **2h15** | 0,96 | 0,45 | **−53 %** |
 
-La opción más barata, y la única que no agrega trabajo diario: **registrar las
-horas reales en el cuerpo del Pull Request**, una línea, al cerrar cada historia.
+**Mismo tamaño, misma estimación, y una tardó menos de la mitad que la otra.**
+
+### Lo que ese par sugiere, y lo que no
+
+La lectura la puso César y es la parte que importa: la diferencia no fue el tamaño
+ni el tipo de trabajo, sino que **H6.1 se apoyaba en contratos ya congelados y H1.8
+tocaba infraestructura nueva**.
+
+El modelo del roadmap clasifica por *acelerabilidad* —cuánto acelera la asistencia
+de IA ese tipo de trabajo— y por esa vara las dos son "alta", 0,8 h/pt. Salieron a
+0,93 y 0,45. **La variable que las separó no está en el modelo.**
+
+Si el par se sostiene, el modelo necesita un segundo eje: **si la interfaz de la
+que depende la historia ya existe y está congelada**. H6.1 encontró que
+`RepositorioSimulado` ya cumplía el protocolo entero y la historia se encogió sola;
+H1.8 tuvo que construir el terreno sobre el que trabajaba.
+
+**Lo que estas dos mediciones NO permiten.** Son dos historias, las dos de 5
+puntos, las dos de la misma persona, las dos estimadas a la misma tasa. No se
+recalibran tres tasas con eso, y forzarlo daría un modelo que parece medido y no lo
+está. Lo único que ya está descartado es la afirmación anterior de este documento
+—que nadie había registrado horas— que dejó de ser cierta el 19 de agosto.
+
+### Las cuatro historias de frontend anteriores a H7.1 no tienen horas, y es a propósito
+
+Avril planteó el 20 de agosto si convenía estimarlas retrospectivamente. **Se
+decidió que no.**
+
+El estimado habría quedado **anclado a la estimación original del backlog**, que
+ella conoce, y habría producido razones cercanas a 1,0 por construcción. Con dos
+mediciones reales y cinco estimados de ese tipo, el promedio miente más que con las
+dos mediciones solas: el 0,47 de H6.1 —el único dato que se aleja y por lo tanto el
+único que enseña algo— quedaría diluido hasta parecer un caso raro.
+
+Tres de esas cuatro historias, además, se estimaron con la misma tasa: H5.1 a 0,97,
+H5.2 a 0,96 y H5.3 a 0,96 h/pt. Un estimado anclado ahí solo puede confirmar lo que
+ya supuso quien armó el backlog.
+
+**Se declara la ausencia en lugar de rellenarla.** Es D-07 aplicado a la medición
+del propio proceso: un dato que no se pudo obtener no se sustituye por uno
+plausible.
+
+Lo que sí se pidió, y no es una medición: **una línea por historia diciendo si se
+sintió más corta o más larga de lo estimado, y por qué.** Nombrar la variable vale
+más que inventar el número, que es lo que aportó la lectura de César sobre las
+interfaces congeladas.
+
+### Qué falta
+
+Que las otras tres personas registren, **una línea en el cuerpo del Pull Request**:
 
     Horas reales: 6,5 (estimadas 7,8)
 
-Con eso, al cierre del Sprint 1 se pueden contrastar las tres tasas contra la
-realidad y ajustar la planificación de los sprints 3 y 4 con datos propios en vez
-de con un supuesto.
+Con una decena de mediciones repartidas entre las tres tasas se puede contrastar y
+ajustar la planificación de los sprints 3 y 4 con datos propios. Conviene además
+anotar si la historia dependía de algo ya congelado, que es la variable que este
+par señaló.
 
 Mientras tanto, la métrica que sí se sostiene es el **throughput en puntos**, que
 no depende de que nadie apunte nada.
@@ -175,9 +227,15 @@ el resultado final mas que un punto de mas o de menos.
 
 ### Lo que sigue sin poder calcularse
 
-**Las horas reales.** La accion 12.4 sigue abierta: nadie las registra en el cuerpo
-de los Pull Requests, asi que el modelo de horas por punto sigue sin poder
-recalibrarse. Cuatro dias despues de abrirla, no ha empezado a cumplirse.
+**Las horas reales.** La accion 12.4 dejo de estar en cero el 19 de agosto: Cesar
+reporto las de H1.8 y H6.1 por iniciativa propia, y de ahi sale la seccion 2 de
+este documento. Con dos mediciones de la misma persona y del mismo tamano todavia
+no se recalibra nada, pero la afirmacion anterior de este apartado —que nadie las
+registraba— ya no es cierta y se corrige.
+
+**Lo que sigue faltando** son las mediciones de las otras tres personas, y que se
+anote si la historia dependia de una interfaz ya congelada, que es la variable que
+el primer par de datos senalo y que el modelo del roadmap no tiene.
 
 ---
 
