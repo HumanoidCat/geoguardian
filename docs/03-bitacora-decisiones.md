@@ -1952,7 +1952,9 @@ Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
 | API arriba, sin estimacion para hoy | `origen: api`, **8 distritos sin estimacion**, no pantalla vacia |
 | Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
 
-31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
+31 comprobaciones en `python docs/herramientas/verificar_h66.py` al escribirse
+esta decision. Son **35** desde SC-05, que agrego cuatro: la monotonia del
+respaldo estatico por evento y la ausencia de nivel medio en incendio.
 
 ---
 

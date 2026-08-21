@@ -187,18 +187,46 @@ def main() -> int:
     # ---------------------------------------------------------------- D-21 -- #
     print("\nD-21, la probabilidad es P(nivel = alto) y el nivel la respeta:")
 
-    def esperado(probabilidad: float) -> str:
-        if probabilidad >= 2 / 3:
-            return "alto"
-        return "medio" if probabilidad >= 1 / 3 else "bajo"
+    # Este bloque comprobaba `nivel == f(probabilidad)` con los cortes en tercios
+    # escritos a mano aqui. Era una SEGUNDA COPIA de una regla que vive en el
+    # contrato, y se desfaso en cuanto el contrato cambio: SC-05 hizo binario el
+    # incendio y esta comprobacion siguio exigiendo tres clases.
+    #
+    # Copiar el corte nuevo habria arreglado el sintoma y dejado la copia. Lo que
+    # se comprueba ahora es la propiedad que D-21 realmente exige y que vale para
+    # cualquier productor, simulado o modelo entrenado:
+    #
+    #     MONOTONIA: ninguna fila con nivel menor tiene probabilidad mayor que
+    #     una de nivel mayor, dentro del mismo evento.
+    #
+    # Los cortes concretos son del productor y pueden cambiar -SC-03 los declara
+    # arbitrarios-. La monotonia no puede, porque de ella dependen el mapa de
+    # calor de H5.4 y el orden del semaforo de H7.1.
+    orden = {"bajo": 0, "medio": 1, "alto": 2}
+    desordenados = []
 
-    incoherentes = [
-        r
-        for evento in ("sequia", "incendio", "lluvia_intensa")
-        for r in cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": evento}).json()
-        if r["nivel"] is not None and r["nivel"] != esperado(r["probabilidad"])
-    ]
-    comprobar("ninguna fila con nivel bajo y probabilidad alta", incoherentes == [])
+    for evento in ("sequia", "incendio", "lluvia_intensa"):
+        filas = [
+            r
+            for r in cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": evento}).json()
+            if r["nivel"] is not None and r["probabilidad"] is not None
+        ]
+        for una in filas:
+            for otra in filas:
+                if orden[una["nivel"]] < orden[otra["nivel"]] and (
+                    una["probabilidad"] > otra["probabilidad"]
+                ):
+                    desordenados.append((evento, una, otra))
+
+    comprobar("ninguna fila con nivel bajo y probabilidad alta", desordenados == [])
+
+    # SC-05: incendio es binario. Se comprueba contra el vocabulario del contrato
+    # y no contra un corte escrito aqui.
+    de_incendio = cliente.get("/riesgos", params={"fecha": hoy, "tipo_evento": "incendio"}).json()
+    comprobar(
+        "incendio no devuelve nivel medio, que SC-05 elimino para ese evento",
+        all(r["nivel"] != "medio" for r in de_incendio),
+    )
 
     # ---------------------------------------------------------------- CA-3 -- #
     print("\nCA-3, el respaldo estatico sigue completo:")
@@ -206,6 +234,46 @@ def main() -> int:
         comprobar(f"existe {nombre}", (RESPALDO / nombre).exists())
     for evento in ("sequia", "incendio", "lluvia_intensa"):
         comprobar(f"existe riesgos-{evento}.json", (RESPALDO / f"riesgos-{evento}.json").exists())
+
+    # Que EXISTA no basta, y lo demostro SC-05.
+    #
+    # Estos archivos son artefactos derivados: los produce
+    # `frontend/herramientas/exportar_simulados.py` desde el simulado. Al volver
+    # binario el incendio, el respaldo se quedo con **cuatro distritos en nivel
+    # medio** que el contrato ya no admite, y este bloque solo comprobaba que el
+    # archivo estuviera ahi.
+    #
+    # Importa mas de lo que parece: el respaldo es lo que el visor sirve cuando la
+    # API no responde, y es lo unico que se sirve en el sitio publico de H11.5.
+    # Un respaldo desfasado es una pantalla publica contradiciendo al contrato.
+    import json  # noqa: PLC0415
+
+    for evento in ("sequia", "incendio", "lluvia_intensa"):
+        ruta = RESPALDO / f"riesgos-{evento}.json"
+        if not ruta.exists():
+            continue
+        filas = list(json.loads(ruta.read_text(encoding="utf-8"))["riesgos"].values())
+
+        peor_bajo = max(
+            (r["probabilidad"] for r in filas if r["nivel"] == "bajo" and r["probabilidad"]),
+            default=-1.0,
+        )
+        mejor_alto = min(
+            (r["probabilidad"] for r in filas if r["nivel"] == "alto" and r["probabilidad"]),
+            default=2.0,
+        )
+        comprobar(
+            f"el respaldo de {evento} respeta la monotonia de D-21",
+            peor_bajo < mejor_alto,
+        )
+
+    incendio_estatico = json.loads(
+        (RESPALDO / "riesgos-incendio.json").read_text(encoding="utf-8")
+    )["riesgos"].values()
+    comprobar(
+        "el respaldo de incendio no trae nivel medio (SC-05)",
+        all(r["nivel"] != "medio" for r in incendio_estatico),
+    )
 
     if fallos:
         print(f"\n{len(fallos)} criterios fallaron:\n")
