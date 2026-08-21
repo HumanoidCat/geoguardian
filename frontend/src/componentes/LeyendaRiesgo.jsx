@@ -19,7 +19,15 @@ const NIVELES = [
   { id: 'bajo', nombre: 'Bajo' },
 ]
 
-export default function LeyendaRiesgo({ nombreEvento, riesgos, simulado }) {
+/** Hoy en hora local. La misma cuenta que hace cliente.js al pedirle a la API. */
+function hoyLocal() {
+  const ahora = new Date()
+  const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+  const dia = String(ahora.getDate()).padStart(2, '0')
+  return `${ahora.getFullYear()}-${mes}-${dia}`
+}
+
+export default function LeyendaRiesgo({ nombreEvento, riesgos, simulado, fecha }) {
   const valores = Object.values(riesgos ?? {})
 
   const contar = (nivel) => valores.filter((riesgo) => riesgo.nivel === nivel).length
@@ -28,6 +36,19 @@ export default function LeyendaRiesgo({ nombreEvento, riesgos, simulado }) {
   return (
     <div className="leyenda">
       <h3 className="leyenda-titulo">Riesgo de {nombreEvento?.toLowerCase()}</h3>
+
+      {/* La fecha de la estimacion, siempre visible.
+          El dato viajaba en el paquete desde H6.6 y ningun componente lo leia. Un
+          mapa de riesgo sin fecha es un mapa que afirma "hoy" sin haberlo
+          comprobado, y el respaldo estatico demostro que no siempre es hoy: sus
+          archivos son del 16 de agosto y la pantalla no lo decia en ningun lado.
+          Con la API pasa lo mismo el dia que la ingesta se atrase. */}
+      {fecha && (
+        <p className={fecha === hoyLocal() ? 'leyenda-fecha' : 'leyenda-fecha leyenda-fecha-vieja'}>
+          Estimacion del <strong>{fecha}</strong>
+          {fecha !== hoyLocal() && <span> · no es de hoy</span>}
+        </p>
+      )}
 
       <ul className="leyenda-lista">
         {NIVELES.map((nivel) => (
