@@ -9,6 +9,15 @@ Cada contrato tiene un simulado en contratos/simulados/ que lo respeta, para que
 nadie quede bloqueado esperando codigo ajeno.
 """
 
+# 1.4.0 · 2026-08-20 · Cambia el significado de `nivel` para incendio: `alto`
+#         pasa a ser «al menos un foco en la ventana de 7 dias» y **MEDIO deja de
+#         existir para ese evento**. El umbral viejo, por percentiles del conteo,
+#         no producia tres clases sobre estos datos sino dos: Cesar midio 242
+#         focos en 24 anios y un P90 de 0,0 en los ocho distritos. Es cambio
+#         MENOR y no de parche porque ningun esquema ni firma se toca, pero lo que
+#         significa un valor si cambia y los consumidores tienen que enterarse:
+#         el semaforo de H7.1 muestra el umbral en pantalla. Solicitud SC-05,
+#         decision D-25. Cierra el riesgo R16.
 # 1.3.3 · 2026-08-20 · El quinto sitio: `ExtractorFocosSimulado` sorteaba
 #         tambien contra un generador con estado. SC-04 no lo cubrio porque la
 #         busqueda se limito a `RepositorioSimulado` y el archivo tiene otra
@@ -32,4 +41,4 @@ nadie quede bloqueado esperando codigo ajeno.
 #         Defecto detectado por Cesar contra el WFS del SNIT. Ver incidencia I-04.
 # 1.1.0 · Tercer tipo de evento: lluvia intensa.
 # 1.0.0 · Contratos iniciales.
-VERSION_CONTRATOS = "1.3.3"
+VERSION_CONTRATOS = "1.4.0"
