@@ -8,7 +8,8 @@
 **Módulos que lo consumen.** `backend/api` (H6.1), `backend/senales` (H2.5 de
 Luna), `backend/modelado` (H3.0), `backend/calidad`
 **Fecha.** 2026-08-20
-**Estado.** Pendiente de aprobación
+**Estado.** **Aprobada** por César el 2026-08-20. Integrada en contratos **v1.3.3**.
+Ver la resolución al final: su revisión encontró un quinto sitio.
 
 ---
 
@@ -106,8 +107,9 @@ distinción que D-22 usó para no cerrar H1.4, y ahora el simulado la respeta.
 
 ## Versión
 
-**v1.3.2.** Cambio de comportamiento de un simulado, sin cambio de forma ni de
-firma. Ningún consumidor tiene que adaptarse.
+**v1.3.2** al proponerse. Quedó en **v1.3.3** al integrarse, porque la revisión de
+César encontró un quinto sitio. Cambio de comportamiento de un simulado, sin cambio
+de forma ni de firma: ningún consumidor tiene que adaptarse.
 
 ---
 
@@ -121,7 +123,8 @@ antes:
 - Contar focos en dos tramos da lo mismo que en uno.
 - Los índices derivados coinciden entre instancias.
 
-Total del verificador: **40 comprobaciones**.
+Total del verificador al proponerse: **40 comprobaciones**. Quedó en **44** con
+las cuatro que agregó el quinto sitio.
 
 ## Lo que queda pendiente, y es de César
 
@@ -130,3 +133,66 @@ comprobación de que **dos llamadas iguales al endpoint devuelven lo mismo**
 corresponde al verificador de la API, no al de contratos. César la incorpora en
 **H6.2**, donde además pasa a ser una propiedad real del repositorio y no del
 doble.
+
+---
+
+## Resolución, y un quinto sitio
+
+**Aprobada por César el 20 de agosto.** Transcribió las piezas nuevas, las corrió y
+obtuvo **exactamente** los valores de la columna «Después» de este documento. Que
+los tres números coincidan es la señal de que midió esta implementación y no una
+parecida.
+
+Su lectura de `contar_focos` aditivo mejora la justificación que yo di:
+
+> *"Es más que una comodidad para H3.0: es la propiedad que tiene la consulta
+> real. Un `COUNT` sobre filas en un rango es aditivo por construcción. El doble
+> ahora se comporta como el original en algo que antes no."*
+
+### Y el patrón de I-08 volvió a aplicarse, esta vez a mí
+
+Escribí en I-08 que *"arreglar el caso señalado no es arreglar el defecto"*, y
+volví a hacerlo: busqué **todos los métodos de `RepositorioSimulado`** y el archivo
+tiene otra clase.
+
+**`ExtractorFocosSimulado` sorteaba también contra un generador con estado.**
+Medido por César contra el código de ese momento:
+
+```
+dos llamadas identicas al MISMO extractor coinciden : False
+  llamada 1, primer foco : 2024-03-28  10.4213  confianza 75
+  llamada 2, primer foco : 2024-03-26  10.4017  confianza 91
+
+otra INSTANCIA coincide con la primera llamada : True
+```
+
+La segunda línea lo delata: una instancia nueva sí coincide, porque el generador
+arranca de cero. Es la firma exacta de SC-03.
+
+**Le importa a H1.2**, que implementa `ExtractorFocosCalor` de verdad: si el doble
+contra el que se compara no es reproducible, la prueba no prueba nada.
+
+### Otros tres, de la misma revisión
+
+**`_es_hueco` recibía `codigo_distrito` y no lo miraba.** Los ocho distritos tenían
+hueco exactamente los mismos días. Dos problemas: el parámetro prometía algo que la
+función no hacía, y no se podía escribir una prueba con un distrito con dato y otro
+sin él — que es el caso normal cuando una estación se cae, y justo lo que H1.4
+reconvertida en verificación de completitud tiene que detectar.
+
+**`contar_focos` no podía devolver más de un foco por día.** Con `randint(0, 1)`,
+una ventana de 7 días tenía un techo duro de 7 que en FIRMS no existe. Pasa a
+`randint(0, 3)`.
+
+**El generador compartido quedó sin uso en `__init__`.** Se quita: dejarlo ahí es
+una invitación a que alguien vuelva a sortear contra él, y el comentario que
+explica por qué no hay que hacerlo vive en otra función.
+
+### Cierre
+
+Todo integrado en **contratos v1.3.3**, con **cuatro comprobaciones más**. El
+verificador pasa de 40 a **44**.
+
+**El aprendizaje se corrige.** No alcanza con «buscar todas las apariciones del
+patrón»: hay que decir **dónde** se buscó. Yo busqué en una clase y declaré el
+archivo revisado.

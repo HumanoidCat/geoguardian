@@ -28,7 +28,7 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 40 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 44 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
 | Tres entornos de Kubernetes en k3d | Funciona |
 | Integración continua, cinco trabajos por cada cambio | Funciona |
@@ -246,8 +246,8 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **40 comprobaciones**
-y declarar **"Contratos version 1.2.0"**.
+Debe terminar en **"Todas las verificaciones pasaron"** con **44 comprobaciones**
+y declarar **"Contratos version 1.3.3"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
 proyecto. Que un dato faltante se represente como nulo y nunca como cero; que una
@@ -320,11 +320,22 @@ python -m ruff format --check .
 
 ### 5.7 Visor
 
+**Requiere haber hecho `npm install`**, sección 4.4. Sin eso los dos comandos
+fallan con *"eslint no se reconoce"* y *"vite no se reconoce"*, y el mensaje no da
+ninguna pista de qué falta. Node estar instalado no alcanza: las herramientas
+viven en `node_modules`.
+
 ```bash
 cd frontend
+npm install      # si no se corrió antes, sección 4.4
 npm run lint
 npm run build
 ```
+
+> Lo encontró César al verificar el manual el 19 de agosto. La sección 5 se
+> presenta como *"la que hay que ejecutar para comprobar que el sistema
+> funciona"*, lo que invita a correrla por su cuenta, y quien lo haga se topaba
+> con dos fallos sin explicación.
 
 ---
 
@@ -407,6 +418,27 @@ causa raíz en `docs/04-bitacora-incidencias.md`.
 
 ---
 
+### Una migración registrada en la base que no está en disco
+
+    003 003_seguridad_roles.sql: registrada en la base pero no esta en disco
+
+**No es un defecto: es la protección funcionando.** Pasa cuando la base tiene
+aplicada una migración que vive en una rama sin fusionar y el repositorio está
+parado en otra. El aplicador se niega antes de tocar nada, para que nadie trabaje
+contra una base que no corresponde a su código.
+
+La salida es fusionar la rama que trae esa migración, o recrear el volumen:
+
+```bash
+docker compose down -v && docker compose up -d
+python -m basedatos.aplicar_migraciones
+```
+
+Lo señaló César al verificar el manual el 19 de agosto, y le va a pasar a
+cualquiera que lo verifique mientras haya migraciones en ramas sin fusionar.
+
+---
+
 ## 10. Hoja de verificación para quien revisa
 
 Esta sección la completa **una persona ajena al desarrollo**, siguiendo el manual
@@ -426,7 +458,7 @@ no es un manual.
 | 8 | Cargar geometrías | 4.3 | | |
 | 9 | Cargar geometrías **por segunda vez** | 4.3 | | Debe seguir habiendo 8 filas |
 | 10 | PostGIS y esquemas | 5.1 | | Cuatro esquemas |
-| 11 | Contratos | 5.2 | | 40 comprobaciones |
+| 11 | Contratos | 5.2 | | 44 comprobaciones |
 | 12 | Criterios del modelo territorial | 5.3 | | |
 | 13 | Modelo y transacciones | 5.4 | | Los `ERROR` son esperados |
 | 14 | Documentación y backlog | 5.5 | | |

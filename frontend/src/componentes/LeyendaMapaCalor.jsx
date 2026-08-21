@@ -8,8 +8,10 @@ import { RAMPA_PROBABILIDAD, puntosDeOrigen } from '../datos/interpolacion'
  * Declara tres cosas que la superficie por si sola no dice, y sin las cuales el
  * mapa se leeria como algo que no es:
  *
- *   1. Que representa PROBABILIDAD, no nivel de riesgo. La paleta es distinta
- *      justamente para que no se confundan, pero conviene decirlo con palabras.
+ *   1. Que magnitud representa. Desde D-21, `probabilidad` es P(nivel = alto), o
+ *      sea riesgo, pero expresado como una probabilidad continua y no como una
+ *      de las tres clases de la coropleta. La paleta distinta ya lo separa
+ *      visualmente; la leyenda lo dice con palabras.
  *   2. Sobre cuantos puntos se interpolo. Ocho es muy poco, y quien mire el mapa
  *      tiene derecho a saberlo antes de sacar conclusiones.
  *   3. Con que exponente, porque el mismo dato con otro exponente se ve distinto.
@@ -37,7 +39,7 @@ export default function LeyendaMapaCalor({ centroides, riesgos, exponente }) {
 
   return (
     <div className="leyenda">
-      <h3 className="leyenda-titulo">Probabilidad interpolada</h3>
+      <h3 className="leyenda-titulo">Probabilidad de riesgo alto</h3>
 
       <div className="barra-gradiente" style={{ background: `linear-gradient(90deg, ${gradiente})` }} />
       <div className="barra-extremos">
@@ -46,8 +48,9 @@ export default function LeyendaMapaCalor({ centroides, riesgos, exponente }) {
       </div>
 
       <p className="leyenda-nota">
-        Es la <strong>probabilidad</strong> de la estimacion, no el nivel de
-        riesgo. Por eso usa otros colores.
+        Probabilidad de que el evento alcance el nivel <strong>alto</strong>. Es
+        una magnitud continua, no una de las tres clases de la coropleta: por eso
+        usa otros colores.
       </p>
 
       <hr className="leyenda-separador" />

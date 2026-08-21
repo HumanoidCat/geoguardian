@@ -7,7 +7,8 @@
 `dependencias.py`), `frontend` (H5.3 y H5.4, de Avril, a través de la API),
 `frontend/herramientas/exportar_simulados.py`
 **Fecha.** 2026-08-20
-**Estado.** Pendiente de aprobación
+**Estado.** **Aprobada** por César el 2026-08-20. Integrada en contratos **v1.3.1**.
+Ver la resolución al final.
 
 > Aprueban: Alejandro por `contratos/`, y César como dueño del único módulo que
 > hoy instancia el repositorio. Avril queda notificada porque el cambio corrige
