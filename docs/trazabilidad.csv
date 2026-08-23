@@ -9,6 +9,7 @@ H1.10,Estrategia de respaldo probada,basedatos/respaldos,restauracion manual,doc
 H2.1,Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion,backend/senales,"test_filtros, 19 casos",docs/evidencias/senales-y-sistemas/,,pendiente reejecutar contra las series reales de H1.1
 H2.2,"Analisis espectral de estacionalidad, sobre la serie cruda (D-17)",backend/senales,test_espectro,docs/evidencias/senales-y-sistemas/,,
 H2.3,"SPI por ventana movil, sobre la serie cruda (D-17)",backend/senales,"test_spi, 21 casos",docs/evidencias/senales-y-sistemas/,,SC-02 resuelta por D-19: falta que la implementacion use el parametro `meses`
+H2.4,"Anomalias respecto a la normal climatologica 1991-2020, sobre la serie cruda (D-17)",backend/senales,"test_anomalias, 24 casos",docs/evidencias/senales-y-sistemas/,,SC-06 pendiente: el contrato no recibe fechas y se supone que la serie arranca en enero
 H2.7,"Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo",backend/senales,"test_percentiles, 17 casos",docs/evidencias/senales-y-sistemas/,,
 H3.0,Etiquetado de la variable objetivo,backend/modelado,test_etiquetado,docs/evidencias/,,
 H3.1,Linea base climatologica,backend/modelado,test_linea_base,docs/evidencias/,,
