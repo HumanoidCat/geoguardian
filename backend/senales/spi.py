@@ -2,16 +2,21 @@
 Indice de Precipitacion Estandarizado (SPI). Historia H2.3.
 
 Implementa `spi` del contrato `contratos/senales.py`, siguiendo a McKee, Doesken
-y Kleist (1993), referencia [4], con las decisiones de calculo de la guia
-operativa de la OMM, WMO-No. 1090, referencia [24].
+y Kleist (1993), referencia [4].
+
+De la guia operativa de la OMM, WMO-No. 1090, referencia [24], se toman tres
+decisiones: el minimo de 30 anios de registro, el rango defendible de 1 a 24
+meses de ventana, y el conjunto de comparacion por mes calendario. **No se toma
+de ahi el tratamiento de ceros**: esa guia no contiene ninguna formula. Ver la
+nota de `ajustar_gamma`.
 
 El procedimiento es el de la referencia y tiene tres pasos:
 
 1. **Acumular** la precipitacion sobre una ventana movil de `ventana_meses`
    meses. Es una convolucion con un nucleo rectangular de unos.
 2. **Ajustar una distribucion gamma** a los acumulados, con la correccion para
-   ceros de la OMM, porque la gamma no esta definida en cero y Tilaran tiene
-   meses de 0 mm en estacion seca.
+   ceros de Stagge et al. (2015), referencia [27], porque la gamma no esta
+   definida en cero y Tilaran tiene meses de 0 mm en estacion seca.
 3. **Transformar** la probabilidad acumulada a la normal estandar. El resultado
    es el SPI: cuantas desviaciones tipicas se aparta ese acumulado de lo normal.
 
@@ -152,6 +157,17 @@ class CalculadorSPI:
         propio mes**: los eneros contra los eneros, los febreros contra los
         febreros. Eso descuenta la estacionalidad y deja solo la anomalia.
 
+        **Respaldo en la guia de la OMM**, WMO-No. 1090, referencia [24],
+        seccion 5.1.1: describe el SPI de 1 mes como la comparacion del total
+        de noviembre de un ano dado contra los totales de noviembre de todos
+        los anos del registro. El 5.1.2 dice lo equivalente para el trimestre
+        diciembre-enero-febrero y el 5.1.5 para los doce meses consecutivos.
+
+        Es descriptivo, no imperativo: la guia nunca escribe "ajustese por mes
+        calendario". Pero define el conjunto de comparacion como el mismo mes
+        del calendario a traves de los anos, que es lo que hace este metodo.
+        La cita se limita a eso y no se estira mas alla.
+
         Un mes con menos de `MINIMO_AJUSTE` acumulados no se ajusta y sus
         posiciones salen None. No se recurre a la distribucion conjunta como
         respaldo: eso reintroduciria en ese mes exactamente el sesgo que este
@@ -230,12 +246,23 @@ def ajustar_gamma(muestra: list[float]) -> tuple[float | None, float | None, flo
     Devuelve (forma, escala, probabilidad_de_cero).
 
     **Por que se separan los ceros.** La distribucion gamma no esta definida en
-    cero, y Tilaran tiene meses de 0,0 mm en estacion seca. La OMM (WMO-No.
-    1090) resuelve esto con una distribucion mixta: la probabilidad acumulada
-    es H(x) = q + (1 - q) G(x), donde q es la proporcion de ceros de la muestra
-    y G la gamma ajustada solo sobre los valores positivos. Descartar los ceros
-    sin contarlos en q inflaria el indice en los climas con estacion seca, que
-    es exactamente el caso de este canton.
+    cero, y Tilaran tiene meses de 0,0 mm en estacion seca. Se usa una
+    distribucion mixta: la probabilidad acumulada es H(x) = q + (1 - q) G(x),
+    donde q es la proporcion de ceros de la muestra y G la gamma ajustada solo
+    sobre los valores positivos. Descartar los ceros sin contarlos en q
+    inflaria el indice en los climas con estacion seca, que es exactamente el
+    caso de este canton.
+
+    **Correccion de atribucion, 2026-08-22.** Una version anterior de este
+    comentario atribuia la distribucion mixta a la guia de la OMM, WMO-No.
+    1090. **Es falso.** Se leyo el documento completo, las 16 paginas: no
+    contiene ninguna formula, y su seccion 6 remite explicitamente a McKee et
+    al. (1993, 1995) y a Edwards y McKee (1997) para el procedimiento de
+    calculo. La distribucion mixta no aparece ahi.
+
+    La atribucion correcta es Stagge et al. (2015), referencia [27]. Ver la
+    ficha de esa referencia para el alcance exacto de su verificacion, que es
+    parcial y esta declarado.
 
     **LIMITACION: el ajuste no es por mes calendario.**
 
@@ -307,7 +334,7 @@ def _a_normal_estandar(
     cual la clasificacion de sequia no distingue nada: los umbrales del
     proyecto estan en -1,0 y -1,5.
 
-    **El caso del acumulado cero, y una atribucion que hay que verificar.**
+    **El caso del acumulado cero: el estimador de centro de masa.**
 
     Con la distribucion mixta, en x = 0 se tiene G(0) = 0 y por lo tanto
     H(0) = q. La lectura directa seria entonces `ppf(q)`.
@@ -317,23 +344,26 @@ def _a_normal_estandar(
     superior, y evita la discontinuidad que produce usar q entre el ultimo cero
     y el primer valor positivo.
 
-    **La eleccion se mantiene; lo que no esta resuelto es a quien se atribuye.**
-    Una version anterior de este archivo la atribuia a la OMM, lo cual es
-    incorrecto: WMO-No. 1090 plantea la distribucion mixta pero no se verifico
-    que recomiende la mitad. Se sugirio Stagge et al. (2015), *Candidate
-    Distributions for Climatological Drought Indices (SPI and SPEI)*, Int. J.
-    Climatology 35(13), 4027-4040, DOI 10.1002/joc.4267. Se confirmo que ese
-    articulo existe con esos datos, pero **no** que sea la fuente de esta
-    correccion en particular.
+    **Atribucion, resuelta el 2026-08-22.** Es de Stagge et al. (2015),
+    referencia [27]. Su forma exacta es (n0 + 1) / (2 (n + 1)), con n0 el
+    numero de meses nulos y n el tamano de muestra.
 
-    Queda pendiente confirmarlo contra el texto de una de las dos fuentes antes
-    de que la afirmacion pase al documento IEEE. Mientras tanto no se cita
-    ninguna: es preferible una decision sin atribucion a una atribucion falsa.
+    **Lo que se usa aqui es q / 2, que no es identico sino su limite cuando n
+    es grande.** Con n0 / n = q, la expresion de Stagge tiende a q / 2 al
+    crecer n; con los 35 anios de este proyecto la diferencia es despreciable,
+    pero no son la misma formula y este comentario no las presenta como tal.
+
+    **Alcance de la verificacion.** El articulo esta tras muro de pago y no se
+    leyo. Lo que se leyo es la documentacion de `fitSCI` del paquete R `SCI`,
+    firmada por Gudmundsson y Stagge, dos de los cinco autores, que atribuye el
+    estimador a Stagge et al. y da la formula. Es la mejor confirmacion
+    disponible, y no equivale a haber leido el articulo. Ver la ficha de [27].
 
     Con 35 anios y SPI-3 el efecto numerico entre `q` y `q / 2` es menor.
     """
     if acumulado <= 0:
-        # ATRIBUCION PENDIENTE DE VERIFICAR. Ver la nota de abajo.
+        # Centro de masa de Stagge et al. (2015), ref. [27], en su forma limite
+        # para n grande. Ver la nota del docstring.
         probabilidad = prob_cero / 2
     else:
         probabilidad = prob_cero + (1 - prob_cero) * gamma.cdf(acumulado, forma, scale=escala)

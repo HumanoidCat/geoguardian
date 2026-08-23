@@ -433,22 +433,52 @@ directamente (`arxiv.org/abs/2405.01607`). DOI de arXiv:
 ```
 
 **Fuente verificada:** biblioteca oficial de la OMM
-(`library.wmo.int`, registro 39629).
+(`library.wmo.int`, registro 39629). **El texto completo se leyó
+directamente**, las 16 páginas, el 2026-08-22, desde el PDF distribuido por
+el Integrated Drought Management Programme. La lectura corrigió dos
+afirmaciones previas de este proyecto; ver la advertencia al final de la
+ficha.
 
 **Ficha de contenido**
-- *Qué dice:* es la guía operativa para calcular el SPI: qué longitud mínima
-  de serie se requiere, cómo se ajusta la distribución de probabilidad, cómo
-  se manejan los ceros en climas con estación seca marcada, y cómo se
-  interpretan las escalas temporales (1, 3, 6, 12 meses) según el tipo de
-  impacto que se quiere anticipar.
+- *Qué dice:* es una guía **interpretativa y operativa**, no un documento de
+  fórmulas. Cubre qué longitud mínima de serie se requiere (§6.2: al menos 30
+  años de datos mensuales continuos), qué rango de escalas temporales es
+  estadísticamente defendible (§5: de 1 a 24 meses, siguiendo a Guttman), qué
+  significa cada escala en términos de impacto (§5.1.1 a §5.1.5), y cómo
+  ejecutar el programa `SPI_SL_6.exe` del NDMC (§7 y §8).
+- *Qué **no** dice:* **no contiene ninguna fórmula.** Su §6, "Computational
+  methodology", son ocho viñetas en prosa que remiten explícitamente a McKee
+  et al. (1993, 1995) y a Edwards y McKee (1997) para el procedimiento
+  completo. En particular **no plantea la distribución mixta** para el
+  tratamiento de ceros ni discute cómo se estima la probabilidad de mes seco.
+- *Lo que sí sostiene sobre el ajuste por mes calendario:* el §5.1.1 describe
+  el SPI de 1 mes diciendo que compara el total de noviembre de un año dado
+  "with the November precipitation totals of all the years on record". El
+  §5.1.2 dice lo equivalente para diciembre–enero–febrero, el §5.1.3 para
+  abril–septiembre y el §5.1.5 para los 12 meses consecutivos. Es una
+  descripción, no una prescripción —la guía nunca dice "ajústese por mes
+  calendario"—, pero define el conjunto de comparación como el mismo mes o
+  período del calendario a través de los años, que es el fundamento de **D-19**.
 - *Por qué es relevante:* McKee `[4]` define el SPI y sus umbrales, pero es
-  un artículo de actas de 1993 y no cubre las decisiones prácticas de
-  cálculo. Esta guía sí, y es la que corresponde citar al documentar cómo se
-  implementó el SPI-1 y el SPI-3 en H2.3. El detalle del manejo de ceros
-  importa de forma concreta aquí: Tilarán tiene una estación seca marcada y
-  meses con precipitación acumulada nula.
-- *Uso previsto:* cita de respaldo en la sección de metodología al describir
-  el cálculo del SPI, y en la evidencia de H2.3.
+  un artículo de actas de 1993 y no cubre las decisiones prácticas. Esta guía
+  respalda tres de las que se tomaron en H2.3: el mínimo de 30 años, el rango
+  de 1 a 24 meses, y el conjunto de comparación por mes calendario.
+- *Uso previsto:* cita de respaldo en la sección de metodología para la
+  longitud de serie, el rango de escalas y el ajuste por mes calendario. **No
+  se usa para el tratamiento de ceros**, que se atribuye a `[27]`.
+
+**Advertencia: dos correcciones derivadas de la lectura del texto.**
+
+1. Una versión anterior de esta ficha afirmaba que la guía documenta "cómo se
+   ajusta la distribución de probabilidad" y "cómo se manejan los ceros". Las
+   dos son falsas y se retiran. El error se propagó a los comentarios de
+   `backend/senales/spi.py` y a la evidencia de H2.3, y se corrigió en los
+   tres lugares.
+2. El §5.1.1 desaconseja calcular el SPI en escalas menores a un mes y cita
+   como respaldo a "Wu and others, 2006". **La lista de referencias del propio
+   documento fecha ese trabajo en 2007** (Wu, Svoboda, Hayes, Wilhite y Wen,
+   *International Journal of Climatology*, 27(1):65-79). Es una errata interna
+   de la guía. Si se cita ese trabajo, la fecha correcta es 2007.
 
 ### [25] IMN y SINAC — Sistema de Alerta Temprana de Incendios Forestales
 
@@ -502,6 +532,54 @@ Costa Rica. DOI: `10.18845/tm.v37i7.7304`.
   de apoyarse solo en literatura extranjera.
 - *Uso previsto:* estado del arte (H10.5b).
 
+### [27] Stagge et al. — Distribuciones candidatas para índices de sequía
+
+```
+[27] J. H. Stagge, L. M. Tallaksen, L. Gudmundsson, A. F. Van Loon y
+     K. Stahl, "Candidate distributions for climatological drought indices
+     (SPI and SPEI)," International Journal of Climatology, vol. 35, no. 13,
+     pp. 4027-4040, 2015.
+```
+
+**Fuente verificada — leer con atención el alcance de la verificación.** Los
+datos bibliográficos (autores, revista, volumen, número, páginas, año, DOI
+`10.1002/joc.4267`) se confirmaron en Wiley Online Library y en tres
+repositorios institucionales independientes (ETH Zürich, Vrije Universiteit
+Amsterdam, Wageningen).
+
+**El texto del artículo no se leyó: está tras muro de pago.** Lo que sí se
+leyó, el 2026-08-22, es la documentación de la función `fitSCI` del paquete R
+`SCI`, **firmada por Lukas Gudmundsson y James H. Stagge**, dos de los cinco
+autores del artículo. Esa documentación es la que atribuye a Stagge et al. el
+estimador de centro de masa y da su forma explícita, y remite al DOI de
+arriba en su lista de referencias.
+
+Es una fuente secundaria escrita por los propios autores sobre su propio
+trabajo: es la mejor confirmación disponible sin acceso al artículo, pero
+**no equivale a haber leído el artículo** y no debe presentarse como tal. Si
+alguien consigue acceso institucional, corresponde verificar contra el texto
+y actualizar esta nota.
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* evalúa qué distribución de probabilidad
+  conviene para normalizar el SPI y el SPEI, y propone modificaciones a la
+  metodología. Entre ellas, el tratamiento de los meses de precipitación nula
+  mediante una distribución mixta *D(x) = p0 + (1 − p0)·G(x)*, con la
+  probabilidad de cero estimada por un **estimador de centro de masa** basado
+  en la posición de graficación de Weibull. El valor asignado en *x = 0* es
+  *(n0 + 1) / (2(n + 1))*, donde *n0* es el número de meses nulos y *n* el
+  tamaño de muestra.
+- *Por qué es relevante:* Tilarán tiene estación seca marcada y meses de
+  0,0 mm, así que el tratamiento de ceros no es un detalle. La implementación
+  de H2.3 usa *q/2* en *x = 0*, que es el límite de *(n0 + 1)/(2(n + 1))*
+  cuando *n* es grande: **nuestro estimador es la simplificación de muestra
+  grande del de Stagge et al.**, y conviene decirlo así y no afirmar que es
+  el mismo.
+- *Uso previsto:* atribución del tratamiento de ceros y del estimador de
+  centro de masa en la metodología y en la evidencia de H2.3. **Reemplaza la
+  atribución a `[24]`, que era incorrecta**: la guía de la OMM no plantea la
+  distribución mixta.
+
 ## Referencias buscadas y no incluidas
 
 Dos revisiones de aprendizaje automático aplicado a incendio y sequía
@@ -521,7 +599,10 @@ número.
 | Fichas de H10.5a | 16 (`[9]` a `[24]`) |
 | Mínimo exigido por H10.5a | 15 |
 | Fichas agregadas por H10.5b | 2 (`[25]` y `[26]`) |
+| Fichas agregadas por la corrección de atribución de H2.3 | 1 (`[27]`) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
-| Total de la bibliografía | 26 |
+| Total de la bibliografía | 27 |
 | Referencias descartadas por no poder verificarse | 2 |
+| Fichas corregidas tras leer la fuente completa | 1 (`[24]`) |
 | Pendientes de verificar antes de citar | 1 (Mora-Vahrson 1994, ver `estado-del-arte.md`) |
+| Citadas con verificación parcial declarada | 1 (`[27]`, artículo tras muro de pago) |

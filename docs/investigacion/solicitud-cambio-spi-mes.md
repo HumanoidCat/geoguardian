@@ -49,6 +49,18 @@ textualmente** y se retira hasta verificarla contra el documento. Es lo que
 hacen las implementaciones de referencia, pero eso es un argumento distinto de
 una cita.
 
+*Cierre de la nota anterior, 2026-08-22.* Se leyo el documento. **La
+atribucion se restituye, acotada a la seccion 5.1.1**, que describe el SPI de
+1 mes como la comparacion del total de noviembre de un ano dado contra los
+totales de noviembre de todos los anos del registro; el 5.1.2 y el 5.1.5 dicen
+lo equivalente para el trimestre y para los doce meses. Sigue siendo
+descriptivo y no imperativo: la guia nunca escribe "ajustese por mes
+calendario". La cita se limita a lo que el texto dice.
+
+Esto **no altera la solicitud ni su aprobacion**: D-19 se aprobo sobre la
+medicion, y la medicion no cambio. Se anota aqui para que quede el rastro de
+que la deuda de verificacion declarada en su momento se pago.
+
 **La solicitud no dependia de la cita.** El argumento que la sostiene es la
 medicion de abajo, y ese se lee sin recurrir a ninguna autoridad: un indice de
 anomalia cuya media es -0,84 en una estacion y +0,60 en la otra no esta
