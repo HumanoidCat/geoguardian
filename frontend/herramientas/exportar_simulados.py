@@ -20,6 +20,11 @@ Para producir el caso de ausencia de estimacion, que es el que va a devolver la
 API real mientras no exista un modelo entrenado:
 
     python frontend/herramientas/exportar_simulados.py --sin-estimacion 2
+
+Para producir el caso de nivel sin probabilidad, que es el que describe el
+docstring de `Riesgo` en contratos/esquemas.py:
+
+    python frontend/herramientas/exportar_simulados.py --sin-probabilidad 50807
 """
 
 from __future__ import annotations
@@ -101,7 +106,10 @@ def construir_geojson(repositorio: RepositorioSimulado) -> dict:
 
 
 def construir_riesgos(
-    repositorio: RepositorioSimulado, evento: TipoEvento, sin_estimacion: int = 0
+    repositorio: RepositorioSimulado,
+    evento: TipoEvento,
+    sin_estimacion: int = 0,
+    sin_probabilidad: tuple[str, ...] = (),
 ) -> dict:
     """
     Riesgo de un evento para los ocho distritos en la fecha de referencia.
@@ -118,6 +126,18 @@ def construir_riesgos(
     todos los distritos, durante semanas. El contrato lo permite explicitamente y
     el visor tiene que seguir funcionando. Sin esta bandera no habria forma de
     capturar ese caso, porque el simulado siempre asigna nivel.
+
+    `sin_probabilidad` es OTRO caso, y no el mismo mas suave: deja el nivel y
+    borra la probabilidad de los distritos indicados. Es literalmente lo que dice
+    el docstring de `Riesgo` en contratos/esquemas.py, "probabilidad y explicacion
+    son None mientras no exista un modelo entrenado", y es coherente con el
+    roadmap: la linea base climatologica de H3.1 puede clasificar un distrito sin
+    que exista todavia el clasificador de H3.4 que estima P(nivel = alto). Por eso
+    `algoritmo` y `version_modelo` tambien quedan en None.
+
+    Existe porque sin ella este estado no se puede mirar en pantalla, y ordenar
+    una tabla por un campo que puede faltar es exactamente donde estuvo el defecto
+    que el Lead PM encontro en el PR #147.
     """
     riesgos = {}
     for riesgo in repositorio.obtener_riesgos_por_fecha(FECHA_REFERENCIA, evento):
@@ -135,6 +155,18 @@ def construir_riesgos(
             "algoritmo": None,
             "version_modelo": None,
         }
+
+    # Despues del anterior a proposito: si un distrito cae en las dos banderas,
+    # queda sin estimacion, que es el estado mas pobre de los dos.
+    for codigo in sin_probabilidad:
+        if codigo not in riesgos:
+            raise SystemExit(
+                f"ERROR: el contrato no devolvio el distrito {codigo} para "
+                f"{evento.value}, asi que --sin-probabilidad no puede aplicarse."
+            )
+        if riesgos[codigo]["nivel"] is None:
+            continue
+        riesgos[codigo] |= {"probabilidad": None, "algoritmo": None, "version_modelo": None}
 
     return {
         "tipo_evento": evento.value,
@@ -204,10 +236,27 @@ def leer_argumentos() -> argparse.Namespace:
             "el estado que devolvera la API mientras no exista modelo entrenado"
         ),
     )
+    analizador.add_argument(
+        "--sin-probabilidad",
+        nargs="+",
+        default=[],
+        metavar="CODIGO",
+        help=(
+            "Deja los distritos indicados con nivel pero sin probabilidad, que es "
+            "lo que el contrato permite mientras no exista un modelo entrenado"
+        ),
+    )
     argumentos = analizador.parse_args()
 
     if not 0 <= argumentos.sin_estimacion <= 8:
         raise SystemExit("ERROR: --sin-estimacion tiene que estar entre 0 y 8")
+
+    desconocidos = sorted(set(argumentos.sin_probabilidad) - CODIGOS_ESPERADOS)
+    if desconocidos:
+        raise SystemExit(
+            f"ERROR: --sin-probabilidad no reconoce {desconocidos}. "
+            f"Los codigos del canton son {sorted(CODIGOS_ESPERADOS)}"
+        )
 
     return argumentos
 
@@ -236,8 +285,16 @@ def main() -> None:
     print(f"\nRiesgos simulados para el {FECHA_REFERENCIA.isoformat()}:")
     if argumentos.sin_estimacion:
         print(f"  ({argumentos.sin_estimacion} distritos forzados a sin estimacion)")
+    if argumentos.sin_probabilidad:
+        forzados = ", ".join(sorted(set(argumentos.sin_probabilidad)))
+        print(f"  ({forzados} forzados a nivel sin probabilidad)")
     for evento in TipoEvento:
-        paquete = construir_riesgos(repositorio, evento, argumentos.sin_estimacion)
+        paquete = construir_riesgos(
+            repositorio,
+            evento,
+            argumentos.sin_estimacion,
+            tuple(argumentos.sin_probabilidad),
+        )
         verificar_riesgos(paquete)
         escribir(SALIDA / f"riesgos-{evento.value}.json", paquete)
 
