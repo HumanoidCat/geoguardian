@@ -742,6 +742,18 @@ body {
   font-size: var(--texto-sm);
 }
 
+/* Cuando las tres columnas no son de la misma fecha, la tabla ya no compara lo
+   que aparenta comparar. Ambar y no rojo, como el resto de los avisos sobre la
+   procedencia del dato: el rojo esta reservado para riesgo alto. */
+.tablero-fechas-dispares {
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  padding: var(--espacio-1) var(--espacio-2);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
 /* En pantallas angostas la tabla se desplaza en vez de comprimir las celdas.
    Una celda comprimida esconde la probabilidad, que es justo lo que distingue
    dos "altos" que no son iguales. */
