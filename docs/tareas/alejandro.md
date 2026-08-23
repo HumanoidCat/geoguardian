@@ -9,6 +9,17 @@
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
+
 **Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
 
 ## Carga por sprint
@@ -72,6 +83,10 @@
 
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
+  - horas: estimada n/d . real 3.0
+  - La estimacion previa no existe: la historia se cerro el mismo dia en que D-24
+    creo la regla. Escribirla ahora, sabiendo lo que costo, seria el anclaje que
+    D-24 descarta. Es el unico caso donde se acepta `n/d`.
   - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
     el cambio de origen de datos del visor, y esta en la ruta critica del
     prototipo. Al cerrarla hay que anotar **D-14** como revisada.

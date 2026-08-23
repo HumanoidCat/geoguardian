@@ -35,6 +35,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-21 | `probabilidad` es P(nivel = alto), no la confianza del modelo | Aceptada | 2026-08-20 |
 | D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
 | D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
+| D-24 | El modelo de estimacion es una constante: se empieza a medir antes de corregirlo | Aceptada | 2026-08-20 |
 
 ---
 
@@ -1932,6 +1933,178 @@ Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
 | Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
 
 31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
+
+---
+
+## D-24 · El modelo de estimacion es una constante: se empieza a medir antes de corregirlo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro
+**Lo detecta.** Avril, al entregar H7.1
+
+### Contexto
+
+Avril reporto H7.1 con tres numeros en vez de uno:
+
+| | Horas |
+|---|---|
+| Backlog | 5.8 |
+| Su estimacion, dicha antes de arrancar | 4.0 |
+| **Real** | **2.0** |
+
+Y planteo que el modelo del proyecto no contempla cuatro cosas que ella observo
+al hacer cinco historias seguidas de frontend.
+
+Fui a ver contra que modelo estaba discutiendo. Es este:
+
+| Historia | Puntos | Horas | h/punto |
+|---|---|---|---|
+| H5.1 | 3 | 2.9 | **0.97** |
+| H5.2 | 5 | 4.8 | **0.96** |
+| H5.3 | 7 | 6.7 | **0.96** |
+| H5.4 | 8 | 12.5 | 1.56 |
+| H7.1 | 6 | 5.8 | **0.97** |
+
+**Cuatro de cinco son puntos x 0.96.** No es una muestra: es el modelo entero.
+Sobre las 82 historias, 423 puntos y 620.3 horas dan 1.47 h/punto de promedio, y
+la dispersion sale de que a distintas epicas se les aplico distinta constante, no
+de que se haya estimado historia por historia.
+
+Ninguna de las cuatro variables que Avril describe esta adentro, **porque no hay
+donde meterlas**: una multiplicacion por una constante no tiene parametros.
+
+Las cuatro, en sus palabras:
+
+1. **Si el sistema de diseno ya existe o hay que crearlo.** H5.1 lo creo y se
+   paso; H5.2, H5.3 y H5.4 lo consumieron y entraron cortas. La primera historia
+   visual de una epica paga una deuda que las demas no vuelven a pagar.
+2. **Si la verificacion es por script o a ojo.** Lo que se comprueba con un
+   comando escala; lo que hay que mirar distrito por distrito no baja con la
+   practica.
+3. **Si hubo ronda de revision.** H5.3 tuvo una y casi duplico el esfuerzo.
+4. **Si la historia decide o solo implementa.** H5.4 tenia la estimacion mas alta
+   —1.56 h/punto, la unica que se sale de la constante— y salio corta, porque el
+   codigo era poco y lo caro fue decidir.
+
+**La tercera es la que importa mas, y no es de frontend.** Las otras tres son de
+su epica. La ronda de revision aplica a todas: H1.5 la tuvo el 20 de agosto,
+H6.6 tuvo dos de Cesar, SC-03 y SC-04 salieron de una. Es lo mas frecuente que
+hace el equipo y no esta en ninguna estimacion. Sobre 620 h planificadas, un 15 %
+son 93 h que el plan no tiene.
+
+**Un caso concreto de trabajo no registrado.** El roadmap estimaba el sistema de
+diseno en 4 h como tarea de Sprint 0. Nunca se convirtio en historia y entro
+dentro de H5.1, estimada en 2.9 h. Explica por que H5.1 se paso sin que nadie
+supiera contra que compararla.
+
+### Decision
+
+**1. Se registran dos numeros al cerrar cada historia**, en
+`docs/tareas/<persona>.md`, debajo de la linea de la historia:
+
+    - horas: estimada 4.0 . real 2.0
+
+`estimada` es lo que la persona dijo **antes de arrancar**, sin mirar el backlog.
+`real` es lo que tardo. Las horas del backlog no se repiten: ya estan en la linea
+de arriba y en `backlog.csv`.
+
+**2. Se exige desde el 2026-08-20, no hacia atras.**
+
+Con una excepcion acotada a ese mismo dia. Las historias cerradas el 20 de agosto
+terminaron **antes de que la regla existiera**, asi que nadie pudo decir una
+estimacion previa. Escribirla hoy, sabiendo lo que costo, seria el anclaje que
+esta misma decision descarta, con el agravante de que el numero se veria igual
+que uno medido. En esos casos se escribe `estimada n/d`, y el verificador deja de
+aceptarlo a partir del 21.
+
+El unico caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
+sin estimacion previa. Es la primera medicion del proyecto y es incompleta a
+proposito.
+
+**3. No se cambia ninguna estimacion todavia.** El backlog, el roadmap y las
+tablas de capacidad se quedan como estan hasta la retrospectiva del Sprint 2.
+
+**4. Lo comprueba `docs/herramientas/verificar_horas.py` en el CI**, que ademas
+imprime la comparacion acumulada.
+
+### Justificacion
+
+**Por que dos numeros y no uno.** Son dos errores distintos. En H7.1 el backlog
+dijo 5.8, Avril dijo 4 y el real fue 2: los dos fallaron, y no por lo mismo. Con
+un solo numero no se puede separar el error del modelo del proyecto del error de
+quien estima, y son dos problemas con dos soluciones.
+
+**Por que no hacia atras.** El argumento es de Avril: estimar hoy H5.3 sabiendo
+que el backlog dice 6.7 h produce un numero cerca de 6.7 h **por construccion**.
+Un dato anclado no mide, confirma. Ella dio direcciones —"mucho mas larga", "mas
+corta"— en lugar de inventar cifras con un decimal, y es la respuesta correcta.
+
+**Por que medir antes de corregir.** Hay una sola historia medida. Cambiar el
+coeficiente con n=1 sustituiria una constante mal fundada por otra constante mal
+fundada, y ademas moveria las tablas de capacidad de las cuatro personas en mitad
+del Sprint 2.
+
+Pero la parte **estructural** no necesita mas datos: que el modelo sea una
+multiplicacion se lee hoy en `backlog.csv`. Por eso esta decision separa las dos
+cosas: registra lo que ya esta probado y difiere lo que todavia no.
+
+**Por que en el archivo de tareas y no en un CSV aparte.** Es donde la persona ya
+esta cuando cierra la historia. Un segundo archivo obligaria a escribir en dos
+lugares y a que coincidieran, que es el defecto de I-07.
+
+### Alternativas descartadas
+
+**Esperar a la retrospectiva del Sprint 2 y decidirlo todo alli.** Es lo que
+parecia razonable, y falla por una razon practica: hoy no existe **ningun campo**
+donde escribir horas reales. Si se pide el dato sin darle lugar, vive en mensajes
+sueltos y se pierde, y la retrospectiva llega sin nada que analizar. Es el mismo
+problema que H1.7 tiene con la evidencia de H1.1, aplicado a la gestion.
+
+**Reestimar el backlog completo con las cuatro variables.** 82 historias
+reestimadas desde cuatro observaciones cualitativas y una medicion. Seria
+sustituir una cifra sin respaldo por otra con mas aspecto de rigor y el mismo
+respaldo.
+
+**Pedir solo las horas reales, sin la estimacion previa.** Mas barato de anotar y
+pierde justo lo que hace util al dato: sin la estimacion previa no se puede saber
+si el error es del modelo o del criterio de quien estima.
+
+**Reconstruir las horas de las historias ya cerradas.** Descartada por el
+anclaje. Ver la justificacion.
+
+### Consecuencias
+
+**Lo que mejora.** A partir de la proxima historia cerrada existe una serie
+comparable. La retrospectiva del Sprint 2 llega con datos en vez de con
+impresiones.
+
+**Lo que cuesta.** Dos numeros por historia y la disciplina de decir la
+estimacion **antes** de arrancar, que es la parte que se olvida.
+
+**Lo que queda abierto.** El coeficiente. Y si las cuatro variables de Avril se
+vuelven parametros del modelo o solo notas para estimar mejor a mano: con los
+datos de hoy no se puede decidir.
+
+**Lo que no cambia.** Ninguna estimacion vigente, ninguna tabla de capacidad y
+ningun compromiso de sprint.
+
+### Medicion
+
+`python docs/herramientas/verificar_horas.py` falla si una historia cerrada desde
+el 2026-08-20 no declara sus horas, e imprime la tabla acumulada con el cociente
+entre lo que el backlog estima y lo que costo.
+
+**Criterio de revision.** Se vuelve sobre esta decision en la retrospectiva del
+Sprint 2, con al menos **ocho historias medidas** repartidas entre las cuatro
+personas. Menos que eso no distingue el modelo de la persona.
+
+Las tres preguntas que esa revision tiene que poder contestar:
+
+1. El cociente backlog/real, ¿es parecido entre las cuatro personas o cada una
+   tiene el suyo?
+2. Las historias con ronda de revision, ¿se pasan de forma sistematica?
+3. La primera historia de una epica, ¿se pasa mas que las siguientes?
 
 ---
 

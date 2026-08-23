@@ -9,6 +9,17 @@
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
+
 **Total asignado:** 80 puntos · 144 horas · 14.3 h por semana en promedio
 
 ## Carga por sprint
