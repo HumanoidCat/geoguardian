@@ -75,6 +75,7 @@
 
 - [x] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020 (2026-08-20)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
+  - horas: estimada n/d . real 2.0
 
 - [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
   - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2**
