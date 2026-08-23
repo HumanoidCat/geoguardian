@@ -88,15 +88,27 @@ PATRON_CERRADA = re.compile(
 PATRON_ABIERTA = re.compile(r"^- \[[ ]\] \*\*(H[0-9.]+[a-z]?)\*\*", re.M)
 
 #   - horas: estimada 4.0 · real 2.0
-#   - horas: estimada n/d · real 3.0
+#   - horas: estimada n/d (no se pidio al arrancar) · real 3.0
 #
-# `n/d` existe por un solo caso y esta acotado a el. Las historias cerradas el
-# mismo 2026-08-20 se terminaron ANTES de que existiera la regla, asi que nadie
-# pudo decir una estimacion previa. Escribir una hoy, sabiendo lo que costo,
-# seria el anclaje que D-24 descarta, con el agravante de que el numero se veria
-# igual que uno medido. A partir del 21 deja de aceptarse.
+# `n/d` SIEMPRE EXIGE UN MOTIVO ESCRITO, y esa regla sustituye a la anterior.
+#
+# La primera version aceptaba `n/d` solo en las historias cerradas el mismo
+# 2026-08-20, razonando que eran las unicas terminadas antes de que la regla
+# existiera. **El razonamiento estaba mal y lo encontro Luna al cerrar H9.1:**
+# esa historia se cerro despues del corte y tampoco tenia estimacion previa,
+# porque nadie se la pidio al arrancar.
+#
+# Atar la excepcion a una FECHA suponia que la unica causa posible de no tener
+# estimacion era el momento del corte. La causa real es otra —si alguien la pidio
+# o no— y esa el verificador no puede conocerla. Lo unico que puede exigir es que
+# quien escriba `n/d` diga por que.
+#
+# El diseno viejo obligaba a elegir entre inventar un numero o dejar el CI rojo.
+# Un numero inventado se ve igual que uno medido y contamina justo la serie que
+# D-24 quiere construir: es peor que el hueco que venia a tapar.
 PATRON_HORAS = re.compile(
-    r"^\s+- horas: estimada (n/d|[0-9]+(?:[.,][0-9]+)?) . real ([0-9]+(?:[.,][0-9]+)?)",
+    r"^\s+- horas: estimada (n/d\s*\([^)]+\)|n/d|[0-9]+(?:[.,][0-9]+)?)"
+    r" . real ([0-9]+(?:[.,][0-9]+)?)",
     re.M,
 )
 
@@ -104,9 +116,14 @@ SIN_DECLARAR = -1.0
 
 
 def _numero(texto: str) -> float:
-    if texto == "n/d":
+    if texto.startswith("n/d"):
         return SIN_DECLARAR
     return float(texto.replace(",", "."))
+
+
+def _tiene_motivo(texto: str) -> bool:
+    """`n/d` sin motivo no se acepta: seria un hueco sin explicacion."""
+    return texto.startswith("n/d") and "(" in texto
 
 
 def backlog() -> dict[str, dict[str, str]]:
@@ -157,13 +174,13 @@ def registros() -> tuple[dict[str, tuple[str, date, float, float]], list[str]]:
 
             estimada, real = _numero(horas.group(1)), _numero(horas.group(2))
 
-            if estimada == SIN_DECLARAR and cerrada_el > DESDE:
+            if estimada == SIN_DECLARAR and not _tiene_motivo(horas.group(1)):
                 problemas.append(
-                    f"{identificador} ({persona}) se cerro el {iso} y pone 'estimada n/d'.\n"
-                    f"      Solo se acepta en las historias cerradas el {DESDE.isoformat()}, "
-                    "que terminaron antes de que existiera la regla.\n"
-                    "      A partir de ahi la estimacion se dice ANTES de arrancar, que es "
-                    "lo unico que la hace medible."
+                    f"{identificador} ({persona}) pone 'estimada n/d' sin motivo.\n"
+                    "      Se escribe entre parentesis, en la misma linea:\n"
+                    "        - horas: estimada n/d (no se pidio al arrancar) . real 2.5\n"
+                    "      Un hueco sin explicacion no se distingue de un olvido, y en la\n"
+                    "      retro no se va a poder saber cuales huecos eran inevitables."
                 )
                 continue
 

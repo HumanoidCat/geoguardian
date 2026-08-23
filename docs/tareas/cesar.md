@@ -17,6 +17,10 @@
 > `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
 > no se repiten aqui.
 >
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
