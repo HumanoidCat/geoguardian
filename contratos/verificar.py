@@ -222,11 +222,47 @@ def main() -> int:
         for dias in range(0, 360, 9)
         for ev in TipoEvento
         for r in repo.obtener_riesgos_por_fecha(date(2026, 1, 1) + timedelta(days=dias), ev)
-        if r.nivel != _nivel_desde(r.probabilidad)
+        if r.nivel != _nivel_desde(r.probabilidad, r.tipo_evento)
     ]
     comprobar(
         "ninguna fila contradice a D-21: el nivel se deriva de la probabilidad",
         incoherentes == [],
+    )
+
+    # SC-05. Cesar midio R16 el 20 de agosto: 242 focos en 24 anios, entre 97 % y
+    # 99,9 % de ventanas vacias, P90 = 0,0 en los ocho distritos. El umbral por
+    # percentiles del conteo no producia tres clases sino dos, asi que `alto`
+    # pasa a significar «al menos un foco» y MEDIO deja de existir para incendio.
+    # Un doble que emite un valor que el contrato ya no admite no sirve para
+    # sustituir al original.
+    print("\nEl vocabulario de niveles respeta lo que cada evento admite (SC-05):")
+
+    de_incendio = [
+        r
+        for dias in range(0, 360, 3)
+        for r in repo.obtener_riesgos_por_fecha(
+            date(2026, 1, 1) + timedelta(days=dias), TipoEvento.INCENDIO
+        )
+    ]
+    comprobar(
+        "incendio nunca sale con nivel medio, que no existe para ese evento",
+        all(r.nivel is not NivelRiesgo.MEDIO for r in de_incendio),
+    )
+    comprobar(
+        "incendio si alcanza los dos niveles que le quedan, bajo y alto",
+        {r.nivel for r in de_incendio} == {NivelRiesgo.BAJO, NivelRiesgo.ALTO},
+    )
+
+    con_medio = {
+        ev
+        for dias in range(0, 360, 9)
+        for ev in TipoEvento
+        for r in repo.obtener_riesgos_por_fecha(date(2026, 1, 1) + timedelta(days=dias), ev)
+        if r.nivel is NivelRiesgo.MEDIO
+    }
+    comprobar(
+        "sequia y lluvia intensa conservan sus tres niveles",
+        con_medio == {TipoEvento.SEQUIA, TipoEvento.LLUVIA_INTENSA},
     )
 
     # SC-04. Lo encontro Cesar al revisar SC-03: el arreglo cubria solo el riesgo,

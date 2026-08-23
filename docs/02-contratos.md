@@ -8,7 +8,28 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.3.3** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.4.0** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.3.3 -> v1.4.0 (20 de agosto).** Cambia lo que significa `nivel` para
+incendio: **`alto` pasa a ser «al menos un foco en la ventana de 7 dias» y MEDIO
+deja de existir para ese evento.**
+
+El umbral anterior era por percentiles del conteo —bajo si 0, medio si
+`1 <= n <= P90`, alto si `n > P90`— y **no producia tres clases sobre estos datos,
+producia dos**. Cesar midio el riesgo R16: **242 focos en 24 anios**, con entre el
+97 % y el 99,9 % de las ventanas vacias, asi que el P90 vale **0,0 en los ocho
+distritos** y la condicion `1 <= n <= 0` esta vacia.
+
+Al **definir** ALTO como «al menos un foco», la probabilidad que predice el modelo
+—P(al menos un foco)— **es** P(nivel = alto), y **D-21** se cumple literalmente.
+Con cualquier otra formulacion, `probabilidad` significaria una cosa para incendio
+y otra para los otros dos eventos.
+
+Es cambio **menor y no de parche** porque ningun esquema ni firma se toca, pero lo
+que significa un valor si cambia, y los consumidores tienen que enterarse: el
+semaforo de H7.1 muestra el umbral en pantalla.
+
+Ver **SC-05** y **D-25**. Cierra R16.
 
 **Cambio v1.3.2 -> v1.3.3 (20 de agosto).** El quinto sitio:
 `ExtractorFocosSimulado` sorteaba tambien contra un generador con estado, y SC-04
@@ -90,7 +111,7 @@ plan de pruebas H10.1, el 41 por ciento.
 
 ## Verificacion ejecutada
 
-`python -m contratos.verificar` ejecuta **44 comprobaciones** agrupadas en once
+`python -m contratos.verificar` ejecuta **47 comprobaciones** agrupadas en doce
 bloques. No comprueba solo que los simulados tengan los metodos: comprueba que
 respeten las invariantes del proyecto.
 

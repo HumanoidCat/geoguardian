@@ -61,6 +61,21 @@ Antes de dar por definitivo este numero conviene verificar el riesgo R16: si el
 canton no tiene suficientes focos de calor historicos, sale el evento de incendio
 y el esfuerzo baja alrededor de 60 h. Esa verificacion cuesta un dia.
 
+> **R16 cerrado el 2026-08-20.** Cesar lo midio: **242 focos en 24 anios**, con
+> tres distritos concentrando el 88 % y dos con **un solo foco** en todo el
+> periodo. El riesgo **se materializo en parte**: el umbral de D-08 resulto
+> imposible de cumplir —el P90 vale 0,0 en los ocho distritos, asi que la clase
+> intermedia nunca podia producirse— pero el evento **no sale del alcance**.
+>
+> **Las 60 h no se liberan.** El evento se conserva con alcance acotado a Santa
+> Rosa, Libano y Tierras Morenas, y con el objetivo redefinido como binario. Ver
+> **D-25** y **SC-05**.
+>
+> La verificacion que aqui se estimaba en un dia costo eso, y llego el dia 17 del
+> proyecto en lugar del dia 3. Es la unica critica que le cabe: el riesgo estaba
+> declarado como "prioritario" desde el 3 de agosto y se midio recien cuando
+> bloqueo tres historias.
+
 ### Lo que la asistencia de IA NO acelera
 
 Conviene tenerlo presente para no volver a subestimar:
