@@ -97,7 +97,24 @@
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
 
 
-## Sprint 3 (semanas 8-9) — 39.2 h
+## Sprint 3 (semanas 8-9) — 47.0 h
+
+- [ ] **H1.14** · Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite
+  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
+  - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
+    **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
+    una vez, asi que el sistema era una foto y no un servicio.
+  - **La cadencia no es una sola.** Incendio a diario, porque FIRMS llega en 3 h.
+    Sequia semanal como mucho: el final de CHIRPS tarda de 21 a 51 dias, y ademas
+    el SPI-3 mira 90 dias de los que 83 ya se conocian ayer.
+  - Tiene que **declarar que producto cargo**: el preliminar de CHIRPS es "GTS and
+    Mexico only" y no es el mismo dato que el final. Mismo criterio que D-17 con
+    la precipitacion y que D-25 con la era de FIRMS.
+  - Idempotente: correrla dos veces el mismo dia no duplica filas. Es el defecto
+    que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
+  - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
+    Kubernetes son locales. La programacion queda declarada y sin destino.
+
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9

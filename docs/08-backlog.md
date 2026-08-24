@@ -1,6 +1,6 @@
 # Backlog completo
 
-**86 historias · 423 puntos · 620.3 horas** (incluye 20 % de revision)
+**87 historias · 428 puntos · 628.1 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -52,10 +52,10 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
 | Alejandro | 35.9 | 22.8 | 59.5** | 40.4** | 52.8** | 211.4 | 126 |
-| Cesar | 18.3 | 27.8 | 31.5 | 39.2** | 34.0 | 150.8 | 123 |
+| Cesar | 18.3 | 27.8 | 31.5 | 47.0** | 34.0 | 158.6 | 128 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
 | Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 114.6 | 94 |
-| **Equipo** | 83.0 | 104.2 | 152.8 | 124.9 | 155.4 | **620.3** | **423** |
+| **Equipo** | 83.0 | 104.2 | 152.8 | 132.7 | 155.4 | **628.1** | **428** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -131,7 +131,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H2.3** SPI de 1 y 3 meses por convolucion de ventana movil | luna | 5 | 7.8 | Senales | H2.1 | H2.5, H3.0 |
 | **H2.7** Calcular percentiles R95p y R99p de precipitacion acumulada por distrito | luna | 5 | 7.8 | Senales | H2.1 | H3.0 |
 
-## Sprint 3 · semanas 8-9 · 17 historias · 124.9 h
+## Sprint 3 · semanas 8-9 · 18 historias · 132.7 h
 
 **Foco.** Explicabilidad, visor completo y pruebas  
 **Hito.** —

@@ -168,6 +168,47 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
+H1.14,"H1.14 Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite","Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.1, H1.2
+Sprint: S3 (semanas 8-9)
+
+POR QUE EXISTE. De las 86 historias del backlog, NINGUNA vuelve a consultar las
+fuentes: H1.1 es una descarga historica de una vez. Sin esta, el sistema es una
+foto y no un servicio, y la frase ""informacion en tiempo real"" del charter no
+tiene nada detras. Hueco detectado el 2026-08-23 al medir la latencia.
+
+LA CADENCIA NO ES UNA SOLA, y sale de D-26:
+
+  incendio        FIRMS,  3 h de latencia          -> diaria
+  lluvia intensa  CHIRPS, 2 d preliminar           -> diaria, declarando el producto
+  sequia          CHIRPS, 21-51 d el final         -> semanal como mucho
+
+Actualizar la sequia a diario no aporta nada aunque el dato llegara al instante:
+el SPI-3 mira 90 dias, de los cuales 83 ya se conocian ayer.
+
+QUE TIENE QUE RESOLVER
+
+- Idempotencia: correrla dos veces el mismo dia no duplica filas. Es el mismo
+  requisito que H1.1 y el defecto que Luna encontro en H1.5, donde una fila
+  repetida escondia un dia ausente.
+- Declarar QUE PRODUCTO se cargo. El preliminar de CHIRPS es ""GTS and Mexico
+  only"" y no es el mismo dato que el final: la columna tiene que decir cual es.
+  Es el criterio de D-17 con la precipitacion y el de D-25 con la era de FIRMS.
+- Reemplazar el preliminar por el final cuando llegue, sin romper lo ya estimado.
+- Registrar cuando corrio y que trajo, para que /salud pueda declarar la
+  ultima ingesta en vez de dejarla nula.
+
+QUE NO RESUELVE. Donde se ejecuta. Hoy no hay entorno alojado -los overlays de
+Kubernetes son locales- asi que la programacion queda declarada y sin destino.
+Eso es decision aparte y no bloquea escribir la ingesta.
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S3,BD-1,cesar",S3,cesar,5,7.8
 H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: Senales

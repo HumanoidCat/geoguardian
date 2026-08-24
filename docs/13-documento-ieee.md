@@ -536,6 +536,46 @@ no declara su alcance no permite saber qué quedó sin mirar.
 sobre la medición, no sobre la cita. Lo que sí habría llegado al documento es una
 atribución falsa.
 
+### C-bis. La latencia de las fuentes, y dos propiedades que no conocíamos
+
+Medida el 23 de agosto contra la documentación oficial de cada proveedor, porque
+nunca se había comprobado **cuándo llega el dato**.
+
+| Fuente | Alimenta | Latencia |
+|---|---|---|
+| FIRMS | Incendio | ~3 horas |
+| POWER | Temperatura, humedad, viento, radiación | días, en el producto reciente |
+| CHIRPS final | Precipitación → sequía y lluvia intensa | **21 a 51 días** |
+
+**1. La sequía no se puede estimar con dato final en tiempo operativo.** El
+SPI-3 mira una ventana de 90 días que termina hoy, y CHIRPS final llega en la
+tercera semana del mes siguiente: **entre el 23 % y el 57 % de esa ventana no es
+dato final** al momento de estimar.
+
+Y el producto rápido no es el mismo dato menos pulido: es **«GTS and Mexico
+only»**, así que para Costa Rica se queda sin la corrección por estaciones, que es
+precisamente lo que D-15 valoró de CHIRPS frente a una estimación satelital
+cualquiera.
+
+**2. POWER cambia de modelo a mitad de la serie.** El histórico proviene de
+**MERRA-2**; los últimos meses, de **GEOS-5.12.4 FP-IT**. Un modelo entrenado
+sobre la serie se entrenaría con uno y operaría con el otro, y la frontera cae
+justamente en el dato que el sistema usaría en producción.
+
+Es la misma heterogeneidad instrumental que la sección V-E documenta para FIRMS
+—MODIS hasta 2011, MODIS+VIIRS después— pero en la fuente que se daba por
+homogénea, y **no está medida**: cuantificar el solape requiere descargarlo y
+compararlo.
+
+**3. La producción de CHIRPS v2 termina después de diciembre de 2026.** No afecta
+al trabajo, que concluye antes, pero sí a cualquier afirmación sobre que el
+sistema sea utilizable por la Municipalidad más allá de esa fecha sin migrar a
+CHIRPS v3.
+
+Ver **D-26** y `docs/14-latencia-de-las-fuentes.md`. **Alcance de la
+verificación:** son las latencias que cada fuente **declara**; no se midieron
+empíricamente descargando archivos y comparando fechas.
+
 ### D. Las mediciones de V-B y V-C son sobre series sintéticas
 
 Ambas se hicieron sobre series generadas con el régimen del Pacífico Norte, porque

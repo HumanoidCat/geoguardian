@@ -26,7 +26,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada · revisada por D-23 | 2026-08-12 |
-| D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
+| D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada · revisada por D-26 | 2026-08-16 |
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
@@ -37,6 +37,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
 | D-24 | El modelo de estimacion es una constante: se empieza a medir antes de corregirlo | Aceptada | 2026-08-20 |
 | D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
+| D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 
 ---
 
@@ -910,10 +911,27 @@ ocho salen con dato ausente.
 
 ## D-15 · Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto
 
-**Estado.** Aceptada · **condicion cumplida y verificada** el 2026-08-18
+**Estado.** Aceptada · **condicion cumplida y verificada** el 2026-08-18 ·
+**revisada por D-26** el 2026-08-23
 **Fecha.** 2026-08-16
 **Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
 **Revisa parcialmente.** D-01, que declaraba NASA POWER fuente primaria de clima
+
+> **Nota de revision del 2026-08-23.** La eleccion se mantiene, y por las mismas
+> razones. Lo que aparecio al medir la latencia son **dos propiedades de estas
+> fuentes que esta decision no conocia**, y que no cambian la eleccion pero si lo
+> que se puede prometer con ella:
+>
+> **CHIRPS tiene dos productos, no uno.** El final llega en la tercera semana del
+> mes siguiente —de 21 a 51 dias— y el rapido es **"GTS and Mexico only"**, o sea
+> que para Costa Rica se queda sin la correccion por estaciones que es justamente
+> lo que esta decision valoro de CHIRPS.
+>
+> **POWER cambia de modelo a mitad de la serie.** El historico es MERRA-2; los
+> ultimos meses son **GEOS-5.12.4 FP-IT**. Esta decision, e I-05, hablan de
+> MERRA-2 como si fuera toda la serie. Cuanto difieren no esta medido.
+>
+> Ver **D-26** y `docs/14-latencia-de-las-fuentes.md`.
 
 > La decision se tomo condicionada a repetir sobre CHIRPS el mismo test que
 > descarto a POWER. Cesar lo hizo el 18 de agosto y CHIRPS diferencia entre los
@@ -2338,6 +2356,152 @@ linea base climatologica. Las dos preguntas que esa entrega tiene que contestar:
 
 Si la respuesta a la primera es no, el resultado del evento incendio **es la
 linea base**, y se reporta como hallazgo y no como fracaso.
+
+---
+
+## D-26 · El sistema declara latencia por evento, no promete tiempo real
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-23
+**Decide.** Alejandro
+**Revisa.** D-15, sobre la eleccion de CHIRPS
+**Medicion.** `docs/14-latencia-de-las-fuentes.md`
+
+### Contexto
+
+El proyecto viene diciendo "informacion en tiempo real" desde el charter. **Nadie
+habia comprobado cuando llega el dato.** Es el mismo tipo de afirmacion que
+R16: escrita al principio, repetida en tres documentos, sin contrastar.
+
+Contrastada contra la documentacion oficial de cada fuente:
+
+| Fuente | Alimenta | Latencia |
+|---|---|---|
+| FIRMS | Incendio | **~3 horas** |
+| POWER | Temperatura, humedad, viento, radiacion | dias, en el producto reciente |
+| CHIRPS final | Precipitacion -> sequia y lluvia intensa | **21 a 51 dias** |
+
+**Tres hechos que el proyecto no sabia.**
+
+**Primero: CHIRPS final llega en la tercera semana del mes siguiente.** El SPI-3
+mira una ventana de 90 dias que termina hoy, asi que **entre el 23 % y el 57 % de
+esa ventana no es dato final** al momento de estimar.
+
+Y el preliminar no es el mismo dato menos pulido: es **"GTS and Mexico only"**.
+Para Costa Rica eso lo deja sin la correccion por estaciones, que es justamente lo
+que distingue a CHIRPS de una estimacion satelital cualquiera y lo que D-15 eligio.
+
+**Segundo: POWER cambia de modelo a mitad de la serie.** El historico sale de
+**MERRA-2**; los ultimos meses, de **GEOS-5.12.4 FP-IT**. Un modelo entrenado
+sobre la serie se entrena con uno y **opera con el otro**, y la frontera cae justo
+en el dato que el sistema usaria en produccion.
+
+Es la misma heterogeneidad que Cesar encontro en FIRMS al medir R16 —MODIS hasta
+2011, MODIS+VIIRS despues, salto de 2,1x— pero en la fuente que dabamos por
+homogenea. I-05 y D-15 hablan de MERRA-2 como si fuera toda la serie.
+
+**Tercero: la produccion de CHIRPS v2 termina despues de diciembre de 2026.**
+
+### Decision
+
+**1. El sistema NO promete tiempo real. Declara una latencia por evento**, y la
+muestra:
+
+| Evento | Cadencia util | Por que |
+|---|---|---|
+| Incendio | diaria o mas seguido | FIRMS llega en 3 h |
+| Lluvia intensa | diaria, con preliminar declarado | el final tarda hasta 51 dias |
+| Sequia | **semanal como mucho** | latencia, y ademas el SPI-3 apenas se mueve |
+
+**2. Para sequia hay una segunda razon, independiente de la latencia.** El SPI-3
+mira 90 dias, de los cuales 83 ya se conocian ayer. Actualizarlo a diario moveria
+la aguja poquisimo aunque el dato llegara al instante.
+
+**3. No hay ninguna frase que retirar, y conviene decir por que.**
+
+Al escribir esta decision di por sentado que el proyecto prometia "tiempo real"
+en sus documentos, y fui a quitarlo. **No esta.** El unico lugar donde aparece es
+`docs/11-ceremonias-scrum.md`, y dice lo contrario:
+
+> *"Se eliminan: modulo de busqueda semantica, sensores fisicos, **procesamiento
+> en tiempo real**, autenticacion de usuarios..."*
+
+Es la accion **A1.1** del Sprint 0, la reduccion del 38 % que pidio la evaluacion
+docente. **El procesamiento en tiempo real esta fuera de alcance desde el primer
+dia**, por una decision que ya se tomo y se documento.
+
+Lo que existe es una **aspiracion del equipo** —repetida en conversacion, no en
+el repositorio— de que el sistema sirva informacion actualizada. Esta decision no
+la contradice: la acota con numeros. Y deja escrito que si alguna vez esa frase
+va a entrar a un documento, la latencia de arriba es lo que puede sostener.
+
+**4. Se crea la historia de ingesta periodica.** De las 86 del backlog, ninguna
+vuelve a consultar las fuentes: H1.1 es una descarga historica de una vez.
+
+**5. Queda pendiente medir el solape MERRA-2 / FP-IT.** Es trabajo de H1.1, que
+tiene el descargador, y es la misma medicion que Cesar hizo para las eras de
+FIRMS.
+
+**6. El fin de vida de CHIRPS v2 va a las limitaciones del documento IEEE.**
+
+### Justificacion
+
+**Por que declarar la latencia en vez de esconderla.** Un visor de riesgo
+climatico que no dice cuando se midio lo que muestra invita a leer una estimacion
+vieja como si fuera de hoy. Es la misma razon por la que H6.6 muestra la fecha de
+la estimacion y la pone en ambar cuando no es la de hoy.
+
+**Por que por evento y no un numero unico.** Un solo numero obligaria a usar el
+peor caso, y con eso incendio —que si es casi en tiempo real— quedaria reportado
+como si tardara semanas. Perderia la unica capacidad operativa real del sistema.
+
+**Por que esto no invalida el proyecto.** El objetivo es estimar riesgo por
+distrito, no operar un sistema de alerta temprana. Lo que cambia es lo que se
+promete, no lo que se hace.
+
+### Alternativas descartadas
+
+**Usar solo el preliminar de CHIRPS y no declararlo.** Bajaria la latencia a 2
+dias. Se descarta porque para Costa Rica el preliminar es satelite sin correccion
+por estaciones, y presentarlo como equivalente al final seria exactamente el tipo
+de afirmacion que I-05 y D-22 vinieron a evitar.
+
+**Cambiar de fuente de precipitacion.** D-15 eligio CHIRPS por su resolucion de
+0,05°, la unica que distingue distritos segun I-05. Ninguna alternativa conocida
+mejora resolucion y latencia a la vez, y cambiarla a esta altura obligaria a
+rehacer H2.7, D-17 y todas las mediciones de percentiles.
+
+**No decir nada y dejar "tiempo real" en el charter.** Es lo que estaba pasando.
+
+### Consecuencias
+
+**Lo que mejora.** El sistema promete algo que puede cumplir, y lo que promete
+esta medido.
+
+**Lo que cuesta.** Hay que tocar el charter y el documento IEEE, y la frase
+"tiempo real" era parte de como se presento el proyecto.
+
+**Lo que queda abierto.** Cuanto difieren MERRA-2 y FP-IT en el solape. Hasta
+medirlo, ninguna afirmacion sobre el comportamiento del modelo en produccion se
+puede sostener del todo.
+
+**Lo que no cambia.** Ninguna historia se cancela ni se reestima.
+
+### Medicion
+
+`docs/14-latencia-de-las-fuentes.md`, con las cuatro afirmaciones citadas contra
+la documentacion oficial de cada proveedor.
+
+**Alcance declarado:** las latencias son las que **declara** cada fuente. No se
+midio empiricamente descargando archivos y comparando fechas. Eso confirmaria lo
+declarado y es trabajo de H1.1 y H1.2.
+
+**Criterio de revision.** Se vuelve sobre esta decision cuando H1.1 mida el
+solape MERRA-2 / FP-IT. Las dos preguntas que esa medicion tiene que contestar:
+
+1. ¿Cuanto difieren los dos productos en las variables que usa el modelo?
+2. ¿Alcanza con declarar la era como covariable, como se hizo en D-25 con FIRMS,
+   o hay que restringir la serie?
 
 ---
 

@@ -46,6 +46,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md | Arq | Cesar | **Con evidencia** |
 | H8.1 | Despliegue reproducible | docker-compose.yml, infra/docker/init-db | levantado en maquina limpia | docs/evidencias/sistemas-operativos/H8.1-despliegue.md | SO-1 | Alejandro | **Con evidencia** |
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Cesar | Pendiente |
+| H1.14 | Ingesta periodica con cadencia por evento | backend/etl | test_ingesta_idempotente | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
 | H9.2a | Validacion externa de usabilidad con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H9.2b | Contraste de la estimacion contra eventos vividos | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H10.1 | Plan de pruebas con casos por modulo | docs/investigacion | no aplica: es el plan, no la suite | docs/evidencias/calidad/H10.1-plan-pruebas.md | QA | Luna | **Con evidencia** |
