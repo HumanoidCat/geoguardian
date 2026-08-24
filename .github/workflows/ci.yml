@@ -61,7 +61,22 @@ jobs:
       # entiende "Closes #N"- y la advertencia no bastaba.
       #
       # `gh` viene instalado en el runner y GITHUB_TOKEN le alcanza para leer.
+      #
+      # SOLO EN `push`, Y ESA CONDICION ES EL PUNTO
+      #
+      # Los otros seis verificadores comprueban archivos que viajan DENTRO del
+      # Pull Request: si fallan, quien abrio el PR puede arreglarlo. Este no. El
+      # tablero vive fuera del repositorio y es mutable por cualquiera.
+      #
+      # Corriendolo en `pull_request` pasa esto, y paso el 24 de agosto: el PR
+      # #158 salio en rojo porque una issue ajena estaba mal cerrada. El PR de
+      # Luna podria ponerse rojo por algo que el no toco y que quiza no tiene
+      # permiso para arreglar.
+      #
+      # En `push` a dev y main el tablero se sigue vigilando de forma continua,
+      # el aviso llega igual, y llega a quien puede corregirlo.
       - name: El tablero de issues dice lo mismo que el repositorio
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

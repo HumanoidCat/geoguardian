@@ -105,8 +105,11 @@ Con `--comandos` imprime los `gh issue close` listos para pegar, con el motivo
 escrito. **No se cierra a mano sin comentario**: dentro de un mes nadie va a
 saber si se cerró porque se hizo o porque estorbaba.
 
-El CI corre esa comprobación en cada cambio, así que la discrepancia aparece
-sola.
+El CI corre esa comprobación **al empujar a `dev` y a `main`**, no en cada Pull
+Request. La razón: el tablero vive fuera del repositorio y lo puede cambiar
+cualquiera, así que un PR podría salir en rojo por una issue ajena que su autor
+no tocó y quizá no puede arreglar. Pasó con el PR #158. Los otros seis
+verificadores sí comprueban archivos que viajan dentro del PR.
 
 ### Si hay dos issues para la misma historia
 
@@ -114,6 +117,14 @@ Pasa cuando se carga el backlog dos veces. **La sobrante se cierra declarando qu
 no es trabajo hecho**, con el motivo de GitHub:
 
 ```bash
+gh issue close 90 --reason "not planned" --comment "Duplicada de #92."
+```
+
+**Si la issue ya estaba cerrada**, `gh` no cambia el motivo: hay que reabrirla
+primero.
+
+```bash
+gh issue reopen 90
 gh issue close 90 --reason "not planned" --comment "Duplicada de #92."
 ```
 
