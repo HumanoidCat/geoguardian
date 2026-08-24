@@ -275,6 +275,38 @@ def main() -> int:
         all(r["nivel"] != "medio" for r in incendio_estatico),
     )
 
+    # El respaldo AFIRMA una version de contratos, y `AvisoModoSimulado.jsx` la
+    # pinta en pantalla: `contratos v{salud.version_contratos}`.
+    #
+    # Estuvo declarando **1.3.1 durante tres versiones**. Cada vez que el visor
+    # caia al respaldo le mostraba al usuario una version falsa, y nada lo
+    # detectaba: se encontro dos veces el mismo dia, por casualidad y por dos
+    # caminos distintos.
+    #
+    # Es el unico artefacto derivado del proyecto que no tenia una maquina
+    # comprobandolo. La matriz la comprueba `verificar_estado.py`; las cifras de
+    # la documentacion, `verificar_documentacion.py`; esto, nada.
+    #
+    # No evita el conflicto de fusion -son seis lineas y dos ramas tocan siempre
+    # la misma-, pero un conflicto es ruidoso y se resuelve regenerando. Lo que
+    # esto evita es el desfase SILENCIOSO, que es el que hizo dano.
+    from contratos import VERSION_CONTRATOS  # noqa: PLC0415
+
+    declarada = json.loads((RESPALDO / "salud.json").read_text(encoding="utf-8")).get(
+        "version_contratos"
+    )
+    comprobar(
+        f"el respaldo declara la version de contratos vigente ({VERSION_CONTRATOS})",
+        declarada == VERSION_CONTRATOS,
+    )
+    if declarada != VERSION_CONTRATOS:
+        print(
+            f"        salud.json dice {declarada!r} y el contrato va en "
+            f"{VERSION_CONTRATOS!r}.\n"
+            "        Se arregla regenerando, no editando:\n"
+            "          python frontend/herramientas/exportar_simulados.py"
+        )
+
     if fallos:
         print(f"\n{len(fallos)} criterios fallaron:\n")
         for f in fallos:

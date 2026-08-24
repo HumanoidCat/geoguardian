@@ -2033,16 +2033,39 @@ de arriba y en `backlog.csv`.
 
 **2. Se exige desde el 2026-08-20, no hacia atras.**
 
-Con una excepcion acotada a ese mismo dia. Las historias cerradas el 20 de agosto
-terminaron **antes de que la regla existiera**, asi que nadie pudo decir una
-estimacion previa. Escribirla hoy, sabiendo lo que costo, seria el anclaje que
-esta misma decision descarta, con el agravante de que el numero se veria igual
-que uno medido. En esos casos se escribe `estimada n/d`, y el verificador deja de
-aceptarlo a partir del 21.
+Cuando no hubo estimacion previa se escribe `n/d` **con el motivo entre
+parentesis**, en la misma linea:
 
-El unico caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
-sin estimacion previa. Es la primera medicion del proyecto y es incompleta a
-proposito.
+    - horas: estimada n/d (no se pidio al arrancar) . real 2.5
+
+Escribir un numero hoy, sabiendo lo que costo, seria el anclaje que esta misma
+decision descarta, con el agravante de que se veria igual que uno medido. Y un
+`n/d` sin motivo no se distingue de un olvido.
+
+> **Correccion del 2026-08-23.** La primera version aceptaba `n/d` **solo en las
+> historias cerradas el 2026-08-20**, razonando que eran las unicas terminadas
+> antes de que la regla existiera.
+>
+> **El razonamiento estaba mal, y lo encontro Luna al cerrar H9.1:** esa historia
+> se cerro despues del corte y tampoco tenia estimacion previa, porque nadie se
+> la pidio al arrancar.
+>
+> Atar la excepcion a una **fecha** suponia que la unica causa posible de no
+> tener estimacion era el momento del corte. La causa real es otra —si alguien la
+> pidio o no— y esa el verificador no puede conocerla. Lo unico que puede exigir
+> es que quien escriba `n/d` diga por que.
+>
+> El diseno viejo obligaba a elegir entre inventar un numero o dejar el CI rojo.
+> **Un numero inventado contamina justo la serie que esta decision quiere
+> construir**, asi que era peor que el hueco que venia a tapar.
+>
+> Es el mismo patron que I-04 y que I-08: una regla con forma valida y contenido
+> equivocado, que ninguna comprobacion automatica detecta porque la forma esta
+> bien. La encontro quien la uso, no quien la escribio.
+
+El primer caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
+sin estimacion previa porque la regla se creo el mismo dia del cierre. Es la
+primera medicion del proyecto y es incompleta a proposito.
 
 **3. No se cambia ninguna estimacion todavia.** El backlog, el roadmap y las
 tablas de capacidad se quedan como estan hasta la retrospectiva del Sprint 2.
