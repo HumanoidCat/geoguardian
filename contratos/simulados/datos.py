@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import random
 from datetime import date, timedelta
+from pathlib import Path
 
 from .. import VERSION_CONTRATOS
 from ..enums import Algoritmo, MetodoImputacion, ModoOperacion, NivelRiesgo, TipoEvento
@@ -24,23 +26,29 @@ log = logging.getLogger(__name__)
 
 SEMILLA = 20260803
 
-# Los ocho distritos de Tilaran con geometrias de marcador de posicion.
+# Los ocho distritos de Tilaran. Codigo, nombre y area.
 #
 # Los codigos son los oficiales del SNIT: 5 = Guanacaste, 08 = Tilaran, y los dos
 # ultimos digitos el distrito. NO son 505xx: ese es el canton de Carrillo. El
 # error estuvo en los contratos hasta la version 1.2.0. Ver incidencia I-04.
 #
-# Las geometrias reales se cargan de la capa IGN_5_CO:limitedistrital_5k del SNIT
-# en la historia H1.3. Ver D-13.
+# NI la geometria NI el area estan aca: las trae _distrito_real() del archivo
+# que genera docs/herramientas/generar_geometrias_simulado.py desde la capa
+# IGN_5_CO:limitedistrital_5k del SNIT. Ver D-13 e I-10.
+#
+# El area estuvo aca hasta el 24 de agosto, como ocho constantes. Contra la
+# geometria oficial fallaban por mucho -Tronadora decia 30,2 km2 y su poligono
+# mide 140,0- aunque el total del canton diera casi bien, lo que sugiere que
+# estaban asignadas a los codigos equivocados. Se calcula, no se escribe.
 _DISTRITOS = [
-    ("50801", "Tilaran", 60.0),
-    ("50802", "Quebrada Grande", 88.4),
-    ("50803", "Tronadora", 30.2),
-    ("50804", "Santa Rosa", 33.6),
-    ("50805", "Libano", 76.9),
-    ("50806", "Tierras Morenas", 76.4),
-    ("50807", "Arenal", 156.5),
-    ("50808", "Cabeceras", 116.3),
+    ("50801", "Tilaran"),
+    ("50802", "Quebrada Grande"),
+    ("50803", "Tronadora"),
+    ("50804", "Santa Rosa"),
+    ("50805", "Libano"),
+    ("50806", "Tierras Morenas"),
+    ("50807", "Arenal"),
+    ("50808", "Cabeceras"),
 ]
 
 
@@ -125,22 +133,61 @@ def _nivel_desde(probabilidad: float, tipo_evento: TipoEvento) -> NivelRiesgo:
     return NivelRiesgo.BAJO
 
 
-def _cuadro(i: int) -> dict:
-    """Poligono ficticio, solo para que el visor tenga algo que dibujar."""
-    lon, lat = -84.97 + (i % 3) * 0.09, 10.47 - (i // 3) * 0.07
-    d = 0.04
-    return {
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [lon, lat],
-                [lon + d, lat],
-                [lon + d, lat - d],
-                [lon, lat - d],
-                [lon, lat],
-            ]
-        ],
-    }
+_ARCHIVO_GEOMETRIAS = Path(__file__).resolve().parent / "geometrias_tilaran.json"
+
+_territorio: dict[str, dict] | None = None
+
+
+def _distrito_real(codigo: str) -> dict:
+    """Contorno y superficie del distrito, tomados de la capa del SNIT.
+
+    HASTA EL 24 DE AGOSTO ESTO DEVOLVIA UN CUADRADO
+
+    La version anterior generaba ocho rectangulos de 0,04 grados sobre una
+    grilla de 3x3, con `i % 3` e `i // 3` como fila y columna. **No eran
+    ubicaciones aproximadas: no eran ubicaciones.** Existian para que el visor
+    tuviera algo que dibujar antes de que hubiera geometria real, y lo decia su
+    docstring.
+
+    H1.3 trajo la capa oficial el 13 de agosto y nada conecto las dos cosas, asi
+    que la grilla llego hasta el sitio publicado. Ver la incidencia **I-10**.
+
+    POR QUE SE LEE DE UN ARCHIVO
+
+    El simulado tiene que resolver sin base de datos y sin red -es lo que
+    sostiene el trabajo en paralelo del acuerdo A1.3, y lo que corre en el CI-,
+    asi que la geometria viene congelada en JSON. La genera
+    `docs/herramientas/generar_geometrias_simulado.py` desde el SNIT.
+
+    EL AREA TAMBIEN SALE DE AQUI
+
+    Eran ocho constantes escritas a mano en `_DISTRITOS`. Contra la geometria
+    oficial fallaban por mucho: Tronadora declaraba 30,2 km2 y su poligono mide
+    140,0. El total del canton daba casi bien, lo que sugiere que los numeros
+    estaban asignados a los codigos equivocados.
+
+    El panel del visor muestra esa cifra al lado de la forma, asi que las dos
+    tienen que salir de la misma fuente. La calcula el generador sobre
+    EPSG:8908, igual que `cargar_distritos.py` se lo deja a PostGIS.
+
+    Sigue siendo un simulado: **el riesgo que se pinta encima es inventado.** Lo
+    que deja de ser falso es el territorio.
+    """
+    global _territorio
+
+    if _territorio is None:
+        if not _ARCHIVO_GEOMETRIAS.exists():
+            raise FileNotFoundError(
+                f"Falta {_ARCHIVO_GEOMETRIAS.name}, que trae los contornos reales del "
+                "SNIT. Se genera con:\n\n"
+                "    python docs/herramientas/generar_geometrias_simulado.py\n\n"
+                "No se vuelve a los cuadrados de marcador de posicion: fue el "
+                "defecto I-10."
+            )
+        documento = json.loads(_ARCHIVO_GEOMETRIAS.read_text(encoding="utf-8"))
+        _territorio = documento["distritos"]
+
+    return _territorio[codigo]
 
 
 class RepositorioSimulado:
@@ -157,8 +204,14 @@ class RepositorioSimulado:
 
     def listar_distritos(self) -> list[Distrito]:
         return [
-            Distrito(codigo=c, nombre=n, area_km2=a, poblacion=None, geometria=_cuadro(i))
-            for i, (c, n, a) in enumerate(_DISTRITOS)
+            Distrito(
+                codigo=codigo,
+                nombre=nombre,
+                area_km2=_distrito_real(codigo)["area_km2"],
+                poblacion=None,
+                geometria=_distrito_real(codigo)["geometria"],
+            )
+            for codigo, nombre in _DISTRITOS
         ]
 
     def obtener_distrito(self, codigo: str) -> Distrito | None:

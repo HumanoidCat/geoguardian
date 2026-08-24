@@ -6,6 +6,26 @@ abierto. Estima tres eventos: lluvia intensa, sequía e incendio forestal.
 
 Proyecto Integrador · Carrera TICE · Universidad Invenio · III Trimestre 2026
 
+## Visor en línea
+
+**https://humanoidcat.github.io/geoguardian/**
+
+> **Los datos que muestra son simulados.** El visor publicado no consulta la API
+> ni la base de datos: lee un respaldo estático de valores de prueba, y lo declara
+> en pantalla. Sirve para ver la interfaz y el flujo, **no para tomar decisiones
+> sobre riesgo real**.
+>
+> No es una limitación accidental. La cadena de datos depende de H1.2, y el
+> despliegue de la API y la base son las historias H11.1 a H11.4, que dependen de
+> H6.0. Ver **D-05** y **D-23**.
+
+Se publica solo desde `main`, con el trabajo `publicar-visor` de
+`.github/workflows/ci.yml`. Cada publicación vuelve a comprobar los criterios de
+aceptación **sobre el artefacto construido** con
+`docs/herramientas/verificar_h115.py`, porque el modo de fallo que esta historia
+encontró —una ruta absoluta de raíz que se rompe al servir desde un
+subdirectorio— no se ve en el código fuente, solo en el `dist`.
+
 ## Pregunta de investigación
 
 ¿En qué medida permiten los datos climáticos y satelitales de acceso abierto
@@ -76,6 +96,7 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 | Contratos | v1.4.0, congelados. 47 verificaciones en `python -m contratos.verificar` |
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
+| Visor publicado | https://humanoidcat.github.io/geoguardian/ · datos simulados, sin API ni base |
 | Integración continua | 6 trabajos: contratos, backlog y documentación, linter, frontend, pruebas y publicación del visor |
 | Backlog | 87 historias, 428 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
