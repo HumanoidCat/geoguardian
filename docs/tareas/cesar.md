@@ -6,6 +6,10 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
