@@ -38,6 +38,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-24 | El modelo de estimacion es una constante: se empieza a medir antes de corregirlo | Aceptada | 2026-08-20 |
 | D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
+| D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
 
 ---
 
@@ -2502,6 +2503,174 @@ solape MERRA-2 / FP-IT. Las dos preguntas que esa medicion tiene que contestar:
 1. ¿Cuanto difieren los dos productos en las variables que usa el modelo?
 2. ¿Alcanza con declarar la era como covariable, como se hizo en D-25 con FIRMS,
    o hay que restringir la serie?
+
+---
+
+## D-27 · El alcance diferido se registra con condicion de reactivacion medible
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-24
+**Decide.** Alejandro, Lead PM
+**Origen.** Propuesta de integrar sismos al visor, tras revisar la aplicacion del OVSICORI
+**Se apoya en.** La accion **A1.1** del Sprint 0
+
+### Contexto
+
+El 24 de agosto surgio la propuesta de **centralizar** en GeoGuardian los eventos
+climaticos y los sismicos, a partir de la aplicacion **OVSICORI-UNA Alerta
+Terremotos** y de que el mundo ha tenido sismos notorios recientes. La idea es
+razonable: un comite municipal preferiria una sola pantalla.
+
+Al evaluarla aparecio que el proyecto ya tenia un conjunto de trabajo aplazado
+sin registro propio. La accion **A1.1** elimino **118 de 310 puntos** el 3 de
+agosto, por una evaluacion docente que califico la viabilidad en 12 semanas con
+5/10:
+
+    modulo de busqueda semantica       autenticacion de usuarios
+    sensores fisicos                   segmentacion con algoritmos propios
+    procesamiento en tiempo real       animacion temporal
+
+Ese recorte esta escrito en un acta de ceremonia, que es un registro de **lo que
+se acordo un dia**, no una lista viva. Nada dice bajo que condicion volveria, y
+la intencion del equipo es que vuelva si sobra tiempo.
+
+**El estado real al decidir esto:** semana 6 de 12, **24 de 87 historias
+cerradas, el 29 % de los puntos**, `main` 42 commits detras de `dev`, y la cadena
+de despliegue detenida detras de H1.2 y H6.0.
+
+### Decision
+
+**1. El alcance diferido se registra aqui, con su condicion de reactivacion.**
+
+| Diferido | Origen | Costo | Condicion para reabrir |
+|---|---|---|---|
+| Los seis elementos de A1.1 | A1.1, 3 ago | 118 pts | La de abajo |
+| Capa de sismos en el visor | 24 ago | sin estimar | La de abajo, y ademas hosting |
+
+**2. La condicion es una sola, y se evalua en un momento fijado.**
+
+Se evalua en la **retrospectiva del Sprint 3**, al cerrar la semana 9. Reabre
+solo si las **tres** se cumplen:
+
+1. **H1.2 cerrada**, y con ella la cadena de datos que hoy detiene **17 historias
+   abiertas, 157,0 h**, contadas por cierre transitivo el 24 de agosto. De esas,
+   **9 son de Alejandro y suman 101,8 h**: una historia de 4,7 h de Cesar
+   sostiene todo el modelado y el analisis de fallos.
+2. **H6.0 cerrada**, y con ella la cadena de despliegue: 6 historias, 37,7 h.
+3. **Ninguna historia del Sprint 3 arrastrada** al Sprint 4.
+
+Si las tres se cumplen, se reabre **una** linea, la que mas aporte a la rubrica,
+y se estima antes de comprometerla. No se reabre el recorte entero.
+
+**3. El sismo no se estima nunca, se muestra.**
+
+Aunque la condicion se cumpla, la capa de sismos queda acotada a **mostrar lo que
+el OVSICORI ya publica**. No entra al modelo ni al backlog de E3.
+
+Un sismo no tiene antecedente meteorologico. Toda la arquitectura es serie
+climatica diaria por distrito con horizonte de 7 dias, y el sismo no se predice a
+7 dias por fisica, no por falta de datos. Agregarlo como cuarto evento del
+`TipoEvento` dejaria uno que el modelo **no puede estimar en absoluto**, y eso
+debilita el argumento de OE2 en lugar de reforzarlo.
+
+**4. El OVSICORI entra al estado del arte, no al alcance.**
+
+Es la contraparte exacta de lo que la seccion 2 de `estado-del-arte.md` ya hace
+con el SATIF: un sistema nacional en operacion, para **otra** amenaza, que
+declara su alcance. Y aporta el limite fisico mas claro que el documento puede
+citar.
+
+### Justificacion
+
+**Por que no cabe este trimestre, con numeros.** El proyecto lleva el 29 % de los
+puntos con la mitad del calendario consumido, y la parte detenida no se destraba
+agregando trabajo: se destraba cerrando H1.2. Abrir una epica nueva mientras la
+ruta critica esta parada es como se pierden los proyectos que iban bien.
+
+**Por que hace falta una condicion y no una intencion.** "Si sobra tiempo" no es
+comprobable: siempre parece que va a sobrar hasta la semana 10. Una condicion
+escrita, con fecha de evaluacion, se puede contestar con si o con no mirando el
+repositorio. Es el mismo aprendizaje de `docs/15-cerrar-una-historia.md`: **una
+regla que ninguna maquina ni ninguna ceremonia comprueba se cumple mientras
+alguien se acuerda.**
+
+**Por que la condicion es esa y no la velocidad.** La velocidad medida en D-24 es
+puntos por una constante, todavia sin corregir. Condicionar a una cifra que
+sabemos que no mide bien seria darle autoridad que no tiene. H1.2 y H6.0 son
+hechos binarios: estan o no estan.
+
+**Por que el OVSICORI vale igual.** Aporta tres cosas al documento sin costar
+alcance: umbrales tomados de un estandar publicado —la Escala de Mercalli
+Modificada—, un canal de notificacion que cambia con la severidad, y una
+**declaracion de falibilidad** en su propia ficha publica. La ultima es la mas
+util: es el precedente nacional de que un sistema automatizado de riesgo diga que
+puede fallar, que es lo que el aviso de datos simulados hace aqui.
+
+### Alternativas descartadas
+
+**Agregar sismos como cuarto `TipoEvento` ahora.** Obliga a extender los
+contratos, los simulados, el semaforo y el modelo para un evento que el modelo no
+puede estimar. Y `NivelRiesgo` acaba de acotarse en **SC-05** con la regla de que
+un nivel existe solo si el dato lo puede producir: un nivel sismico saldria de
+otra fuente y no de una estimacion propia.
+
+**Construir la alerta temprana de sismos.** El OVSICORI ya la opera a escala
+nacional, gratis, con la red sismica del pais. Duplicarla no es un aporte. Y su
+margen de 3 a 30 segundos exige notificacion push y disponibilidad continua, que
+es infraestructura que el proyecto no tiene: **D-26 acaba de establecer que ni
+siquiera puede prometer actualizacion diaria para sequia**, y H11.5 publica un
+sitio estatico.
+
+**Dejar la idea en una conversacion.** Es lo que paso con "tiempo real", que
+D-26 encontro viviendo como aspiracion repetida de palabra mientras el
+repositorio decia que estaba fuera de alcance desde el primer dia. Una idea sin
+registro se vuelve a discutir cada dos semanas y nadie sabe si fue rechazada o
+solo aplazada.
+
+**Reabrir el recorte de A1.1 completo si se cumple la condicion.** Son 118
+puntos, mas que todo lo hecho hasta hoy. Cumplir la condicion demostraria que hay
+margen para algo, no para eso.
+
+### Consecuencias
+
+**Lo que se gana.** La propuesta queda registrada con su fundamento, y el
+proyecto puede contestar con evidencia por que no la hizo, que es distinto de no
+haberla pensado. El OVSICORI entra al documento IEEE por dos vias: estado del
+arte, y trabajo futuro.
+
+**Lo que se pierde.** Si la condicion se cumple, la reapertura arranca en la
+semana 9 y quedan tres semanas. Es poco, y esta asumido: se prefiere entregar
+completo lo comprometido.
+
+**Lo que se crea.** Nada en el backlog. Es deliberado: una historia en el backlog
+es un compromiso, y esto no lo es todavia.
+
+**Lo que se le encarga a alguien.** A Luna, la seccion de estado del arte, que si
+es trabajo de este trimestre y ya tiene donde ir. A Alejandro, la seccion de
+trabajo futuro del documento IEEE, en H10.5c.
+
+### Medicion
+
+La condicion es comprobable el dia de la retrospectiva del Sprint 3 con:
+
+```bash
+python docs/herramientas/verificar_estado.py
+gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json
+python docs/herramientas/verificar_issues.py --issues issues.json
+```
+
+H1.2 y H6.0 marcadas `[x]` en `docs/tareas/cesar.md`, y el arrastre del Sprint 3
+leido de `docs/12-velocidad.md`.
+
+**Alcance de lo verificado sobre el OVSICORI.** Lo consultado fue la ficha
+publica de la aplicacion y la cobertura de prensa nacional. **No se leyo
+documentacion tecnica del SATT**, que es donde estaria la parametrizacion. Antes
+de que estas afirmaciones entren al documento IEEE hay que buscarla, y es parte
+del encargo a Luna.
+
+**Criterio de revision.** Se vuelve sobre este registro en la retrospectiva del
+Sprint 3, con si o con no. Si la respuesta es no, se anota aqui y se cierra: un
+diferido que se arrastra sin decision es peor que uno descartado.
 
 ---
 
