@@ -97,6 +97,10 @@ gh issue list --state all --limit 300 --json number,title,state > issues.json
 python docs/herramientas/verificar_issues.py --issues issues.json --comandos
 ```
 
+`issues.json` está en `.gitignore` y **no se versiona**: es una foto del tablero
+en un instante. Si entrara al repositorio sería un quinto lugar declarando el
+avance, que es justo lo que este verificador existe para evitar.
+
 Con `--comandos` imprime los `gh issue close` listos para pegar, con el motivo
 escrito. **No se cierra a mano sin comentario**: dentro de un mes nadie va a
 saber si se cerró porque se hizo o porque estorbaba.

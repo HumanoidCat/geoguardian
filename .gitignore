@@ -33,3 +33,9 @@ Thumbs.db
 # Respaldos de base de datos
 *.dump
 *.backup
+
+# Volcado de `gh issue list` para verificar_issues.py. Es una foto del tablero
+# en un instante: se regenera cuando se necesita y no se versiona. Si entrara al
+# repositorio seria un quinto lugar declarando el avance, que es justo lo que
+# verificar_issues.py existe para evitar.
+issues.json
