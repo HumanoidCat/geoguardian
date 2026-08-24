@@ -24,6 +24,7 @@ defecto puesto.
 
     CA-1  index.html no referencia nada con ruta absoluta de raiz
     CA-2  el bundle no pide /simulados/... absoluto, y el respaldo existe
+    CA-2b la geometria publicada es la real del SNIT, no un marcador (I-10)
     CA-3  la ruta de la API queda intacta, para que falle y se caiga al respaldo
     CA-5  el despliegue es un job del ci.yml, no un servicio externo
     CA-6  solo se publica desde main
@@ -49,6 +50,19 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 
 fallos: list[str] = []
+
+
+def _vertices(coordenadas) -> int:
+    """Cuenta pares [lon, lat] a cualquier profundidad de anidamiento.
+
+    Sirve igual para Polygon y para MultiPolygon, que es lo que interesa: la
+    comprobacion no tiene que saber cual de los dos vino.
+    """
+    if isinstance(coordenadas, int | float):
+        return 0
+    if coordenadas and isinstance(coordenadas[0], int | float):
+        return 1
+    return sum(_vertices(x) for x in coordenadas)
 
 
 def comprobar(descripcion: str, condicion: bool, detalle: str = "") -> None:
@@ -141,6 +155,57 @@ def main() -> int:
     if salud.exists():
         modo = json.loads(salud.read_text(encoding="utf-8")).get("modo")
         comprobar("el respaldo declara modo simulado", modo == "simulado", f"dice {modo!r}")
+
+    # ------------------------------------------------------------------ I-10 - #
+    #
+    # Ninguna de las comprobaciones anteriores miraba QUE hay dentro del
+    # GeoJSON. El 24 de agosto el sitio publicado mostro ocho rectangulos sobre
+    # una grilla de 3x3: los marcadores de posicion que _cuadro() genero en los
+    # contratos congelados del 3 de agosto, y que H1.3 tenia que haber
+    # reemplazado el 13.
+    #
+    # La bandera que lo delataba estaba escrita en el propio archivo:
+    #
+    #     "geometria_simulada": true
+    #
+    # Nadie la leia. Un dato que se declara falso a si mismo y llega igual a
+    # produccion es la misma clase de defecto que I-04 -forma valida, contenido
+    # equivocado- y se cierra igual: con una maquina que lo mire.
+    print("\nCA-2b, la geometria publicada es la real del SNIT (I-10):")
+
+    geo = dist / "simulados" / "distritos.geojson"
+    if geo.exists():
+        contenido = json.loads(geo.read_text(encoding="utf-8"))
+        rasgos = contenido.get("features", [])
+
+        simuladas = [
+            r["properties"].get("codigo")
+            for r in rasgos
+            if r.get("properties", {}).get("geometria_simulada")
+        ]
+        comprobar(
+            "ningun distrito se publica con geometria_simulada en true",
+            not simuladas,
+            f"la declaran simulada: {simuladas}. Se regenera con "
+            "docs/herramientas/generar_geometrias_simulado.py y despues "
+            "frontend/herramientas/exportar_simulados.py",
+        )
+
+        # Un rectangulo tiene cinco vertices contando el cierre. El contorno de
+        # un distrito real, aun simplificado, tiene decenas. El umbral es bajo a
+        # proposito: lo que se quiere detectar es la vuelta del cuadrado, no
+        # juzgar cuanta simplificacion es aceptable.
+        pobres = [
+            r["properties"].get("codigo")
+            for r in rasgos
+            if _vertices(r.get("geometry", {}).get("coordinates", [])) < 10
+        ]
+
+        comprobar(
+            "ningun distrito es un poligono de menos de 10 vertices",
+            not pobres,
+            f"demasiado simples, parecen cuadros de marcador: {pobres}",
+        )
 
     # ---------------------------------------------------------------- CA-3 -- #
     print("\nCA-3, la llamada a la API falla y el visor cae al respaldo:")

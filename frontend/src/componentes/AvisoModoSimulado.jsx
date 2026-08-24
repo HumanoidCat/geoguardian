@@ -25,10 +25,21 @@
  *
  *   modo      origen     que se muestra
  *   --------  ---------  ------------------------------------------------
- *   simulado  api        Banda de modo simulado
- *   simulado  estatico   Banda de modo simulado + aviso de respaldo
+ *   simulado  api        Una banda: datos de demostracion
+ *   simulado  estatico   La misma banda, sola
  *   real      api        Nada. Es el estado normal del sistema terminado
- *   real      estatico   Solo el aviso de respaldo. Es el caso peligroso
+ *   real      estatico   Aviso de dato desactualizado. Es el caso peligroso
+ *
+ * El segundo caso mostraba las DOS bandas hasta el 24 de agosto. Se junto en
+ * una: las dos advertian sobre la confiabilidad del dato y apiladas ocupaban
+ * un sexto de la pantalla antes de que apareciera el mapa. Una advertencia que
+ * siempre esta encendida ensena a ignorar las advertencias, y en el sitio
+ * publicado el respaldo es permanente y esperado -no hay API que desplegar
+ * hasta H11.1, que depende de H6.0-.
+ *
+ * Lo que NO se toco es que el aviso exista: lo exigen contratos/enums.py y
+ * contratos/esquemas.py, y es el criterio CA-7 de H11.5. Es una pagina publica
+ * de riesgo climatico. Lo que cambio es cuanto ocupa y en que idioma habla.
  */
 
 const ORIGEN_ESTATICO = 'estatico'
@@ -45,14 +56,13 @@ const ORIGEN_ESTATICO = 'estatico'
  * "la API respondio 502". No es texto para el usuario, asi que va en el atributo
  * title: quien necesite diagnosticar lo encuentra, y quien no, no lo sufre.
  */
-function AvisoRespaldo({ motivo, datosReales }) {
+function AvisoRespaldo({ motivo }) {
   return (
     <div className="aviso-respaldo" role="alert" title={motivo ?? undefined}>
-      <strong>Sin conexion con la API</strong>
+      <strong>Datos desactualizados</strong>
       <span>
-        {datosReales
-          ? 'Lo que se muestra viene de archivos de respaldo y puede estar desactualizado. No refleja el estado actual del sistema.'
-          : 'La API no responde. Lo que se muestra viene de los archivos de respaldo.'}
+        No hay conexion con el servidor. Lo que se ve puede no reflejar el estado
+        actual.
       </span>
     </div>
   )
@@ -71,22 +81,26 @@ export default function AvisoModoSimulado({ salud }) {
   return (
     <>
       {esSimulado && (
-        <div className="aviso-simulado trama-simulado" role="status">
-          <strong>Modo simulado</strong>
+        <div
+          className="aviso-simulado trama-simulado"
+          role="status"
+          title={`contratos v${salud.version_contratos}`}
+        >
+          <strong>Datos de demostracion</strong>
           <span>
-            Los datos que se muestran no son reales y no deben usarse para tomar
-            ninguna decision. Las geometrias son marcadores de posicion y se
-            reemplazan con la capa oficial del SNIT en la historia H1.3.
-          </span>
-          <span className="aviso-simulado-version">
-            contratos v{salud.version_contratos}
+            Los niveles de riesgo son de prueba y no representan riesgo real.
           </span>
         </div>
       )}
 
-      {esRespaldo && (
-        <AvisoRespaldo motivo={salud.motivo_respaldo} datosReales={!esSimulado} />
-      )}
+      {/* El aviso de respaldo se calla cuando ya se dijo que el dato es de
+          prueba: dos bandas apiladas para advertir lo mismo se leen como una
+          pared de texto y entrenan a ignorarlas. En el sitio publicado no hay
+          API, asi que el respaldo es permanente y esperado, no una averia.
+
+          El caso que si importa es `real` + `estatico`: dato de verdad pero
+          viejo. Ese sigue avisando, y es el unico que queda. */}
+      {esRespaldo && !esSimulado && <AvisoRespaldo motivo={salud.motivo_respaldo} />}
     </>
   )
 }

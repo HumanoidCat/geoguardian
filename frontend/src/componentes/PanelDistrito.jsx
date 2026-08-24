@@ -97,10 +97,18 @@ export default function PanelDistrito({ distrito, riesgo, nombreEvento }) {
 
       <BloqueRiesgo riesgo={riesgo} nombreEvento={nombreEvento} />
 
+      {/* Desde el 24 de agosto la geometria es la real del SNIT y esta nota no
+          se muestra nunca: `verificar_h115.py` no deja publicar un dist con
+          `geometria_simulada` en true.
+
+          No se borra igual. Es la red debajo del verificador: si algun dia
+          vuelve a entrar geometria de relleno, la pantalla lo dice. Fue el
+          defecto I-10, donde el dato traia su propia confesion escrita y el
+          problema era que nadie la leia. */}
       {simulada && (
         <p className="panel-nota">
-          La forma de este distrito es un marcador de posicion, no su limite
-          real. Se reemplaza en la historia H1.3 con la capa del SNIT.
+          La forma de este distrito es aproximada y no corresponde a su limite
+          oficial.
         </p>
       )}
     </aside>
