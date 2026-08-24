@@ -191,3 +191,66 @@ jobs:
         run: python -m backend.api.verificar_h61
       - name: Los criterios de H6.6 se cumplen
         run: python docs/herramientas/verificar_h66.py
+
+  # ------------------------------------------------------------------------- #
+  # H11.5 · Publicar el visor como sitio estatico                              #
+  # ------------------------------------------------------------------------- #
+  #
+  # POR QUE ESTA AQUI Y NO EN UN PANEL DE VERCEL
+  #
+  # La rubrica de H11.5 es CICD. Un despliegue configurado a mano en un servicio
+  # externo se evidencia con una captura de pantalla; uno que vive en este archivo
+  # lo puede reproducir cualquiera que tenga el repositorio, y queda sujeto a la
+  # misma revision que el resto del codigo.
+  #
+  # QUE NO ES
+  #
+  # No despliega la API ni la base de datos: eso sigue fuera de alcance por D-05,
+  # y la cadena real de despliegue son H11.1 a H11.4, bloqueadas por H6.0.
+  #
+  # Lo que se publica es el visor con su respaldo estatico, que es lo que D-23
+  # dejo posible sin querer: si la API no responde, el visor lee los JSON del
+  # respaldo y lo declara en pantalla.
+  #
+  # SOLO DESDE MAIN
+  #
+  # `dev` recibe trabajo a diario. Publicar desde ahi pondria cualquier PR a medio
+  # revisar en la URL que se le paso al Comite Municipal de Emergencias.
+  publicar-visor:
+    name: Publicar el visor (H11.5)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [frontend, gestion]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependencias
+        working-directory: frontend
+        run: npm ci
+      - name: Construir el visor
+        working-directory: frontend
+        run: npm run build
+      # Se vuelve a comprobar sobre el artefacto REAL que se va a subir, no sobre
+      # el repositorio. Es la unica forma de detectar que una ruta absoluta de
+      # raiz se colo en el bundle: en el codigo se ve bien y solo falla al
+      # servirla desde un subdirectorio.
+      - name: Los criterios de H11.5 se cumplen sobre el dist construido
+        run: python docs/herramientas/verificar_h115.py --dist frontend/dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+      - name: Desplegar
+        id: despliegue
+        uses: actions/deploy-pages@v4
