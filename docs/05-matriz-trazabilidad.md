@@ -62,6 +62,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H6.6 | El visor consume la API real en lugar de los JSON estaticos | frontend/src/datos/cliente.js, backend/api | verificacion de punta a punta con la API levantada | docs/evidencias/arquitectura-software/H6.6-aviso-de-origen.md<br>docs/evidencias/arquitectura-software/H6.6-visor-contra-api.md | Arq | Alejandro | **Con evidencia** |
 | H5.2 | Cuatro o mas capas conmutables con control de opacidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.2-capas-conmutables.md | CG-4 | Avril | **Con evidencia** |
 | H5.4 | Mapa de calor por interpolacion IDW sobre la probabilidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.4-mapa-calor.md | CG-1 | Avril | **Con evidencia** |
+| H7.1 | Semaforo de riesgo por distrito y evento con umbrales documentados | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H7.1-semaforo.md | CG-2 | Avril | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.

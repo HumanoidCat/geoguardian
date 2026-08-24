@@ -17,6 +17,10 @@
 > `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
 > no se repiten aqui.
 >
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
@@ -83,10 +87,7 @@
 
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
-  - horas: estimada n/d . real 3.0
-  - La estimacion previa no existe: la historia se cerro el mismo dia en que D-24
-    creo la regla. Escribirla ahora, sabiendo lo que costo, seria el anclaje que
-    D-24 descarta. Es el unico caso donde se acepta `n/d`.
+  - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
   - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
     el cambio de origen de datos del visor, y esta en la ruta critica del
     prototipo. Al cerrarla hay que anotar **D-14** como revisada.

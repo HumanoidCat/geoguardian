@@ -41,6 +41,21 @@ export const EVENTOS = [
   },
 ]
 
+/**
+ * Version corta del umbral, para donde no cabe el texto completo.
+ *
+ * La larga sigue estando disponible en `umbral` y se muestra al pasar el cursor.
+ * Acortar no es esconder: el corte tiene que estar a la vista aunque sea
+ * abreviado, porque es lo que permite entender que significa "alto".
+ */
+export const UMBRAL_CORTO = {
+  sequia: 'Alto: SPI-3 ≤ -1.5',
+  incendio: 'Alto: focos > P90',
+  lluvia_intensa: 'Alto: acumulado 72 h > P99',
+}
+
 export function nombreDeEvento(id) {
   return EVENTOS.find((evento) => evento.id === id)?.nombre ?? null
 }
+
+export const IDS_EVENTOS = EVENTOS.map((evento) => evento.id)

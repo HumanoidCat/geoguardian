@@ -5,7 +5,7 @@
   "advertencia": "NIVELES SIMULADOS. No hay ningun modelo entrenado todavia: estos valores los sortea contratos/simulados/datos.py y no representan riesgo real. Existen unicamente para poder construir y verificar la representacion visual. El visor los declara como simulados de forma permanente.",
   "riesgos": {
     "50801": {
-      "nivel": "medio",
+      "nivel": "alto",
       "probabilidad": 0.65,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
@@ -17,13 +17,13 @@
       "version_modelo": "simulado-0.0.0"
     },
     "50803": {
-      "nivel": "medio",
+      "nivel": "bajo",
       "probabilidad": 0.36,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
     },
     "50804": {
-      "nivel": "medio",
+      "nivel": "alto",
       "probabilidad": 0.51,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
@@ -41,7 +41,7 @@
       "version_modelo": "simulado-0.0.0"
     },
     "50807": {
-      "nivel": "medio",
+      "nivel": "bajo",
       "probabilidad": 0.41,
       "algoritmo": "xgboost",
       "version_modelo": "simulado-0.0.0"
