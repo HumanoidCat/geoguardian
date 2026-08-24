@@ -115,6 +115,47 @@ hiciera falta tocar un componente, se pide.
 Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
 asignado, y se declara por historia y no en general.
 
+## Excepcion: la publicacion del visor, para H11.5
+
+`frontend/` es de Avril. La historia **H11.5** —publicar el visor como sitio
+estatico— es de Alejandro y toca dos archivos suyos.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/vite.config.js`, solo la clave `base` | H11.5, y nada mas |
+| Alejandro | `frontend/src/datos/cliente.js`, solo las rutas de `RESPALDO` | H11.5, y nada mas |
+
+**Por que hacen falta las dos.** GitHub Pages sirve en un **subdirectorio**,
+`/geoguardian/`, y ahi toda ruta absoluta de raiz se rompe. Son dos problemas
+distintos y ninguno se arregla solo:
+
+- `vite.config.js` resuelve lo que Vite reescribe: el `index.html` y los
+  `import`. Sin `base`, los `assets/` se piden desde la raiz del dominio.
+- `cliente.js` resuelve lo que Vite **no** reescribe: `RESPALDO` son cadenas que
+  se arman en tiempo de ejecucion. Medido antes de arreglarlo, servido desde un
+  subdirectorio, el respaldo daba **404** y el visor se quedaba sin ningun
+  origen. En el sitio publicado el respaldo es el unico origen que existe,
+  porque no hay API.
+
+**Por que no se le asigna a Avril.** No es un cambio de presentacion: es donde
+vive el artefacto construido, y depende de conocer la negociacion de origen de
+D-23 y el comportamiento de `base` en Vite. Ningun componente cambia.
+
+**Por que `base: './'` y no `'/geoguardian/'`.** Un valor fijo obligaria a Avril
+a entrar a `localhost:5173/geoguardian/` para trabajar. `'./'` deja el servidor de
+desarrollo sirviendo en la raiz, funciona en cualquier subdirectorio, y no
+necesita variables de entorno —que ademas fallarian con `no-undef` en su
+`eslint.config.js`, como ya paso en H6.6—.
+
+**Por que la excepcion es tan estrecha.** Dos claves, no dos archivos. Los
+componentes, los estilos, el exportador y el resto de la configuracion siguen
+siendo de Avril sin excepcion.
+
+Es el mismo criterio de **D-16** y la misma forma que las excepciones de H1.6 y
+H6.6: **estrecha, por historia, y escrita.**
+
+**Avril revisa el Pull Request**, como dueña de la carpeta.
+
 ## Excepcion: docs/evidencias/
 
 `docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**

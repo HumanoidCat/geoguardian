@@ -21,7 +21,9 @@ H5.6,Transformacion de coordenadas,frontend,test_proyeccion,docs/evidencias/comp
 H6.1,API REST documentada,backend/api,test_openapi,docs/evidencias/arquitectura-software/,,
 H8.1,Despliegue reproducible,"docker-compose.yml, infra/docker/init-db",levantado en maquina limpia,docs/evidencias/sistemas-operativos/,,
 H8.2,ETL concurrente medido,backend/etl,test_concurrencia,docs/evidencias/sistemas-operativos/,,
-H9.2,Validacion externa con SUS,docs,acta de sesion,docs/evidencias/objetivos/,,
+H1.14,Ingesta periodica con cadencia por evento,backend/etl,test_ingesta_idempotente,docs/evidencias/bases-de-datos/,,
+H9.2a,Validacion externa de usabilidad con SUS,docs,acta de sesion,docs/evidencias/objetivos/,,
+H9.2b,Contraste de la estimacion contra eventos vividos,docs,acta de sesion,docs/evidencias/objetivos/,,
 H10.1,Plan de pruebas con casos por modulo,docs/investigacion,"no aplica: es el plan, no la suite",docs/evidencias/calidad/,,
 H10.4,Manual tecnico verificado por alguien ajeno al desarrollo,docs,"los comandos de su seccion 5, ejecutados",docs/evidencias/entregables/,,En progreso: falta la verificacion externa
 H13.1,Actas de las ceremonias Scrum,docs,contraste de cada cifra contra git log y el backlog,docs/evidencias/arquitectura-software/,,

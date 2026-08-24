@@ -168,6 +168,47 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
+H1.14,"H1.14 Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite","Epica E1 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: BD-1
+Depende de: H1.1, H1.2
+Sprint: S3 (semanas 8-9)
+
+POR QUE EXISTE. De las 86 historias del backlog, NINGUNA vuelve a consultar las
+fuentes: H1.1 es una descarga historica de una vez. Sin esta, el sistema es una
+foto y no un servicio, y la frase ""informacion en tiempo real"" del charter no
+tiene nada detras. Hueco detectado el 2026-08-23 al medir la latencia.
+
+LA CADENCIA NO ES UNA SOLA, y sale de D-26:
+
+  incendio        FIRMS,  3 h de latencia          -> diaria
+  lluvia intensa  CHIRPS, 2 d preliminar           -> diaria, declarando el producto
+  sequia          CHIRPS, 21-51 d el final         -> semanal como mucho
+
+Actualizar la sequia a diario no aporta nada aunque el dato llegara al instante:
+el SPI-3 mira 90 dias, de los cuales 83 ya se conocian ayer.
+
+QUE TIENE QUE RESOLVER
+
+- Idempotencia: correrla dos veces el mismo dia no duplica filas. Es el mismo
+  requisito que H1.1 y el defecto que Luna encontro en H1.5, donde una fila
+  repetida escondia un dia ausente.
+- Declarar QUE PRODUCTO se cargo. El preliminar de CHIRPS es ""GTS and Mexico
+  only"" y no es el mismo dato que el final: la columna tiene que decir cual es.
+  Es el criterio de D-17 con la precipitacion y el de D-25 con la era de FIRMS.
+- Reemplazar el preliminar por el final cuando llegue, sin romper lo ya estimado.
+- Registrar cuando corrio y que trajo, para que /salud pueda declarar la
+  ultima ingesta en vez de dejarla nula.
+
+QUE NO RESUELVE. Donde se ejecuta. Hoy no hay entorno alojado -los overlays de
+Kubernetes son locales- asi que la programacion queda declarada y sin destino.
+Eso es decision aparte y no bloquea escribir la ingesta.
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S3,BD-1,cesar",S3,cesar,5,7.8
 H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: Senales
@@ -684,22 +725,63 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E9,S3,OE4,luna",S3,luna,5,4.8
-H9.2,H9.2 Sesion con 3 a 5 participantes y calculo del puntaje SUS,"Epica E9 | 5 puntos | 13.2 h estimadas
+H9.2a,H9.2a Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS,"Epica E9 | 3 puntos | 7.9 h estimadas
 
 Rubrica o objetivo: OE4
 Depende de: H9.1
 Sprint: S4 (semanas 10-11)
 
+Mide USABILIDAD, no exactitud: si la herramienta se entiende, si la gente
+encuentra su distrito, y si comunica su propia incertidumbre. Bloques 0 a 4 y 6
+del guion. NO incluye el bloque 5, que contrasta la estimacion contra los casos
+historicos: ese pasa a H9.2b porque exige un modelo entrenado.
+
+Se puede hacer HOY, con datos simulados y sin esperar a H1.2.
+
+La banda de ""modo simulado"" no se oculta ni se compensa: se MIDE. Preguntar si el
+participante entendio que los datos no son reales es un hallazgo de usabilidad
+sobre H6.6 y D-23, y responde a ""comunica su propia incertidumbre"".
+
+No se pregunta por confianza en los numeros. Con datos simulados esa respuesta no
+significa nada, y ademas la banda la contamina.
+
+Reclutamiento: cualquiera del publico objetivo del canton.
 Definition of Done:
 - [ ] Criterios de aceptacion verificados por otra persona
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,5,13.2
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,3,7.9
+H9.2b,H9.2b Sesion de contraste: la estimacion frente a lo que la gente vivio,"Epica E9 | 2 puntos | 5.3 h estimadas
+
+Rubrica o objetivo: OE4
+Depende de: H9.2a, H3.0
+Sprint: S4 (semanas 10-11)
+
+Es el bloque 5 del guion de H9.1: mostrar que estimo el visor para Nate 2017, las
+inundaciones de 2011 y la sequia de 2014, y preguntar si coincide con lo que el
+participante sabe.
+
+POR QUE SE SEPARO. Contra datos simulados este bloque no mide nada: un
+participante que diga ""el mapa se equivoca en Quebrada Grande"" no estaria diciendo
+nada sobre el modelo, porque no hay modelo. Depende de H3.0 y por ella de H1.2.
+Esa dependencia NO estaba declarada en el backlog: la encontro Luna el
+2026-08-23, despues de cerrar H9.1 y dar por desbloqueada H9.2.
+
+Reclutamiento distinto al de H9.2a, y ese es el segundo motivo de la particion:
+aqui hacen falta personas que VIVIERON esos eventos en ese distrito. No tiene que
+ser la misma gente de la primera sesion. El guion original suponia que cualquier
+participante podia opinar sobre Nate.
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E9,S4,OE4,luna",S4,luna,2,5.3
 H9.3,H9.3 Someter los umbrales de incendio a criterio de los participantes,"Epica E9 | 3 puntos | 7.9 h estimadas
 
 Rubrica o objetivo: OE4
-Depende de: H9.2, H1.2
+Depende de: H9.2b, H1.2
 Sprint: S4 (semanas 10-11)
 
 Definition of Done:
@@ -711,7 +793,7 @@ Definition of Done:
 H9.4,H9.4 Incorporar un cambio derivado de la retroalimentacion,"Epica E9 | 2 puntos | 3.1 h estimadas
 
 Rubrica o objetivo: OE4
-Depende de: H9.2
+Depende de: H9.2b
 Sprint: S4 (semanas 10-11)
 
 Definition of Done:

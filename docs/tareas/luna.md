@@ -90,14 +90,30 @@
 - [ ] **H12.4** · Diagnostico guiado a partir de la bitacora de incidencias
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H12.1 · **bloquea a: H12.5**
 
-- [ ] **H9.2** · Sesion con 3 a 5 participantes y calculo del puntaje SUS
-  - `E9` · 5 pts · 13.2 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.3, H9.4**
+- [ ] **H9.2a** · Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS
+  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.2b**
+  - Partida de H9.2 el 2026-08-23. Mide **usabilidad, no exactitud**, asi que se
+    puede hacer HOY con datos simulados y sin esperar a H1.2. Bloques 0 a 4 y 6.
+  - La banda de "modo simulado" no se oculta: se **mide**. Preguntar si el
+    participante entendio que los datos no son reales responde a "comunica su
+    propia incertidumbre" y es un hallazgo sobre H6.6 y D-23.
+  - **No preguntar por confianza en los numeros.** Con datos simulados esa
+    respuesta no significa nada, y la banda la contamina.
+
+- [ ] **H9.2b** · Sesion de contraste: la estimacion frente a lo que la gente vivio
+  - `E9` · 2 pts · 5.3 h · rubrica: OE4 · depende de: H9.2a, H3.0 · **bloquea a: H9.3, H9.4**
+  - Es el bloque 5 del guion de H9.1. Contra datos simulados no mide nada: sin
+    modelo, "el mapa se equivoca en Quebrada Grande" no dice nada sobre el modelo.
+  - **La dependencia de H3.0 no estaba declarada.** La encontro Luna el 2026-08-23
+    despues de cerrar H9.1 y dar por desbloqueada H9.2. Por H3.0 depende de H1.2.
+  - Reclutamiento **distinto** al de H9.2a: aqui hacen falta personas que vivieron
+    esos eventos en ese distrito. No tiene que ser la misma gente.
 
 - [ ] **H9.3** · Someter los umbrales de incendio a criterio de los participantes
-  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2, H1.2
+  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2b, H1.2
 
 - [ ] **H9.4** · Incorporar un cambio derivado de la retroalimentacion
-  - `E9` · 2 pts · 3.1 h · rubrica: OE4 · depende de: H9.2
+  - `E9` · 2 pts · 3.1 h · rubrica: OE4 · depende de: H9.2b
 
 ## Regla: lo hecho no se borra
 

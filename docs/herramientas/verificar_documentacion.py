@@ -143,7 +143,10 @@ def trabajos_de_ci() -> int:
             continue
         if linea.strip() and not linea.startswith(" "):
             break  # se acabo el bloque de trabajos
-        if re.fullmatch(r"  [a-z_]+:", linea):
+        # `publicar-visor`, de H11.5, lleva GUION. Con `[a-z_]+` no calzaba y
+        # esta herramienta contaba 5 trabajos cuando ya eran 6, sin avisar de
+        # nada: el manual decia "cinco" y la comprobacion le daba la razon.
+        if re.fullmatch(r"  [a-z][a-z0-9_-]*:", linea):
             trabajos += 1
 
     return trabajos

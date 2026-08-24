@@ -33,6 +33,21 @@ import react from '@vitejs/plugin-react'
  * https://vite.dev/config/
  */
 export default defineConfig({
+  // H11.5. GitHub Pages sirve en /geoguardian/, no en la raiz del dominio, y ahi
+  // toda ruta absoluta de raiz se rompe. Con `base` relativo, Vite emite rutas
+  // relativas en index.html y en los assets, asi que el mismo `dist` funciona en
+  // la raiz y en cualquier subdirectorio.
+  //
+  // Se elige './' y no '/geoguardian/' para NO cambiarle el flujo a Avril: en
+  // desarrollo Vite ignora el base relativo y sigue sirviendo en localhost:5173/.
+  // Un valor fijo la obligaria a entrar a /geoguardian/ para trabajar.
+  //
+  // Tampoco se lee de una variable de entorno: `process` es `no-undef` en su
+  // eslint.config.js, que aplica los globales del navegador a todos los .js. Es
+  // el mismo tropiezo que documenta el comentario de `server.proxy`.
+  //
+  // Ver docs/07-propiedad-archivos.md, excepcion de H11.5.
+  base: './',
   plugins: [react()],
   server: {
     proxy: {

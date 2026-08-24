@@ -76,8 +76,8 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 | Contratos | v1.4.0, congelados. 47 verificaciones en `python -m contratos.verificar` |
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
-| Integración continua | Cinco trabajos: contratos, backlog y documentación, linter, pruebas y frontend |
-| Backlog | 85 historias, 423 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
+| Integración continua | 6 trabajos: contratos, backlog y documentación, linter, frontend, pruebas y publicación del visor |
+| Backlog | 87 historias, 428 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
 
 ## Documentación

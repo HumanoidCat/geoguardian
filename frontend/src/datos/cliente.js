@@ -30,11 +30,38 @@
  */
 const RUTA_API = import.meta.env.VITE_API_URL ?? '/api'
 
-/** Los archivos de D-14. Ya no son el origen: son la degradacion. */
+/**
+ * Los archivos de D-14. Ya no son el origen: son la degradacion.
+ *
+ * LAS RUTAS CUELGAN DE `BASE_URL`, Y NO SON ABSOLUTAS DE RAIZ
+ *
+ * Vite reescribe solo lo que aparece en `index.html` y en los `import`. Estas son
+ * cadenas que se arman en tiempo de ejecucion, asi que **no las toca nadie**: lo
+ * que se escriba aqui es literalmente lo que va a pedir el navegador.
+ *
+ * Escritas como `/simulados/...` funcionan mientras el visor viva en la raiz del
+ * dominio. Publicado en GitHub Pages vive en `/geoguardian/`, y entonces
+ * `/simulados/salud.json` apunta a `humanoidcat.github.io/simulados/salud.json`,
+ * que no existe.
+ *
+ * Medido antes de arreglarlo, sirviendo el `dist` desde un subdirectorio:
+ *
+ *     /geoguardian/simulados/salud.json  ->  404
+ *
+ * Y en el sitio publicado **el respaldo es el unico origen que hay**, porque no
+ * hay API. El visor se quedaba sin datos y sin error visible.
+ *
+ * `import.meta.env.BASE_URL` vale `/` en desarrollo y `./` en la construccion,
+ * asi que la misma linea sirve en los dos sitios y en cualquier subdirectorio.
+ *
+ * Ver H11.5, criterio CA-2, y docs/07-propiedad-archivos.md.
+ */
+const BASE = import.meta.env.BASE_URL
+
 const RESPALDO = {
-  salud: '/simulados/salud.json',
-  distritos: '/simulados/distritos.geojson',
-  riesgos: (evento) => `/simulados/riesgos-${evento}.json`,
+  salud: `${BASE}simulados/salud.json`,
+  distritos: `${BASE}simulados/distritos.geojson`,
+  riesgos: (evento) => `${BASE}simulados/riesgos-${evento}.json`,
 }
 
 /**
