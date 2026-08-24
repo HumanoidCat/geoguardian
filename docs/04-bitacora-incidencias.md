@@ -628,3 +628,131 @@ La regla que se agrega:
 > y comprueba que su correo sea uno verificado en su cuenta de GitHub. Se verifica
 > mirando que el commit propio salga con la foto de perfil en el Pull Request.
 
+---
+
+## I-10 · Un marcador de posicion del primer dia llego al sitio publico
+
+**Fecha.** 2026-08-24
+
+**Quien lo detecto.** Alejandro, abriendo el visor recien publicado.
+
+**Que paso.** El sitio publicado mostraba el canton de Tilaran como **ocho
+rectangulos identicos sobre una grilla de tres por tres**, ninguno en el lugar
+del distrito que decia representar.
+
+No eran ubicaciones aproximadas. Salian de esto, en `contratos/simulados/datos.py`:
+
+    def _cuadro(i: int) -> dict:
+        """Poligono ficticio, solo para que el visor tenga algo que dibujar."""
+        lon, lat = -84.97 + (i % 3) * 0.09, 10.47 - (i // 3) * 0.07
+
+`i % 3` e `i // 3` son **fila y columna de una grilla**. La funcion nunca intento
+representar geografia, y su propio docstring lo decia.
+
+**Causa raiz.** No fue un descuido de nadie al revisar. Fueron tres piezas
+correctas por separado que nadie cruzo:
+
+| Cuando | Que | Estaba bien? |
+|---|---|---|
+| 3 ago | `_cuadro()` genera cuadros para que el visor tenga que dibujar | **Si**, y lo declaraba |
+| 12 ago | El exportador vuelca el simulado a archivos estaticos | **Si**, exporto lo que habia |
+| 13 ago | **H1.3 carga las geometrias oficiales del SNIT en PostGIS** | **Si** |
+| 20 ago | El visor publicado sirve el respaldo estatico | **Si** |
+
+**H1.3 cerro y nada aviso de que el simulado habia quedado obsoleto.** El
+marcador de posicion no tenia fecha de vencimiento ni dueno despues de cumplida
+la historia que iba a reemplazarlo.
+
+Y el dato **se declaraba falso a si mismo**, en el archivo que se publicaba:
+
+    "geometria_simulada": true
+
+Nadie lo leia. `verificar_h115.py` tenia veinte comprobaciones sobre el
+artefacto construido y ninguna miraba **el contenido** del GeoJSON: comprobaba
+que el archivo existiera y que la ruta resolviera, no que dijera la verdad.
+
+**Accion tomada.**
+
+1. `docs/herramientas/generar_geometrias_simulado.py`, que trae los contornos del
+   SNIT reusando el descargador de H1.3 y los simplifica para mapa web. Mide
+   varias tolerancias e imprime la tabla: la eleccion se toma mirando, no de
+   memoria. **No reusa la tolerancia de `poligonos_simplificados.sql`**, que esta
+   afinada para caber en una URL de ClimateSERV y perderia detalle sin motivo.
+2. El simulado lee esa geometria de un archivo congelado. Si falta, falla con el
+   comando exacto para regenerarla: **no hay camino de vuelta al cuadrado**.
+3. **Dos comprobaciones nuevas en `verificar_h115.py`**, sobre el `dist` que se
+   publica:
+   - ningun distrito con `geometria_simulada` en `true`
+   - ningun poligono de menos de diez vertices
+
+   Son independientes a proposito. La primera atrapa el caso honesto; la segunda
+   atrapa que alguien ponga la bandera en `false` sin arreglar la geometria.
+   Probadas reintroduciendo los dos defectos por separado: las dos salen en rojo
+   con codigo 1.
+
+**Dos defectos mas, que aparecieron al revisar el `dist` construido en vez de
+confiar en los verificadores.** Los 22 criterios salian en verde con los dos
+puestos, y conviene que quede escrito por que:
+
+**a) La ficha del distrito seguia diciendo que la forma era falsa.** Texto
+visible al hacer clic en un distrito, todavia en el bundle publicado:
+
+> *"La forma de este distrito es un marcador de posicion, no su limite real. Se
+> reemplaza en la historia H1.3 con la capa del SNIT."*
+
+Se habia corregido la banda de arriba y no se busco el resto. **Un `grep` del
+identificador sobre el artefacto construido lo encontraba en un segundo**, y no
+se hizo hasta despues.
+
+**b) Las areas declaradas no eran las de la geometria.** Ocho constantes escritas
+a mano en `_DISTRITOS`, contra el poligono oficial medido en EPSG:8908, que es
+como lo mide `cargar_distritos.py`:
+
+    Tronadora          declara  30,2   mide  140,0    +363 %
+    Tilaran                     60,0         144,8    +141 %
+    Arenal                     156,5          72,6     -54 %
+    Quebrada Grande             88,4          34,4     -61 %
+    -----------------------------------------------------------
+    canton                     638,3         669,2      +5 %
+
+**El total casi coincide y los individuales estan revueltos**, lo que sugiere que
+los numeros estaban asignados a los codigos equivocados. Y el panel del visor
+muestra esa cifra **al lado de la forma**: con la geometria falsa nadie lo
+notaba; con la real, un distrito dibujado enorme decia 30,2 km2.
+
+Se corrige igual que la geometria: **el area se calcula, no se escribe.** La
+computa el generador sobre el poligono sin simplificar —la simplificacion existe
+para que el mapa pese menos, no para cambiar cuanto mide un distrito— y el
+simulado la lee del mismo archivo.
+
+**Aprendizaje.** Es la cuarta vez que este proyecto encuentra lo mismo, y ya
+conviene enunciarlo como regla:
+
+> **Un dato de relleno necesita fecha de vencimiento y una maquina que la
+> cobre.** Si se pone algo provisional porque todavia no existe lo real, la
+> historia que va a traer lo real no alcanza como plan: hay que dejar escrito
+> quien lo reemplaza y una comprobacion que falle mientras siga ahi.
+
+Y el patron concreto, que ya se vio en **I-04** y en **I-07**: un dato con forma
+valida y contenido equivocado pasa todas las validaciones de forma. Aca ademas
+**venia con su propia confesion escrita** y aun asi paso, porque la confesion
+estaba en un campo que nadie leia.
+
+Lo mas incomodo: el defecto no lo encontro ningun control. Lo encontro **una
+persona mirando la pantalla**, cuatro dias despues de publicar y a cuatro dias
+del Primer Avance.
+
+Y los otros dos —la frase que quedaba en la ficha, y las areas revueltas— no los
+encontro ningun control **ni siquiera despues**: salieron de revisar el artefacto
+construido antes de commitear, con los 22 criterios ya en verde. De ahi la
+segunda regla:
+
+> **Un verificador en verde dice que no fallo lo que se le pidio comprobar, no
+> que el resultado este bien.** Antes de publicar algo que va a mirar gente de
+> afuera, alguien abre el artefacto y lo mira.
+
+**Impacto.** Ninguna hora de trabajo perdida y ninguna persona bloqueada: el
+arreglo son dos programas y una tabla de tolerancias. El costo real era otro,
+y no llego a ocurrir: **el sitio se le iba a mostrar al Comite Municipal de
+Emergencias de Tilaran con el canton dibujado como un tablero de ajedrez.**
+

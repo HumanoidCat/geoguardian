@@ -13,10 +13,11 @@ import CapaMapaCalor from './CapaMapaCalor'
  * Decisiones que conviene no deshacer sin pensarlo:
  *
  * 1. El encuadre se calcula a partir de la geometria recibida, no se escribe a
- *    mano. Hoy las geometrias son cuadrados de marcador de posicion y en la
- *    historia H1.3 se reemplazan por los limites reales del SNIT. Si las
- *    coordenadas estuvieran fijas en el codigo, ese dia el mapa apuntaria al
- *    lugar equivocado y nadie sabria por que.
+ *    mano. Esa decision se cobro sola el 24 de agosto: las geometrias eran
+ *    cuadrados de marcador de posicion y pasaron a ser los limites reales del
+ *    SNIT sin que este componente cambiara una linea. Con las coordenadas fijas
+ *    en el codigo, ese dia el mapa habria apuntado al lugar equivocado y nadie
+ *    sabria por que. Ver I-10.
  *
  * 2. El relleno se resuelve por clase de CSS y no por opciones de Leaflet. Un
  *    color plano cabe en una opcion; una trama diagonal no. Como la ausencia de

@@ -54,8 +54,9 @@ FECHA_REFERENCIA = date(2026, 8, 16)
 CODIGOS_ESPERADOS = {"50801", "50802", "50803", "50804", "50805", "50806", "50807", "50808"}
 
 ADVERTENCIA_GEOMETRIA = (
-    "Geometrias de marcador de posicion, no son los limites reales de los "
-    "distritos. Se reemplazan en la historia H1.3 con la capa del SNIT."
+    "Contornos oficiales de la capa IGN_5_CO:limitedistrital_5k del SNIT, "
+    "simplificados para el mapa web. La forma de los distritos es real; el "
+    "riesgo que se pinta encima es simulado."
 )
 
 ADVERTENCIA_RIESGO = (
@@ -70,10 +71,12 @@ def construir_geojson(repositorio: RepositorioSimulado) -> dict:
     """
     Arma un FeatureCollection con los ocho distritos.
 
-    ATENCION: las geometrias del simulado son cuadrados generados por la funcion
-    _cuadro() de contratos/simulados/datos.py. NO son la forma real de los
-    distritos. Las reales se cargan de la capa IGN_5_CO:limitedistrital_5k del
-    SNIT en la historia H1.3, que no es de esta carpeta.
+    Las geometrias son las **reales** del SNIT desde el 24 de agosto. Antes eran
+    ocho cuadrados sobre una grilla de 3x3 que genero _cuadro() en los contratos
+    congelados del 3 de agosto, y que sobrevivieron hasta el sitio publicado.
+    Ver la incidencia **I-10**.
+
+    Lo que sigue siendo simulado es el **riesgo**, no la forma del distrito.
     """
     rasgos = []
     for distrito in repositorio.listar_distritos():
@@ -88,7 +91,10 @@ def construir_geojson(repositorio: RepositorioSimulado) -> dict:
                     # None en el contrato se conserva como null. Un distrito sin
                     # dato censal no tiene cero habitantes: no se sabe cuantos.
                     "poblacion": distrito.poblacion,
-                    "geometria_simulada": True,
+                    # Bandera que lee docs/herramientas/verificar_h115.py: si
+                    # llegara en true al dist publicado, el despliegue falla.
+                    # Fue el defecto I-10 y ahora tiene quien lo vigile.
+                    "geometria_simulada": False,
                 },
             }
         )
@@ -312,8 +318,8 @@ def main() -> None:
     print("  salud.json")
     for evento in TipoEvento:
         print(f"  riesgos-{evento.value}.json")
-    print("\nGeometrias de marcador de posicion. Se reemplazan en H1.3.")
-    print("Niveles de riesgo sorteados por el simulado. No son estimaciones reales.")
+    print("\nGeometrias reales del SNIT. Niveles de riesgo sorteados por el")
+    print("simulado: no son estimaciones reales.")
 
 
 if __name__ == "__main__":

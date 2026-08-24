@@ -115,6 +115,47 @@ hiciera falta tocar un componente, se pide.
 Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
 asignado, y se declara por historia y no en general.
 
+## Excepcion: el arreglo de la geometria publicada, por I-10
+
+`frontend/` es de Avril. El **24 de agosto** el sitio publicado mostraba el
+canton como ocho rectangulos sobre una grilla, y el arreglo cruza tres carpetas.
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Alejandro | `frontend/herramientas/exportar_simulados.py`, la bandera y los textos de geometria | I-10, y nada mas |
+| Alejandro | `frontend/src/componentes/AvisoModoSimulado.jsx`, solo los textos y cuando se muestra cada banda | I-10, y nada mas |
+| Alejandro | `frontend/src/componentes/PanelDistrito.jsx`, **solo el texto de la nota de geometria** | I-10, y nada mas |
+| Alejandro | `frontend/src/componentes/MapaCanton.jsx`, **solo un comentario** | I-10, y nada mas |
+
+**Por que no se le pide a Avril y ya.** Porque **el origen del defecto es mio**:
+la funcion `_cuadro()` de `contratos/simulados/datos.py`, en los contratos
+congelados del 3 de agosto. Avril exporto correctamente lo que el simulado le
+daba. Pedirle que arregle la consecuencia de un archivo mio, a cuatro dias del
+Primer Avance, seria pasarle un trabajo que no origino.
+
+**Por que son cuatro y no dos.** Las dos ultimas aparecieron al revisar el
+`dist` construido en vez de confiar en los verificadores: **la frase que decia
+que la geometria era un marcador de posicion seguia en el bundle publicado**, en
+la ficha que se abre al hacer clic en un distrito. Se habia corregido la banda de
+arriba y no se busco el resto.
+
+**Por que es tan estrecha.** No se toca ningun componente del mapa, ni los
+estilos, ni la logica de datos, ni el calculo de nada. Solo cadenas de texto y
+una condicion:
+
+- en el exportador, la bandera `geometria_simulada` y los textos de geometria
+- en el aviso, el texto y cuando aparece cada banda —**no** se quita el aviso de
+  datos simulados, que lo exigen los contratos y el criterio CA-7 de H11.5—
+- en la ficha del distrito, el texto de una nota
+- en el mapa, un comentario
+
+**Que queda de Avril, sin excepcion.** La interfaz. El apilamiento de bandas, la
+tipografia, el espaciado y todo lo demas que haya que mejorar para el avance se
+pide, no se hace.
+
+Es el mismo criterio de **D-16**: la propiedad sigue al trabajo asignado, y la
+excepcion se declara por caso y con fecha, no en general.
+
 ## Excepcion: la publicacion del visor, para H11.5
 
 `frontend/` es de Avril. La historia **H11.5** —publicar el visor como sitio
