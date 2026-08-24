@@ -39,7 +39,7 @@ Que el trabajo este bien hecho, ni las columnas del tablero de proyecto, que la
 API de issues no expone.
 
 Uso:
-    gh issue list --state all --limit 300 --json number,title,state > issues.json
+    gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json
     python docs/herramientas/verificar_issues.py --issues issues.json
 
     # y para que imprima los comandos de cierre en vez de solo quejarse:
@@ -112,7 +112,9 @@ def main() -> int:
     ruta = args.issues if args.issues.is_absolute() else Path.cwd() / args.issues
     if not ruta.exists():
         print(f"\nNo existe {ruta}. Se genera con:\n")
-        print("    gh issue list --state all --limit 300 --json number,title,state > issues.json\n")
+        print(
+            "    gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json\n"
+        )
         return 1
 
     backlog = historias_del_backlog()
@@ -134,26 +136,43 @@ def main() -> int:
 
     # 2. Issue cerrada sin que la historia lo este. El tablero adelanta al
     #    repositorio, que es peor: alguien puede darla por hecha.
+    #
+    #    SALVO que se haya cerrado como NOT_PLANNED, que es como GitHub marca
+    #    "duplicada", "no se va a hacer" o "se abrio por error". Esa distincion
+    #    la aporta `stateReason` y hay que pedirla en el volcado.
+    #
+    #    Se agrego el 24 de agosto: al deduplicar las dos issues de H6.0 -habia
+    #    una abierta y otra cerrada para la misma historia- cerrar la sobrante
+    #    dejaba una "cerrada sin historia marcada" que no era un defecto sino la
+    #    limpieza misma. El verificador acusaba el arreglo.
     for identificador, issues in sorted(por_historia.items()):
         if identificador in cerradas or identificador not in backlog:
             continue
         for issue in issues:
-            if issue.get("state", "").upper() == "CLOSED":
-                problemas.append(
-                    f"la issue #{issue['number']} de {identificador} esta cerrada "
-                    "y la historia no esta marcada [x] en docs/tareas/"
-                )
+            if issue.get("state", "").upper() != "CLOSED":
+                continue
+            if (issue.get("stateReason") or "").upper() == "NOT_PLANNED":
+                continue
+            problemas.append(
+                f"la issue #{issue['number']} de {identificador} esta cerrada "
+                "y la historia no esta marcada [x] en docs/tareas/"
+            )
 
     # 3. Historias sin issue.
     sin_issue = sorted(h for h in backlog if h not in por_historia)
     for identificador in sin_issue:
         problemas.append(f"{identificador} esta en el backlog y no tiene issue en el tablero")
 
-    # 4. Duplicadas.
+    # 4. Duplicadas. Una descartada como NOT_PLANNED ya no cuenta: es
+    #    precisamente como se resuelve una duplicacion.
     for identificador, issues in sorted(por_historia.items()):
-        if len(issues) > 1:
-            numeros = ", ".join(f"#{i['number']}" for i in issues)
-            problemas.append(f"{identificador} tiene mas de una issue: {numeros}")
+        vigentes = [i for i in issues if (i.get("stateReason") or "").upper() != "NOT_PLANNED"]
+        if len(vigentes) > 1:
+            numeros = ", ".join(f"#{i['number']}" for i in vigentes)
+            problemas.append(
+                f"{identificador} tiene mas de una issue vigente: {numeros}. "
+                "La sobrante se cierra con `--reason 'not planned'`"
+            )
 
     # ----------------------------------------------------------------------- #
 

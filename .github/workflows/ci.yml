@@ -65,7 +65,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue list --state all --limit 300 --json number,title,state > /tmp/issues.json
+          gh issue list --state all --limit 300 --json number,title,state,stateReason > /tmp/issues.json
           python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --comandos
 
   calidad:

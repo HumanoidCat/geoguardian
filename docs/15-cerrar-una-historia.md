@@ -93,7 +93,7 @@ Pasa: alguien olvida el `Closes #N`, o la historia se cierra en dos PR. Se
 detecta y se arregla:
 
 ```bash
-gh issue list --state all --limit 300 --json number,title,state > issues.json
+gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json
 python docs/herramientas/verificar_issues.py --issues issues.json --comandos
 ```
 
@@ -107,6 +107,20 @@ saber si se cerró porque se hizo o porque estorbaba.
 
 El CI corre esa comprobación en cada cambio, así que la discrepancia aparece
 sola.
+
+### Si hay dos issues para la misma historia
+
+Pasa cuando se carga el backlog dos veces. **La sobrante se cierra declarando que
+no es trabajo hecho**, con el motivo de GitHub:
+
+```bash
+gh issue close 90 --reason "not planned" --comment "Duplicada de #92."
+```
+
+Sin `--reason`, GitHub la marca como **completada**, y el verificador la lee como
+«esta historia está hecha» — que es justo lo contrario de lo que pasó. La
+distinción no es cosmética: es la diferencia entre limpiar el tablero y hacerlo
+mentir en la otra dirección.
 
 ---
 
