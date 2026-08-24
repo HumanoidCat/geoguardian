@@ -32,8 +32,15 @@ QUE COMPRUEBA
 
 QUE NO COMPRUEBA
 
-Las issues de GitHub, que viven fuera del repositorio. Se cierran solas al mergear
-el Pull Request que las enlaza con `Closes #N`.
+Las issues de GitHub, que viven fuera del repositorio. **Las comprueba
+`verificar_issues.py`**, que se agrego el 23 de agosto.
+
+Hasta entonces este archivo decia que las issues "se cierran solas al mergear el
+Pull Request que las enlaza con `Closes #N`". Es lo que deberia pasar y no lo que
+pasaba: `docs/plantillas/como-llenar-el-pr.md` ya advertia que escribir "Cierra
+H10.1" en vez de `Closes #23` deja la issue abierta y **el tablero mintiendo**.
+La advertencia estaba escrita y ninguna maquina la comprobaba, que es el mismo
+defecto que este archivo existe para corregir en la matriz.
 
 Tampoco comprueba que el trabajo este bien hecho. Comprueba que los documentos
 digan lo mismo.

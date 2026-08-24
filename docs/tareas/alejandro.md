@@ -6,6 +6,10 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
@@ -136,11 +140,11 @@
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
 - [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
-  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2**
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
   - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
     publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
     espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite
-    Municipal de H9.2 eso obliga a llevar la maquina.
+    Municipal de H9.2a eso obliga a llevar la maquina.
   - Es barata porque **H6.6 la dejo posible sin querer**: la degradacion al
     respaldo estatico hace que `npm run build` produzca algo que funciona solo,
     sin API ni base. Ver D-23.

@@ -6,6 +6,10 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
 
@@ -82,7 +86,7 @@
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 2.0
 
 - [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
-  - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2**
+  - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2a**
 
 
 ## Sprint 4 (semanas 10-11) — 32.0 h

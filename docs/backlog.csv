@@ -1008,7 +1008,7 @@ Es posible sin backend por la degradacion que H6.6 dejo puesta: cuando la API no
 responde, cliente.js cae al respaldo y lo declara. `npm run build` produce una
 carpeta que funciona sola. Ver D-23.
 
-Para que sirve: da una URL viva para la sesion de H9.2 con el Comite Municipal de
+Para que sirve: da una URL viva para la sesion de H9.2a con el Comite Municipal de
 Emergencias, y para la defensa del proyecto. Hoy la unica forma de mostrar el
 visor es levantarlo en una maquina.
 

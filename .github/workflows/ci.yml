@@ -24,6 +24,9 @@ jobs:
   gestion:
     name: Backlog y documentacion
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -52,6 +55,18 @@ jobs:
         run: pip install pydantic==2.10.4
       - name: Las cifras de la documentacion siguen siendo ciertas
         run: python docs/herramientas/verificar_documentacion.py
+      # El tablero de GitHub era el unico lugar que declara el avance sin una
+      # maquina que lo cruzara contra el repositorio. `como-llenar-el-pr.md` ya
+      # advertia el modo de fallo -"Cierra H10.1" no cierra nada, GitHub solo
+      # entiende "Closes #N"- y la advertencia no bastaba.
+      #
+      # `gh` viene instalado en el runner y GITHUB_TOKEN le alcanza para leer.
+      - name: El tablero de issues dice lo mismo que el repositorio
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --state all --limit 300 --json number,title,state > /tmp/issues.json
+          python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --comandos
 
   calidad:
     name: Linter y formato
