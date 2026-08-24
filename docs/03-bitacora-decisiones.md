@@ -2535,7 +2535,7 @@ se acordo un dia**, no una lista viva. Nada dice bajo que condicion volveria, y
 la intencion del equipo es que vuelva si sobra tiempo.
 
 **El estado real al decidir esto:** semana 6 de 12, **24 de 87 historias
-cerradas, el 29 % de los puntos**, `main` 33 commits detras de `dev`, y la cadena
+cerradas, el 29 % de los puntos**, `main` 42 commits detras de `dev`, y la cadena
 de despliegue detenida detras de H1.2 y H6.0.
 
 ### Decision
@@ -2552,8 +2552,11 @@ de despliegue detenida detras de H1.2 y H6.0.
 Se evalua en la **retrospectiva del Sprint 3**, al cerrar la semana 9. Reabre
 solo si las **tres** se cumplen:
 
-1. **H1.2 cerrada**, y con ella la cadena de datos que hoy detiene 14 historias.
-2. **H6.0 cerrada**, y con ella la cadena de despliegue.
+1. **H1.2 cerrada**, y con ella la cadena de datos que hoy detiene **17 historias
+   abiertas, 157,0 h**, contadas por cierre transitivo el 24 de agosto. De esas,
+   **9 son de Alejandro y suman 101,8 h**: una historia de 4,7 h de Cesar
+   sostiene todo el modelado y el analisis de fallos.
+2. **H6.0 cerrada**, y con ella la cadena de despliegue: 6 historias, 37,7 h.
 3. **Ninguna historia del Sprint 3 arrastrada** al Sprint 4.
 
 Si las tres se cumplen, se reabre **una** linea, la que mas aporte a la rubrica,
