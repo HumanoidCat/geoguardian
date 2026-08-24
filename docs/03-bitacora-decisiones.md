@@ -19,7 +19,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-05 | Kubernetes con manifiestos y k3d local | Aceptada | 2026-08-03 |
 | D-06 | Contratos con `Protocol`, no con clases abstractas | Aceptada | 2026-08-03 |
 | D-07 | La ausencia de dato se representa como `None`, nunca como `0` | Aceptada | 2026-08-03 |
-| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 | 2026-08-03 |
+| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 · umbral de incendio sustituido por D-25 | 2026-08-03 |
 | D-09 | Tres algoritmos comparados, con SVM descartado | Aceptada | 2026-08-03 |
 | D-10 | F1-macro como metrica principal de contraste | Aceptada | 2026-08-03 |
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
@@ -36,6 +36,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
 | D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
 | D-24 | El modelo de estimacion es una constante: se empieza a medir antes de corregirlo | Aceptada | 2026-08-20 |
+| D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
 
 ---
 
@@ -412,9 +413,28 @@ salga nulo. Las dos comprobaciones pasan.
 
 ## D-08 · Umbrales de riesgo tomados de estandares publicados
 
-**Estado.** Aceptada · **revisada el 2026-08-18**, ver la nota
+**Estado.** Aceptada · **revisada el 2026-08-18 y el 2026-08-20**, ver las notas
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, Lead PM
+
+> **Nota de revision del 2026-08-20.** El umbral de incendio de esta decision
+> **queda sustituido por D-25**, y el riesgo R16 que ella misma declaro como
+> "pendiente y prioritaria" **queda cerrado con medicion**.
+>
+> Esta decision fijo el corte de incendio en el percentil 90 del conteo de focos
+> por ventana de 7 dias, declarandolo criterio del equipo por no haber estandar
+> equivalente. Cesar lo midio el 20 de agosto: **P90 = 0,0 en los ocho
+> distritos**, porque entre el 97 % y el 99,9 % de las ventanas no tienen ningun
+> foco. La condicion intermedia `1 <= n <= 0` esta vacia y la regla nunca produjo
+> tres clases.
+>
+> Lo que confirma esta decision es su propio principio de fondo: los umbrales que
+> vienen de un estandar publicado —SPI-3 de McKee, percentiles extremos del
+> ETCCDI— aguantaron la medicion. **El unico que se cayo es el unico que puso el
+> equipo**, y se cayo porque nadie comprobo que sus tres clases fueran
+> alcanzables sobre el dato real.
+>
+> Ver **SC-05** y **D-25**.
 
 > **Nota de revision del 2026-08-18.** El principio se mantiene: los umbrales no
 > los inventa el equipo. Lo que estaba mal era **el nombre de uno de ellos**.
@@ -1932,7 +1952,9 @@ Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
 | API arriba, sin estimacion para hoy | `origen: api`, **8 distritos sin estimacion**, no pantalla vacia |
 | Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
 
-31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
+31 comprobaciones en `python docs/herramientas/verificar_h66.py` al escribirse
+esta decision. Son **35** desde SC-05, que agrego cuatro: la monotonia del
+respaldo estatico por evento y la ausencia de nivel medio en incendio.
 
 ---
 
@@ -2011,16 +2033,39 @@ de arriba y en `backlog.csv`.
 
 **2. Se exige desde el 2026-08-20, no hacia atras.**
 
-Con una excepcion acotada a ese mismo dia. Las historias cerradas el 20 de agosto
-terminaron **antes de que la regla existiera**, asi que nadie pudo decir una
-estimacion previa. Escribirla hoy, sabiendo lo que costo, seria el anclaje que
-esta misma decision descarta, con el agravante de que el numero se veria igual
-que uno medido. En esos casos se escribe `estimada n/d`, y el verificador deja de
-aceptarlo a partir del 21.
+Cuando no hubo estimacion previa se escribe `n/d` **con el motivo entre
+parentesis**, en la misma linea:
 
-El unico caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
-sin estimacion previa. Es la primera medicion del proyecto y es incompleta a
-proposito.
+    - horas: estimada n/d (no se pidio al arrancar) . real 2.5
+
+Escribir un numero hoy, sabiendo lo que costo, seria el anclaje que esta misma
+decision descarta, con el agravante de que se veria igual que uno medido. Y un
+`n/d` sin motivo no se distingue de un olvido.
+
+> **Correccion del 2026-08-23.** La primera version aceptaba `n/d` **solo en las
+> historias cerradas el 2026-08-20**, razonando que eran las unicas terminadas
+> antes de que la regla existiera.
+>
+> **El razonamiento estaba mal, y lo encontro Luna al cerrar H9.1:** esa historia
+> se cerro despues del corte y tampoco tenia estimacion previa, porque nadie se
+> la pidio al arrancar.
+>
+> Atar la excepcion a una **fecha** suponia que la unica causa posible de no
+> tener estimacion era el momento del corte. La causa real es otra —si alguien la
+> pidio o no— y esa el verificador no puede conocerla. Lo unico que puede exigir
+> es que quien escriba `n/d` diga por que.
+>
+> El diseno viejo obligaba a elegir entre inventar un numero o dejar el CI rojo.
+> **Un numero inventado contamina justo la serie que esta decision quiere
+> construir**, asi que era peor que el hueco que venia a tapar.
+>
+> Es el mismo patron que I-04 y que I-08: una regla con forma valida y contenido
+> equivocado, que ninguna comprobacion automatica detecta porque la forma esta
+> bien. La encontro quien la uso, no quien la escribio.
+
+El primer caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
+sin estimacion previa porque la regla se creo el mismo dia del cierre. Es la
+primera medicion del proyecto y es incompleta a proposito.
 
 **3. No se cambia ninguna estimacion todavia.** El backlog, el roadmap y las
 tablas de capacidad se quedan como estan hasta la retrospectiva del Sprint 2.
@@ -2105,6 +2150,171 @@ Las tres preguntas que esa revision tiene que poder contestar:
    tiene el suyo?
 2. Las historias con ronda de revision, ¿se pasan de forma sistematica?
 3. La primera historia de una epica, ¿se pasa mas que las siguientes?
+
+---
+
+## D-25 · El incendio es binario y se acota a los tres distritos con senal
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, desde H3.0
+**Lo detecta.** Cesar, al medir R16
+**Sustituye.** El umbral de incendio de **D-08**. Cierra el riesgo **R16**.
+
+### Contexto
+
+R16 estaba abierto desde el 3 de agosto, declarado en D-08 como *"pendiente y
+prioritaria"*: si el canton no tenia suficientes focos historicos, el evento de
+incendio no era modelable. Era el riesgo mas viejo del proyecto y el roadmap
+condicionaba a el 60 h de esfuerzo.
+
+Cesar lo midio. **242 focos en 24 anios**, contados con las geometrias del SNIT,
+punto en poligono, sobre el archivo historico de FIRMS por pais.
+
+Tres hechos, y cada uno decide una cosa distinta.
+
+**Primero: el umbral no producia tres clases.** El P90 del conteo por ventana
+vale **0,0 en los ocho distritos**, porque entre el 97 % y el 99,9 % de las
+ventanas estan vacias. Se corrige en **SC-05** y no se repite aqui.
+
+**Segundo: dos distritos no tienen nada que modelar.**
+
+| Distrito | focos en 24 anios |
+|---|---|
+| 50804 Santa Rosa | 83 |
+| 50805 Libano | 65 |
+| 50806 Tierras Morenas | 65 |
+| 50801 Tilaran | 15 |
+| 50802 Quebrada Grande | 7 |
+| 50803 Tronadora | 5 |
+| **50807 Arenal** | **1** |
+| **50808 Cabeceras** | **1** |
+
+Tres distritos concentran 213 de los 242, el **88 %**. Arenal y Cabeceras tienen
+**un foco en veinticuatro anios**.
+
+**Tercero: la serie no es homogenea.**
+
+    2001-2011, solo MODIS:    69 focos / 11 anios =  6,3 por anio
+    2012-2024, MODIS+VIIRS:  173 focos / 13 anios = 13,3 por anio
+                                             salto de 2,1x
+
+VIIRS entra en 2012 con 375 m de resolucion contra los 1.000 m de MODIS. **El
+salto es del sensor, no del clima.**
+
+Y hay algo aprovechable: **cero focos entre junio y octubre**, cinco meses
+seguidos, con el 86 % concentrado entre enero y abril.
+
+    01:10  02:11  03:55  04:131  05:34  06:0  07:0  08:0  09:0  10:0  11:1  12:0
+
+### Decision
+
+**1. El alcance del evento incendio se limita a Santa Rosa, Libano y Tierras
+Morenas.** Los otros cinco distritos se reportan como **«sin datos
+suficientes»**, no con un numero.
+
+**2. No se restringe la serie a la era VIIRS.** Se conservan los 24 anios, con
+tres condiciones:
+
+- La **era o el sensor queda como columna** en la carga de H1.2. El dato de
+  heterogeneidad se guarda, no se descarta.
+- **Ninguna variable de tendencia temporal entra al modelo de incendio.** Ni
+  anio, ni indice de tiempo.
+- **Toda afirmacion sobre tendencia se restringe a 2012-2024**, y se dice.
+
+**3. Se declara por adelantado que la comparacion de algoritmos puede no ser
+concluyente para incendio.** Con 33 a 38 ventanas positivas por distrito, H3.3 y
+H3.4 miden ruido de particion antes que calidad de algoritmo. La linea base
+climatologica de H3.1 puede ser el techo real del evento.
+
+**4. El evento de incendio NO sale del alcance.** El roadmap contemplaba
+retirarlo y liberar unas 60 h. No se hace: el evento es parte del charter, y con
+el alcance acotado sigue siendo estimable y verificable.
+
+### Justificacion
+
+**Por que se acotan los distritos y no se rellenan.** Un modelo entrenado sobre
+un evento en veinticuatro anios no se puede validar: cualquier particion deja
+cero o un caso positivo del otro lado. Reportar «sin datos suficientes» es la
+misma distincion que **D-22** —un cero no es un hueco— aplicada al otro extremo,
+y aguas abajo ya funciona: el semaforo de H7.1 y las coropletas de H5.3
+distinguen «sin estimacion» de «riesgo bajo».
+
+**Por que no se restringe a VIIRS, aunque el diagnostico sea correcto.** Cuesta
+la mitad de los positivos:
+
+| Distrito | positivas 2001-2024 | positivas solo VIIRS |
+|---|---|---|
+| 50804 | 38 | **20** |
+| 50805 | 33 | **18** |
+| 50806 | 34 | **18** |
+
+Con veinte ventanas positivas no se entrena y sobre todo **no se valida**:
+partirlas deja una prueba de seis o siete casos, donde un acierto mueve la
+metrica quince puntos. Pagar homogeneidad con la mitad de los positivos, estando
+ya cortos, empeora el problema que pretende arreglar.
+
+El tratamiento elegido es el de **D-17** con la precipitacion: no se tira el dato
+incomodo, se declara de donde vino y se acota que se puede afirmar con el.
+
+**Por que se declara la limitacion antes de medir.** Es lo que impide elegir
+despues el modelo que salio mejor por azar y escribirle una justificacion. Mismo
+criterio que los criterios de aceptacion de H3.0, escritos antes de ver el dato.
+
+### Alternativas descartadas
+
+**Sacar el incendio del alcance.** Es lo que D-08 previo y lo que el roadmap
+tenia presupuestado, con 60 h de ahorro. Se descarta porque el evento sigue
+siendo estimable en los tres distritos que concentran el 88 % de los focos, y
+porque la estacionalidad da una linea base solida. Retirarlo dejaria el proyecto
+con dos de los tres eventos del charter por un problema que resulto acotable.
+
+**Ampliar la ventana a 90 dias.** Es la unica agregacion que llega al 10 % de
+ventanas positivas. Se descarta porque contradice la definicion de 7 dias del
+contrato y porque una alerta de incendio a 90 dias no sirve para operar.
+
+**Agregar por canton en vez de por distrito.** Sube a 7,7 %, sigue sin llegar, y
+pierde la resolucion espacial que es el objetivo del proyecto.
+
+**Rellenar los cinco distritos sin senal con el valor del canton.** Seria inventar
+una estimacion local a partir de datos que no son locales: el mismo defecto que
+I-05 registro para POWER, cometido a proposito.
+
+### Consecuencias
+
+**Lo que mejora.** El evento incendio pasa de tener un umbral imposible de
+cumplir a tener uno medido, con alcance declarado y limitaciones escritas de
+antemano.
+
+**Lo que cuesta.** Cinco de ocho distritos sin estimacion de incendio, visible en
+el visor. Es informacion, no un hueco: dice que ahi no hubo con que estimar.
+
+**Lo que queda abierto.** Si la comparacion de algoritmos de H3.3 y H3.4 resulta
+concluyente para incendio. Se sabra al medirla, y esta decision deja escrito que
+puede no serlo.
+
+**H9.3 cambia de contenido.** *"Someter los umbrales de incendio"* a los actores
+locales sigue en pie, pero el umbral que se somete es otro y ahora lleva una
+medicion detras en lugar de un criterio del equipo sin respaldo.
+
+### Medicion
+
+`python -m contratos.verificar` comprueba que el simulado respete el vocabulario:
+incendio nunca emite MEDIO, si alcanza BAJO y ALTO, y los otros dos eventos
+conservan sus tres niveles. **47 comprobaciones**, tres nuevas.
+
+El informe de Cesar queda como fuente en la evidencia de H1.2 y de H3.0.
+
+**Criterio de revision.** Se vuelve sobre esta decision cuando H3.1 entregue la
+linea base climatologica. Las dos preguntas que esa entrega tiene que contestar:
+
+1. ¿Algun modelo de H3.3 supera a la linea base estacional en los tres distritos
+   con senal, con una diferencia mayor que su intervalo de confianza?
+2. Con la era como covariable, ¿queda algun efecto atribuible al clima y no al
+   cambio de sensor?
+
+Si la respuesta a la primera es no, el resultado del evento incendio **es la
+linea base**, y se reporta como hallazgo y no como fracaso.
 
 ---
 

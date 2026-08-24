@@ -17,6 +17,10 @@
 > `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
 > no se repiten aqui.
 >
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
@@ -75,6 +79,7 @@
 
 - [x] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020 (2026-08-20)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
+  - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 2.0
 
 - [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
   - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2**

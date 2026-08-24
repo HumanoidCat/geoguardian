@@ -322,6 +322,26 @@ body {
   color: var(--texto-suave);
 }
 
+/* Fecha de la estimacion. Siempre visible: un mapa de riesgo sin fecha afirma
+   "hoy" sin haberlo comprobado. */
+.leyenda-fecha {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cuando la estimacion no es de hoy, deja de ser un dato al margen y pasa a ser
+   una advertencia. Ambar, como el aviso de respaldo: es sobre la procedencia del
+   dato, no sobre el clima. */
+.leyenda-fecha-vieja {
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  padding: var(--espacio-2);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  color: var(--texto);
+}
+
 .leyenda-lista {
   list-style: none;
   margin: 0;
@@ -695,6 +715,173 @@ body {
   font-size: var(--texto-xs);
   color: var(--texto-tenue);
   line-height: 1.35;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Semaforo de riesgo
+ * -------------------------------------------------------------------------- */
+
+.tablero {
+  margin: 0 var(--espacio-6) var(--espacio-6);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+  padding: var(--espacio-4);
+}
+
+.tablero-titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: 600;
+}
+
+.tablero-subtitulo {
+  margin: var(--espacio-1) 0 var(--espacio-4);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* Cuando las tres columnas no son de la misma fecha, la tabla ya no compara lo
+   que aparenta comparar. Ambar y no rojo, como el resto de los avisos sobre la
+   procedencia del dato: el rojo esta reservado para riesgo alto. */
+.tablero-fechas-dispares {
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  padding: var(--espacio-1) var(--espacio-2);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+/* En pantallas angostas la tabla se desplaza en vez de comprimir las celdas.
+   Una celda comprimida esconde la probabilidad, que es justo lo que distingue
+   dos "altos" que no son iguales. */
+.tablero-desplazable {
+  overflow-x: auto;
+}
+
+.tabla-semaforo {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+}
+
+.tabla-semaforo th,
+.tabla-semaforo td {
+  padding: var(--espacio-2);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabla-semaforo thead th {
+  border-bottom: 2px solid var(--borde-fuerte);
+  vertical-align: bottom;
+}
+
+.tabla-semaforo tbody tr {
+  border-bottom: 1px solid var(--borde);
+}
+
+.fila-seleccionada {
+  background: var(--superficie-alterna);
+}
+
+.columna-distrito {
+  white-space: nowrap;
+}
+
+.nombre-distrito {
+  display: block;
+  font-weight: 600;
+}
+
+.codigo-distrito {
+  display: block;
+  font-size: var(--texto-xs);
+  color: var(--texto-tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.columna-evento {
+  display: block;
+  font-weight: 600;
+}
+
+/* El umbral en la cabecera, no en un pie de pagina. Quien lee la tabla tiene que
+   poder saber que significa "alto" sin buscar en otro lado. */
+.columna-umbral {
+  display: block;
+  font-size: var(--texto-xs);
+  font-weight: 400;
+  color: var(--texto-tenue);
+  cursor: help;
+}
+
+.celda-semaforo {
+  min-width: 7rem;
+}
+
+.marca-semaforo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--espacio-2);
+  border: 1px solid var(--distrito-borde);
+  border-radius: var(--radio);
+  font-family: inherit;
+  font-size: var(--texto-xs);
+  text-align: left;
+}
+
+button.marca-semaforo {
+  cursor: pointer;
+}
+
+button.marca-semaforo:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+}
+
+.marca-nivel {
+  font-weight: 600;
+}
+
+.marca-probabilidad {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.marca-riesgo-bajo {
+  background: var(--riesgo-bajo);
+  color: var(--texto-sobre-bajo);
+}
+
+.marca-riesgo-medio {
+  background: var(--riesgo-medio);
+  color: var(--texto-sobre-medio);
+}
+
+.marca-riesgo-alto {
+  background: var(--riesgo-alto);
+  color: var(--texto-sobre-alto);
+}
+
+/* Sin estimacion: trama y borde punteado, igual que en el mapa. La coherencia
+   entre las dos vistas es lo que hace que la trama signifique siempre lo mismo. */
+.marca-semaforo.trama-sin-dato {
+  border-style: dashed;
+  border-color: var(--sin-dato-borde);
+}
+
+.tablero-aviso {
+  margin: var(--espacio-3) 0 0;
+  padding-top: var(--espacio-2);
+  border-top: 1px solid var(--borde);
+  color: var(--texto-tenue);
+  font-size: var(--texto-xs);
+  font-style: italic;
 }
 
 /* Los controles de Leaflet tienen que quedar sobre el mapa pero debajo del
