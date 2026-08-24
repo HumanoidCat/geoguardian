@@ -478,20 +478,63 @@ limitación más importante del trabajo y está medida, no supuesta.
 
 Concentra tres debilidades a la vez: **no tiene estándar internacional** para su
 umbral, **no tiene registro histórico** contra el cual validarse (V-E), y su
-volumen de datos de entrenamiento no está confirmado.
+volumen de datos de entrenamiento es el más escaso de los tres.
 
-### C. Dos deudas de verificación bibliográfica
+**Ya no está supuesto: está medido.** El riesgo R16 se cerró el 20 de agosto con
+**242 focos de FIRMS en 24 años** dentro del cantón. De ahí salieron tres hechos:
 
-Declaradas en lugar de resueltas por conveniencia:
+- El umbral por percentiles del conteo **no producía tres clases sino dos**. El
+  P90 vale 0,0 en los ocho distritos, porque entre el 97 % y el 99,9 % de las
+  ventanas de 7 días están vacías. Se corrigió a un objetivo binario, D-25.
+- **Cinco de los ocho distritos no tienen datos suficientes**, y dos de ellos
+  registran **un solo foco en veinticuatro años**. El alcance del evento se acotó
+  a Santa Rosa, Líbano y Tierras Morenas, que concentran el 88 %.
+- Con 33 a 38 ventanas positivas por distrito, **la comparación de algoritmos
+  puede no ser concluyente para este evento**. Se declaró antes de medir ningún
+  AUC, para que la elección de modelo no se justifique a posteriori.
 
-1. Si la guía operativa WMO-No. 1090 recomienda explícitamente el ajuste por mes
-   calendario. Es lo que hacen las implementaciones de referencia, pero eso es un
-   argumento distinto de una cita.
-2. Cuál es la fuente de la variante de centro de masa para el tratamiento de los
-   ceros en el SPI.
+De los tres umbrales del trabajo, los dos tomados de estándares publicados
+resistieron la verificación. **El único que fijó el equipo, no.**
 
-**Ninguna de las dos afecta a los resultados**: la decisión de V-C se sostiene
-sobre la medición, no sobre la cita.
+### C. Las dos deudas de verificación bibliográfica, saldadas
+
+Se declararon el 19 de agosto en lugar de resolverse por conveniencia, y se
+pagaron el 22 leyendo WMO-No. 1090 completo. El resultado no fue el esperado en
+ninguno de los dos casos.
+
+**1. El ajuste por mes calendario sí tiene respaldo, y está en otra sección.** La
+5.1.1 describe el SPI de 1 mes como la comparación del total de noviembre de un
+año contra los totales de noviembre de todos los años del registro; la 5.1.2 dice
+lo equivalente para el trimestre y la 5.1.5 para los doce meses. Es
+**descriptivo, no imperativo** —la guía nunca escribe «ajústese por mes
+calendario»— pero define el conjunto de comparación como el mismo mes a través de
+los años, que es el fundamento de D-19. La cita se restituye acotada a eso.
+
+Lo buscábamos en la sección 6, que es donde no está.
+
+**2. La fuente del tratamiento de ceros no era la que se creía, y había una
+atribución falsa que nadie había detectado.** El código atribuía a WMO-No. 1090
+la distribución mixta `H(x) = q + (1−q)·G(x)`. **La guía no contiene ninguna
+fórmula**: su sección 6 remite a McKee et al. (1993, 1995) y a Edwards y McKee
+(1997) para el procedimiento de cálculo.
+
+La atribución correcta es Stagge et al. (2015). Y la verificación se declara
+parcial: **el artículo está tras muro de pago y no se leyó**; lo que se leyó es la
+documentación de `fitSCI` del paquete R `SCI`, firmada por dos de sus cinco
+autores. Además, el `q/2` que usa esta implementación **no es la fórmula de
+Stagge sino su límite** cuando el tamaño de muestra crece: la forma exacta es
+`(n0 + 1) / (2(n + 1))`. Con 35 años la diferencia es despreciable, y se documenta
+como simplificación y no como equivalencia.
+
+**Lo que esto deja como aprendizaje metodológico.** El 19 de agosto se retiró una
+atribución a esa fuente por no poder confirmarla, y **se dejó en pie otra a la
+misma fuente, en el mismo archivo, ochenta líneas más abajo, sin revisarla**.
+Retirar una cita dudosa no sirve si no se revisan sus vecinas, y una revisión que
+no declara su alcance no permite saber qué quedó sin mirar.
+
+**Ninguna de las dos afectaba a los resultados**: la decisión de V-C se sostiene
+sobre la medición, no sobre la cita. Lo que sí habría llegado al documento es una
+atribución falsa.
 
 ### D. Las mediciones de V-B y V-C son sobre series sintéticas
 

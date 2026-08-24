@@ -1519,6 +1519,29 @@ por Luna, y se retiro de la solicitud. La decision no depende de ella: se sostie
 sobre la medicion. Antes de que la afirmacion pase al documento IEEE hay que
 verificarla contra el texto original, que son 16 paginas.
 
+> **Deuda pagada el 2026-08-22.** Luna leyo las 16 paginas. **La atribucion es
+> correcta y estaba en otra seccion**: la 5.1.1 describe el SPI de 1 mes como la
+> comparacion del total de noviembre de un anio contra los totales de noviembre de
+> todos los anios del registro, la 5.1.2 dice lo equivalente para el trimestre y la
+> 5.1.5 para los doce meses. La buscabamos en la seccion 6, que es donde no esta.
+>
+> Se restituye **acotada**: la guia es descriptiva, no imperativa. Nunca escribe
+> "ajustese por mes calendario", pero define el conjunto de comparacion como el
+> mismo mes a traves de los anios, que es el fundamento de esta decision.
+>
+> **Y la lectura encontro algo que nadie buscaba.** El mismo archivo atribuia a
+> esa guia la distribucion mixta del tratamiento de ceros, `H(x) = q + (1-q)G(x)`,
+> y **es falso: la guia no contiene ninguna formula**. La atribucion correcta es
+> Stagge et al. (2015), con verificacion parcial declarada.
+>
+> El 19 de agosto se retiro una cita a esta fuente por no poder confirmarla y **se
+> dejo en pie otra a la misma fuente, en el mismo archivo, ochenta lineas mas
+> abajo, sin revisarla**. Retirar una cita dudosa no sirve si no se revisan sus
+> vecinas, y una revision que no declara su alcance no permite saber que quedo sin
+> mirar. Es el patron de **I-08** aplicado a la bibliografia.
+>
+> Ver el PR #151 y la seccion VIII-C del documento IEEE.
+
 ### Medicion
 
 Se comprueba con tres cosas.

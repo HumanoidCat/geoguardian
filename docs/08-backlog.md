@@ -1,6 +1,6 @@
 # Backlog completo
 
-**85 historias · 423 puntos · 620.3 horas** (incluye 20 % de revision)
+**86 historias · 423 puntos · 620.3 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -153,10 +153,10 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.2** Pruebas automatizadas del backend, cobertura de dominio | luna | 5 | 4.8 | QA | H6.2 | — |
 | **H2.2** Analisis espectral de la lluvia e interpretacion fisica | luna | 5 | 7.8 | Senales | H2.1 | — |
 | **H2.4** Anomalias respecto a la normal climatologica 1991-2020 | luna | 3 | 2.9 | Senales | H2.1 | H7.4 |
-| **H9.1** Preparar SUS, guion de entrevista y dosier de 3 casos | luna | 5 | 4.8 | OE4 | - | H9.2 |
-| **H11.5** Publicar el visor como sitio estatico con datos declarados simulados | alejandro | 3 | 4.7 | CICD | H5.4, H6.6 | H9.2 |
+| **H9.1** Preparar SUS, guion de entrevista y dosier de 3 casos | luna | 5 | 4.8 | OE4 | - | H9.2a |
+| **H11.5** Publicar el visor como sitio estatico con datos declarados simulados | alejandro | 3 | 4.7 | CICD | H5.4, H6.6 | H9.2a |
 
-## Sprint 4 · semanas 10-11 · 20 historias · 155.4 h
+## Sprint 4 · semanas 10-11 · 21 historias · 155.4 h
 
 **Foco.** Documento IEEE, validacion externa y cierre  
 **Hito.** Segundo avance (semana 10) y feria (semana 12)
@@ -180,6 +180,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H8.3** Cache en memoria con politica de expiracion y consumo medido | cesar | 5 | 7.8 | SO-1 | H6.1 | — |
 | **H8.4** Estrategia de almacenamiento de rasters con proyeccion de crecimiento | cesar | 3 | 2.9 | SO-1 | H1.6 | — |
 | **H12.4** Diagnostico guiado a partir de la bitacora de incidencias | luna | 5 | 7.8 | Troubleshoot | H12.1 | H12.5 |
-| **H9.2** Sesion con 3 a 5 participantes y calculo del puntaje SUS | luna | 5 | 13.2 | OE4 | H9.1 | H9.3, H9.4 |
-| **H9.3** Someter los umbrales de incendio a criterio de los participantes | luna | 3 | 7.9 | OE4 | H9.2, H1.2 | — |
-| **H9.4** Incorporar un cambio derivado de la retroalimentacion | luna | 2 | 3.1 | OE4 | H9.2 | — |
+| **H9.2a** Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS | luna | 3 | 7.9 | OE4 | H9.1 | H9.2b |
+| **H9.2b** Sesion de contraste: la estimacion frente a lo que la gente vivio | luna | 2 | 5.3 | OE4 | H9.2a, H3.0 | H9.3, H9.4 |
+| **H9.3** Someter los umbrales de incendio a criterio de los participantes | luna | 3 | 7.9 | OE4 | H9.2b, H1.2 | — |
+| **H9.4** Incorporar un cambio derivado de la retroalimentacion | luna | 2 | 3.1 | OE4 | H9.2b | — |

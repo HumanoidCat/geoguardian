@@ -77,7 +77,7 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
 | Integración continua | Cinco trabajos: contratos, backlog y documentación, linter, pruebas y frontend |
-| Backlog | 85 historias, 423 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
+| Backlog | 86 historias, 423 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
 
 ## Documentación
