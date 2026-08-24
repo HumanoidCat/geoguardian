@@ -19,14 +19,14 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-05 | Kubernetes con manifiestos y k3d local | Aceptada | 2026-08-03 |
 | D-06 | Contratos con `Protocol`, no con clases abstractas | Aceptada | 2026-08-03 |
 | D-07 | La ausencia de dato se representa como `None`, nunca como `0` | Aceptada | 2026-08-03 |
-| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 | 2026-08-03 |
+| D-08 | Umbrales de riesgo tomados de estandares publicados | Aceptada · revisada por D-19 · umbral de incendio sustituido por D-25 | 2026-08-03 |
 | D-09 | Tres algoritmos comparados, con SVM descartado | Aceptada | 2026-08-03 |
 | D-10 | F1-macro como metrica principal de contraste | Aceptada | 2026-08-03 |
 | D-11 | `docs/evidencias/` es de escritura libre para el equipo | Aceptada | 2026-08-05 |
 | D-12 | Validacion externa con SUS, entrevista y caso retrospectivo | Aceptada | 2026-08-03 |
 | D-13 | El SNIT es la fuente unica del vocabulario territorial | Aceptada | 2026-08-11 |
 | D-14 | El frontend consume los simulados exportados a JSON estatico | Aceptada · revisada por D-23 | 2026-08-12 |
-| D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada | 2026-08-16 |
+| D-15 | Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto | Aceptada · revisada por D-26 | 2026-08-16 |
 | D-16 | La propiedad de una carpeta sigue al trabajo asignado | Aceptada | 2026-08-16 |
 | D-17 | La precipitacion no se filtra: los indices se calculan sobre la serie cruda | Aceptada | 2026-08-18 |
 | D-18 | El nombre de un poblado no identifica a un distrito | Aceptada | 2026-08-18 |
@@ -35,6 +35,10 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-21 | `probabilidad` es P(nivel = alto), no la confianza del modelo | Aceptada | 2026-08-20 |
 | D-22 | H1.4 se reduce: no hay faltantes que imputar en las series climaticas | Aceptada | 2026-08-20 |
 | D-23 | El visor negocia su origen una sola vez y degrada al respaldo declarandolo | Aceptada | 2026-08-20 |
+| D-24 | El modelo de estimacion es una constante: se empieza a medir antes de corregirlo | Aceptada | 2026-08-20 |
+| D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
+| D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
+| D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
 
 ---
 
@@ -411,9 +415,28 @@ salga nulo. Las dos comprobaciones pasan.
 
 ## D-08 · Umbrales de riesgo tomados de estandares publicados
 
-**Estado.** Aceptada · **revisada el 2026-08-18**, ver la nota
+**Estado.** Aceptada · **revisada el 2026-08-18 y el 2026-08-20**, ver las notas
 **Fecha.** 2026-08-03 (`1fd614b`)
 **Decide.** Alejandro, Lead PM
+
+> **Nota de revision del 2026-08-20.** El umbral de incendio de esta decision
+> **queda sustituido por D-25**, y el riesgo R16 que ella misma declaro como
+> "pendiente y prioritaria" **queda cerrado con medicion**.
+>
+> Esta decision fijo el corte de incendio en el percentil 90 del conteo de focos
+> por ventana de 7 dias, declarandolo criterio del equipo por no haber estandar
+> equivalente. Cesar lo midio el 20 de agosto: **P90 = 0,0 en los ocho
+> distritos**, porque entre el 97 % y el 99,9 % de las ventanas no tienen ningun
+> foco. La condicion intermedia `1 <= n <= 0` esta vacia y la regla nunca produjo
+> tres clases.
+>
+> Lo que confirma esta decision es su propio principio de fondo: los umbrales que
+> vienen de un estandar publicado —SPI-3 de McKee, percentiles extremos del
+> ETCCDI— aguantaron la medicion. **El unico que se cayo es el unico que puso el
+> equipo**, y se cayo porque nadie comprobo que sus tres clases fueran
+> alcanzables sobre el dato real.
+>
+> Ver **SC-05** y **D-25**.
 
 > **Nota de revision del 2026-08-18.** El principio se mantiene: los umbrales no
 > los inventa el equipo. Lo que estaba mal era **el nombre de uno de ellos**.
@@ -889,10 +912,27 @@ ocho salen con dato ausente.
 
 ## D-15 · Fuente climatica hibrida: CHIRPS para precipitacion, POWER para el resto
 
-**Estado.** Aceptada · **condicion cumplida y verificada** el 2026-08-18
+**Estado.** Aceptada · **condicion cumplida y verificada** el 2026-08-18 ·
+**revisada por D-26** el 2026-08-23
 **Fecha.** 2026-08-16
 **Decide.** Alejandro, a partir del hallazgo de Cesar en H1.1
 **Revisa parcialmente.** D-01, que declaraba NASA POWER fuente primaria de clima
+
+> **Nota de revision del 2026-08-23.** La eleccion se mantiene, y por las mismas
+> razones. Lo que aparecio al medir la latencia son **dos propiedades de estas
+> fuentes que esta decision no conocia**, y que no cambian la eleccion pero si lo
+> que se puede prometer con ella:
+>
+> **CHIRPS tiene dos productos, no uno.** El final llega en la tercera semana del
+> mes siguiente —de 21 a 51 dias— y el rapido es **"GTS and Mexico only"**, o sea
+> que para Costa Rica se queda sin la correccion por estaciones que es justamente
+> lo que esta decision valoro de CHIRPS.
+>
+> **POWER cambia de modelo a mitad de la serie.** El historico es MERRA-2; los
+> ultimos meses son **GEOS-5.12.4 FP-IT**. Esta decision, e I-05, hablan de
+> MERRA-2 como si fuera toda la serie. Cuanto difieren no esta medido.
+>
+> Ver **D-26** y `docs/14-latencia-de-las-fuentes.md`.
 
 > La decision se tomo condicionada a repetir sobre CHIRPS el mismo test que
 > descarto a POWER. Cesar lo hizo el 18 de agosto y CHIRPS diferencia entre los
@@ -1498,6 +1538,29 @@ por Luna, y se retiro de la solicitud. La decision no depende de ella: se sostie
 sobre la medicion. Antes de que la afirmacion pase al documento IEEE hay que
 verificarla contra el texto original, que son 16 paginas.
 
+> **Deuda pagada el 2026-08-22.** Luna leyo las 16 paginas. **La atribucion es
+> correcta y estaba en otra seccion**: la 5.1.1 describe el SPI de 1 mes como la
+> comparacion del total de noviembre de un anio contra los totales de noviembre de
+> todos los anios del registro, la 5.1.2 dice lo equivalente para el trimestre y la
+> 5.1.5 para los doce meses. La buscabamos en la seccion 6, que es donde no esta.
+>
+> Se restituye **acotada**: la guia es descriptiva, no imperativa. Nunca escribe
+> "ajustese por mes calendario", pero define el conjunto de comparacion como el
+> mismo mes a traves de los anios, que es el fundamento de esta decision.
+>
+> **Y la lectura encontro algo que nadie buscaba.** El mismo archivo atribuia a
+> esa guia la distribucion mixta del tratamiento de ceros, `H(x) = q + (1-q)G(x)`,
+> y **es falso: la guia no contiene ninguna formula**. La atribucion correcta es
+> Stagge et al. (2015), con verificacion parcial declarada.
+>
+> El 19 de agosto se retiro una cita a esta fuente por no poder confirmarla y **se
+> dejo en pie otra a la misma fuente, en el mismo archivo, ochenta lineas mas
+> abajo, sin revisarla**. Retirar una cita dudosa no sirve si no se revisan sus
+> vecinas, y una revision que no declara su alcance no permite saber que quedo sin
+> mirar. Es el patron de **I-08** aplicado a la bibliografia.
+>
+> Ver el PR #151 y la seccion VIII-C del documento IEEE.
+
 ### Medicion
 
 Se comprueba con tres cosas.
@@ -1931,7 +1994,683 @@ Ejecutado el 20 de agosto contra la API de H6.1, cargando el `cliente.js` real:
 | API arriba, sin estimacion para hoy | `origen: api`, **8 distritos sin estimacion**, no pantalla vacia |
 | Cambiar de evento y volver | Los mismos valores. Antes de SC-03, tres respuestas distintas |
 
-31 comprobaciones en `python docs/herramientas/verificar_h66.py`.
+31 comprobaciones en `python docs/herramientas/verificar_h66.py` al escribirse
+esta decision. Son **35** desde SC-05, que agrego cuatro: la monotonia del
+respaldo estatico por evento y la ausencia de nivel medio en incendio.
+
+---
+
+## D-24 · El modelo de estimacion es una constante: se empieza a medir antes de corregirlo
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro
+**Lo detecta.** Avril, al entregar H7.1
+
+### Contexto
+
+Avril reporto H7.1 con tres numeros en vez de uno:
+
+| | Horas |
+|---|---|
+| Backlog | 5.8 |
+| Su estimacion, dicha antes de arrancar | 4.0 |
+| **Real** | **2.0** |
+
+Y planteo que el modelo del proyecto no contempla cuatro cosas que ella observo
+al hacer cinco historias seguidas de frontend.
+
+Fui a ver contra que modelo estaba discutiendo. Es este:
+
+| Historia | Puntos | Horas | h/punto |
+|---|---|---|---|
+| H5.1 | 3 | 2.9 | **0.97** |
+| H5.2 | 5 | 4.8 | **0.96** |
+| H5.3 | 7 | 6.7 | **0.96** |
+| H5.4 | 8 | 12.5 | 1.56 |
+| H7.1 | 6 | 5.8 | **0.97** |
+
+**Cuatro de cinco son puntos x 0.96.** No es una muestra: es el modelo entero.
+Sobre las 82 historias, 423 puntos y 620.3 horas dan 1.47 h/punto de promedio, y
+la dispersion sale de que a distintas epicas se les aplico distinta constante, no
+de que se haya estimado historia por historia.
+
+Ninguna de las cuatro variables que Avril describe esta adentro, **porque no hay
+donde meterlas**: una multiplicacion por una constante no tiene parametros.
+
+Las cuatro, en sus palabras:
+
+1. **Si el sistema de diseno ya existe o hay que crearlo.** H5.1 lo creo y se
+   paso; H5.2, H5.3 y H5.4 lo consumieron y entraron cortas. La primera historia
+   visual de una epica paga una deuda que las demas no vuelven a pagar.
+2. **Si la verificacion es por script o a ojo.** Lo que se comprueba con un
+   comando escala; lo que hay que mirar distrito por distrito no baja con la
+   practica.
+3. **Si hubo ronda de revision.** H5.3 tuvo una y casi duplico el esfuerzo.
+4. **Si la historia decide o solo implementa.** H5.4 tenia la estimacion mas alta
+   —1.56 h/punto, la unica que se sale de la constante— y salio corta, porque el
+   codigo era poco y lo caro fue decidir.
+
+**La tercera es la que importa mas, y no es de frontend.** Las otras tres son de
+su epica. La ronda de revision aplica a todas: H1.5 la tuvo el 20 de agosto,
+H6.6 tuvo dos de Cesar, SC-03 y SC-04 salieron de una. Es lo mas frecuente que
+hace el equipo y no esta en ninguna estimacion. Sobre 620 h planificadas, un 15 %
+son 93 h que el plan no tiene.
+
+**Un caso concreto de trabajo no registrado.** El roadmap estimaba el sistema de
+diseno en 4 h como tarea de Sprint 0. Nunca se convirtio en historia y entro
+dentro de H5.1, estimada en 2.9 h. Explica por que H5.1 se paso sin que nadie
+supiera contra que compararla.
+
+### Decision
+
+**1. Se registran dos numeros al cerrar cada historia**, en
+`docs/tareas/<persona>.md`, debajo de la linea de la historia:
+
+    - horas: estimada 4.0 . real 2.0
+
+`estimada` es lo que la persona dijo **antes de arrancar**, sin mirar el backlog.
+`real` es lo que tardo. Las horas del backlog no se repiten: ya estan en la linea
+de arriba y en `backlog.csv`.
+
+**2. Se exige desde el 2026-08-20, no hacia atras.**
+
+Cuando no hubo estimacion previa se escribe `n/d` **con el motivo entre
+parentesis**, en la misma linea:
+
+    - horas: estimada n/d (no se pidio al arrancar) . real 2.5
+
+Escribir un numero hoy, sabiendo lo que costo, seria el anclaje que esta misma
+decision descarta, con el agravante de que se veria igual que uno medido. Y un
+`n/d` sin motivo no se distingue de un olvido.
+
+> **Correccion del 2026-08-23.** La primera version aceptaba `n/d` **solo en las
+> historias cerradas el 2026-08-20**, razonando que eran las unicas terminadas
+> antes de que la regla existiera.
+>
+> **El razonamiento estaba mal, y lo encontro Luna al cerrar H9.1:** esa historia
+> se cerro despues del corte y tampoco tenia estimacion previa, porque nadie se
+> la pidio al arrancar.
+>
+> Atar la excepcion a una **fecha** suponia que la unica causa posible de no
+> tener estimacion era el momento del corte. La causa real es otra —si alguien la
+> pidio o no— y esa el verificador no puede conocerla. Lo unico que puede exigir
+> es que quien escriba `n/d` diga por que.
+>
+> El diseno viejo obligaba a elegir entre inventar un numero o dejar el CI rojo.
+> **Un numero inventado contamina justo la serie que esta decision quiere
+> construir**, asi que era peor que el hueco que venia a tapar.
+>
+> Es el mismo patron que I-04 y que I-08: una regla con forma valida y contenido
+> equivocado, que ninguna comprobacion automatica detecta porque la forma esta
+> bien. La encontro quien la uso, no quien la escribio.
+
+El primer caso es **H6.6**, de Alejandro: 4.8 h de backlog contra **3 h reales**,
+sin estimacion previa porque la regla se creo el mismo dia del cierre. Es la
+primera medicion del proyecto y es incompleta a proposito.
+
+**3. No se cambia ninguna estimacion todavia.** El backlog, el roadmap y las
+tablas de capacidad se quedan como estan hasta la retrospectiva del Sprint 2.
+
+**4. Lo comprueba `docs/herramientas/verificar_horas.py` en el CI**, que ademas
+imprime la comparacion acumulada.
+
+### Justificacion
+
+**Por que dos numeros y no uno.** Son dos errores distintos. En H7.1 el backlog
+dijo 5.8, Avril dijo 4 y el real fue 2: los dos fallaron, y no por lo mismo. Con
+un solo numero no se puede separar el error del modelo del proyecto del error de
+quien estima, y son dos problemas con dos soluciones.
+
+**Por que no hacia atras.** El argumento es de Avril: estimar hoy H5.3 sabiendo
+que el backlog dice 6.7 h produce un numero cerca de 6.7 h **por construccion**.
+Un dato anclado no mide, confirma. Ella dio direcciones —"mucho mas larga", "mas
+corta"— en lugar de inventar cifras con un decimal, y es la respuesta correcta.
+
+**Por que medir antes de corregir.** Hay una sola historia medida. Cambiar el
+coeficiente con n=1 sustituiria una constante mal fundada por otra constante mal
+fundada, y ademas moveria las tablas de capacidad de las cuatro personas en mitad
+del Sprint 2.
+
+Pero la parte **estructural** no necesita mas datos: que el modelo sea una
+multiplicacion se lee hoy en `backlog.csv`. Por eso esta decision separa las dos
+cosas: registra lo que ya esta probado y difiere lo que todavia no.
+
+**Por que en el archivo de tareas y no en un CSV aparte.** Es donde la persona ya
+esta cuando cierra la historia. Un segundo archivo obligaria a escribir en dos
+lugares y a que coincidieran, que es el defecto de I-07.
+
+### Alternativas descartadas
+
+**Esperar a la retrospectiva del Sprint 2 y decidirlo todo alli.** Es lo que
+parecia razonable, y falla por una razon practica: hoy no existe **ningun campo**
+donde escribir horas reales. Si se pide el dato sin darle lugar, vive en mensajes
+sueltos y se pierde, y la retrospectiva llega sin nada que analizar. Es el mismo
+problema que H1.7 tiene con la evidencia de H1.1, aplicado a la gestion.
+
+**Reestimar el backlog completo con las cuatro variables.** 82 historias
+reestimadas desde cuatro observaciones cualitativas y una medicion. Seria
+sustituir una cifra sin respaldo por otra con mas aspecto de rigor y el mismo
+respaldo.
+
+**Pedir solo las horas reales, sin la estimacion previa.** Mas barato de anotar y
+pierde justo lo que hace util al dato: sin la estimacion previa no se puede saber
+si el error es del modelo o del criterio de quien estima.
+
+**Reconstruir las horas de las historias ya cerradas.** Descartada por el
+anclaje. Ver la justificacion.
+
+### Consecuencias
+
+**Lo que mejora.** A partir de la proxima historia cerrada existe una serie
+comparable. La retrospectiva del Sprint 2 llega con datos en vez de con
+impresiones.
+
+**Lo que cuesta.** Dos numeros por historia y la disciplina de decir la
+estimacion **antes** de arrancar, que es la parte que se olvida.
+
+**Lo que queda abierto.** El coeficiente. Y si las cuatro variables de Avril se
+vuelven parametros del modelo o solo notas para estimar mejor a mano: con los
+datos de hoy no se puede decidir.
+
+**Lo que no cambia.** Ninguna estimacion vigente, ninguna tabla de capacidad y
+ningun compromiso de sprint.
+
+### Medicion
+
+`python docs/herramientas/verificar_horas.py` falla si una historia cerrada desde
+el 2026-08-20 no declara sus horas, e imprime la tabla acumulada con el cociente
+entre lo que el backlog estima y lo que costo.
+
+**Criterio de revision.** Se vuelve sobre esta decision en la retrospectiva del
+Sprint 2, con al menos **ocho historias medidas** repartidas entre las cuatro
+personas. Menos que eso no distingue el modelo de la persona.
+
+Las tres preguntas que esa revision tiene que poder contestar:
+
+1. El cociente backlog/real, ¿es parecido entre las cuatro personas o cada una
+   tiene el suyo?
+2. Las historias con ronda de revision, ¿se pasan de forma sistematica?
+3. La primera historia de una epica, ¿se pasa mas que las siguientes?
+
+---
+
+## D-25 · El incendio es binario y se acota a los tres distritos con senal
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-20
+**Decide.** Alejandro, desde H3.0
+**Lo detecta.** Cesar, al medir R16
+**Sustituye.** El umbral de incendio de **D-08**. Cierra el riesgo **R16**.
+
+### Contexto
+
+R16 estaba abierto desde el 3 de agosto, declarado en D-08 como *"pendiente y
+prioritaria"*: si el canton no tenia suficientes focos historicos, el evento de
+incendio no era modelable. Era el riesgo mas viejo del proyecto y el roadmap
+condicionaba a el 60 h de esfuerzo.
+
+Cesar lo midio. **242 focos en 24 anios**, contados con las geometrias del SNIT,
+punto en poligono, sobre el archivo historico de FIRMS por pais.
+
+Tres hechos, y cada uno decide una cosa distinta.
+
+**Primero: el umbral no producia tres clases.** El P90 del conteo por ventana
+vale **0,0 en los ocho distritos**, porque entre el 97 % y el 99,9 % de las
+ventanas estan vacias. Se corrige en **SC-05** y no se repite aqui.
+
+**Segundo: dos distritos no tienen nada que modelar.**
+
+| Distrito | focos en 24 anios |
+|---|---|
+| 50804 Santa Rosa | 83 |
+| 50805 Libano | 65 |
+| 50806 Tierras Morenas | 65 |
+| 50801 Tilaran | 15 |
+| 50802 Quebrada Grande | 7 |
+| 50803 Tronadora | 5 |
+| **50807 Arenal** | **1** |
+| **50808 Cabeceras** | **1** |
+
+Tres distritos concentran 213 de los 242, el **88 %**. Arenal y Cabeceras tienen
+**un foco en veinticuatro anios**.
+
+**Tercero: la serie no es homogenea.**
+
+    2001-2011, solo MODIS:    69 focos / 11 anios =  6,3 por anio
+    2012-2024, MODIS+VIIRS:  173 focos / 13 anios = 13,3 por anio
+                                             salto de 2,1x
+
+VIIRS entra en 2012 con 375 m de resolucion contra los 1.000 m de MODIS. **El
+salto es del sensor, no del clima.**
+
+Y hay algo aprovechable: **cero focos entre junio y octubre**, cinco meses
+seguidos, con el 86 % concentrado entre enero y abril.
+
+    01:10  02:11  03:55  04:131  05:34  06:0  07:0  08:0  09:0  10:0  11:1  12:0
+
+### Decision
+
+**1. El alcance del evento incendio se limita a Santa Rosa, Libano y Tierras
+Morenas.** Los otros cinco distritos se reportan como **«sin datos
+suficientes»**, no con un numero.
+
+**2. No se restringe la serie a la era VIIRS.** Se conservan los 24 anios, con
+tres condiciones:
+
+- La **era o el sensor queda como columna** en la carga de H1.2. El dato de
+  heterogeneidad se guarda, no se descarta.
+- **Ninguna variable de tendencia temporal entra al modelo de incendio.** Ni
+  anio, ni indice de tiempo.
+- **Toda afirmacion sobre tendencia se restringe a 2012-2024**, y se dice.
+
+**3. Se declara por adelantado que la comparacion de algoritmos puede no ser
+concluyente para incendio.** Con 33 a 38 ventanas positivas por distrito, H3.3 y
+H3.4 miden ruido de particion antes que calidad de algoritmo. La linea base
+climatologica de H3.1 puede ser el techo real del evento.
+
+**4. El evento de incendio NO sale del alcance.** El roadmap contemplaba
+retirarlo y liberar unas 60 h. No se hace: el evento es parte del charter, y con
+el alcance acotado sigue siendo estimable y verificable.
+
+### Justificacion
+
+**Por que se acotan los distritos y no se rellenan.** Un modelo entrenado sobre
+un evento en veinticuatro anios no se puede validar: cualquier particion deja
+cero o un caso positivo del otro lado. Reportar «sin datos suficientes» es la
+misma distincion que **D-22** —un cero no es un hueco— aplicada al otro extremo,
+y aguas abajo ya funciona: el semaforo de H7.1 y las coropletas de H5.3
+distinguen «sin estimacion» de «riesgo bajo».
+
+**Por que no se restringe a VIIRS, aunque el diagnostico sea correcto.** Cuesta
+la mitad de los positivos:
+
+| Distrito | positivas 2001-2024 | positivas solo VIIRS |
+|---|---|---|
+| 50804 | 38 | **20** |
+| 50805 | 33 | **18** |
+| 50806 | 34 | **18** |
+
+Con veinte ventanas positivas no se entrena y sobre todo **no se valida**:
+partirlas deja una prueba de seis o siete casos, donde un acierto mueve la
+metrica quince puntos. Pagar homogeneidad con la mitad de los positivos, estando
+ya cortos, empeora el problema que pretende arreglar.
+
+El tratamiento elegido es el de **D-17** con la precipitacion: no se tira el dato
+incomodo, se declara de donde vino y se acota que se puede afirmar con el.
+
+**Por que se declara la limitacion antes de medir.** Es lo que impide elegir
+despues el modelo que salio mejor por azar y escribirle una justificacion. Mismo
+criterio que los criterios de aceptacion de H3.0, escritos antes de ver el dato.
+
+### Alternativas descartadas
+
+**Sacar el incendio del alcance.** Es lo que D-08 previo y lo que el roadmap
+tenia presupuestado, con 60 h de ahorro. Se descarta porque el evento sigue
+siendo estimable en los tres distritos que concentran el 88 % de los focos, y
+porque la estacionalidad da una linea base solida. Retirarlo dejaria el proyecto
+con dos de los tres eventos del charter por un problema que resulto acotable.
+
+**Ampliar la ventana a 90 dias.** Es la unica agregacion que llega al 10 % de
+ventanas positivas. Se descarta porque contradice la definicion de 7 dias del
+contrato y porque una alerta de incendio a 90 dias no sirve para operar.
+
+**Agregar por canton en vez de por distrito.** Sube a 7,7 %, sigue sin llegar, y
+pierde la resolucion espacial que es el objetivo del proyecto.
+
+**Rellenar los cinco distritos sin senal con el valor del canton.** Seria inventar
+una estimacion local a partir de datos que no son locales: el mismo defecto que
+I-05 registro para POWER, cometido a proposito.
+
+### Consecuencias
+
+**Lo que mejora.** El evento incendio pasa de tener un umbral imposible de
+cumplir a tener uno medido, con alcance declarado y limitaciones escritas de
+antemano.
+
+**Lo que cuesta.** Cinco de ocho distritos sin estimacion de incendio, visible en
+el visor. Es informacion, no un hueco: dice que ahi no hubo con que estimar.
+
+**Lo que queda abierto.** Si la comparacion de algoritmos de H3.3 y H3.4 resulta
+concluyente para incendio. Se sabra al medirla, y esta decision deja escrito que
+puede no serlo.
+
+**H9.3 cambia de contenido.** *"Someter los umbrales de incendio"* a los actores
+locales sigue en pie, pero el umbral que se somete es otro y ahora lleva una
+medicion detras en lugar de un criterio del equipo sin respaldo.
+
+### Medicion
+
+`python -m contratos.verificar` comprueba que el simulado respete el vocabulario:
+incendio nunca emite MEDIO, si alcanza BAJO y ALTO, y los otros dos eventos
+conservan sus tres niveles. **47 comprobaciones**, tres nuevas.
+
+El informe de Cesar queda como fuente en la evidencia de H1.2 y de H3.0.
+
+**Criterio de revision.** Se vuelve sobre esta decision cuando H3.1 entregue la
+linea base climatologica. Las dos preguntas que esa entrega tiene que contestar:
+
+1. ¿Algun modelo de H3.3 supera a la linea base estacional en los tres distritos
+   con senal, con una diferencia mayor que su intervalo de confianza?
+2. Con la era como covariable, ¿queda algun efecto atribuible al clima y no al
+   cambio de sensor?
+
+Si la respuesta a la primera es no, el resultado del evento incendio **es la
+linea base**, y se reporta como hallazgo y no como fracaso.
+
+---
+
+## D-26 · El sistema declara latencia por evento, no promete tiempo real
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-23
+**Decide.** Alejandro
+**Revisa.** D-15, sobre la eleccion de CHIRPS
+**Medicion.** `docs/14-latencia-de-las-fuentes.md`
+
+### Contexto
+
+El proyecto viene diciendo "informacion en tiempo real" desde el charter. **Nadie
+habia comprobado cuando llega el dato.** Es el mismo tipo de afirmacion que
+R16: escrita al principio, repetida en tres documentos, sin contrastar.
+
+Contrastada contra la documentacion oficial de cada fuente:
+
+| Fuente | Alimenta | Latencia |
+|---|---|---|
+| FIRMS | Incendio | **~3 horas** |
+| POWER | Temperatura, humedad, viento, radiacion | dias, en el producto reciente |
+| CHIRPS final | Precipitacion -> sequia y lluvia intensa | **21 a 51 dias** |
+
+**Tres hechos que el proyecto no sabia.**
+
+**Primero: CHIRPS final llega en la tercera semana del mes siguiente.** El SPI-3
+mira una ventana de 90 dias que termina hoy, asi que **entre el 23 % y el 57 % de
+esa ventana no es dato final** al momento de estimar.
+
+Y el preliminar no es el mismo dato menos pulido: es **"GTS and Mexico only"**.
+Para Costa Rica eso lo deja sin la correccion por estaciones, que es justamente lo
+que distingue a CHIRPS de una estimacion satelital cualquiera y lo que D-15 eligio.
+
+**Segundo: POWER cambia de modelo a mitad de la serie.** El historico sale de
+**MERRA-2**; los ultimos meses, de **GEOS-5.12.4 FP-IT**. Un modelo entrenado
+sobre la serie se entrena con uno y **opera con el otro**, y la frontera cae justo
+en el dato que el sistema usaria en produccion.
+
+Es la misma heterogeneidad que Cesar encontro en FIRMS al medir R16 —MODIS hasta
+2011, MODIS+VIIRS despues, salto de 2,1x— pero en la fuente que dabamos por
+homogenea. I-05 y D-15 hablan de MERRA-2 como si fuera toda la serie.
+
+**Tercero: la produccion de CHIRPS v2 termina despues de diciembre de 2026.**
+
+### Decision
+
+**1. El sistema NO promete tiempo real. Declara una latencia por evento**, y la
+muestra:
+
+| Evento | Cadencia util | Por que |
+|---|---|---|
+| Incendio | diaria o mas seguido | FIRMS llega en 3 h |
+| Lluvia intensa | diaria, con preliminar declarado | el final tarda hasta 51 dias |
+| Sequia | **semanal como mucho** | latencia, y ademas el SPI-3 apenas se mueve |
+
+**2. Para sequia hay una segunda razon, independiente de la latencia.** El SPI-3
+mira 90 dias, de los cuales 83 ya se conocian ayer. Actualizarlo a diario moveria
+la aguja poquisimo aunque el dato llegara al instante.
+
+**3. No hay ninguna frase que retirar, y conviene decir por que.**
+
+Al escribir esta decision di por sentado que el proyecto prometia "tiempo real"
+en sus documentos, y fui a quitarlo. **No esta.** El unico lugar donde aparece es
+`docs/11-ceremonias-scrum.md`, y dice lo contrario:
+
+> *"Se eliminan: modulo de busqueda semantica, sensores fisicos, **procesamiento
+> en tiempo real**, autenticacion de usuarios..."*
+
+Es la accion **A1.1** del Sprint 0, la reduccion del 38 % que pidio la evaluacion
+docente. **El procesamiento en tiempo real esta fuera de alcance desde el primer
+dia**, por una decision que ya se tomo y se documento.
+
+Lo que existe es una **aspiracion del equipo** —repetida en conversacion, no en
+el repositorio— de que el sistema sirva informacion actualizada. Esta decision no
+la contradice: la acota con numeros. Y deja escrito que si alguna vez esa frase
+va a entrar a un documento, la latencia de arriba es lo que puede sostener.
+
+**4. Se crea la historia de ingesta periodica.** De las 86 del backlog, ninguna
+vuelve a consultar las fuentes: H1.1 es una descarga historica de una vez.
+
+**5. Queda pendiente medir el solape MERRA-2 / FP-IT.** Es trabajo de H1.1, que
+tiene el descargador, y es la misma medicion que Cesar hizo para las eras de
+FIRMS.
+
+**6. El fin de vida de CHIRPS v2 va a las limitaciones del documento IEEE.**
+
+### Justificacion
+
+**Por que declarar la latencia en vez de esconderla.** Un visor de riesgo
+climatico que no dice cuando se midio lo que muestra invita a leer una estimacion
+vieja como si fuera de hoy. Es la misma razon por la que H6.6 muestra la fecha de
+la estimacion y la pone en ambar cuando no es la de hoy.
+
+**Por que por evento y no un numero unico.** Un solo numero obligaria a usar el
+peor caso, y con eso incendio —que si es casi en tiempo real— quedaria reportado
+como si tardara semanas. Perderia la unica capacidad operativa real del sistema.
+
+**Por que esto no invalida el proyecto.** El objetivo es estimar riesgo por
+distrito, no operar un sistema de alerta temprana. Lo que cambia es lo que se
+promete, no lo que se hace.
+
+### Alternativas descartadas
+
+**Usar solo el preliminar de CHIRPS y no declararlo.** Bajaria la latencia a 2
+dias. Se descarta porque para Costa Rica el preliminar es satelite sin correccion
+por estaciones, y presentarlo como equivalente al final seria exactamente el tipo
+de afirmacion que I-05 y D-22 vinieron a evitar.
+
+**Cambiar de fuente de precipitacion.** D-15 eligio CHIRPS por su resolucion de
+0,05°, la unica que distingue distritos segun I-05. Ninguna alternativa conocida
+mejora resolucion y latencia a la vez, y cambiarla a esta altura obligaria a
+rehacer H2.7, D-17 y todas las mediciones de percentiles.
+
+**No decir nada y dejar "tiempo real" en el charter.** Es lo que estaba pasando.
+
+### Consecuencias
+
+**Lo que mejora.** El sistema promete algo que puede cumplir, y lo que promete
+esta medido.
+
+**Lo que cuesta.** Hay que tocar el charter y el documento IEEE, y la frase
+"tiempo real" era parte de como se presento el proyecto.
+
+**Lo que queda abierto.** Cuanto difieren MERRA-2 y FP-IT en el solape. Hasta
+medirlo, ninguna afirmacion sobre el comportamiento del modelo en produccion se
+puede sostener del todo.
+
+**Lo que no cambia.** Ninguna historia se cancela ni se reestima.
+
+### Medicion
+
+`docs/14-latencia-de-las-fuentes.md`, con las cuatro afirmaciones citadas contra
+la documentacion oficial de cada proveedor.
+
+**Alcance declarado:** las latencias son las que **declara** cada fuente. No se
+midio empiricamente descargando archivos y comparando fechas. Eso confirmaria lo
+declarado y es trabajo de H1.1 y H1.2.
+
+**Criterio de revision.** Se vuelve sobre esta decision cuando H1.1 mida el
+solape MERRA-2 / FP-IT. Las dos preguntas que esa medicion tiene que contestar:
+
+1. ¿Cuanto difieren los dos productos en las variables que usa el modelo?
+2. ¿Alcanza con declarar la era como covariable, como se hizo en D-25 con FIRMS,
+   o hay que restringir la serie?
+
+---
+
+## D-27 · El alcance diferido se registra con condicion de reactivacion medible
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-24
+**Decide.** Alejandro, Lead PM
+**Origen.** Propuesta de integrar sismos al visor, tras revisar la aplicacion del OVSICORI
+**Se apoya en.** La accion **A1.1** del Sprint 0
+
+### Contexto
+
+El 24 de agosto surgio la propuesta de **centralizar** en GeoGuardian los eventos
+climaticos y los sismicos, a partir de la aplicacion **OVSICORI-UNA Alerta
+Terremotos** y de que el mundo ha tenido sismos notorios recientes. La idea es
+razonable: un comite municipal preferiria una sola pantalla.
+
+Al evaluarla aparecio que el proyecto ya tenia un conjunto de trabajo aplazado
+sin registro propio. La accion **A1.1** elimino **118 de 310 puntos** el 3 de
+agosto, por una evaluacion docente que califico la viabilidad en 12 semanas con
+5/10:
+
+    modulo de busqueda semantica       autenticacion de usuarios
+    sensores fisicos                   segmentacion con algoritmos propios
+    procesamiento en tiempo real       animacion temporal
+
+Ese recorte esta escrito en un acta de ceremonia, que es un registro de **lo que
+se acordo un dia**, no una lista viva. Nada dice bajo que condicion volveria, y
+la intencion del equipo es que vuelva si sobra tiempo.
+
+**El estado real al decidir esto:** semana 6 de 12, **24 de 87 historias
+cerradas, el 29 % de los puntos**, `main` 42 commits detras de `dev`, y la cadena
+de despliegue detenida detras de H1.2 y H6.0.
+
+### Decision
+
+**1. El alcance diferido se registra aqui, con su condicion de reactivacion.**
+
+| Diferido | Origen | Costo | Condicion para reabrir |
+|---|---|---|---|
+| Los seis elementos de A1.1 | A1.1, 3 ago | 118 pts | La de abajo |
+| Capa de sismos en el visor | 24 ago | sin estimar | La de abajo, y ademas hosting |
+
+**2. La condicion es una sola, y se evalua en un momento fijado.**
+
+Se evalua en la **retrospectiva del Sprint 3**, al cerrar la semana 9. Reabre
+solo si las **tres** se cumplen:
+
+1. **H1.2 cerrada**, y con ella la cadena de datos que hoy detiene **17 historias
+   abiertas, 157,0 h**, contadas por cierre transitivo el 24 de agosto. De esas,
+   **9 son de Alejandro y suman 101,8 h**: una historia de 4,7 h de Cesar
+   sostiene todo el modelado y el analisis de fallos.
+2. **H6.0 cerrada**, y con ella la cadena de despliegue: 6 historias, 37,7 h.
+3. **Ninguna historia del Sprint 3 arrastrada** al Sprint 4.
+
+Si las tres se cumplen, se reabre **una** linea, la que mas aporte a la rubrica,
+y se estima antes de comprometerla. No se reabre el recorte entero.
+
+**3. El sismo no se estima nunca, se muestra.**
+
+Aunque la condicion se cumpla, la capa de sismos queda acotada a **mostrar lo que
+el OVSICORI ya publica**. No entra al modelo ni al backlog de E3.
+
+Un sismo no tiene antecedente meteorologico. Toda la arquitectura es serie
+climatica diaria por distrito con horizonte de 7 dias, y el sismo no se predice a
+7 dias por fisica, no por falta de datos. Agregarlo como cuarto evento del
+`TipoEvento` dejaria uno que el modelo **no puede estimar en absoluto**, y eso
+debilita el argumento de OE2 en lugar de reforzarlo.
+
+**4. El OVSICORI entra al estado del arte, no al alcance.**
+
+Es la contraparte exacta de lo que la seccion 2 de `estado-del-arte.md` ya hace
+con el SATIF: un sistema nacional en operacion, para **otra** amenaza, que
+declara su alcance. Y aporta el limite fisico mas claro que el documento puede
+citar.
+
+### Justificacion
+
+**Por que no cabe este trimestre, con numeros.** El proyecto lleva el 29 % de los
+puntos con la mitad del calendario consumido, y la parte detenida no se destraba
+agregando trabajo: se destraba cerrando H1.2. Abrir una epica nueva mientras la
+ruta critica esta parada es como se pierden los proyectos que iban bien.
+
+**Por que hace falta una condicion y no una intencion.** "Si sobra tiempo" no es
+comprobable: siempre parece que va a sobrar hasta la semana 10. Una condicion
+escrita, con fecha de evaluacion, se puede contestar con si o con no mirando el
+repositorio. Es el mismo aprendizaje de `docs/15-cerrar-una-historia.md`: **una
+regla que ninguna maquina ni ninguna ceremonia comprueba se cumple mientras
+alguien se acuerda.**
+
+**Por que la condicion es esa y no la velocidad.** La velocidad medida en D-24 es
+puntos por una constante, todavia sin corregir. Condicionar a una cifra que
+sabemos que no mide bien seria darle autoridad que no tiene. H1.2 y H6.0 son
+hechos binarios: estan o no estan.
+
+**Por que el OVSICORI vale igual.** Aporta tres cosas al documento sin costar
+alcance: umbrales tomados de un estandar publicado —la Escala de Mercalli
+Modificada—, un canal de notificacion que cambia con la severidad, y una
+**declaracion de falibilidad** en su propia ficha publica. La ultima es la mas
+util: es el precedente nacional de que un sistema automatizado de riesgo diga que
+puede fallar, que es lo que el aviso de datos simulados hace aqui.
+
+### Alternativas descartadas
+
+**Agregar sismos como cuarto `TipoEvento` ahora.** Obliga a extender los
+contratos, los simulados, el semaforo y el modelo para un evento que el modelo no
+puede estimar. Y `NivelRiesgo` acaba de acotarse en **SC-05** con la regla de que
+un nivel existe solo si el dato lo puede producir: un nivel sismico saldria de
+otra fuente y no de una estimacion propia.
+
+**Construir la alerta temprana de sismos.** El OVSICORI ya la opera a escala
+nacional, gratis, con la red sismica del pais. Duplicarla no es un aporte. Y su
+margen de 3 a 30 segundos exige notificacion push y disponibilidad continua, que
+es infraestructura que el proyecto no tiene: **D-26 acaba de establecer que ni
+siquiera puede prometer actualizacion diaria para sequia**, y H11.5 publica un
+sitio estatico.
+
+**Dejar la idea en una conversacion.** Es lo que paso con "tiempo real", que
+D-26 encontro viviendo como aspiracion repetida de palabra mientras el
+repositorio decia que estaba fuera de alcance desde el primer dia. Una idea sin
+registro se vuelve a discutir cada dos semanas y nadie sabe si fue rechazada o
+solo aplazada.
+
+**Reabrir el recorte de A1.1 completo si se cumple la condicion.** Son 118
+puntos, mas que todo lo hecho hasta hoy. Cumplir la condicion demostraria que hay
+margen para algo, no para eso.
+
+### Consecuencias
+
+**Lo que se gana.** La propuesta queda registrada con su fundamento, y el
+proyecto puede contestar con evidencia por que no la hizo, que es distinto de no
+haberla pensado. El OVSICORI entra al documento IEEE por dos vias: estado del
+arte, y trabajo futuro.
+
+**Lo que se pierde.** Si la condicion se cumple, la reapertura arranca en la
+semana 9 y quedan tres semanas. Es poco, y esta asumido: se prefiere entregar
+completo lo comprometido.
+
+**Lo que se crea.** Nada en el backlog. Es deliberado: una historia en el backlog
+es un compromiso, y esto no lo es todavia.
+
+**Lo que se le encarga a alguien.** A Luna, la seccion de estado del arte, que si
+es trabajo de este trimestre y ya tiene donde ir. A Alejandro, la seccion de
+trabajo futuro del documento IEEE, en H10.5c.
+
+### Medicion
+
+La condicion es comprobable el dia de la retrospectiva del Sprint 3 con:
+
+```bash
+python docs/herramientas/verificar_estado.py
+gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json
+python docs/herramientas/verificar_issues.py --issues issues.json
+```
+
+H1.2 y H6.0 marcadas `[x]` en `docs/tareas/cesar.md`, y el arrastre del Sprint 3
+leido de `docs/12-velocidad.md`.
+
+**Alcance de lo verificado sobre el OVSICORI.** Lo consultado fue la ficha
+publica de la aplicacion y la cobertura de prensa nacional. **No se leyo
+documentacion tecnica del SATT**, que es donde estaria la parametrizacion. Antes
+de que estas afirmaciones entren al documento IEEE hay que buscarla, y es parte
+del encargo a Luna.
+
+**Criterio de revision.** Se vuelve sobre este registro en la retrospectiva del
+Sprint 3, con si o con no. Si la respuesta es no, se anota aqui y se cierra: un
+diferido que se arrastra sin decision es peor que uno descartado.
 
 ---
 

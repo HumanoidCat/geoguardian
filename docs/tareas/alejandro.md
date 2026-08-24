@@ -6,8 +6,27 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
+
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
 **Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
 
@@ -72,6 +91,7 @@
 
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
+  - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
   - Hueco del backlog detectado el 2026-08-18: ninguna de las 83 historias cubria
     el cambio de origen de datos del visor, y esta en la ruta critica del
     prototipo. Al cerrarla hay que anotar **D-14** como revisada.
@@ -120,11 +140,11 @@
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
 - [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
-  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2**
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
   - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
     publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
     espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite
-    Municipal de H9.2 eso obliga a llevar la maquina.
+    Municipal de H9.2a eso obliga a llevar la maquina.
   - Es barata porque **H6.6 la dejo posible sin querer**: la degradacion al
     respaldo estatico hace que `npm run build` produzca algo que funciona solo,
     sin API ni base. Ver D-23.

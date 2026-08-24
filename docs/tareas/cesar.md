@@ -6,8 +6,27 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
+
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
 **Total asignado:** 125 puntos · 154 horas · 15.4 h por semana en promedio
 
@@ -82,7 +101,24 @@
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
 
 
-## Sprint 3 (semanas 8-9) — 39.2 h
+## Sprint 3 (semanas 8-9) — 47.0 h
+
+- [ ] **H1.14** · Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite
+  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
+  - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
+    **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
+    una vez, asi que el sistema era una foto y no un servicio.
+  - **La cadencia no es una sola.** Incendio a diario, porque FIRMS llega en 3 h.
+    Sequia semanal como mucho: el final de CHIRPS tarda de 21 a 51 dias, y ademas
+    el SPI-3 mira 90 dias de los que 83 ya se conocian ayer.
+  - Tiene que **declarar que producto cargo**: el preliminar de CHIRPS es "GTS and
+    Mexico only" y no es el mismo dato que el final. Mismo criterio que D-17 con
+    la precipitacion y que D-25 con la era de FIRMS.
+  - Idempotente: correrla dos veces el mismo dia no duplica filas. Es el defecto
+    que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
+  - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
+    Kubernetes son locales. La programacion queda declarada y sin destino.
+
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9

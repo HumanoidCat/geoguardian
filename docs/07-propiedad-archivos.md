@@ -115,6 +115,47 @@ hiciera falta tocar un componente, se pide.
 Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
 asignado, y se declara por historia y no en general.
 
+## Excepcion: la publicacion del visor, para H11.5
+
+`frontend/` es de Avril. La historia **H11.5** —publicar el visor como sitio
+estatico— es de Alejandro y toca dos archivos suyos.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/vite.config.js`, solo la clave `base` | H11.5, y nada mas |
+| Alejandro | `frontend/src/datos/cliente.js`, solo las rutas de `RESPALDO` | H11.5, y nada mas |
+
+**Por que hacen falta las dos.** GitHub Pages sirve en un **subdirectorio**,
+`/geoguardian/`, y ahi toda ruta absoluta de raiz se rompe. Son dos problemas
+distintos y ninguno se arregla solo:
+
+- `vite.config.js` resuelve lo que Vite reescribe: el `index.html` y los
+  `import`. Sin `base`, los `assets/` se piden desde la raiz del dominio.
+- `cliente.js` resuelve lo que Vite **no** reescribe: `RESPALDO` son cadenas que
+  se arman en tiempo de ejecucion. Medido antes de arreglarlo, servido desde un
+  subdirectorio, el respaldo daba **404** y el visor se quedaba sin ningun
+  origen. En el sitio publicado el respaldo es el unico origen que existe,
+  porque no hay API.
+
+**Por que no se le asigna a Avril.** No es un cambio de presentacion: es donde
+vive el artefacto construido, y depende de conocer la negociacion de origen de
+D-23 y el comportamiento de `base` en Vite. Ningun componente cambia.
+
+**Por que `base: './'` y no `'/geoguardian/'`.** Un valor fijo obligaria a Avril
+a entrar a `localhost:5173/geoguardian/` para trabajar. `'./'` deja el servidor de
+desarrollo sirviendo en la raiz, funciona en cualquier subdirectorio, y no
+necesita variables de entorno —que ademas fallarian con `no-undef` en su
+`eslint.config.js`, como ya paso en H6.6—.
+
+**Por que la excepcion es tan estrecha.** Dos claves, no dos archivos. Los
+componentes, los estilos, el exportador y el resto de la configuracion siguen
+siendo de Avril sin excepcion.
+
+Es el mismo criterio de **D-16** y la misma forma que las excepciones de H1.6 y
+H6.6: **estrecha, por historia, y escrita.**
+
+**Avril revisa el Pull Request**, como dueña de la carpeta.
+
 ## Excepcion: docs/evidencias/
 
 `docs/` pertenece a Alejandro, pero **`docs/evidencias/` es de escritura libre**
@@ -167,6 +208,39 @@ historia sin haber roto nada.
 
 Es la misma idea que `ruff format`: un archivo derivado no se discute, se vuelve a
 producir. `verificar_estado.py` comprueba en el CI que corresponda a sus fuentes.
+
+### Antes de regenerar hay que estar al dia con `dev`
+
+Un artefacto derivado no se genera desde el disco solamente: se genera desde **el
+disco que tenga esa rama**. Regenerarlo en una rama vieja produce un archivo
+correcto para el pasado y equivocado para el presente, y el CI lo rechaza igual.
+
+**El orden es este, y no el otro:**
+
+    git checkout <mi-rama>
+    git merge origin/dev                            # 1. traer dev PRIMERO
+    python docs/herramientas/generar_matriz.py      # 2. regenerar DESPUES
+    git add -A && git commit -m "merge: traer dev y regenerar la matriz"
+
+**Por que.** El 20 de agosto, `feature/lal-h1.5-calidad-datos` estaba **18 commits
+detras de dev**. En esos 18 commits habian cambiado dos clases de cosas, y las dos
+entran en la matriz:
+
+| Que cambio en dev | Efecto sobre la matriz regenerada en la rama vieja |
+|---|---|
+| `docs/herramientas/generar_matriz.py` | La genera el **generador viejo**, que listaba una sola evidencia por historia en vez de todas |
+| Tres archivos nuevos en `docs/evidencias/` | Sus filas apuntan a la carpeta y no al archivo, porque en esa rama el archivo no existe |
+
+Regenerar primero y traer `dev` despues no arregla nada: el `git merge` posterior
+abre conflicto en la matriz, y quien lo resuelva a mano vuelve a caer en lo que
+esta seccion prohibe.
+
+**Como se reconoce.** Si el CI sigue rojo despues de regenerar, casi siempre es
+esto. Se comprueba con:
+
+    git log --oneline HEAD..origin/dev | wc -l
+
+Si no da cero, la rama esta atrasada y hay que fusionar antes de volver a generar.
 
 ## Archivos compartidos
 

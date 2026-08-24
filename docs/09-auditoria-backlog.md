@@ -69,7 +69,7 @@ necesita un artefacto producido por otra, sin que la relación esté escrita.
 | **H11.1** CI con imagen Docker | H8.1 | Un Dockerfile, sin dueño, y H6.1 para que haya API que empaquetar | No se puede construir una imagen de nada |
 | **H3.0** Etiquetado de los tres eventos | H2.3 | **H2.7** (percentiles R95p/R99p) y **H1.2** (focos de calor) | Son tres eventos, no uno. Sequía sale del SPI (H2.3), lluvia intensa de los percentiles (H2.7) e incendio de los focos (H1.2). Solo la primera está declarada |
 | **H4.4** Contrastar contra el catálogo | H4.3 | **H3.6** | Para contrastar estimaciones hay que tenerlas: salen de la tabla comparativa |
-| **H9.3** Someter los umbrales de incendio | H9.2 | **H1.2** | El umbral de incendio es el percentil 90 de la distribución de focos. Sin focos cargados no hay umbral que someter |
+| **H9.3** Someter los umbrales de incendio | H9.2 | **H1.2** | El umbral de incendio ya no es el percentil 90 de la distribución de focos: D-25 lo hizo binario tras medir R16. Lo que se somete cambió de contenido, pero la dependencia sigue en pie |
 
 H3.0 es el caso más serio de los cuatro: bloquea a H3.1 y H3.2, y H3.2 bloquea a
 los tres algoritmos. Está mal enganchada en la raíz de la épica de modelado.

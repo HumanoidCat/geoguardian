@@ -32,8 +32,15 @@ QUE COMPRUEBA
 
 QUE NO COMPRUEBA
 
-Las issues de GitHub, que viven fuera del repositorio. Se cierran solas al mergear
-el Pull Request que las enlaza con `Closes #N`.
+Las issues de GitHub, que viven fuera del repositorio. **Las comprueba
+`verificar_issues.py`**, que se agrego el 23 de agosto.
+
+Hasta entonces este archivo decia que las issues "se cierran solas al mergear el
+Pull Request que las enlaza con `Closes #N`". Es lo que deberia pasar y no lo que
+pasaba: `docs/plantillas/como-llenar-el-pr.md` ya advertia que escribir "Cierra
+H10.1" en vez de `Closes #23` deja la issue abierta y **el tablero mintiendo**.
+La advertencia estaba escrita y ninguna maquina la comprobaba, que es el mismo
+defecto que este archivo existe para corregir en la matriz.
 
 Tampoco comprueba que el trabajo este bien hecho. Comprueba que los documentos
 digan lo mismo.
@@ -182,9 +189,19 @@ def main() -> int:
 
     if DESTINO.read_text(encoding="utf-8") != construir():
         problemas.append(
-            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes. "
-            "Se genera, no se edita a mano: correr "
-            "python docs/herramientas/generar_matriz.py"
+            "docs/05-matriz-trazabilidad.md no corresponde a sus fuentes.\n"
+            "      Se arregla con UN comando:  "
+            "python docs/herramientas/generar_matriz.py\n"
+            "\n"
+            "      Casi siempre pasa por una de estas tres, y en ninguna hay que\n"
+            "      tocar la matriz a mano:\n"
+            "        - subiste un archivo nuevo a docs/evidencias/\n"
+            "        - marcaste una historia con [x] en docs/tareas/<persona>.md\n"
+            "        - cambio el dueno o la rubrica en docs/backlog.csv\n"
+            "\n"
+            "      La matriz es una VISTA de esas fuentes. Cambiar la fuente y no\n"
+            "      regenerarla deja la vista desfasada, y eso es lo que este\n"
+            "      control detecta."
         )
 
     # ----------------------------------------------------------------------- #

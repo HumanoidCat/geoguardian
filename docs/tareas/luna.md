@@ -6,8 +6,27 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
+
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
 **Total asignado:** 80 puntos · 144 horas · 14.3 h por semana en promedio
 
@@ -62,11 +81,12 @@
 - [ ] **H2.2** · Analisis espectral de la lluvia e interpretacion fisica
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1
 
-- [ ] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020
+- [x] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020 (2026-08-20)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
+  - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 2.0
 
 - [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
-  - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2**
+  - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2a**
 
 
 ## Sprint 4 (semanas 10-11) — 32.0 h
@@ -74,14 +94,30 @@
 - [ ] **H12.4** · Diagnostico guiado a partir de la bitacora de incidencias
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H12.1 · **bloquea a: H12.5**
 
-- [ ] **H9.2** · Sesion con 3 a 5 participantes y calculo del puntaje SUS
-  - `E9` · 5 pts · 13.2 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.3, H9.4**
+- [ ] **H9.2a** · Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS
+  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.2b**
+  - Partida de H9.2 el 2026-08-23. Mide **usabilidad, no exactitud**, asi que se
+    puede hacer HOY con datos simulados y sin esperar a H1.2. Bloques 0 a 4 y 6.
+  - La banda de "modo simulado" no se oculta: se **mide**. Preguntar si el
+    participante entendio que los datos no son reales responde a "comunica su
+    propia incertidumbre" y es un hallazgo sobre H6.6 y D-23.
+  - **No preguntar por confianza en los numeros.** Con datos simulados esa
+    respuesta no significa nada, y la banda la contamina.
+
+- [ ] **H9.2b** · Sesion de contraste: la estimacion frente a lo que la gente vivio
+  - `E9` · 2 pts · 5.3 h · rubrica: OE4 · depende de: H9.2a, H3.0 · **bloquea a: H9.3, H9.4**
+  - Es el bloque 5 del guion de H9.1. Contra datos simulados no mide nada: sin
+    modelo, "el mapa se equivoca en Quebrada Grande" no dice nada sobre el modelo.
+  - **La dependencia de H3.0 no estaba declarada.** La encontro Luna el 2026-08-23
+    despues de cerrar H9.1 y dar por desbloqueada H9.2. Por H3.0 depende de H1.2.
+  - Reclutamiento **distinto** al de H9.2a: aqui hacen falta personas que vivieron
+    esos eventos en ese distrito. No tiene que ser la misma gente.
 
 - [ ] **H9.3** · Someter los umbrales de incendio a criterio de los participantes
-  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2, H1.2
+  - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2b, H1.2
 
 - [ ] **H9.4** · Incorporar un cambio derivado de la retroalimentacion
-  - `E9` · 2 pts · 3.1 h · rubrica: OE4 · depende de: H9.2
+  - `E9` · 2 pts · 3.1 h · rubrica: OE4 · depende de: H9.2b
 
 ## Regla: lo hecho no se borra
 

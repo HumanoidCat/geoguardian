@@ -6,8 +6,27 @@
 > Solo modificas tus carpetas. Si necesitas un cambio fuera de ellas, se pide, no se hace.
 
 > Marca `[x]` cuando la historia cumpla la Definition of Done, no cuando el codigo funcione.
+>
+> **Los seis pasos para cerrar una historia estan en `docs/15-cerrar-una-historia.md`.**
+> El quinto es el que mas se olvida: el Pull Request lleva `Closes #N` con el
+> numero real de la issue. "Cierra H10.1" no cierra nada.
 
 > **Compromiso de tiempo: 18 horas por semana.**
+
+> **Al cerrar una historia, anota sus horas.** Debajo de la linea de la historia:
+>
+>     - horas: estimada 4.0 . real 2.0
+>
+> `estimada` es lo que dijiste **antes de arrancar**, sin mirar el backlog.
+> `real` es lo que tardo. Las horas del backlog ya estan en la linea de arriba y
+> no se repiten aqui.
+>
+> Si no hubo estimacion previa, se escribe `n/d` **con el motivo entre
+> parentesis**: `estimada n/d (no se pidio al arrancar) . real 2.5`. Un hueco sin
+> explicacion no se distingue de un olvido.
+>
+> Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
+> `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
 **Total asignado:** 94 puntos · 115 horas · 11.5 h por semana en promedio
 
@@ -53,8 +72,9 @@
 - [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
 
-- [ ] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados
+- [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
+  - horas: estimada 4.0 . real 2.0
 
 - [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1

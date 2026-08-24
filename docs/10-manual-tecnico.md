@@ -3,7 +3,7 @@
 **Proyecto:** GeoGuardian — estimación del riesgo climático por distrito en el
 cantón de Tilarán, Costa Rica
 **Historia:** H10.4 · **Rúbrica:** MVP · **Responsable:** Alejandro
-**Estado del sistema al 20 de agosto de 2026**
+**Estado del sistema al 23 de agosto de 2026**
 
 Este manual está escrito para alguien que **no participó en el desarrollo**: un
 evaluador, un profesor, o quien tenga que mantener el sistema el próximo
@@ -28,17 +28,27 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Base de datos PostgreSQL con PostGIS, cuatro esquemas | Funciona |
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
-| Contratos de los seis módulos, con simulados y 44 comprobaciones automáticas | Funciona |
+| Contratos de los seis módulos, con simulados y 47 comprobaciones automáticas | Funciona |
 | Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
+| **Semáforo de riesgo** por distrito y evento, ordenado por urgencia (H7.1) | Funciona |
+| **Reporte de calidad de datos**: completitud, atípicos y sesgo espacial (H1.5) | Método y pruebas, sin cifras reales |
 | Tres entornos de Kubernetes en k3d | Funciona |
-| Integración continua, cinco trabajos por cada cambio | Funciona |
-| Procesamiento de señales: filtrado, SPI y percentiles de lluvia intensa | Funciona, con 65 pruebas |
+| Integración continua, 6 trabajos por cada cambio | Funciona |
+| Publicación del visor como sitio estático en GitHub Pages (H11.5) | Escrito y verificado, **sin URL viva todavía** |
+| Procesamiento de señales: filtrado, espectro, SPI, percentiles y anomalías | Funciona, con 108 pruebas |
 | **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos | Funciona |
 | **API REST** con OpenAPI y los esquemas del contrato | Funciona |
 | Roles de base de datos con mínimo privilegio, verificando las denegaciones | Funciona |
 
-**Lo que todavía no existe.** El extractor de focos de calor y el módulo de
-modelado. Sus carpetas están creadas y reservadas, pero vacías.
+**Lo que todavía no existe.** El extractor de focos de calor (H1.2) y el módulo
+de modelado. Sus carpetas están creadas y reservadas, pero vacías.
+
+**De H1.2 sí existe la medición.** El riesgo R16 se cerró el 20 de agosto contando
+**242 focos de FIRMS en 24 años** dentro del cantón, con las geometrías del SNIT.
+De ahí salió que el umbral de incendio del charter no producía tres clases sino
+dos, y **SC-05** lo redefinió como binario: `alto` es «al menos un foco en la
+ventana de 7 días» y `medio` no existe para ese evento. El alcance se acotó a los
+tres distritos con señal. Ver **D-25**.
 
 **El visor consume la API desde el 20 de agosto**, historia H6.6. Los datos que
 sirve siguen siendo simulados, porque detrás de la API está el repositorio
@@ -246,8 +256,8 @@ El segundo debe listar cuatro esquemas: `analitico`, `control`, `crudo` y `geo`.
 python -m contratos.verificar
 ```
 
-Debe terminar en **"Todas las verificaciones pasaron"** con **44 comprobaciones**
-y declarar **"Contratos version 1.3.3"**.
+Debe terminar en **"Todas las verificaciones pasaron"** con **47 comprobaciones**
+y declarar **"Contratos version 1.4.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
 proyecto. Que un dato faltante se represente como nulo y nunca como cero; que una
@@ -365,11 +375,12 @@ contratos/      Interfaces congeladas entre módulos y sus simulados
   simulados/    Implementaciones falsas que cumplen los mismos contratos
 backend/
   etl/          Extractores y cargadores      (César)
-  api/          API REST                      (César)   — vacío
-  senales/      Filtrado, espectro, SPI       (Alejandro) — vacío
+  api/          API REST                      (César)
+  senales/      Filtrado, espectro, SPI,
+                anomalías                     (**Luna**)
   modelado/     Estimadores y evaluación      (Alejandro) — vacío
-  calidad/      Reporte de calidad de datos   (Luna)    — vacío
-  tests/        Suite de pruebas              (Luna)    — vacío
+  calidad/      Reporte de calidad de datos   (Luna)
+  tests/        Suite de pruebas              (Luna)    — 130 pruebas
 basedatos/
   ddl/          Migraciones numeradas, nunca se editan una vez aplicadas
   consultas/    Guiones de verificación
@@ -458,7 +469,7 @@ no es un manual.
 | 8 | Cargar geometrías | 4.3 | | |
 | 9 | Cargar geometrías **por segunda vez** | 4.3 | | Debe seguir habiendo 8 filas |
 | 10 | PostGIS y esquemas | 5.1 | | Cuatro esquemas |
-| 11 | Contratos | 5.2 | | 44 comprobaciones |
+| 11 | Contratos | 5.2 | | 47 comprobaciones |
 | 12 | Criterios del modelo territorial | 5.3 | | |
 | 13 | Modelo y transacciones | 5.4 | | Los `ERROR` son esperados |
 | 14 | Documentación y backlog | 5.5 | | |
@@ -482,7 +493,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 23 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 27 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

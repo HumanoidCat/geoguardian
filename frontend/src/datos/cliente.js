@@ -30,11 +30,38 @@
  */
 const RUTA_API = import.meta.env.VITE_API_URL ?? '/api'
 
-/** Los archivos de D-14. Ya no son el origen: son la degradacion. */
+/**
+ * Los archivos de D-14. Ya no son el origen: son la degradacion.
+ *
+ * LAS RUTAS CUELGAN DE `BASE_URL`, Y NO SON ABSOLUTAS DE RAIZ
+ *
+ * Vite reescribe solo lo que aparece en `index.html` y en los `import`. Estas son
+ * cadenas que se arman en tiempo de ejecucion, asi que **no las toca nadie**: lo
+ * que se escriba aqui es literalmente lo que va a pedir el navegador.
+ *
+ * Escritas como `/simulados/...` funcionan mientras el visor viva en la raiz del
+ * dominio. Publicado en GitHub Pages vive en `/geoguardian/`, y entonces
+ * `/simulados/salud.json` apunta a `humanoidcat.github.io/simulados/salud.json`,
+ * que no existe.
+ *
+ * Medido antes de arreglarlo, sirviendo el `dist` desde un subdirectorio:
+ *
+ *     /geoguardian/simulados/salud.json  ->  404
+ *
+ * Y en el sitio publicado **el respaldo es el unico origen que hay**, porque no
+ * hay API. El visor se quedaba sin datos y sin error visible.
+ *
+ * `import.meta.env.BASE_URL` vale `/` en desarrollo y `./` en la construccion,
+ * asi que la misma linea sirve en los dos sitios y en cualquier subdirectorio.
+ *
+ * Ver H11.5, criterio CA-2, y docs/07-propiedad-archivos.md.
+ */
+const BASE = import.meta.env.BASE_URL
+
 const RESPALDO = {
-  salud: '/simulados/salud.json',
-  distritos: '/simulados/distritos.geojson',
-  riesgos: (evento) => `/simulados/riesgos-${evento}.json`,
+  salud: `${BASE}simulados/salud.json`,
+  distritos: `${BASE}simulados/distritos.geojson`,
+  riesgos: (evento) => `${BASE}simulados/riesgos-${evento}.json`,
 }
 
 /**
@@ -269,4 +296,22 @@ export async function obtenerRiesgos(evento) {
   // El archivo estatico lo trae en duro como true, y ese true seguiria diciendo
   // true el dia que los datos fueran reales.
   return aPaquete(lista, evento, fecha, codigos, salud.modo === 'simulado')
+}
+
+/**
+ * Riesgo de varios eventos a la vez, indexado por evento.
+ *
+ * El mapa muestra un evento por vez; el semaforo de H7.1 muestra los tres
+ * juntos, que es justamente lo que el mapa no puede.
+ *
+ * Se piden en paralelo y no en serie: son tres consultas independientes y
+ * encadenarlas triplicaria la espera sin ninguna ventaja.
+ *
+ * Si una falla, falla la llamada entera. Devolver dos eventos de tres y no
+ * decirlo dejaria una columna vacia que se leeria como "sin riesgo" en vez de
+ * "no se pudo consultar".
+ */
+export async function obtenerRiesgosDeVariosEventos(eventos) {
+  const paquetes = await Promise.all(eventos.map((evento) => obtenerRiesgos(evento)))
+  return Object.fromEntries(eventos.map((evento, indice) => [evento, paquetes[indice]]))
 }

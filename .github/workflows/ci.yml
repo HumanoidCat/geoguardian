@@ -24,6 +24,9 @@ jobs:
   gestion:
     name: Backlog y documentacion
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,12 +45,43 @@ jobs:
         run: python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
       - name: El avance dice lo mismo en los archivos de tareas y en la matriz
         run: python docs/herramientas/verificar_estado.py
+      # D-24: el modelo de estimacion es puntos por una constante. No se corrige
+      # todavia, se empieza a medir, y esto obliga a que el dato exista.
+      - name: Toda historia cerrada declara sus horas estimadas y reales
+        run: python docs/herramientas/verificar_horas.py
       # Necesita pydantic porque corre contratos.verificar para contar sus
       # comprobaciones en lugar de confiar en un numero escrito a mano.
       - name: Instalar lo minimo para contar las comprobaciones de contratos
         run: pip install pydantic==2.10.4
       - name: Las cifras de la documentacion siguen siendo ciertas
         run: python docs/herramientas/verificar_documentacion.py
+      # El tablero de GitHub era el unico lugar que declara el avance sin una
+      # maquina que lo cruzara contra el repositorio. `como-llenar-el-pr.md` ya
+      # advertia el modo de fallo -"Cierra H10.1" no cierra nada, GitHub solo
+      # entiende "Closes #N"- y la advertencia no bastaba.
+      #
+      # `gh` viene instalado en el runner y GITHUB_TOKEN le alcanza para leer.
+      #
+      # SOLO EN `push`, Y ESA CONDICION ES EL PUNTO
+      #
+      # Los otros seis verificadores comprueban archivos que viajan DENTRO del
+      # Pull Request: si fallan, quien abrio el PR puede arreglarlo. Este no. El
+      # tablero vive fuera del repositorio y es mutable por cualquiera.
+      #
+      # Corriendolo en `pull_request` pasa esto, y paso el 24 de agosto: el PR
+      # #158 salio en rojo porque una issue ajena estaba mal cerrada. El PR de
+      # Luna podria ponerse rojo por algo que el no toco y que quiza no tiene
+      # permiso para arreglar.
+      #
+      # En `push` a dev y main el tablero se sigue vigilando de forma continua,
+      # el aviso llega igual, y llega a quien puede corregirlo.
+      - name: El tablero de issues dice lo mismo que el repositorio
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --state all --limit 300 --json number,title,state,stateReason > /tmp/issues.json
+          python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --comandos
 
   calidad:
     name: Linter y formato
@@ -187,3 +221,66 @@ jobs:
         run: python -m backend.api.verificar_h61
       - name: Los criterios de H6.6 se cumplen
         run: python docs/herramientas/verificar_h66.py
+
+  # ------------------------------------------------------------------------- #
+  # H11.5 · Publicar el visor como sitio estatico                              #
+  # ------------------------------------------------------------------------- #
+  #
+  # POR QUE ESTA AQUI Y NO EN UN PANEL DE VERCEL
+  #
+  # La rubrica de H11.5 es CICD. Un despliegue configurado a mano en un servicio
+  # externo se evidencia con una captura de pantalla; uno que vive en este archivo
+  # lo puede reproducir cualquiera que tenga el repositorio, y queda sujeto a la
+  # misma revision que el resto del codigo.
+  #
+  # QUE NO ES
+  #
+  # No despliega la API ni la base de datos: eso sigue fuera de alcance por D-05,
+  # y la cadena real de despliegue son H11.1 a H11.4, bloqueadas por H6.0.
+  #
+  # Lo que se publica es el visor con su respaldo estatico, que es lo que D-23
+  # dejo posible sin querer: si la API no responde, el visor lee los JSON del
+  # respaldo y lo declara en pantalla.
+  #
+  # SOLO DESDE MAIN
+  #
+  # `dev` recibe trabajo a diario. Publicar desde ahi pondria cualquier PR a medio
+  # revisar en la URL que se le paso al Comite Municipal de Emergencias.
+  publicar-visor:
+    name: Publicar el visor (H11.5)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [frontend, gestion]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependencias
+        working-directory: frontend
+        run: npm ci
+      - name: Construir el visor
+        working-directory: frontend
+        run: npm run build
+      # Se vuelve a comprobar sobre el artefacto REAL que se va a subir, no sobre
+      # el repositorio. Es la unica forma de detectar que una ruta absoluta de
+      # raiz se colo en el bundle: en el codigo se ve bien y solo falla al
+      # servirla desde un subdirectorio.
+      - name: Los criterios de H11.5 se cumplen sobre el dist construido
+        run: python docs/herramientas/verificar_h115.py --dist frontend/dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+      - name: Desplegar
+        id: despliegue
+        uses: actions/deploy-pages@v4

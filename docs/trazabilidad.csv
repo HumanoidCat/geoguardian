@@ -8,7 +8,8 @@ H1.9,Control transaccional con manejo de errores,basedatos/procedimientos,test_r
 H1.10,Estrategia de respaldo probada,basedatos/respaldos,restauracion manual,docs/evidencias/bases-de-datos/,,
 H2.1,Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion,backend/senales,"test_filtros, 19 casos",docs/evidencias/senales-y-sistemas/,,pendiente reejecutar contra las series reales de H1.1
 H2.2,"Analisis espectral de estacionalidad, sobre la serie cruda (D-17)",backend/senales,test_espectro,docs/evidencias/senales-y-sistemas/,,
-H2.3,"SPI por ventana movil, sobre la serie cruda (D-17)",backend/senales,"test_spi, 21 casos",docs/evidencias/senales-y-sistemas/,,SC-02 resuelta por D-19: falta que la implementacion use el parametro `meses`
+H2.3,"SPI por ventana movil, sobre la serie cruda (D-17)",backend/senales,"test_spi, 21 casos",docs/evidencias/senales-y-sistemas/,,"SC-02 resuelta por D-19 e implementada: spi() recibe el parametro `meses`. Atribuciones cerradas el 2026-08-22 tras leer WMO-No. 1090 completo"
+H2.4,"Anomalias respecto a la normal climatologica 1991-2020, sobre la serie cruda (D-17)",backend/senales,"test_anomalias, 24 casos",docs/evidencias/senales-y-sistemas/,,SC-06 pendiente: el contrato no recibe fechas y se supone que la serie arranca en enero
 H2.7,"Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo",backend/senales,"test_percentiles, 17 casos",docs/evidencias/senales-y-sistemas/,,
 H3.0,Etiquetado de la variable objetivo,backend/modelado,test_etiquetado,docs/evidencias/,,
 H3.1,Linea base climatologica,backend/modelado,test_linea_base,docs/evidencias/,,
@@ -20,7 +21,9 @@ H5.6,Transformacion de coordenadas,frontend,test_proyeccion,docs/evidencias/comp
 H6.1,API REST documentada,backend/api,test_openapi,docs/evidencias/arquitectura-software/,,
 H8.1,Despliegue reproducible,"docker-compose.yml, infra/docker/init-db",levantado en maquina limpia,docs/evidencias/sistemas-operativos/,,
 H8.2,ETL concurrente medido,backend/etl,test_concurrencia,docs/evidencias/sistemas-operativos/,,
-H9.2,Validacion externa con SUS,docs,acta de sesion,docs/evidencias/objetivos/,,
+H1.14,Ingesta periodica con cadencia por evento,backend/etl,test_ingesta_idempotente,docs/evidencias/bases-de-datos/,,
+H9.2a,Validacion externa de usabilidad con SUS,docs,acta de sesion,docs/evidencias/objetivos/,,
+H9.2b,Contraste de la estimacion contra eventos vividos,docs,acta de sesion,docs/evidencias/objetivos/,,
 H10.1,Plan de pruebas con casos por modulo,docs/investigacion,"no aplica: es el plan, no la suite",docs/evidencias/calidad/,,
 H10.4,Manual tecnico verificado por alguien ajeno al desarrollo,docs,"los comandos de su seccion 5, ejecutados",docs/evidencias/entregables/,,En progreso: falta la verificacion externa
 H13.1,Actas de las ceremonias Scrum,docs,contraste de cada cifra contra git log y el backlog,docs/evidencias/arquitectura-software/,,
@@ -36,3 +39,4 @@ H10.8,Carpeta de evidencias organizada por materia con indice,docs/evidencias,do
 H6.6,El visor consume la API real en lugar de los JSON estaticos,"frontend/src/datos/cliente.js, backend/api",verificacion de punta a punta con la API levantada,docs/evidencias/arquitectura-software/,,
 H5.2,Cuatro o mas capas conmutables con control de opacidad,frontend,"npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
 H5.4,Mapa de calor por interpolacion IDW sobre la probabilidad,frontend,"npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
+H7.1,Semaforo de riesgo por distrito y evento con umbrales documentados,frontend,"npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
