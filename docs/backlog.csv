@@ -533,6 +533,25 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-4,avril",S2,avril,3,2.9
+H5.8,H5.8 Encuadre del mapa en el canton y marca de seleccion accesible,"Epica E5 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.1
+Sprint: S2 (semanas 6-7)
+
+Sale de la retroalimentacion del profesor sobre el visor publicado, el 24 de
+agosto: el canton ocupaba el 26 % del recuadro del mapa y la marca de seleccion
+era un trazo negro que competia con la coropleta de riesgo alto.
+
+No reabre H5.1 ni H5.3, que estan cerradas y con evidencia. Es trabajo nuevo con
+criterios escritos antes de empezar.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,avril",S2,avril,3,2.9
 H6.1,H6.1 API REST con OpenAPI y esquemas Pydantic en todos los endpoints,"Epica E6 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: Arq

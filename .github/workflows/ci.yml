@@ -149,6 +149,21 @@ jobs:
         if: steps.existe.outputs.si == 'true'
         working-directory: frontend
         run: npm run build --if-present
+      # La escala de riesgo y la marca de seleccion se comprueban por
+      # colorimetria: luminancia monotona, contraste WCAG, y que el orden
+      # sobreviva a las tres dicromacias. Lo escribio Avril con la escala.
+      #
+      # Entra al CI el 24 de agosto porque nacio apagado: 22 comprobaciones
+      # buenas que solo corrian cuando alguien se acordaba. Es el aprendizaje de
+      # I-10 -una regla que ninguna maquina comprueba se cumple mientras alguien
+      # se acuerda- aplicado al control mismo.
+      #
+      # Sin `--if-present`: si el archivo desaparece, esto tiene que salir en
+      # rojo. Un control que se salta solo se ve igual que uno que pasa, y esa
+      # es la incidencia I-06.
+      - name: La escala de riesgo cumple los criterios de accesibilidad
+        if: steps.existe.outputs.si == 'true'
+        run: python frontend/herramientas/verificar_escala.py
 
   pruebas:
     name: Pruebas contra PostgreSQL
