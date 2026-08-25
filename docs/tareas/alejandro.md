@@ -139,8 +139,13 @@
 - [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
-- [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
+- [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
+  - horas: estimada n/d (salio de una pregunta del PM, no se estimo al arrancar) . real 4.0
+  - **https://humanoidcat.github.io/geoguardian/** · evidencia en
+    `docs/evidencias/arquitectura-software/H11.5-visor-publicado.md`
+  - El tiempo de **I-10** no cuenta aca: es un defecto aparte, no alcance de esta
+    historia.
   - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
     publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
     espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite
