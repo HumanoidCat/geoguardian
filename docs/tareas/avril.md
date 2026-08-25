@@ -84,6 +84,15 @@
 
 - [x] **H5.4** · Mapa de calor por interpolacion IDW (2026-08-18)
   - `E5` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3
+  - **Su entregable se retira del visor por D-28**, el 2026-08-24. La historia
+    **queda cerrada**: se hizo, se evaluo y sus horas son reales. Lo hecho no se
+    borra.
+  - El motivo no es la implementacion: el riesgo se estima **por distrito**, y
+    interpolar entre los centroides de ocho poligonos produce valores donde no
+    hay ninguna medicion. Es el mismo criterio por el que **I-05** y **D-15**
+    descartaron a NASA POWER.
+  - El codigo queda en el historial. Si el proyecto llegara a estimar a
+    resolucion menor que el distrito, la interpolacion vuelve a tener sentido.
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
