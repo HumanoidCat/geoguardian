@@ -55,6 +55,31 @@ const NOMBRE_POR_NIVEL = {
  * Ajusta la vista para que quepan todos los distritos, sea cual sea su
  * geometria. Es un componente y no una llamada suelta porque useMap solo existe
  * dentro del arbol de MapContainer.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUE ADEMAS LE DA FORMA AL CONTENEDOR
+ * ---------------------------------------------------------------------------
+ *
+ * `fitBounds` encaja el recuadro del canton dentro del contenedor ajustando por
+ * la dimension que aprieta, y deja el sobrante en la otra. Si las dos formas no
+ * se parecen, ese sobrante es enorme.
+ *
+ * Medido sobre las geometrias del SNIT: el canton mide 31,2 km de ancho por
+ * 37,5 km de alto, o sea que es **mas alto que ancho**, relacion 0,83. El
+ * contenedor era al reves: toda la columna del mapa menos el panel, contra un
+ * alto de rejilla. En pantalla ancha daba una relacion cercana a 2,7.
+ *
+ * Resultado: el recuadro del canton ocupaba **el 26 % del area del mapa** y los
+ * poligonos el 19 %. El resto era Liberia, Bagaces, Canas y el Pacifico. Lo
+ * senalo el profesor al ver el sitio publicado.
+ *
+ * El arreglo no es mover el encuadre: es **darle al contenedor la forma del
+ * canton**, calculada del mismo recuadro que ya se usa para encuadrar. No hay
+ * ninguna coordenada escrita a mano, y si las geometrias cambiaran otra vez, la
+ * forma se recalcula sola.
+ *
+ * El alto lleva tope en el CSS, atado al alto de la ventana: antes de esto el
+ * mapa ya salia de la pantalla y habia que desplazarse para verlo entero.
  */
 function AjustarEncuadre({ coleccion }) {
   const mapa = useMap()
@@ -64,6 +89,19 @@ function AjustarEncuadre({ coleccion }) {
 
     const limites = L.geoJSON(coleccion).getBounds()
     if (!limites.isValid()) return
+
+    // La relacion de aspecto se mide sobre el recuadro PROYECTADO y no sobre
+    // grados. Un grado de longitud y uno de latitud no miden lo mismo, y a la
+    // latitud de Tilaran la diferencia es de un 9 %: usar grados deformaria el
+    // contenedor justo en la direccion que estamos tratando de corregir.
+    const suroeste = L.CRS.EPSG3857.project(limites.getSouthWest())
+    const noreste = L.CRS.EPSG3857.project(limites.getNorthEast())
+    const anchoCanton = Math.abs(noreste.x - suroeste.x)
+    const altoCanton = Math.abs(noreste.y - suroeste.y)
+    if (!(anchoCanton > 0) || !(altoCanton > 0)) return
+
+    const aspecto = anchoCanton / altoCanton
+    mapa.getContainer().style.setProperty('--mapa-aspecto', String(aspecto))
 
     // El contenedor del mapa todavia esta creciendo cuando este efecto corre.
     // Leaflet mide el tamano que hay en ese instante, y si es mas chico que el
@@ -80,26 +118,84 @@ function AjustarEncuadre({ coleccion }) {
     // sobre media provincia. El de fondo, peor: el mapa le peleaba a la persona.
     // Si alguien hacia zoom sobre un distrito y prendia una capa, la vista se
     // reseteaba sola. Una vista que el usuario eligio no se pisa.
-    let encuadrado = false
+    // CUANDO se encuadra. Tres versiones fallaron antes de esta, y cada una
+    // enseno cual era de verdad la condicion.
+    //
+    // 1. Encuadrar al montar: el contenedor todavia no tiene tamano y Leaflet
+    //    elige un zoom para un mapa de 0 px.
+    // 2. Encuadrar al primer tamano utilizable: el contenedor crece por pasos
+    //    mientras la rejilla de CSS resuelve ancho y alto, y encuadrar en el
+    //    primer paso que supere un minimo deja el canton diminuto. Se vio: media
+    //    Centroamerica en pantalla.
+    // 3. Encuadrar cuando el tamano deja de cambiar por un rato: mejor, pero el
+    //    contenedor sigue creciendo despues de ese rato -las teselas cargan, el
+    //    panel de al lado cambia de alto, la rejilla recalcula- y el encuadre
+    //    queda ajustado a un tamano que ya no existe. Medido: el canton ocupaba
+    //    el 52 % del mapa en vez del 88 % que el contenedor permitia.
+    //
+    // La condicion correcta no es de tiempo ni de tamano: **es de quien manda la
+    // vista.** Mientras nadie haya tocado el mapa, la vista es nuestra y se
+    // reencuadra cada vez que el contenedor cambia. En cuanto la persona
+    // arrastra, hace zoom o usa el teclado, la vista pasa a ser suya y no se
+    // vuelve a tocar.
+    //
+    // Eso conserva la leccion de H5.1 -una vista que el usuario eligio no se
+    // pisa- que la version original resolvia encuadrando una sola vez, sin notar
+    // que el problema no era encuadrar dos veces sino encuadrar DESPUES de que
+    // alguien eligio.
+    const ESPERA_MS = 120
+
+    const contenedor = mapa.getContainer()
+    let laVistaEsDelUsuario = false
     let observador = null
+    let plazo = null
 
-    const ajustarUnaVez = () => {
-      if (encuadrado) return
+    const encuadrar = () => {
+      if (laVistaEsDelUsuario) return
 
-      const { clientWidth, clientHeight } = mapa.getContainer()
+      const { clientWidth, clientHeight } = contenedor
       if (clientWidth < 50 || clientHeight < 50) return
 
       mapa.invalidateSize()
-      mapa.fitBounds(limites, { padding: [32, 32] })
-      encuadrado = true
-      observador?.disconnect()
+      // 16 px y no 32: el margen ya no hace falta para compensar la diferencia
+      // de forma entre el contenedor y el canton, y cada pixel de margen es
+      // area que el canton no ocupa.
+      mapa.fitBounds(limites, { padding: [16, 16] })
     }
 
-    observador = new ResizeObserver(ajustarUnaVez)
-    observador.observe(mapa.getContainer())
-    ajustarUnaVez()
+    const reencuadrarPronto = () => {
+      if (laVistaEsDelUsuario) return
+      clearTimeout(plazo)
+      plazo = setTimeout(encuadrar, ESPERA_MS)
+    }
 
-    return () => observador?.disconnect()
+    // Eventos del DOM y no de Leaflet: `zoomstart` y `movestart` los dispara
+    // tambien nuestro propio `fitBounds`, asi que la primera vez que
+    // encuadraramos nos declarariamos usuario a nosotros mismos.
+    const cederLaVista = () => {
+      laVistaEsDelUsuario = true
+      clearTimeout(plazo)
+      observador?.disconnect()
+      contenedor.removeEventListener('pointerdown', cederLaVista)
+      contenedor.removeEventListener('wheel', cederLaVista)
+      contenedor.removeEventListener('keydown', cederLaVista)
+    }
+
+    contenedor.addEventListener('pointerdown', cederLaVista)
+    contenedor.addEventListener('wheel', cederLaVista, { passive: true })
+    contenedor.addEventListener('keydown', cederLaVista)
+
+    observador = new ResizeObserver(reencuadrarPronto)
+    observador.observe(contenedor)
+    reencuadrarPronto()
+
+    return () => {
+      observador?.disconnect()
+      clearTimeout(plazo)
+      contenedor.removeEventListener('pointerdown', cederLaVista)
+      contenedor.removeEventListener('wheel', cederLaVista)
+      contenedor.removeEventListener('keydown', cederLaVista)
+    }
   }, [coleccion, mapa])
 
   return null
@@ -200,6 +296,12 @@ export default function MapaCanton({
     const nivel = nivelDe(codigo)
     const descripcion = nivel ? NOMBRE_POR_NIVEL[nivel] : 'sin estimacion'
 
+    // El halo de la seleccion se dibuja por fuera del poligono, asi que el
+    // vecino que se pinte despues lo tapa. Sin esto, un distrito seleccionado se
+    // ve resaltado por los lados que dan al exterior del canton y plano por los
+    // que dan a otro distrito, que se lee como un defecto de dibujo.
+    if (codigo === seleccionado) capa.bringToFront()
+
     capa.bindTooltip(`${nombre} (${codigo}) · ${descripcion}`, { sticky: true })
 
     capa.on('click', () => alSeleccionar(codigo))
@@ -254,6 +356,17 @@ export default function MapaCanton({
       <MapContainer
         center={CENTRO_PROVISIONAL}
         zoom={ZOOM_PROVISIONAL}
+        // Leaflet redondea el zoom a niveles enteros, y `fitBounds` redondea
+        // hacia abajo para no cortar nada. Entre un nivel y el siguiente hay un
+        // factor de 2, asi que en el peor caso el canton queda a la mitad de
+        // escala y sobra margen por los cuatro lados: medido en la captura de
+        // antes, ocupaba el 54 % del mapa en vez del 88 % que permitia el
+        // contenedor.
+        //
+        // Con 0.1 el redondeo cuesta como mucho un 7 % de escala. No se pone 0
+        // -zoom continuo- porque las teselas se sirven por nivel entero y a
+        // escalas arbitrarias el texto del mapa base se ve borroso.
+        zoomSnap={0.1}
         scrollWheelZoom
         className="mapa"
       >
