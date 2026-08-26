@@ -66,14 +66,38 @@ con la versión vieja produce un archivo que parece correcto y no lo es. Ver
 
 | Lo que se escribe | Qué pasa |
 |---|---|
-| `Closes #23` | GitHub cierra la issue al mergear |
-| "Cierra H10.1" | **La issue queda abierta y el tablero miente** |
+| `Closes #23` | GitHub la enlaza, y la cierra **al llegar a `main`** |
+| "Cierra H10.1" | **GitHub no entiende nada y la issue queda huérfana** |
 
 El número se busca así:
 
 ```bash
 gh issue list --search "H1.9" --json number,title
 ```
+
+### 5b. Y se cierra a mano al mergear a `dev`
+
+**`Closes #N` no cierra la issue cuando el PR se fusiona a `dev`.** GitHub solo
+cierra al fusionar a la **rama por omisión**, que acá es `main`.
+
+Como todo el trabajo pasa por `dev` primero, entre un merge y el siguiente
+`dev` → `main` **el tablero muestra abiertas historias que ya están cerradas**.
+Pueden ser días, y es justo cuando alguien de afuera lo mira.
+
+Así que después de mergear a `dev`:
+
+```bash
+gh issue close 23 --comment "Cerrada por H1.9, marcada en docs/tareas/."
+```
+
+El enlace `Closes #N` **igual se pone**: deja el rastro entre la issue y el Pull
+Request, que es lo que sirve dentro de un mes para saber qué la cerró.
+
+> **Por qué esto está escrito.** Hasta el 25 de agosto este documento decía que
+> `Closes #N` cerraba la issue al mergear, sin aclarar a dónde. Era falso en este
+> repositorio, y el resultado fue que **cada merge a `dev` dejaba una issue
+> abierta y el CI en rojo**. Una regla escrita que no describe lo que pasa es
+> peor que ninguna: manda a esperar algo que no va a ocurrir.
 
 ### 6. Comprobar antes de pedir revisión
 
@@ -93,9 +117,19 @@ Pasa: alguien olvida el `Closes #N`, o la historia se cierra en dos PR. Se
 detecta y se arregla:
 
 ```bash
+git checkout dev && git pull          # <- esto no es opcional, ver abajo
 gh issue list --state all --limit 300 --json number,title,state,stateReason > issues.json
 python docs/herramientas/verificar_issues.py --issues issues.json --comandos
 ```
+
+**Se corre desde `dev` o desde `main`, nunca desde una rama de trabajo.** El
+avance se lee de `docs/tareas/` del árbol de trabajo, y el tablero es uno solo
+para todo el repositorio: desde una rama atrasada, una historia ya cerrada figura
+sin marcar y el verificador **no reclama su issue abierta**. Da verde cuando
+debería dar rojo.
+
+Pasó el 25 de agosto, y por eso el programa ahora **se planta** si la rama no es
+una de esas dos.
 
 `issues.json` está en `.gitignore` y **no se versiona**: es una foto del tablero
 en un instante. Si entrara al repositorio sería un quinto lugar declarando el
