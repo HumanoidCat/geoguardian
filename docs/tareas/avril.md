@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 94 puntos · 115 horas · 11.5 h por semana en promedio
+**Total asignado:** 97 puntos · 117.5 horas · 11.8 h por semana en promedio
 
 ## Carga por sprint
 
@@ -36,7 +36,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 2.9 | 36 | holgado |
 | S1 | semanas 4-5 | 19.3 | 36 | holgado |
-| S2 | semanas 6-7 | 30.8 | 36 | ajustado |
+| S2 | semanas 6-7 | 33.7 | 36 | ajustado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
 | S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 
@@ -58,7 +58,7 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 30.8 h
+## Sprint 2 (semanas 6-7) — 33.7 h
 
 - [ ] **H10.3** · Manual de usuario con capturas paso a paso
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
@@ -71,6 +71,13 @@
 
 - [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
+
+- [ ] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible
+  - `E5` · 3 pts · 2.9 h · rubrica: CG-1 · depende de: H5.1
+  - Sale de la retroalimentacion del profesor sobre el visor publicado, el
+    2026-08-24. Ver `docs/evidencias/computacion-grafica/`.
+  - **No reabre H5.1 ni H5.3**, que estan cerradas y con evidencia. Es trabajo
+    nuevo con criterios escritos antes de empezar.
 
 - [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
