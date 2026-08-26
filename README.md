@@ -58,9 +58,29 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 > porque `scipy` intenta compilarse desde fuente y falla.
 
     cp .env.example .env
+
+    # 1. La base. Es lo unico que levanta docker compose.
     docker compose up -d
-    # La API queda en http://localhost:8000/docs
-    # El visor queda en http://localhost:5173
+
+    # 2. Las tablas. NO las crea compose: los guiones de init-db solo hacen
+    #    extensiones y esquemas, y corren una sola vez.
+    python -m basedatos.aplicar_migraciones
+
+    # 3. Los datos.
+    python -m backend.etl.cargar_distritos     # 8 distritos del SNIT
+    python -m backend.etl.cargar_mediciones    # series climaticas, ~11 min
+    python -m backend.etl.cargar_focos         # focos de calor de FIRMS
+
+    # 4. El visor, en otra terminal. Sale de Vite, no de compose.
+    cd frontend && npm install && npm run dev  # http://localhost:5173
+
+> **`docker compose up -d` levanta la base y nada mas.** No hay servicio de API
+> ni de frontend en `docker-compose.yml`: los Dockerfile son la historia H6.0 y
+> el despliegue completo son H11.1 a H11.4. Mientras tanto la API se levanta a
+> mano con `uvicorn` y el visor con Vite.
+>
+> Detalle de cada paso, con los errores ya documentados, en
+> `docs/10-manual-tecnico.md`, seccion 4.
 
 ## Estructura
 

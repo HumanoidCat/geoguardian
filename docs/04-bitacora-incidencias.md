@@ -759,6 +759,86 @@ Emergencias de Tilaran con el canton dibujado como un tablero de ajedrez.**
 
 ---
 
+## I-11 · Diez anios sin satelite etiquetados como «no hubo incendio»
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, escribiendo los criterios de aceptacion de H3.2
+—**no** revisando H3.0, que ya estaba en revision con sus 31 comprobaciones en
+verde.
+
+**Que paso.** El etiquetado de H3.0 producia 99 296 filas desde 1991-01-01. La
+etiqueta de incendio salia de contar focos de calor en la ventana `(t, t+7]`:
+
+    return NivelRiesgo.ALTO if focos_en_ventana >= 1 else NivelRiesgo.BAJO
+
+**El archivo de focos empieza en 2001.** MODIS Terra/Aqua coleccion 6.1 no tiene
+observacion operacional antes de finales del 2000, y los 242 focos que R16 midio
+para este canton van de 2001 a 2024.
+
+Asi que para toda fecha anterior a 2001 la cuenta daba cero —correctamente, no
+hay focos cargados— y la funcion devolvia **BAJO**. No «no se sabe»: **«no hubo
+incendio»**, afirmado sobre una decada que ningun satelite miro.
+
+| | |
+|---|---|
+| Filas de 1991-01-01 a 2000-12-31 | 3 653 fechas x 8 distritos = **29 224** |
+| Del conjunto etiquetado | **29,4 %** |
+| ALTO sobre las 99 296 filas | 0,87 % |
+| ALTO sobre las 70 072 **observadas** | **1,23 %** |
+
+**Causa raiz.** La misma forma que I-04 y que I-10: cada pieza correcta por
+separado, y ninguna maquina cruzandolas.
+
+| Pieza | Estaba bien? |
+|---|---|
+| La serie climatica de CHIRPS arranca en 1991 | **Si**, D-15 |
+| El cargador de focos trae lo que FIRMS publica, que empieza en 2001 | **Si** |
+| `nivel_incendio` devuelve BAJO con cero focos | **Si**, D-25 |
+| Etiquetar el rango completo de la precipitacion | **No**, y nadie lo comprobaba |
+
+Lo agudo es que **H3.0 tenia el criterio escrito**. CA-8 dice, textualmente, que
+la ausencia de dato no se convierte en una clase, y su comprobacion la aplicaba
+a la precipitacion y al SPI —donde si funcionaba, 664 filas de sequia salen
+`None`— **y no al incendio**. El criterio estaba, la maquina estaba, y el caso
+que faltaba era justo el unico de los tres eventos que depende de una fuente con
+otra fecha de inicio.
+
+**Como se detecto.** Contando episodios de incendio por pliegue para el criterio
+CA-4 de H3.2. La cuenta obligaba a preguntar de que anios sale cada episodio, y
+la respuesta fue que del primer bloque de la ventana expansiva no sale ninguno,
+porque en 1991-1996 no hay satelite.
+
+**Que se cambio.**
+
+1. `COBERTURA_FOCOS = (2001-01-01, 2024-12-31)` en `backend/modelado/etiquetado.py`,
+   declarada como constante con su motivo. **No se infiere del dato cargado**:
+   inferirla del minimo de las detecciones diria que un distrito sin focos nunca
+   fue observado, que es la misma confusion en otra direccion.
+2. `nivel_incendio` recibe `ventana_observada` y devuelve **None** si la ventana
+   `(t, t+7]` no cae entera dentro de la cobertura.
+3. Seis comprobaciones nuevas en `verificar_h30.py`, criterio **CA-8b**,
+   incluidos los dos bordes: la ventana que asoma un dia por fuera no se
+   etiqueta, y la primera que cae entera adentro si.
+4. `generar_etiquetas.py` informa el porcentaje de la clase minoritaria **sobre
+   las filas observadas**, ademas de sobre el total.
+
+**Impacto.** Ninguna hora perdida, porque se detecto con el Pull Request todavia
+abierto. El costo evitado si es grande: un modelo entrenado con esas filas habria
+aprendido que **la decada de los noventa era segura**, sobre un evento cuya clase
+minoritaria es del 1 %. Y como esas filas son el 29 % del conjunto, cualquier
+metrica de exactitud habria salido mejor de lo que corresponde sin que ningun
+verificador se quejara.
+
+**La regla que deja.** Cuando dos fuentes con **fechas de inicio distintas** se
+juntan en una misma tabla, la mas corta manda sobre su columna, y eso se declara
+como constante y se comprueba. H3.0 ya lo habia hecho por el lado derecho de la
+serie —`ULTIMO_ANIO = 2024`, porque los focos terminan antes que CHIRPS— y no
+por el izquierdo. **Una cota puesta en un extremo invita a suponer que el otro no
+hace falta.**
+
+---
+
 ## I-12 · Un guardarrail correcto conectado a la condicion equivocada dejo el CI en rojo por diseno
 
 **Fecha.** 2026-08-26
