@@ -138,6 +138,14 @@ def main() -> int:
         action="store_true",
         help="corre igual desde una rama de trabajo, sabiendo que el resultado no vale",
     )
+    p.add_argument(
+        "--corregir",
+        action="store_true",
+        help=(
+            "cierra por `gh` las issues de historias ya marcadas [x], en vez de "
+            "solo reclamarlas. Las otras tres discrepancias se siguen reportando."
+        ),
+    )
     args = p.parse_args()
 
     # ----------------------------------------------------------------------- #
@@ -258,7 +266,74 @@ def main() -> int:
         if len(sin_historia) > 5:
             print(f"    ... y {len(sin_historia) - 5} mas")
 
-    if args.comandos and hay_que_cerrar:
+    # ----------------------------------------------------------------------- #
+    # Corregir en vez de reclamar
+    # ----------------------------------------------------------------------- #
+    #
+    # SOLO ESTA DISCREPANCIA SE CORRIGE SOLA, Y HAY UNA RAZON
+    #
+    # "Historia marcada [x], issue abierta" es la unica de las cuatro donde el
+    # arreglo correcto no admite duda: **manda `docs/tareas/`**, y eso ya esta
+    # decidido en `docs/15-cerrar-una-historia.md`. Cerrar la issue no decide
+    # nada, ejecuta una decision tomada.
+    #
+    # Las otras tres siguen fallando y esperando a una persona:
+    #
+    #   - issue cerrada sin historia marcada  -> el tablero adelanta al repo, y
+    #                                            marcarla seria hacer mentir a la
+    #                                            fuente de verdad
+    #   - historia sin issue                  -> hay que redactarle un cuerpo
+    #   - dos issues para la misma historia   -> hay que elegir cual sobra
+    #
+    # POR QUE EXISTE ESTO
+    #
+    # Con `Closes #N` inerte en `dev` -GitHub solo cierra al fusionar a la rama
+    # por omision- **toda fusion de una historia a `dev` dejaba el CI en rojo
+    # hasta que alguien se acordaba de cerrar la issue a mano**. Y no habia orden
+    # que lo evitara: cerrar antes de fusionar dispara la discrepancia contraria.
+    #
+    # Paso con #165, con #170, y le iba a pasar a cada persona del equipo esta
+    # semana. Un control que exige un ritual manual despues de cada merge no se
+    # cumple: se desactiva mentalmente, y entonces deja de avisar cuando importa.
+    if args.corregir and hay_que_cerrar:
+        import subprocess
+
+        print(f"\n  {len(hay_que_cerrar)} issues por cerrar. Cerrandolas:\n")
+        for identificador, issue in hay_que_cerrar:
+            motivo = (
+                f"Cerrada automaticamente al fusionar {identificador} a `dev`.\n\n"
+                "La historia esta marcada [x] en `docs/tareas/`, que es la fuente de "
+                "verdad del avance segun `docs/15-cerrar-una-historia.md`.\n\n"
+                "Se cierra desde el CI porque `Closes #N` solo dispara al fusionar a "
+                "`main`, y entre un merge a `dev` y el siguiente el tablero mostraba "
+                "abiertas historias ya cerradas."
+            )
+            try:
+                r = subprocess.run(
+                    ["gh", "issue", "close", str(issue["number"]), "--comment", motivo],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+            except FileNotFoundError:
+                # Pasa corriendolo a mano en una maquina sin `gh`. En el runner
+                # viene instalado. Se dice y se sigue reclamando, que es el
+                # comportamiento de antes: nunca se traga la discrepancia.
+                print("    `gh` no esta instalado. Las discrepancias se reportan sin corregir.")
+                print("    Instalarlo desde https://cli.github.com o usar --comandos.\n")
+                break
+            except subprocess.SubprocessError as error:
+                print(f"    #{issue['number']:<5} {identificador:8} FALLO: {error}")
+                continue
+
+            estado = "cerrada" if r.returncode == 0 else f"FALLO: {r.stderr.strip()[:60]}"
+            print(f"    #{issue['number']:<5} {identificador:8} {estado}")
+            if r.returncode == 0:
+                problemas.remove(
+                    f"{identificador} esta marcada [x] y su issue #{issue['number']} sigue abierta"
+                )
+
+    elif args.comandos and hay_que_cerrar:
         print(f"\n  {len(hay_que_cerrar)} issues por cerrar. Los comandos:\n")
         for identificador, issue in hay_que_cerrar:
             print(

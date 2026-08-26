@@ -902,3 +902,103 @@ hay que revisar de nuevo donde se lo invoca.** Un guardarrail nuevo no solo
 cambia lo que el programa hace: cambia el costo de cada lugar desde el que se lo
 llama. Y en este repositorio hay un sitio donde eso quedo escrito y no se
 releyo: **el comentario del propio paso ya decia la condicion correcta.**
+
+---
+
+## I-13 · El cierre de issues en `dev` exigia un ritual manual que ningun orden podia satisfacer
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, despues de que el mismo rojo apareciera por
+tercera vez.
+
+**Que paso.** **Cada fusion de una historia a `dev` dejaba el CI en rojo.** No
+por el codigo: por el tablero.
+
+`Closes #N` esta inerte en `dev`, porque GitHub solo cierra al fusionar a la
+**rama por omision**, que aca es `main`. Asi que despues de cada merge quedaba un
+`gh issue close` a mano, y hasta que alguien se acordara el trabajo `gestion`
+fallaba.
+
+**Y no habia orden que lo evitara.** Esa es la parte que convierte esto de
+molestia en defecto:
+
+| Cuando se cerraba la issue | Que discrepancia disparaba |
+|---|---|
+| **Antes** de fusionar | «issue cerrada y la historia no esta marcada [x]» |
+| **Despues** de fusionar | «historia marcada [x] y su issue sigue abierta» |
+
+Siempre existia una ventana en rojo. Paso con **#165**, con **#170**, y le iba a
+pasar a cada persona del equipo esta semana, cuando cierren sus historias del
+Sprint 2.
+
+**Causa raiz.** El proceso escrito le pedia a una persona ejecutar una decision
+que **ya estaba tomada**. `docs/15-cerrar-una-historia.md` dice, sin ambiguedad,
+que `docs/tareas/` es la fuente de verdad y que el tablero se corrige contra el.
+Con eso decidido, cerrar la issue de una historia marcada `[x]` no decide nada:
+es la aplicacion mecanica de una regla.
+
+Y el paso 5b del documento **describia correctamente el problema** —incluso
+explicaba por que `Closes #N` no dispara en `dev`— sin notar que la solucion que
+proponia era imposible de aplicar sin pasar por rojo.
+
+**Que se cambio.**
+
+1. `verificar_issues.py --corregir`: cierra por `gh` las issues de historias
+   marcadas `[x]`, con el motivo escrito y la razon del cierre automatico.
+2. El CI usa `--corregir` **solo en `dev`**. En `main` sigue reclamando, porque
+   ahi `Closes #N` funciona solo y una issue abierta significa que el Pull
+   Request no llevaba el enlace: eso si merece que una persona lo mire.
+3. El trabajo `gestion` pasa a `issues: write`.
+4. El paso 5b del proceso se reescribio: ya no le pide nada a nadie.
+
+**Solo esa discrepancia se corrige sola.** Las otras tres siguen fallando y
+esperando a una persona, porque en las tres el arreglo admite duda:
+
+  * una issue cerrada sin historia marcada haria **mentir a la fuente de verdad**
+    si se corrigiera en automatico;
+  * una historia sin issue necesita que alguien le redacte el cuerpo;
+  * dos issues para la misma historia necesitan que alguien elija cual sobra.
+
+**Impacto.** Tres runs en rojo, y peor: un rato largo buscando la causa en el
+tablero —se cerraron issues, se creo una duplicada que hubo que retirar— cuando
+el defecto estaba en el proceso.
+
+**Y un efecto lateral que hay que saber leer: estos runs no se pueden re-ejecutar.**
+
+Un *Re-run* de GitHub vuelve a correr el CI **sobre el commit original**, no sobre
+`dev` de hoy. Y este verificador compara dos cosas de distinta naturaleza:
+
+    el arbol    congelado en ese commit
+    el tablero  vivo, el de este momento
+
+Asi que un run viejo **queda en rojo para siempre**, y la brecha crece con cada
+historia que se cierra:
+
+| Commit | historias `[x]` en ese arbol | le faltan respecto a hoy |
+|---|---|---|
+| `6c21221` merge #163 | 25 | 2 |
+| `ee9b31c` merge #165 | 26 | 1 |
+| `817ed59` merge #166 | 26 | 1 |
+| `dev` hoy | 27 | 0 |
+
+Corrido el verificador de hoy contra el arbol de `817ed59` sale, correctamente:
+
+    la issue #46 de H3.0 esta cerrada y la historia no esta marcada [x]
+
+Claro: el 25 de agosto H3.0 no existia. **Un arbol viejo no puede coincidir con un
+tablero nuevo.**
+
+**Solo tiene sentido mirar el ultimo run de `dev` y el ultimo de `main`.** Los
+anteriores son fotos de un instante que ya paso. Los otros seis verificadores si
+son re-ejecutables, porque comparan archivos contra archivos **dentro del mismo
+commit**; este es el unico que lee estado externo mutable, y esa es la diferencia.
+
+Se anota porque el historial de Actions se ve lleno de rojo y **no lo esta**: el
+2026-08-26 se perdio un rato dandole Re-run a cuatro runs que no podian cambiar.
+
+**La regla que deja.** **Un control que exige un ritual manual despues de cada
+merge no se cumple: se desactiva mentalmente.** Y un control que la gente aprende
+a ignorar es peor que no tenerlo, porque el dia que avise de algo real nadie va a
+mirar. Si una regla ya esta decidida y su aplicacion es mecanica, **la ejecuta la
+maquina**; lo que se le deja a una persona es lo que requiere criterio.
