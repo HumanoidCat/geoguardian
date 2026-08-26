@@ -65,6 +65,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H5.2 | Cuatro o mas capas conmutables con control de opacidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.2-capas-conmutables.md | CG-4 | Avril | **Con evidencia** |
 | H5.4 | Mapa de calor por interpolacion IDW sobre la probabilidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.4-mapa-calor.md | CG-1 | Avril | **Con evidencia** |
 | H7.1 | Semaforo de riesgo por distrito y evento con umbrales documentados | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H7.1-semaforo.md | CG-2 | Avril | **Con evidencia** |
+| H11.5 | Publicar el visor como sitio estatico con datos declarados simulados | .github/workflows/ci.yml, frontend/vite.config.js, frontend/src/datos/cliente.js | docs/herramientas/verificar_h115.py, 22 comprobaciones sobre el dist construido | docs/evidencias/arquitectura-software/H11.5-visor-publicado.md | CICD | Alejandro | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.

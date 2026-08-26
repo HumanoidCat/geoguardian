@@ -39,6 +39,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 | D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
+| D-28 | Se retira el mapa de calor: interpola donde no hay medicion | Aceptada | 2026-08-24 |
 
 ---
 
@@ -2671,6 +2672,126 @@ del encargo a Luna.
 **Criterio de revision.** Se vuelve sobre este registro en la retrospectiva del
 Sprint 3, con si o con no. Si la respuesta es no, se anota aqui y se cierra: un
 diferido que se arrastra sin decision es peor que uno descartado.
+
+---
+
+## D-28 · Se retira el mapa de calor: interpola donde no hay medicion
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-24
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** El profesor del curso, mirando el visor publicado
+**Afecta.** El entregable de **H5.4**, que queda cerrada. Ver mas abajo.
+
+### Contexto
+
+El visor publicado tenia una capa conmutable descrita en pantalla asi:
+
+> *"Mapa de calor · Probabilidad interpolada entre los ocho distritos"*
+
+El profesor la señalo al ver el sitio, el 24 de agosto. Es la primera valoracion
+del sistema por alguien de afuera del equipo: **H9.2a**, la validacion externa
+planificada, todavia no ocurrio. Queda en
+`docs/evidencias/computacion-grafica/retroalimentacion-docente-visor-2026-08-24.md`.
+
+Al revisarla aparecieron **dos problemas de distinto peso**.
+
+**El visible.** La capa se pintaba sobre el **rectangulo que encierra al canton**,
+con los bordes rectos a la vista, desbordando sobre cantones vecinos. Eso es un
+defecto de implementacion y se arregla recortando.
+
+**El de fondo, y es el que decide.** El riesgo se estima **por distrito**: un
+valor por poligono. Interpolar por distancia inversa entre los centroides de ocho
+poligonos **produce valores intermedios donde no hay ninguna medicion**, y los
+pinta como un campo continuo.
+
+Hay un paso silencioso ahi que es el error real: **tratar un agregado distrital
+como si fuera una medicion puntual en el centroide**. El dato no dice que el
+riesgo en el centro del distrito sea el que muestra; dice que el distrito
+completo tiene ese nivel.
+
+### Decision
+
+**Se retira la capa del visor.** No se arregla el rectangulo.
+
+Con ella salen `CapaMapaCalor.jsx`, `LeyendaMapaCalor.jsx`, `interpolacion.js` y
+sus enganches en `App.jsx`, `MapaCanton.jsx`, `ControlCapas.jsx` y `capasBase.js`.
+Es trabajo de Avril: se le pide, no se hace.
+
+**H5.4 queda marcada `[x]`.** Lo hecho no se borra: la historia se hizo, se
+evaluo y sus horas son reales. Se le agrega una nota de revision que apunta aca.
+El trimestre se califica por contribucion individual, y retirar un entregable no
+retira el trabajo de quien lo construyo.
+
+### Justificacion
+
+**Por que esto no es una cuestion de gusto.** Es el mismo principio que el
+proyecto ya defendio tres veces del otro lado:
+
+| Registro | Que se rechazo | Por que |
+|---|---|---|
+| **I-05**, **D-15** | NASA POWER para precipitacion | su celda no distinguia entre distritos |
+| **D-21** | leer `probabilidad` como confianza | decia mas de lo que el numero sostiene |
+| **D-22** | imputar faltantes que no existian | rellenar donde no hay dato |
+
+**Rechazar una fuente por no resolver el canton y despues pintar un degradado
+suave entre ocho valores no cierra.** Si el argumento contra POWER era que 68 km
+de celda no permiten hablar por distrito, un mapa de calor que sugiere variacion
+*dentro* del distrito afirma todavia mas.
+
+**Por que retirar en vez de etiquetar.** La alternativa era arreglar el
+rectangulo y agregar a la leyenda que la interpolacion es visual. Se descarta
+porque **el problema no es que no se avise, es que se muestra**. Un degradado
+continuo comunica resolucion espacial antes de que nadie lea la leyenda, y este
+visor esta destinado al Comite Municipal de Emergencias.
+
+**Por que ahora.** El sitio es publico desde el 20 de agosto y el Primer Avance
+es esta semana.
+
+### Alternativas descartadas
+
+**Recortar la capa contra los poligonos y dejarla.** Arregla lo que se ve y deja
+lo que importa. Ademas quedaria mas convincente, que es peor.
+
+**Interpolar solo dentro de cada distrito.** Un valor constante por poligono no
+tiene nada que interpolar: daria exactamente la coropleta de **H5.3**, con mas
+codigo.
+
+**Esperar a tener modelo entrenado.** No cambia nada. El problema no es que los
+valores sean simulados, es que la estimacion es distrital cualquiera sea su
+origen.
+
+### Consecuencias
+
+**Lo que se gana.** El visor deja de afirmar resolucion espacial que el dato no
+tiene, antes de que lo vea el Comite Municipal.
+
+**Lo que se pierde, y conviene decirlo con numeros.** H5.4 son **8 puntos y
+12,5 horas** ya invertidas, con rubrica **CG-1**. La rubrica no queda huerfana:
+**H5.3** la cubre cerrada y **H5.6** sigue abierta. Pero es trabajo hecho que
+sale de pantalla.
+
+**Lo que se conserva.** El codigo no se borra del historial. Si alguna vez el
+proyecto midiera a resolucion sub-distrital —una malla CHIRPS, por ejemplo, que
+reparte el canton en unas 36 celdas segun **D-15**— la interpolacion volveria a
+tener sentido y el codigo esta en git.
+
+**Lo que hay que revisar.** El documento IEEE menciona el mapa de calor entre las
+capas del visor. Hay que corregirlo antes de entregarlo.
+
+### Medicion
+
+La captura del defecto:
+`docs/evidencias/computacion-grafica/mapa-calor-rectangulo-2026-08-24.png`
+
+Se comprueba de dos formas cuando Avril lo retire:
+
+1. `frontend/dist/assets/*.js` **no menciona la interpolacion** tras construir
+2. El control de capas del visor no ofrece la opcion
+
+**Criterio de revision.** Se vuelve sobre esta decision **solo si el proyecto
+empieza a estimar a resolucion menor que el distrito**. Mientras la unidad de
+estimacion sea el distrito, no hay nada que interpolar.
 
 ---
 

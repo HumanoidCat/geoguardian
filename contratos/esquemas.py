@@ -80,14 +80,62 @@ class IndiceDerivado(_Base):
 
 
 class FocoCalor(_Base):
-    """Deteccion de foco de calor. Etiqueta de la variable objetivo de incendio."""
+    """Deteccion de foco de calor. Etiqueta de la variable objetivo de incendio.
+
+    `brillo_k` NO ES COMPARABLE ENTRE SENSORES
+    ------------------------------------------
+
+    Es temperatura de brillo **integrada sobre el pixel**, y el pixel no mide lo
+    mismo en los dos sensores de la serie: **1 km en MODIS, 375 m en VIIRS**. El
+    mismo incendio ocupa una fraccion mucho mayor de un pixel de 375 m, asi que
+    **lee mas caliente en VIIRS aunque el fuego sea identico**.
+
+    Quien use esta columna sobre la serie completa tiene que **meter `satelite`
+    como covariable o restringir la serie a una era**. Un modelo entrenado sobre
+    las dos sin esa precaucion aprende el cambio de sensor y lo llama senal.
+
+    Es el mismo defecto que **D-25** midio en la frecuencia -el salto de 2,1x al
+    entrar VIIRS en 2012- pero en la magnitud. Ver **SC-06**.
+
+    Emparejamiento de bandas, verificado contra la documentacion oficial:
+
+        infrarrojo medio   MODIS `brightness`   canal 21/22   3,9 a 4 um
+                           VIIRS `bright_ti4`   canal I-4     3,55 a 3,93 um
+
+        infrarrojo largo   MODIS `bright_t31`   canal 31      11 um
+                           VIIRS `bright_ti5`   canal I-5     no publicada
+
+    **La longitud de onda del I-5 no esta declarada** en la documentacion de
+    FIRMS que se pudo consultar: ese emparejamiento se sostiene por nombre y por
+    funcion, no porque se haya verificado.
+
+    `confianza`
+    -----------
+
+    Porcentaje de 0 a 100. Los cortes en clases los publica el proveedor, en la
+    **Tabla 10** del *MODIS Collection 6 Active Fire Product User's Guide,
+    Revision C* (Giglio, Schroeder, Hall y Justice, University of Maryland,
+    diciembre de 2020):
+
+        0 %  <= C <  30 %   low
+        30 % <= C <  80 %   nominal
+        80 % <= C <= 100 %  high
+
+    **No es criterio de equipo, es la clasificacion de la fuente.** El manual
+    permite descartar las detecciones de confianza baja para reducir falsas
+    alarmas; este proyecto **no filtra**: guarda todas con su categoria, porque
+    filtrar despues es una consulta y recargar no.
+    """
 
     fecha: date
     latitud: float = Field(ge=-90, le=90)
     longitud: float = Field(ge=-180, le=180)
     confianza: int | None = Field(default=None, ge=0, le=100)
     brillo_k: float | None = None
-    satelite: str | None = None
+    satelite: str | None = Field(
+        default=None,
+        description="Identifica la era del sensor. Necesario para usar brillo_k. Ver SC-06.",
+    )
     codigo_distrito: str | None = Field(
         default=None, description="None si cae fuera de todo distrito"
     )
