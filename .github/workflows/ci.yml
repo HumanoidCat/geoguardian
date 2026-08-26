@@ -26,7 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: read
+      # `write` desde el 2026-08-26: en `dev` este trabajo **cierra** las issues
+      # de historias ya marcadas [x], no solo las reclama. Ver I-13 y el paso 5b
+      # de `docs/15-cerrar-una-historia.md`.
+      issues: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -96,9 +99,23 @@ jobs:
           && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # En `dev` se corrige; en `main` se reclama.
+        #
+        # `Closes #N` esta inerte en `dev` -GitHub solo cierra al fusionar a la
+        # rama por omision- asi que cada historia fusionada dejaba el CI en rojo
+        # esperando un `gh issue close` a mano. Y no habia orden que lo evitara:
+        # cerrar antes del merge dispara la discrepancia contraria. Es I-13.
+        #
+        # En `main` no hace falta: ahi `Closes #N` funciona solo. Si aun asi
+        # queda algo abierto, es que el PR no llevaba el enlace, y eso si merece
+        # que una persona lo mire.
         run: |
           gh issue list --state all --limit 300 --json number,title,state,stateReason > /tmp/issues.json
-          python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --comandos
+          if [ "$GITHUB_REF" = "refs/heads/dev" ]; then
+            python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --corregir
+          else
+            python docs/herramientas/verificar_issues.py --issues /tmp/issues.json --comandos
+          fi
 
   calidad:
     name: Linter y formato

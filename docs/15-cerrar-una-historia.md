@@ -75,29 +75,39 @@ El número se busca así:
 gh issue list --search "H1.9" --json number,title
 ```
 
-### 5b. Y se cierra a mano al mergear a `dev`
+### 5b. La issue se cierra sola al mergear a `dev`, y no la cerrás vos
 
 **`Closes #N` no cierra la issue cuando el PR se fusiona a `dev`.** GitHub solo
 cierra al fusionar a la **rama por omisión**, que acá es `main`.
 
-Como todo el trabajo pasa por `dev` primero, entre un merge y el siguiente
-`dev` → `main` **el tablero muestra abiertas historias que ya están cerradas**.
-Pueden ser días, y es justo cuando alguien de afuera lo mira.
+Hasta el 26 de agosto eso se resolvía a mano, y era una trampa: **no había orden
+que evitara el rojo.**
 
-Así que después de mergear a `dev`:
+| Cuándo cerrabas la issue | Qué pasaba |
+|---|---|
+| **Antes** de fusionar | «issue cerrada y la historia no está marcada `[x]`» |
+| **Después** de fusionar | «historia marcada `[x]` y su issue sigue abierta» |
 
-```bash
-gh issue close 23 --comment "Cerrada por H1.9, marcada en docs/tareas/."
-```
+Siempre había una ventana con el CI en rojo, y no dependía de la disciplina de
+nadie. Pasó con #165 y con #170. Es **I-13**.
+
+**Desde hoy lo hace el CI.** Al empujar a `dev`, `verificar_issues.py --corregir`
+cierra las issues de las historias marcadas `[x]`, con el motivo escrito y el
+enlace al Pull Request.
+
+> **Solo esa discrepancia se corrige sola, y por una razón.** «Historia marcada,
+> issue abierta» es la única de las cuatro donde el arreglo no admite duda: manda
+> `docs/tareas/`, y eso ya está decidido en este mismo documento. Cerrar la issue
+> no decide nada, **ejecuta una decisión ya tomada**.
+>
+> Las otras tres siguen fallando y esperando a una persona: una issue cerrada sin
+> historia marcada haría mentir a la fuente de verdad; una historia sin issue
+> necesita que alguien le redacte el cuerpo; y dos issues para la misma historia
+> necesitan que alguien elija cuál sobra.
 
 El enlace `Closes #N` **igual se pone**: deja el rastro entre la issue y el Pull
-Request, que es lo que sirve dentro de un mes para saber qué la cerró.
-
-> **Por qué esto está escrito.** Hasta el 25 de agosto este documento decía que
-> `Closes #N` cerraba la issue al mergear, sin aclarar a dónde. Era falso en este
-> repositorio, y el resultado fue que **cada merge a `dev` dejaba una issue
-> abierta y el CI en rojo**. Una regla escrita que no describe lo que pasa es
-> peor que ninguna: manda a esperar algo que no va a ocurrir.
+Request, que es lo que sirve dentro de un mes para saber qué la cerró. Y en
+`main` sí dispara solo.
 
 ### 6. Comprobar antes de pedir revisión
 
