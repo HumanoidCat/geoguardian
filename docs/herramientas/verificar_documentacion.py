@@ -152,6 +152,86 @@ def trabajos_de_ci() -> int:
     return trabajos
 
 
+def puertos_que_publica_compose() -> set[str]:
+    """Puertos del anfitrion que `docker-compose.yml` expone de verdad.
+
+    El lado del anfitrion puede venir como numero suelto o como variable con
+    valor por omision, que es la forma que usa este proyecto:
+
+        - "5432:5432"
+        - "${POSTGRES_PORT:-5432}:5432"      <- la real
+
+    De la segunda se toma el valor por omision. Si alguien exporta otro puerto
+    en su `.env`, la comprobacion no lo sabe, y esta bien: lo que se comprueba
+    es lo que el repositorio promete a quien llega sin configurar nada.
+    """
+    texto = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    puertos: set[str] = set()
+
+    for linea in texto.splitlines():
+        if ":-" in linea:
+            puertos.update(re.findall(r"\$\{[A-Z_]+:-(\d{2,5})\}\s*:\s*\d{2,5}", linea))
+        puertos.update(re.findall(r'^\s*-\s*["\']?(\d{2,5}):\d{2,5}', linea))
+
+    return puertos
+
+
+def urls_prometidas_que_nadie_levanta() -> list[str]:
+    """El bloque de arranque del README no promete lo que compose no da.
+
+    POR QUE EXISTE
+
+    Hasta el 25 de agosto el arranque rapido decia, textual:
+
+        docker compose up -d
+        # La API queda en http://localhost:8000/docs
+        # El visor queda en http://localhost:5173
+
+    **`docker-compose.yml` tiene un solo servicio: `db`.** No hay API ni
+    frontend. Los Dockerfile son la historia H6.0 y el despliegue completo son
+    H11.1 a H11.4; mientras tanto la API se levanta con `uvicorn` a mano y el
+    visor con Vite.
+
+    Quien seguia el README obtenia una base **sin tablas** -las migraciones son
+    un paso aparte- y dos direcciones que no responden. Paso tres veces el mismo
+    dia, y es justo el arranque que la verificacion externa de H10.4 va a
+    recorrer primero.
+
+    QUE COMPRUEBA
+
+    Que ningun `localhost:PUERTO` del bloque de arranque apunte a un puerto que
+    compose no publica, **salvo que la linea diga de donde sale**. Nombrar a
+    Vite o a uvicorn en la misma linea alcanza: lo que se persigue es la
+    promesa implicita de que compose lo levanta.
+    """
+    texto = (RAIZ / "README.md").read_text(encoding="utf-8")
+
+    encabezado = re.search(r"^##\s+Arranque r[aá]pido\s*$", texto, re.M)
+    if not encabezado:
+        return ["README.md: no se encontro la seccion de arranque rapido"]
+
+    resto = texto[encabezado.end() :]
+    siguiente = re.search(r"^##\s+", resto, re.M)
+    bloque = resto[: siguiente.start()] if siguiente else resto
+
+    publicados = puertos_que_publica_compose()
+    fuera_de_compose = ("uvicorn", "vite", "npm", "a mano", "otra terminal")
+
+    problemas = []
+    for linea in bloque.splitlines():
+        for puerto in re.findall(r"localhost:(\d{2,5})", linea):
+            if puerto in publicados:
+                continue
+            if any(pista in linea.lower() for pista in fuera_de_compose):
+                continue
+            problemas.append(
+                f"README.md: el arranque promete localhost:{puerto} y "
+                f"docker-compose.yml solo publica {sorted(publicados) or 'nada'}. "
+                "O se agrega el servicio, o la linea dice quien lo levanta."
+            )
+    return problemas
+
+
 def historias_cerradas() -> int:
     """Historias efectivamente marcadas, sin contar el ejemplo de la plantilla."""
     total = 0
@@ -373,6 +453,8 @@ def main() -> int:
                         f"{ruta_relativa}: dice '{encontrado}' y el valor real es "
                         f"'{esperado}'  ({afirmacion.nombre})"
                     )
+
+    problemas.extend(urls_prometidas_que_nadie_levanta())
 
     print("\n  Para redactar, sin contar a mano:")
     for nombre, calcular in INFORMATIVAS:
