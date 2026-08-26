@@ -756,3 +756,249 @@ arreglo son dos programas y una tabla de tolerancias. El costo real era otro,
 y no llego a ocurrir: **el sitio se le iba a mostrar al Comite Municipal de
 Emergencias de Tilaran con el canton dibujado como un tablero de ajedrez.**
 
+
+---
+
+## I-11 · Diez anios sin satelite etiquetados como «no hubo incendio»
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, escribiendo los criterios de aceptacion de H3.2
+—**no** revisando H3.0, que ya estaba en revision con sus 31 comprobaciones en
+verde.
+
+**Que paso.** El etiquetado de H3.0 producia 99 296 filas desde 1991-01-01. La
+etiqueta de incendio salia de contar focos de calor en la ventana `(t, t+7]`:
+
+    return NivelRiesgo.ALTO if focos_en_ventana >= 1 else NivelRiesgo.BAJO
+
+**El archivo de focos empieza en 2001.** MODIS Terra/Aqua coleccion 6.1 no tiene
+observacion operacional antes de finales del 2000, y los 242 focos que R16 midio
+para este canton van de 2001 a 2024.
+
+Asi que para toda fecha anterior a 2001 la cuenta daba cero —correctamente, no
+hay focos cargados— y la funcion devolvia **BAJO**. No «no se sabe»: **«no hubo
+incendio»**, afirmado sobre una decada que ningun satelite miro.
+
+| | |
+|---|---|
+| Filas de 1991-01-01 a 2000-12-31 | 3 653 fechas x 8 distritos = **29 224** |
+| Del conjunto etiquetado | **29,4 %** |
+| ALTO sobre las 99 296 filas | 0,87 % |
+| ALTO sobre las 70 072 **observadas** | **1,23 %** |
+
+**Causa raiz.** La misma forma que I-04 y que I-10: cada pieza correcta por
+separado, y ninguna maquina cruzandolas.
+
+| Pieza | Estaba bien? |
+|---|---|
+| La serie climatica de CHIRPS arranca en 1991 | **Si**, D-15 |
+| El cargador de focos trae lo que FIRMS publica, que empieza en 2001 | **Si** |
+| `nivel_incendio` devuelve BAJO con cero focos | **Si**, D-25 |
+| Etiquetar el rango completo de la precipitacion | **No**, y nadie lo comprobaba |
+
+Lo agudo es que **H3.0 tenia el criterio escrito**. CA-8 dice, textualmente, que
+la ausencia de dato no se convierte en una clase, y su comprobacion la aplicaba
+a la precipitacion y al SPI —donde si funcionaba, 664 filas de sequia salen
+`None`— **y no al incendio**. El criterio estaba, la maquina estaba, y el caso
+que faltaba era justo el unico de los tres eventos que depende de una fuente con
+otra fecha de inicio.
+
+**Como se detecto.** Contando episodios de incendio por pliegue para el criterio
+CA-4 de H3.2. La cuenta obligaba a preguntar de que anios sale cada episodio, y
+la respuesta fue que del primer bloque de la ventana expansiva no sale ninguno,
+porque en 1991-1996 no hay satelite.
+
+**Que se cambio.**
+
+1. `COBERTURA_FOCOS = (2001-01-01, 2024-12-31)` en `backend/modelado/etiquetado.py`,
+   declarada como constante con su motivo. **No se infiere del dato cargado**:
+   inferirla del minimo de las detecciones diria que un distrito sin focos nunca
+   fue observado, que es la misma confusion en otra direccion.
+2. `nivel_incendio` recibe `ventana_observada` y devuelve **None** si la ventana
+   `(t, t+7]` no cae entera dentro de la cobertura.
+3. Seis comprobaciones nuevas en `verificar_h30.py`, criterio **CA-8b**,
+   incluidos los dos bordes: la ventana que asoma un dia por fuera no se
+   etiqueta, y la primera que cae entera adentro si.
+4. `generar_etiquetas.py` informa el porcentaje de la clase minoritaria **sobre
+   las filas observadas**, ademas de sobre el total.
+
+**Impacto.** Ninguna hora perdida, porque se detecto con el Pull Request todavia
+abierto. El costo evitado si es grande: un modelo entrenado con esas filas habria
+aprendido que **la decada de los noventa era segura**, sobre un evento cuya clase
+minoritaria es del 1 %. Y como esas filas son el 29 % del conjunto, cualquier
+metrica de exactitud habria salido mejor de lo que corresponde sin que ningun
+verificador se quejara.
+
+**La regla que deja.** Cuando dos fuentes con **fechas de inicio distintas** se
+juntan en una misma tabla, la mas corta manda sobre su columna, y eso se declara
+como constante y se comprueba. H3.0 ya lo habia hecho por el lado derecho de la
+serie —`ULTIMO_ANIO = 2024`, porque los focos terminan antes que CHIRPS— y no
+por el izquierdo. **Una cota puesta en un extremo invita a suponer que el otro no
+hace falta.**
+
+---
+
+## I-12 · Un guardarrail correcto conectado a la condicion equivocada dejo el CI en rojo por diseno
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, revisando por que varios Pull Requests no
+pasaban.
+
+**Que paso.** Desde el 25 de agosto, **toda rama de trabajo salia en rojo en el
+CI**, hiciera lo que hiciera. El PR #171 no podia pasar nunca.
+
+Son dos piezas, cada una correcta, mal conectadas:
+
+| Pieza | Que dice | Estaba bien? |
+|---|---|---|
+| `ci.yml` | `if: github.event_name == 'push'` | **No.** Incluye cada push a cada rama |
+| `verificar_issues.py` | se planta con codigo 1 si la rama no es `dev` ni `main` | **Si**, y por buenas razones |
+
+El comentario que acompana a esa condicion **decia lo correcto desde el primer
+dia**:
+
+> En `push` a dev y main el tablero se sigue vigilando de forma continua, el
+> aviso llega igual, y llega a quien puede corregirlo.
+
+La condicion nunca nombro las dos ramas. Decia «en cualquier push».
+
+**Por que no se noto antes.** Mientras el verificador solo advertia, correrlo
+desde una rama de trabajo daba un **verde falso** —una historia ya cerrada en
+`dev` figura sin marcar en la rama vieja, asi que no reclamaba su issue abierta—
+y nadie miraba un trabajo que pasaba.
+
+El 25 de agosto se le puso el guardarrail de rama, precisamente para que ese
+verde falso dejara de existir. **Desde ese momento el mismo defecto cambio de
+sintoma**: de verde silencioso a rojo garantizado.
+
+**Causa raiz.** El control estaba bien y la condicion que lo dispara estaba mal.
+Es una variante de I-06 —el CI corria `pytest` de una forma que ninguna persona
+usaba— pero al reves: aca el programa hace exactamente lo que debe y **se lo
+invoca donde no corresponde**.
+
+**Que se cambio.**
+
+1. La condicion nombra las dos ramas, que es lo que su propio comentario
+   declaraba:
+
+       if: >-
+         github.event_name == 'push'
+         && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+
+2. Aprovechando el mismo cambio, **`publicar-visor` deja de depender de
+   `gestion`**. Publicar el visor no puede depender de si una issue esta abierta
+   en un tablero que vive fuera del repositorio. Ese acople ya habia costado una
+   hora el 24 de agosto, y fallaba de la peor manera: el trabajo aparecia
+   **omitido**, no rojo.
+
+**Impacto.** Dos Pull Requests bloqueados y un rato largo de buscar la causa en
+el lugar equivocado —se reviso el tablero, se cerraron issues, se creo una
+duplicada que hubo que retirar— antes de mirar la condicion del CI.
+
+**La regla que deja.** **Cuando un control cambia de «advierte» a «se planta»,
+hay que revisar de nuevo donde se lo invoca.** Un guardarrail nuevo no solo
+cambia lo que el programa hace: cambia el costo de cada lugar desde el que se lo
+llama. Y en este repositorio hay un sitio donde eso quedo escrito y no se
+releyo: **el comentario del propio paso ya decia la condicion correcta.**
+
+---
+
+## I-13 · El cierre de issues en `dev` exigia un ritual manual que ningun orden podia satisfacer
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, despues de que el mismo rojo apareciera por
+tercera vez.
+
+**Que paso.** **Cada fusion de una historia a `dev` dejaba el CI en rojo.** No
+por el codigo: por el tablero.
+
+`Closes #N` esta inerte en `dev`, porque GitHub solo cierra al fusionar a la
+**rama por omision**, que aca es `main`. Asi que despues de cada merge quedaba un
+`gh issue close` a mano, y hasta que alguien se acordara el trabajo `gestion`
+fallaba.
+
+**Y no habia orden que lo evitara.** Esa es la parte que convierte esto de
+molestia en defecto:
+
+| Cuando se cerraba la issue | Que discrepancia disparaba |
+|---|---|
+| **Antes** de fusionar | «issue cerrada y la historia no esta marcada [x]» |
+| **Despues** de fusionar | «historia marcada [x] y su issue sigue abierta» |
+
+Siempre existia una ventana en rojo. Paso con **#165**, con **#170**, y le iba a
+pasar a cada persona del equipo esta semana, cuando cierren sus historias del
+Sprint 2.
+
+**Causa raiz.** El proceso escrito le pedia a una persona ejecutar una decision
+que **ya estaba tomada**. `docs/15-cerrar-una-historia.md` dice, sin ambiguedad,
+que `docs/tareas/` es la fuente de verdad y que el tablero se corrige contra el.
+Con eso decidido, cerrar la issue de una historia marcada `[x]` no decide nada:
+es la aplicacion mecanica de una regla.
+
+Y el paso 5b del documento **describia correctamente el problema** —incluso
+explicaba por que `Closes #N` no dispara en `dev`— sin notar que la solucion que
+proponia era imposible de aplicar sin pasar por rojo.
+
+**Que se cambio.**
+
+1. `verificar_issues.py --corregir`: cierra por `gh` las issues de historias
+   marcadas `[x]`, con el motivo escrito y la razon del cierre automatico.
+2. El CI usa `--corregir` **solo en `dev`**. En `main` sigue reclamando, porque
+   ahi `Closes #N` funciona solo y una issue abierta significa que el Pull
+   Request no llevaba el enlace: eso si merece que una persona lo mire.
+3. El trabajo `gestion` pasa a `issues: write`.
+4. El paso 5b del proceso se reescribio: ya no le pide nada a nadie.
+
+**Solo esa discrepancia se corrige sola.** Las otras tres siguen fallando y
+esperando a una persona, porque en las tres el arreglo admite duda:
+
+  * una issue cerrada sin historia marcada haria **mentir a la fuente de verdad**
+    si se corrigiera en automatico;
+  * una historia sin issue necesita que alguien le redacte el cuerpo;
+  * dos issues para la misma historia necesitan que alguien elija cual sobra.
+
+**Impacto.** Tres runs en rojo, y peor: un rato largo buscando la causa en el
+tablero —se cerraron issues, se creo una duplicada que hubo que retirar— cuando
+el defecto estaba en el proceso.
+
+**Y un efecto lateral que hay que saber leer: estos runs no se pueden re-ejecutar.**
+
+Un *Re-run* de GitHub vuelve a correr el CI **sobre el commit original**, no sobre
+`dev` de hoy. Y este verificador compara dos cosas de distinta naturaleza:
+
+    el arbol    congelado en ese commit
+    el tablero  vivo, el de este momento
+
+Asi que un run viejo **queda en rojo para siempre**, y la brecha crece con cada
+historia que se cierra:
+
+| Commit | historias `[x]` en ese arbol | le faltan respecto a hoy |
+|---|---|---|
+| `6c21221` merge #163 | 25 | 2 |
+| `ee9b31c` merge #165 | 26 | 1 |
+| `817ed59` merge #166 | 26 | 1 |
+| `dev` hoy | 27 | 0 |
+
+Corrido el verificador de hoy contra el arbol de `817ed59` sale, correctamente:
+
+    la issue #46 de H3.0 esta cerrada y la historia no esta marcada [x]
+
+Claro: el 25 de agosto H3.0 no existia. **Un arbol viejo no puede coincidir con un
+tablero nuevo.**
+
+**Solo tiene sentido mirar el ultimo run de `dev` y el ultimo de `main`.** Los
+anteriores son fotos de un instante que ya paso. Los otros seis verificadores si
+son re-ejecutables, porque comparan archivos contra archivos **dentro del mismo
+commit**; este es el unico que lee estado externo mutable, y esa es la diferencia.
+
+Se anota porque el historial de Actions se ve lleno de rojo y **no lo esta**: el
+2026-08-26 se perdio un rato dandole Re-run a cuatro runs que no podian cambiar.
+
+**La regla que deja.** **Un control que exige un ritual manual despues de cada
+merge no se cumple: se desactiva mentalmente.** Y un control que la gente aprende
+a ignorar es peor que no tenerlo, porque el dia que avise de algo real nadie va a
+mirar. Si una regla ya esta decidida y su aplicacion es mecanica, **la ejecuta la
+maquina**; lo que se le deja a una persona es lo que requiere criterio.

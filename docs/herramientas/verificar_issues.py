@@ -99,6 +99,32 @@ def leer_issues(ruta: Path) -> tuple[dict[str, list[dict]], list[dict]]:
     return por_historia, sin_historia
 
 
+RAMAS_CON_SENTIDO = ("dev", "main")
+
+
+def rama_actual() -> str | None:
+    """La rama del arbol de trabajo, o del CI si corre alli."""
+    import os
+    import subprocess
+
+    # En GitHub Actions el checkout puede quedar en HEAD suelto, asi que el
+    # nombre viene por variable de entorno.
+    if desde_el_ci := os.environ.get("GITHUB_REF_NAME"):
+        return desde_el_ci
+
+    try:
+        salida = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=RAIZ,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return salida.stdout.strip() or None if salida.returncode == 0 else None
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Cruza el tablero de GitHub con el repositorio.")
     p.add_argument("--issues", type=Path, required=True, help="volcado de `gh issue list --json`")
@@ -107,7 +133,51 @@ def main() -> int:
         action="store_true",
         help="imprime los `gh issue close` que hacen falta, listos para pegar",
     )
+    p.add_argument(
+        "--sin-importar-la-rama",
+        action="store_true",
+        help="corre igual desde una rama de trabajo, sabiendo que el resultado no vale",
+    )
+    p.add_argument(
+        "--corregir",
+        action="store_true",
+        help=(
+            "cierra por `gh` las issues de historias ya marcadas [x], en vez de "
+            "solo reclamarlas. Las otras tres discrepancias se siguen reportando."
+        ),
+    )
     args = p.parse_args()
+
+    # ----------------------------------------------------------------------- #
+    # De que rama se lee el avance, y por que importa
+    # ----------------------------------------------------------------------- #
+    #
+    # Las historias cerradas se leen de `docs/tareas/` DEL ARBOL DE TRABAJO. El
+    # tablero, en cambio, es uno solo para todo el repositorio. Cruzar los dos
+    # solo tiene sentido si el arbol esta al dia.
+    #
+    # Corrido desde una rama de trabajo el resultado no es neutro: es un VERDE
+    # FALSO. Una historia que ya se cerro en `dev` figura sin marcar en la rama
+    # vieja, asi que el verificador no reclama que su issue siga abierta.
+    #
+    # Paso el 25 de agosto: parado en una rama anterior a H1.2, dijo "el tablero
+    # coincide con el repositorio" mientras la issue #36 seguia abierta con la
+    # historia cerrada. Desde `dev` salio en rojo de inmediato.
+    #
+    # Un control que da verde cuando deberia dar rojo es peor que no tenerlo,
+    # porque genera confianza. Por eso se planta en vez de advertir.
+    rama = rama_actual()
+    if rama and rama not in RAMAS_CON_SENTIDO and not args.sin_importar_la_rama:
+        print(f"\nEstas en la rama `{rama}`, y este verificador solo dice la verdad")
+        print("desde `dev` o `main`.\n")
+        print("El avance se lee de docs/tareas/ del arbol de trabajo, y el tablero")
+        print("es uno solo. Desde una rama atrasada, una historia ya cerrada figura")
+        print("sin marcar y el verificador NO reclama su issue abierta: da verde")
+        print("cuando deberia dar rojo.\n")
+        print("    git checkout dev && git pull\n")
+        print("Si sabes lo que haces y aun asi lo queres correr:\n")
+        print("    --sin-importar-la-rama\n")
+        return 1
 
     ruta = args.issues if args.issues.is_absolute() else Path.cwd() / args.issues
     if not ruta.exists():
@@ -176,7 +246,8 @@ def main() -> int:
 
     # ----------------------------------------------------------------------- #
 
-    print("\nEl tablero de GitHub contra el repositorio\n")
+    print("\nEl tablero de GitHub contra el repositorio")
+    print(f"  rama leida             : {rama or 'no se pudo determinar'}\n")
 
     abiertas = sum(
         1 for lista in por_historia.values() for i in lista if i.get("state", "").upper() == "OPEN"
@@ -195,7 +266,74 @@ def main() -> int:
         if len(sin_historia) > 5:
             print(f"    ... y {len(sin_historia) - 5} mas")
 
-    if args.comandos and hay_que_cerrar:
+    # ----------------------------------------------------------------------- #
+    # Corregir en vez de reclamar
+    # ----------------------------------------------------------------------- #
+    #
+    # SOLO ESTA DISCREPANCIA SE CORRIGE SOLA, Y HAY UNA RAZON
+    #
+    # "Historia marcada [x], issue abierta" es la unica de las cuatro donde el
+    # arreglo correcto no admite duda: **manda `docs/tareas/`**, y eso ya esta
+    # decidido en `docs/15-cerrar-una-historia.md`. Cerrar la issue no decide
+    # nada, ejecuta una decision tomada.
+    #
+    # Las otras tres siguen fallando y esperando a una persona:
+    #
+    #   - issue cerrada sin historia marcada  -> el tablero adelanta al repo, y
+    #                                            marcarla seria hacer mentir a la
+    #                                            fuente de verdad
+    #   - historia sin issue                  -> hay que redactarle un cuerpo
+    #   - dos issues para la misma historia   -> hay que elegir cual sobra
+    #
+    # POR QUE EXISTE ESTO
+    #
+    # Con `Closes #N` inerte en `dev` -GitHub solo cierra al fusionar a la rama
+    # por omision- **toda fusion de una historia a `dev` dejaba el CI en rojo
+    # hasta que alguien se acordaba de cerrar la issue a mano**. Y no habia orden
+    # que lo evitara: cerrar antes de fusionar dispara la discrepancia contraria.
+    #
+    # Paso con #165, con #170, y le iba a pasar a cada persona del equipo esta
+    # semana. Un control que exige un ritual manual despues de cada merge no se
+    # cumple: se desactiva mentalmente, y entonces deja de avisar cuando importa.
+    if args.corregir and hay_que_cerrar:
+        import subprocess
+
+        print(f"\n  {len(hay_que_cerrar)} issues por cerrar. Cerrandolas:\n")
+        for identificador, issue in hay_que_cerrar:
+            motivo = (
+                f"Cerrada automaticamente al fusionar {identificador} a `dev`.\n\n"
+                "La historia esta marcada [x] en `docs/tareas/`, que es la fuente de "
+                "verdad del avance segun `docs/15-cerrar-una-historia.md`.\n\n"
+                "Se cierra desde el CI porque `Closes #N` solo dispara al fusionar a "
+                "`main`, y entre un merge a `dev` y el siguiente el tablero mostraba "
+                "abiertas historias ya cerradas."
+            )
+            try:
+                r = subprocess.run(
+                    ["gh", "issue", "close", str(issue["number"]), "--comment", motivo],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+            except FileNotFoundError:
+                # Pasa corriendolo a mano en una maquina sin `gh`. En el runner
+                # viene instalado. Se dice y se sigue reclamando, que es el
+                # comportamiento de antes: nunca se traga la discrepancia.
+                print("    `gh` no esta instalado. Las discrepancias se reportan sin corregir.")
+                print("    Instalarlo desde https://cli.github.com o usar --comandos.\n")
+                break
+            except subprocess.SubprocessError as error:
+                print(f"    #{issue['number']:<5} {identificador:8} FALLO: {error}")
+                continue
+
+            estado = "cerrada" if r.returncode == 0 else f"FALLO: {r.stderr.strip()[:60]}"
+            print(f"    #{issue['number']:<5} {identificador:8} {estado}")
+            if r.returncode == 0:
+                problemas.remove(
+                    f"{identificador} esta marcada [x] y su issue #{issue['number']} sigue abierta"
+                )
+
+    elif args.comandos and hay_que_cerrar:
         print(f"\n  {len(hay_que_cerrar)} issues por cerrar. Los comandos:\n")
         for identificador, issue in hay_que_cerrar:
             print(

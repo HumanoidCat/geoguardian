@@ -115,8 +115,18 @@
 - [ ] **H11.4** · CD: despliegue a produccion con aprobacion explicita y rollback automatico
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.3 · **bloquea a: H13.2**
 
-- [ ] **H3.0** · Implementar el etiquetado de los tres eventos y su distribucion de clases
+- [x] **H3.0** · Implementar el etiquetado de los tres eventos y su distribucion de clases (2026-08-25)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H2.3, H2.7, H1.2 · **bloquea a: H3.1, H3.2**
+  - horas: estimada 3.0 . real 4.5
+  - Evidencia: `docs/evidencias/objetivos/H3.0-etiquetado.md`
+  - **Los tres eventos son modelables.** 99 296 filas, 8 distritos x 12 412
+    fechas. Incendio 106 episodios, sequia 110, lluvia intensa 496, contra un
+    umbral de 30 escrito antes de mirar el dato.
+  - El reparto del incendio **reproduce D-25 sin estar programado**: Santa Rosa,
+    Libano y Tierras Morenas concentran el 88 %, y Arenal y Cabeceras tienen
+    7 filas de 12 412 cada uno.
+  - **Deja dos requisitos para H3.2:** la particion corta por episodio y no por
+    fila, y la sequia arrastra bloques de 66 filas, mas de dos meses.
 
 - [ ] **H3.1** · Construir la linea base climatologica por distrito, mes y tipo de evento
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.0
@@ -139,8 +149,13 @@
 - [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
-- [ ] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados
+- [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
+  - horas: estimada n/d (salio de una pregunta del PM, no se estimo al arrancar) . real 4.0
+  - **https://humanoidcat.github.io/geoguardian/** · evidencia en
+    `docs/evidencias/arquitectura-software/H11.5-visor-publicado.md`
+  - El tiempo de **I-10** no cuenta aca: es un defecto aparte, no alcance de esta
+    historia.
   - Agregada el 2026-08-20. Sale de una pregunta del PM: **el sistema no se
     publica en ningun lado.** D-05 eligio k3d local, asi que "produccion" es un
     espacio de nombres en una laptop y no hay URL. Para la sesion con el Comite

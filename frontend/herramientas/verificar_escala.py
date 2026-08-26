@@ -10,6 +10,8 @@ comprueba cuatro cosas, fallando si alguna no se cumple:
   2. Los pasos vecinos se distinguen entre si.
   3. El orden se conserva bajo los tres tipos de dicromacia.
   4. El texto sobre cada nivel cumple el contraste minimo de WCAG AA, 4.5:1.
+  5. El borde del distrito seleccionado se distingue sobre los cuatro fondos
+     posibles, por luminancia y no por tono.
 
 No usa ninguna biblioteca externa: solo la biblioteca estandar de Python.
 
@@ -31,6 +33,10 @@ TOKENS = RAIZ / "frontend" / "src" / "estilos" / "tokens.css"
 
 CONTRASTE_MINIMO_AA = 4.5
 CONTRASTE_MINIMO_VECINOS = 1.4
+
+# Umbral de WCAG para elementos graficos y de interfaz, que no son texto. El
+# borde de seleccion es exactamente eso: una forma, no una letra.
+CONTRASTE_MINIMO_GRAFICO = 3.0
 
 fallos: list[str] = []
 
@@ -180,6 +186,72 @@ def main() -> None:
     exigir(
         ".trama-sin-dato" in TOKENS.read_text(encoding="utf-8"),
         "la ausencia de dato se distingue tambien por trama, no solo por color",
+    )
+
+    print("\nEl distrito seleccionado se distingue sobre cualquier relleno:")
+    try:
+        linea = tokens["--distrito-borde-activo"]
+        halo = tokens["--distrito-halo-activo"]
+    except KeyError as falta:
+        raise SystemExit(f"ERROR: falta la variable {falta} en tokens.css") from None
+
+    # Los cuatro fondos sobre los que puede caer el borde. La trama de ausencia
+    # de dato aporta dos: el fondo y las rayas.
+    fondos = {
+        "riesgo bajo": rampa["bajo"],
+        "riesgo medio": rampa["medio"],
+        "riesgo alto": rampa["alto"],
+        "trama sin dato": tokens.get("--sin-dato-trama", "#9e9e9e"),
+        "fondo sin dato": tokens.get("--sin-dato-fondo", "#ffffff"),
+    }
+
+    # La marca no es una linea sola sino un par: linea clara con halo oscuro por
+    # fuera. Ninguna de las dos contrasta sobre todos los fondos, y no hace falta
+    # que lo haga: alcanza con que **alguna de las dos** lo consiga en cada uno.
+    # Exigirselo a las dos obligaria a un color intermedio que no destaca sobre
+    # ninguno, que es peor.
+    for nombre, fondo in fondos.items():
+        mejor = max(contraste(linea, fondo), contraste(halo, fondo))
+        exigir(
+            mejor >= CONTRASTE_MINIMO_GRAFICO,
+            f"la marca de seleccion se ve sobre {nombre}",
+            f"{mejor:.2f}:1  (minimo {CONTRASTE_MINIMO_GRAFICO})",
+        )
+
+    # Y las dos partes tienen que distinguirse entre si, o el halo desaparece
+    # dentro de la linea y queda un trazo grueso de un solo color.
+    razon = contraste(linea, halo)
+    exigir(
+        razon >= CONTRASTE_MINIMO_GRAFICO,
+        "la linea y el halo se distinguen entre si",
+        f"{razon:.2f}:1",
+    )
+
+    # El contraste de WCAG se calcula sobre luminancia, que es exactamente lo que
+    # sobrevive a la dicromacia. Se comprueba igual bajo los tres tipos, porque
+    # una marca que dependiera del tono pasaria el calculo anterior y fallaria
+    # aqui.
+    for tipo in MATRICES:
+        peor = min(
+            max(
+                contraste(simular(linea, tipo), simular(fondo, tipo)),
+                contraste(simular(halo, tipo), simular(fondo, tipo)),
+            )
+            for fondo in fondos.values()
+        )
+        exigir(
+            peor >= CONTRASTE_MINIMO_GRAFICO,
+            f"la seleccion se ve bajo {tipo}",
+            f"{peor:.2f}:1 en el peor fondo",
+        )
+
+    # El negro puro se descarta explicitamente. No es una cuestion de gusto: a
+    # 3 px sobre el amarillo palido era lo mas oscuro de la pantalla y competia
+    # con las coropletas de riesgo alto, que son las que tienen que dominar.
+    exigir(
+        linea.lower() != "#000000",
+        "la seleccion no se marca con negro puro",
+        linea,
     )
 
     if fallos:

@@ -25,7 +25,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | Historia | Requisito | Modulo | Prueba | Evidencia | Rubrica | Dueno | Estado |
 |---|---|---|---|---|---|---|---|
 | H1.1 | Series climaticas diarias, 10 anios | backend/etl | test_extractor_power | docs/evidencias/bases-de-datos/H1.1-series-climaticas.md | BD-1 | Cesar | **Con evidencia** |
-| H1.2 | Historico de focos de calor | backend/etl | test_extractor_firms | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
+| H1.2 | Historico de focos de calor | backend/etl | test_extractor_firms | docs/evidencias/bases-de-datos/H1.2-focos-calor.md | BD-1 | Cesar | **Con evidencia** |
 | H1.3 | Geometrias de distritos en 3FN con SRID validado | basedatos/ddl, backend/etl | basedatos/verificar_h13.py, consultas/verificar_modelo.sql, consultas/verificar_transaccion.sql | docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md | BD-1, BD-3 | Cesar | **Con evidencia** |
 | H1.5 | Reporte de calidad de datos | backend/calidad | test_reporte_calidad | docs/evidencias/objetivos/H1.5-calidad-datos.md | OE1 | Luna | Pendiente |
 | H1.8 | Esquemas, roles, minimo privilegio | basedatos/seguridad | test_permisos_rol | docs/evidencias/bases-de-datos/H1.8-roles-minimo-privilegio.md | BD-2 | Cesar | **Con evidencia** |
@@ -36,11 +36,11 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H2.3 | SPI por ventana movil, sobre la serie cruda (D-17) | backend/senales | test_spi, 21 casos | docs/evidencias/senales-y-sistemas/H2.3-spi.md | Senales | Luna | **Con evidencia** · SC-02 resuelta por D-19 e implementada: spi() recibe el parametro `meses`. Atribuciones cerradas el 2026-08-22 tras leer WMO-No. 1090 completo |
 | H2.4 | Anomalias respecto a la normal climatologica 1991-2020, sobre la serie cruda (D-17) | backend/senales | test_anomalias, 24 casos | docs/evidencias/senales-y-sistemas/H2.4-anomalias.md | Senales | Luna | **Con evidencia** · SC-06 pendiente: el contrato no recibe fechas y se supone que la serie arranca en enero |
 | H2.7 | Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo | backend/senales | test_percentiles, 17 casos | docs/evidencias/senales-y-sistemas/H2.7-percentiles.md | Senales | Luna | **Con evidencia** |
-| H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | Pendiente |
+| H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | **Con evidencia** |
 | H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H3.6 | Comparativa de tres algoritmos | backend/modelado | test_comparativa | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H4.2 | Explicabilidad con SHAP | backend/modelado | test_shap | docs/evidencias/ | OE3 | Alejandro | Pendiente |
-| H5.1 | Mapa del canton con poligonos distritales, zoom y desplazamiento | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.1-mapa-distritos.md<br>docs/evidencias/computacion-grafica/H5.1-sistema-diseno.md | CG-4 | Avril | **Con evidencia** |
+| H5.1 | Mapa del canton con poligonos distritales, zoom y desplazamiento | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.1-encuadre-y-seleccion.md<br>docs/evidencias/computacion-grafica/H5.1-mapa-distritos.md<br>docs/evidencias/computacion-grafica/H5.1-sistema-diseno.md | CG-4 | Avril | **Con evidencia** |
 | H5.3 | Coropletas de riesgo por evento con rampa de color y leyenda | frontend | frontend/herramientas/exportar_simulados.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.3-coropletas.md | CG-1 | Avril | **Con evidencia** |
 | H5.6 | Transformacion de coordenadas | frontend | test_proyeccion | docs/evidencias/computacion-grafica/ | CG-1 | Avril | Pendiente |
 | H6.1 | API REST documentada | backend/api | test_openapi | docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md | Arq | Cesar | **Con evidencia** |
@@ -65,6 +65,8 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H5.2 | Cuatro o mas capas conmutables con control de opacidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.2-capas-conmutables.md | CG-4 | Avril | **Con evidencia** |
 | H5.4 | Mapa de calor por interpolacion IDW sobre la probabilidad | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.4-mapa-calor.md | CG-1 | Avril | **Con evidencia** |
 | H7.1 | Semaforo de riesgo por distrito y evento con umbrales documentados | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H7.1-semaforo.md | CG-2 | Avril | **Con evidencia** |
+| H11.5 | Publicar el visor como sitio estatico con datos declarados simulados | .github/workflows/ci.yml, frontend/vite.config.js, frontend/src/datos/cliente.js | docs/herramientas/verificar_h115.py, 22 comprobaciones sobre el dist construido | docs/evidencias/arquitectura-software/H11.5-visor-publicado.md | CICD | Alejandro | **Con evidencia** |
+| H3.0 | Implementar el etiquetado de los tres eventos y su distribucion de clases | backend/modelado/etiquetado.py, backend/modelado/generar_etiquetas.py | backend/modelado/verificar_h30.py, 24 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.0-etiquetado.md | OE2 | Alejandro | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.

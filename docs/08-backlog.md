@@ -1,6 +1,6 @@
 # Backlog completo
 
-**87 historias · 428 puntos · 628.1 horas** (incluye 20 % de revision)
+**88 historias · 431 puntos · 631.0 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -55,7 +55,7 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 | Cesar | 18.3 | 27.8 | 31.5 | 47.0** | 34.0 | 158.6 | 128 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
 | Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 114.6 | 94 |
-| **Equipo** | 83.0 | 104.2 | 152.8 | 132.7 | 155.4 | **628.1** | **428** |
+| **Equipo** | 83.0 | 104.2 | 155.7 | 132.7 | 155.4 | **631.0** | **431** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -101,7 +101,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.5b** Estado del arte de Costa Rica | luna | 5 | 13.2 | IEEE | H10.5a | H10.5c |
 | **H4.3** Catalogo de 12 o mas eventos historicos del canton con fuente | luna | 8 | 21.1 | OE3 | - | H4.4, H7.3 |
 
-## Sprint 2 · semanas 6-7 · 22 historias · 152.8 h
+## Sprint 2 · semanas 6-7 · 23 historias · 155.7 h
 
 **Foco.** Modelos entrenados, despliegue continuo y demo de extremo a extremo  
 **Hito.** **Primer avance (semana 7)**
@@ -119,6 +119,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.7** Diagramas de casos de uso y entidad-relacion | avril | 5 | 7.8 | Arq | H1.8 | — |
 | **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | avril | 3 | 4.7 | CG-1 | H5.1 | — |
 | **H5.7** Selector de fecha que recarga el estado del mapa | avril | 3 | 2.9 | CG-4 | H5.3 | — |
+| **H5.8** Encuadre del mapa en el canton y marca de seleccion accesible | avril | 3 | 2.9 | CG-1 | H5.1 | — |
 | **H7.1** Semaforo de riesgo por distrito y evento con umbrales documentados | avril | 6 | 5.8 | CG-2 | H5.3 | H10.3 |
 | **H7.2** Graficas interactivas de series con seleccion de rango | avril | 5 | 4.8 | CG-2 | H6.1 | — |
 | **H1.11** Particionar mediciones por anio y medir efecto en consultas | cesar | 5 | 4.8 | BD-1 | H1.3 | H1.12 |
