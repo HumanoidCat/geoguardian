@@ -146,7 +146,14 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         positivas = sum(episodios(lista, evento) for lista in por_distrito.values())
         por_pliegue = positivas / PLIEGUES_SUPUESTOS
 
+        # El porcentaje sobre el total mezcla filas observadas con filas que
+        # nadie miro, y para incendio esa mezcla son 29 224 filas anteriores al
+        # satelite. Se informan los dos, porque el que vale es el segundo.
+        observadas = total - sin_dato
         print(f"\n  filas en alto            {filas_alto}")
+        if sin_dato:
+            print(f"    sobre el total         {100 * filas_alto / total:5.2f} %")
+            print(f"    sobre las OBSERVADAS   {100 * filas_alto / observadas:5.2f} %   <- el real")
         print(f"  EPISODIOS distintos      {positivas}   <- lo que decide CA-6")
         if positivas:
             print(f"  filas por episodio       {filas_alto / positivas:.1f}")
@@ -167,14 +174,51 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
             print("\n  modelable")
 
         # Por distrito, que es donde se ve si el evento vive en pocos.
-        print(f"\n  {'distrito':10}{'alto':>8}{'de':>8}{'%':>8}")
+        #
+        # El denominador son las filas OBSERVADAS del distrito, no todas. Con
+        # todas, el porcentaje de incendio queda diluido por las 3 652 fechas
+        # anteriores al satelite y **deja de ser comparable con lo que midio
+        # R16**, que solo pudo medir sobre el periodo con datos. Ver I-11.
+        print(f"\n  {'distrito':10}{'alto':>8}{'observadas':>12}{'%':>8}")
+        porcentajes: dict[str, float] = {}
         for codigo in sorted(por_distrito):
             c = distribucion(por_distrito[codigo], evento)
-            t = sum(c.values())
+            observadas_d = sum(n for nivel, n in c.items() if nivel is not None)
             a = c.get(NivelRiesgo.ALTO, 0)
-            print(f"  {codigo:10}{a:>8}{t:>8}{100 * a / t:>7.2f}%")
+            porcentajes[codigo] = 100 * a / observadas_d if observadas_d else 0.0
+            print(f"  {codigo:10}{a:>8}{observadas_d:>12}{porcentajes[codigo]:>7.2f}%")
+
+        if evento is TipoEvento.INCENDIO:
+            comprobar_r16(porcentajes)
 
     return no_modelables
+
+
+# R16, medido por Cesar en H1.2 sobre los 242 focos del canton: entre 2,6 % y
+# 2,9 % de las ventanas positivas en Santa Rosa, Libano y Tierras Morenas.
+DISTRITOS_ACTIVOS = ("50804", "50805", "50806")  # D-25
+BANDA_R16 = (2.4, 3.1)  # la medicion es 2,6-2,9; se admite un margen de 0,2
+
+
+def comprobar_r16(porcentajes: dict[str, float]) -> None:
+    """CA-7 contrastado con **numeros**, no leyendo el orden de una tabla.
+
+    Escrito el 2026-08-26, despues de I-11. CA-7 pedia reproducir R16 y la
+    evidencia comparo **el ranking** de los ocho distritos —que salia bien— sin
+    comparar nunca los porcentajes contra la banda medida.
+
+    Con el defecto de cobertura adentro, los tres activos daban 2,07 %, 1,83 % y
+    1,80 % contra una banda de 2,6-2,9 %. **Los tres por debajo, y nadie lo
+    noto**, porque el orden seguia siendo el correcto.
+
+    Un criterio que dice «se contrasta contra X» y se cumple mirando otra cosa no
+    es un criterio: es una intencion.
+    """
+    print(f"\n  CA-7 · contra R16, banda {BANDA_R16[0]:.1f}-{BANDA_R16[1]:.1f} %:")
+    for codigo in DISTRITOS_ACTIVOS:
+        p = porcentajes.get(codigo, 0.0)
+        dentro = BANDA_R16[0] <= p <= BANDA_R16[1]
+        print(f"    {codigo}   {p:5.2f} %   {'OK' if dentro else 'FUERA DE BANDA'}")
 
 
 def main() -> int:

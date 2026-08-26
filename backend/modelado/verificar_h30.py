@@ -30,6 +30,7 @@ if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
 from backend.modelado.etiquetado import (  # noqa: E402
+    COBERTURA_FOCOS,
     HORIZONTE_DIAS,
     ULTIMO_ANIO,
     acumulado_mensual,
@@ -178,6 +179,54 @@ def main() -> int:
     ):
         fila = etiquetar_distrito("50804", plano, [t + timedelta(days=desplazamiento)], t, t)[0]
         comprobar(motivo, fila.incendio is esperado, f"dio {fila.incendio}")
+
+    # --------------------------------------------------------------- CA-8b -- #
+    # Agregado el 2026-08-26, escribiendo los criterios de H3.2. La cuenta de
+    # episodios de incendio por pliegue obligo a mirar de donde sale cada uno, y
+    # aparecio que la decada de los noventa no tiene satelite detras. Ver I-11.
+    print("\nCA-8b, fuera de la cobertura del satelite el incendio es None, no BAJO:")
+
+    inicio_cobertura, fin_cobertura = COBERTURA_FOCOS
+
+    comprobar(
+        "sin observacion, cero focos NO es BAJO",
+        nivel_incendio(0, ventana_observada=False) is None,
+        f"dio {nivel_incendio(0, ventana_observada=False)}",
+    )
+    comprobar(
+        "con observacion, cero focos si es BAJO",
+        nivel_incendio(0, ventana_observada=True) is NivelRiesgo.BAJO,
+    )
+
+    for t, esperado, motivo in (
+        (
+            inicio_cobertura - timedelta(days=365),
+            None,
+            "una fecha muy anterior al satelite sale sin etiqueta",
+        ),
+        (
+            inicio_cobertura - timedelta(days=HORIZONTE_DIAS),
+            None,
+            "la ventana que asoma un dia por fuera tampoco se etiqueta",
+        ),
+        (
+            inicio_cobertura - timedelta(days=1),
+            NivelRiesgo.BAJO,
+            "la primera ventana que cae entera adentro si se etiqueta",
+        ),
+    ):
+        fila = etiquetar_distrito("50804", {d: 5.0 for d in precipitacion}, [], t, t)[0]
+        comprobar(motivo, fila.incendio is esperado, f"en {t} dio {fila.incendio}")
+
+    # Y que el efecto sea el que se midio: la decada sin satelite es casi un
+    # tercio del conjunto. Si esta cuenta cambia, cambio la cobertura.
+    sin_observar = sum(1 for e in etiquetas if e.incendio is None)
+    comprobar(
+        "las filas sin cobertura son ~29 % del distrito, no cero",
+        0.25 < sin_observar / len(etiquetas) < 0.33,
+        f"{sin_observar} de {len(etiquetas)} = {sin_observar / len(etiquetas):.1%}. "
+        f"Cobertura declarada: {inicio_cobertura} a {fin_cobertura}.",
+    )
 
     # ---------------------------------------------------------------- CA-5 -- #
     print("\nCA-5, la sequia no cambia dentro del mes:")

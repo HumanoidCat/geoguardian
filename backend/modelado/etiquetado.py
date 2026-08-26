@@ -25,6 +25,10 @@ LAS TRES ESCALAS NO COINCIDEN, Y ASI SE CONCILIAN
     ventana. Con al menos uno, ALTO; sin ninguno, BAJO. **No hay MEDIO** para
     este evento, por **D-25** y **SC-05**.
 
+    Pero solo **dentro de la cobertura del satelite**. La serie climatica arranca
+    en 1991 y el archivo de focos en 2001: una ventana anterior a esa fecha sale
+    `None`, no BAJO. Ver `COBERTURA_FOCOS`.
+
   * **Lluvia intensa** se resuelve tomando el **maximo acumulado de 72 h dentro
     de la ventana**. La pregunta que responde la etiqueta es "en los proximos
     siete dias, hubo algun episodio de 72 h que superara el umbral". Los
@@ -81,6 +85,30 @@ VENTANA_SPI_MESES = 3
 # El etiquetado se corta donde termina la fuente mas corta. Ver el encabezado.
 ULTIMO_ANIO = 2024
 
+# --------------------------------------------------------------------------- #
+# La cobertura del satelite, que NO es la cobertura de la serie climatica       #
+# --------------------------------------------------------------------------- #
+#
+# CHIRPS empieza en 1981 y la serie del proyecto en 1991. **El archivo de focos
+# de calor no.** MODIS Terra/Aqua colecion 6.1 arranca su archivo operacional a
+# finales del 2000, y los datos que R16 midio para este canton van de 2001 a
+# 2024. Antes de eso no hay observacion: no es que no hubiera incendios, es que
+# no habia satelite mirando.
+#
+# Sin esta cota, `nivel_incendio` devuelve BAJO para toda la decada de los
+# noventa —**29 224 filas, el 29,4 % del conjunto**— por el unico motivo de que
+# la cuenta de focos da cero. Es exactamente el defecto que **CA-8** existe para
+# impedir: la ausencia de dato convertida en clase. Y el efecto no es cosmetico,
+# porque la clase minoritaria de incendio es del orden del 1 %:
+#
+#     ALTO sobre las 99 296 filas             0,87 %
+#     ALTO sobre las 70 072 observadas        1,23 %
+#
+# Se declara como constante y no se infiere del dato cargado. Inferirla del
+# minimo de las detecciones diria que un distrito sin focos nunca fue observado,
+# que es justo la confusion que esto viene a evitar.
+COBERTURA_FOCOS = (date(2001, 1, 1), date(ULTIMO_ANIO, 12, 31))
+
 
 @dataclass(frozen=True)
 class Etiqueta:
@@ -105,13 +133,20 @@ class Etiqueta:
 # --------------------------------------------------------------------------- #
 
 
-def nivel_incendio(focos_en_ventana: int) -> NivelRiesgo:
+def nivel_incendio(focos_en_ventana: int, ventana_observada: bool = True) -> NivelRiesgo | None:
     """ALTO con al menos un foco, BAJO sin ninguno. **No existe MEDIO.**
 
     Es **D-25**, sobre la medicion de R16: 242 focos en 24 anios, con entre el
     97 % y el 99,9 % de las ventanas vacias, asi que el P90 del conteo vale 0,0
     en los ocho distritos y el umbral por percentiles no producia tres clases.
+
+    `ventana_observada` en False devuelve **None**, no BAJO. Cero focos en una
+    ventana que **nadie miro** no es ausencia de incendio: es ausencia de dato, y
+    **D-07** y **D-22** dicen que eso se representa, no se rellena. Ver
+    `COBERTURA_FOCOS`.
     """
+    if not ventana_observada:
+        return None
     return NivelRiesgo.ALTO if focos_en_ventana >= 1 else NivelRiesgo.BAJO
 
 
@@ -212,6 +247,7 @@ def etiquetar_distrito(
     focos: list[date],
     desde: date,
     hasta: date,
+    cobertura_focos: tuple[date, date] = COBERTURA_FOCOS,
 ) -> list[Etiqueta]:
     """Etiqueta un distrito completo. Todo el calculo por distrito vive aca.
 
@@ -220,6 +256,9 @@ def etiquetar_distrito(
         focos: fechas de los focos de calor de ESE distrito. Se cuentan
             repeticiones: dos focos el mismo dia son dos.
         desde, hasta: rango de fechas `t` a etiquetar, inclusive.
+        cobertura_focos: periodo en que el satelite **estuvo mirando**. Una fila
+            cuya ventana `(t, t+7]` no cae entera adentro sale con
+            `incendio=None`, no BAJO. Ver `COBERTURA_FOCOS`.
     """
     fechas = sorted(precipitacion)
     serie = [precipitacion[f] for f in fechas]
@@ -249,6 +288,10 @@ def etiquetar_distrito(
         cuenta = sum(
             focos_por_dia.get(inicio + timedelta(days=d), 0) for d in range((fin - inicio).days + 1)
         )
+        # La ventana entera tiene que caer dentro de la cobertura del satelite.
+        # Si asoma aunque sea un dia por fuera, la cuenta esta incompleta y no se
+        # sabe si hubo focos ese dia: la fila sale None.
+        observada = cobertura_focos[0] <= inicio and fin <= cobertura_focos[1]
 
         # -- lluvia: el mayor acumulado de 72 h que empieza dentro ---------- #
         # El ultimo acumulado que cabe entero empieza en fin - 2.
@@ -264,7 +307,7 @@ def etiquetar_distrito(
                 fecha=t,
                 sequia=nivel_sequia(spi),
                 lluvia_intensa=nivel_lluvia(maximo, p95, p99),
-                incendio=nivel_incendio(cuenta),
+                incendio=nivel_incendio(cuenta, observada),
             )
         )
         t += timedelta(days=1)
