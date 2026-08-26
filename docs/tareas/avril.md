@@ -72,8 +72,9 @@
 - [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
 
-- [ ] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible
+- [x] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-1 · depende de: H5.1
+  - horas: estimada 2.0 . real 2.4
   - Sale de la retroalimentacion del profesor sobre el visor publicado, el
     2026-08-24. Ver `docs/evidencias/computacion-grafica/`.
   - **No reabre H5.1 ni H5.3**, que estan cerradas y con evidencia. Es trabajo
