@@ -49,8 +49,11 @@
     el mismo test de dos puntos que descarto a POWER
   - Evidencia: `docs/evidencias/bases-de-datos/H1.1-series-climaticas.md`
 
-- [ ] **H1.2** · Descargar historico de focos de calor filtrado al canton
+- [x] **H1.2** · Descargar historico de focos de calor filtrado al canton (2026-08-24)
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H3.0, H9.3**
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.2-focos-calor.md`
+  - horas: estimada n/d (se comprometio una fecha, no una cantidad de horas) . real 6.0
+  
 
 - [x] **H1.3** · Cargar geometrias oficiales de distritos con SRID validado (2026-08-13)
   - `E1` · 6 pts · 5.8 h · rubrica: BD-1, BD-3 · depende de: contratos · **bloquea a: H1.1, H1.11, H1.2, H1.8**
