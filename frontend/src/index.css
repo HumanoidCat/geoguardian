@@ -243,10 +243,28 @@ body {
   min-height: 28rem;
 }
 
+/* La forma del mapa la fija `--mapa-aspecto`, que AjustarEncuadre calcula desde
+   el recuadro proyectado de las geometrias. Aca solo esta el valor de reserva,
+   por si el mapa se dibuja antes de que la coleccion llegue.
+
+   Por que importa: `fitBounds` deja el sobrante en la dimension que no aprieta.
+   Con un contenedor ancho y bajo, y un canton mas alto que ancho, ese sobrante
+   era el 74 % del mapa y estaba lleno de cantones vecinos.
+
+   El tope de alto esta atado a la ventana: antes de esto el mapa se salia de la
+   pantalla y habia que desplazarse para verlo entero. El ancho maximo se deriva
+   del tope de alto por la misma relacion, para que al llegar al tope el mapa se
+   angoste en vez de deformarse. */
 .mapa {
+  --mapa-aspecto: 0.83;
+  --mapa-alto-tope: min(68vh, 42rem);
+
   width: 100%;
-  height: 100%;
-  min-height: 28rem;
+  max-width: calc(var(--mapa-alto-tope) * var(--mapa-aspecto));
+  height: auto;
+  aspect-ratio: var(--mapa-aspecto);
+  max-height: var(--mapa-alto-tope);
+  margin-inline: auto;
   z-index: var(--z-mapa);
 }
 
@@ -296,10 +314,16 @@ body {
   outline: none;
 }
 
+/* La linea clara marca el limite y el halo oscuro la separa del relleno de
+   abajo. Ninguna de las dos alcanza sola: la linea se pierde sobre el amarillo
+   palido y el halo se pierde sobre el rojo. Juntas, siempre hay una que
+   contrasta. El criterio esta escrito en tokens.css y lo comprueba
+   verificar_escala.py. */
 .distrito-seleccionado {
   stroke: var(--distrito-borde-activo);
   stroke-width: var(--distrito-borde-ancho-activo);
   stroke-dasharray: none;
+  filter: drop-shadow(0 0 var(--distrito-halo-ancho-activo) var(--distrito-halo-activo));
 }
 
 /* -------------------------------------------------------------------------- *

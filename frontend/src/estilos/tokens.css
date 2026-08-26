@@ -108,9 +108,24 @@
   /* Borde de los poligonos sobre el mapa. Gris oscuro y no negro: el negro
      puro compite con la rampa y ensucia los niveles claros. */
   --distrito-borde: #37474f;
-  --distrito-borde-activo: #000000;
   --distrito-borde-ancho: 1px;
+
+  /* Seleccion: una linea clara con un halo oscuro por fuera, y no un trazo
+     negro. El negro a 3 px sobre el amarillo palido era lo mas oscuro de la
+     pantalla y competia en peso con las coropletas rojas: se leia como un
+     contorno mal dibujado, no como una seleccion. Lo senalo el profesor.
+
+     El par se elige por LUMINANCIA y no por tono, para que funcione igual para
+     quien no distingue rojo de verde. La garantia es que sobre cualquiera de los
+     cuatro fondos -los tres niveles y la trama de sin estimacion- al menos una
+     de las dos partes supera 3:1, y que las dos se distinguen entre si.
+
+     Lo comprueba `frontend/herramientas/verificar_escala.py`, que lee estos
+     valores de aqui. No se cambian sin volver a correrlo. */
+  --distrito-borde-activo: #ffffff;
+  --distrito-halo-activo: #1c2b33;
   --distrito-borde-ancho-activo: 3px;
+  --distrito-halo-ancho-activo: 3px;
 
   /* ---------------------------------------------------------------------- *
    * Tipografia y espacio
