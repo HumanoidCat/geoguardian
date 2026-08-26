@@ -75,8 +75,25 @@ jobs:
       #
       # En `push` a dev y main el tablero se sigue vigilando de forma continua,
       # el aviso llega igual, y llega a quien puede corregirlo.
+      #
+      # Y LA CONDICION TIENE QUE NOMBRAR LAS DOS RAMAS, NO SOLO `push`
+      #
+      # Decia `github.event_name == 'push'` a secas, que incluye **cada push a
+      # cada rama de trabajo**. El comentario de arriba decia "a dev y main"
+      # desde el primer dia y la condicion nunca lo dijo.
+      #
+      # Mientras el verificador solo advertia, eso pasaba desapercibido: en una
+      # rama atrasada daba un verde falso, que es la razon por la que el 25 de
+      # agosto se le puso el guardarrail de rama. Desde ese momento **se planta
+      # con codigo 1**, y el resultado fue que toda rama de trabajo empezo a
+      # salir en rojo por diseno. El PR #171 no podia pasar nunca.
+      #
+      # Es I-12. Un control correcto conectado con la condicion equivocada no
+      # protege de nada y bloquea todo.
       - name: El tablero de issues dice lo mismo que el repositorio
-        if: github.event_name == 'push'
+        if: >-
+          github.event_name == 'push'
+          && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -261,10 +278,26 @@ jobs:
   #
   # `dev` recibe trabajo a diario. Publicar desde ahi pondria cualquier PR a medio
   # revisar en la URL que se le paso al Comite Municipal de Emergencias.
+  # DE QUE DEPENDE, Y DE QUE DEJO DE DEPENDER
+  #
+  # Depende de `frontend`, que construye lo que se va a publicar. Si eso falla,
+  # no hay nada que subir.
+  #
+  # **Dejo de depender de `gestion`** el 2026-08-26. Ese trabajo comprueba el
+  # backlog, la matriz y **el tablero de issues**, que vive fuera del repositorio
+  # y lo puede mover cualquiera. Con el acople, una issue abierta en GitHub -algo
+  # que no toca ni una linea del visor- impedia que el sitio se republicara.
+  #
+  # Y no fallaba de forma visible: el trabajo aparecia **omitido**, no rojo. Paso
+  # el 24 de agosto y costo una hora de buscar por que el despliegue no habia
+  # corrido.
+  #
+  # `gestion` sigue corriendo y sigue saliendo en rojo cuando el tablero deriva.
+  # Lo que ya no hace es decidir si el visor sale al aire.
   publicar-visor:
     name: Publicar el visor (H11.5)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [frontend, gestion]
+    needs: [frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
