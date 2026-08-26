@@ -253,6 +253,15 @@ jobs:
         run: python -m backend.api.verificar_h61
       - name: Los criterios de H6.6 se cumplen
         run: python docs/herramientas/verificar_h66.py
+      # H3.0 es la variable objetivo de toda la epica de modelado, asi que un
+      # defecto aca contamina todo lo que venga despues sin dar sintomas: un
+      # etiquetado con fuga temporal produce metricas excelentes y un modelo
+      # inservible.
+      #
+      # No necesita la base: comprueba propiedades del etiquetado sobre series
+      # construidas a mano, donde la respuesta correcta se conoce.
+      - name: Los criterios de H3.0 se cumplen
+        run: python -m backend.modelado.verificar_h30
 
   # ------------------------------------------------------------------------- #
   # H11.5 · Publicar el visor como sitio estatico                              #
