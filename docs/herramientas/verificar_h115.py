@@ -229,9 +229,26 @@ def main() -> int:
         "sin esa condicion, cualquier PR a medio revisar queda en la URL publica",
     )
     comprobar("usa deploy-pages, no un servicio externo", "actions/deploy-pages" in flujo)
+    # Este criterio cambio el 2026-08-26, con I-12. Antes exigia
+    # `needs: [frontend, gestion]`, y ese acople era un defecto: hacia que el
+    # visor no se publicara cuando una issue quedaba abierta en un tablero que
+    # vive fuera del repositorio y no toca una linea del sitio.
+    #
+    # Y fallaba de la peor manera posible: el trabajo aparecia **omitido**, no
+    # rojo. Costo una hora el 24 de agosto averiguar por que el despliegue no
+    # habia corrido.
+    #
+    # Se comprueban las dos mitades, porque las dos importan:
     comprobar(
-        "el despliegue espera a que el frontend y la gestion esten en verde",
-        "needs: [frontend, gestion]" in flujo,
+        "el despliegue espera a que el frontend este en verde",
+        "needs: [frontend]" in flujo,
+        "sin eso se publicaria un bundle que no compila",
+    )
+    comprobar(
+        "y NO espera a la gestion, que depende de un tablero externo",
+        "needs: [frontend, gestion]" not in flujo,
+        "es I-12: una issue abierta impedia republicar el sitio, y el trabajo "
+        "salia omitido en vez de rojo",
     )
 
     # ---------------------------------------------------------------- CA-7 -- #
