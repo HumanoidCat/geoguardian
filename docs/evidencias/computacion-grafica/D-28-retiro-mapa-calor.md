@@ -148,7 +148,27 @@ recupera de ahi.
 
 ---
 
-## 5. Observaciones
+## 5. Las horas
+
+| | Horas |
+|---|---|
+| Estimacion previa | **n/d — no se estimo antes de arrancar** |
+| **Real** | **1,25 h** (1 h 15 min) |
+
+**El `n/d` es un incumplimiento del procedimiento y se declara como tal.** D-24
+pide la estimacion **antes** de empezar, y aca no se dio: el retiro entro como
+consecuencia de una decision ajena y se arranco directo. Estimarlo ahora seria
+anclarlo al tiempo real, que es exactamente lo que D-24 evita.
+
+No aparece en `verificar_horas.py` porque **no es una historia**: es la
+consecuencia de D-28 sobre el entregable de H5.4, que ya estaba cerrada con sus
+propias horas. Se anota aca para que el dato no se pierda.
+
+**Vale como dato de calibracion igual**, y en una direccion que ninguna estimacion
+del proyecto contempla: **retirar algo costo 1,25 h**, casi todo en comprobar que
+nada mas se rompiera. El backlog estima construir; nadie estima quitar.
+
+## 6. Observaciones
 
 **Quien lo detecto.** El profesor del curso, al abrir el visor publicado el 24 de
 agosto. Es la **primera valoracion del sistema por alguien de afuera del equipo**:
