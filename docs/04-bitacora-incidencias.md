@@ -756,3 +756,69 @@ arreglo son dos programas y una tabla de tolerancias. El costo real era otro,
 y no llego a ocurrir: **el sitio se le iba a mostrar al Comite Municipal de
 Emergencias de Tilaran con el canton dibujado como un tablero de ajedrez.**
 
+
+---
+
+## I-12 · Un guardarrail correcto conectado a la condicion equivocada dejo el CI en rojo por diseno
+
+**Fecha.** 2026-08-26
+
+**Quien lo detecto.** Alejandro, revisando por que varios Pull Requests no
+pasaban.
+
+**Que paso.** Desde el 25 de agosto, **toda rama de trabajo salia en rojo en el
+CI**, hiciera lo que hiciera. El PR #171 no podia pasar nunca.
+
+Son dos piezas, cada una correcta, mal conectadas:
+
+| Pieza | Que dice | Estaba bien? |
+|---|---|---|
+| `ci.yml` | `if: github.event_name == 'push'` | **No.** Incluye cada push a cada rama |
+| `verificar_issues.py` | se planta con codigo 1 si la rama no es `dev` ni `main` | **Si**, y por buenas razones |
+
+El comentario que acompana a esa condicion **decia lo correcto desde el primer
+dia**:
+
+> En `push` a dev y main el tablero se sigue vigilando de forma continua, el
+> aviso llega igual, y llega a quien puede corregirlo.
+
+La condicion nunca nombro las dos ramas. Decia «en cualquier push».
+
+**Por que no se noto antes.** Mientras el verificador solo advertia, correrlo
+desde una rama de trabajo daba un **verde falso** —una historia ya cerrada en
+`dev` figura sin marcar en la rama vieja, asi que no reclamaba su issue abierta—
+y nadie miraba un trabajo que pasaba.
+
+El 25 de agosto se le puso el guardarrail de rama, precisamente para que ese
+verde falso dejara de existir. **Desde ese momento el mismo defecto cambio de
+sintoma**: de verde silencioso a rojo garantizado.
+
+**Causa raiz.** El control estaba bien y la condicion que lo dispara estaba mal.
+Es una variante de I-06 —el CI corria `pytest` de una forma que ninguna persona
+usaba— pero al reves: aca el programa hace exactamente lo que debe y **se lo
+invoca donde no corresponde**.
+
+**Que se cambio.**
+
+1. La condicion nombra las dos ramas, que es lo que su propio comentario
+   declaraba:
+
+       if: >-
+         github.event_name == 'push'
+         && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+
+2. Aprovechando el mismo cambio, **`publicar-visor` deja de depender de
+   `gestion`**. Publicar el visor no puede depender de si una issue esta abierta
+   en un tablero que vive fuera del repositorio. Ese acople ya habia costado una
+   hora el 24 de agosto, y fallaba de la peor manera: el trabajo aparecia
+   **omitido**, no rojo.
+
+**Impacto.** Dos Pull Requests bloqueados y un rato largo de buscar la causa en
+el lugar equivocado —se reviso el tablero, se cerraron issues, se creo una
+duplicada que hubo que retirar— antes de mirar la condicion del CI.
+
+**La regla que deja.** **Cuando un control cambia de «advierte» a «se planta»,
+hay que revisar de nuevo donde se lo invoca.** Un guardarrail nuevo no solo
+cambia lo que el programa hace: cambia el costo de cada lugar desde el que se lo
+llama. Y en este repositorio hay un sitio donde eso quedo escrito y no se
+releyo: **el comentario del propio paso ya decia la condicion correcta.**
