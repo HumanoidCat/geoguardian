@@ -337,3 +337,42 @@ catalogo de eventos historicos y plan de pruebas.
 
 La division existe para que el documento tenga una sola voz sin convertir a
 Alejandro en cuello de botella para todo lo escrito.
+
+## Excepción: las imágenes de contenedor, para H6.0
+
+**Concedida el 2026-08-26.** Pedida por César, que **paró H6.0 antes de escribir**
+al ver que la historia era suya y las tres carpetas donde vive eran de otros.
+
+| Quién | Dónde | Para qué historia |
+|---|---|---|
+| César | `infra/docker/api.Dockerfile` y su `.dockerignore` | **H6.0, y nada más** |
+| César | `frontend/Dockerfile` y su `.dockerignore` | **H6.0, y nada más** |
+| César | `docker-compose.yml`, **solo los dos servicios nuevos** | **H6.0, y nada más** |
+
+**Avril revisa el Pull Request por la parte del visor**, igual que César revisa el
+de Sentinel-2 por ser dueño de `backend/etl`.
+
+**Por qué la excepción es tan estrecha.** Nada de `infra/k8s`, ningún componente ni
+estilo del visor, y del compose **solo se agregan bloques**: el servicio `db` no se
+toca. Fuera de eso, `infra` sigue siendo de Alejandro y `frontend` de Avril.
+
+**Por qué no se partió la historia en dos.** Era la alternativa que César mismo
+propuso —él la imagen de la API, Avril la del visor— y la descartó su propio
+argumento: H6.0 son **2,9 h**, y partirla deja dos pedazos de hora y media más la
+coordinación entre ellos. Avril tiene 25 h del Sprint 2 abiertas y H1.6 del
+Sprint 1.
+
+**Y dónde va el Dockerfile de la API: en `infra/docker/`.** César preguntó si no
+sería mejor `backend/api/`, junto al código que empaqueta, que además caería en su
+carpeta y evitaría el permiso. Se descartó por una razón concreta: `init-db` ya
+vive en `infra/docker/` y esta tabla dice que `infra` es «Docker, manifiestos de
+Kubernetes». **Mover un archivo para no necesitar permiso sería dejar que la
+propiedad de archivos decida la arquitectura**, y los permisos existen para evitar
+que dos personas se pisen, no para determinar dónde vive una cosa.
+
+> **Por qué esto está escrito acá y no solo en el mensaje que se le respondió.**
+> Un mensaje fuera del repositorio es un lugar más declarando estado, y ninguna
+> máquina lo cruza. César llegó a este pedido leyendo un backlog de cinco días
+> atrás; el permiso que se le concede no puede vivir en un archivo con el mismo
+> problema. Si el mensaje y esta tabla llegaran a decir cosas distintas, **manda
+> esta tabla**.
