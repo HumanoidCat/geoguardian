@@ -1,7 +1,7 @@
 ---
 title: "GeoGuardian · Avance de Semana 8"
 subtitle: "Evaluación de documentación · Revisión del MVP · Revisión de la documentación del MVP"
-author: "Alejandro Rodríguez · César Ubau · Luis Alejandro Luna · Avril Madrigal"
+author: "Alejandro Josué Rodríguez Zamora · César Andrés Ubau Calvo · Luis Alejandro Luna García · Avril Madrigal Elizondo"
 date: "27 de agosto de 2026"
 lang: es
 ---
@@ -315,10 +315,10 @@ contra 23,8 % y 20,7 % antes.
 
 | Persona | Rol | Historias | Puntos |
 |---|---|---|---|
-| Alejandro Rodríguez | Lead PM, arquitectura, modelado | 11 de 23 | 59 |
-| Luis Alejandro Luna | Investigación y calidad | 8 de 17 | 42 |
-| Avril Madrigal | Frontend y visualización | 7 de 21 | 35 |
-| César Ubau | Backend, ETL, base de datos | 5 de 27 | 24 |
+| Alejandro Josué Rodríguez Zamora | Lead PM, arquitectura, modelado | 11 de 23 | 59 |
+| Luis Alejandro Luna García | Investigación y calidad | 8 de 17 | 42 |
+| Avril Madrigal Elizondo | Frontend y visualización | 7 de 21 | 35 |
+| César Andrés Ubau Calvo | Backend, ETL, base de datos | 5 de 27 | 24 |
 
 **El dato de César está desactualizado en el tablero.** Tiene cuatro historias
 entregadas y mergeadas —H6.0, H6.2, H1.7 y H1.4— que solo esperan la marca de
