@@ -298,6 +298,18 @@ jobs:
         run: python -m backend.modelado.verificar_h32
       - name: Los criterios de H3.1 se cumplen
         run: python -m backend.modelado.verificar_h31
+      # H3.6 fija COMO se comparan los estimadores, y su CA-7 es el unico control
+      # que cruza dos caminos independientes hasta la misma cifra: `comparar.py`
+      # a traves del contrato `Estimador`, y `evaluar_linea_base.py` llamando a
+      # las lineas base directo. Si el adaptador introdujera cualquier diferencia
+      # de trato, las dos rutas divergirian y esto sale rojo.
+      #
+      # Corre siempre. `datos/procesados/etiquetas.csv` no esta versionado, asi
+      # que en el CI **nunca** esta: un paso condicionado a su existencia habria
+      # quedado verde sin ejecutar nada. Cuando falta, el verificador construye
+      # etiquetas sinteticas deterministas y lo declara en su primera linea.
+      - name: Los criterios de H3.6 se cumplen
+        run: python -m backend.modelado.verificar_h36
       # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
       # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
       # historias y quedaron colgando. Un verificador que solo se ejecuta cuando
