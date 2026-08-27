@@ -376,3 +376,42 @@ que dos personas se pisen, no para determinar dónde vive una cosa.
 > atrás; el permiso que se le concede no puede vivir en un archivo con el mismo
 > problema. Si el mensaje y esta tabla llegaran a decir cosas distintas, **manda
 > esta tabla**.
+
+## `pyproject.toml` · compartido, y hasta hoy sin declarar
+
+**Agregado el 2026-08-27.** Lo señaló César, y es el mismo hueco que Avril había
+encontrado con `datos/` y `notebooks/`: un archivo que todo el mundo puede
+necesitar y que no estaba ni en la tabla de carpetas ni en la lista de
+compartidos.
+
+| Sección | Quién la toca | Cómo |
+|---|---|---|
+| `[tool.ruff]` | Alejandro | directo |
+| `[tool.pytest.ini_options]` | **cualquiera**, con solicitud | afecta a las pruebas de los cuatro |
+| dependencias | **cualquiera**, con solicitud | el stack está cerrado |
+
+**Por qué importa que `testpaths` sea compartido y no de una persona.** Apuntaba a
+`backend/tests`, que es la carpeta de Luna, así que las pruebas que cada quien
+escribe junto a su módulo **no las ejecutaba nadie**. El 27 de agosto eran 46 de
+César, invisibles mientras el CI reportaba 130 en verde. Desde hoy apunta a
+`backend/` y se recogen 176.
+
+Es I-06: el CI corriendo pytest de una forma que ninguna persona usa.
+
+## Ampliación de la excepción de H6.0 · `frontend/nginx.conf`
+
+**Agregada el 2026-08-27.** La excepción original cubría el `Dockerfile` del visor
+y su `.dockerignore`, y César respetó ese límite escribiendo la configuración de
+nginx **dentro** del Dockerfile con `printf`, declarándolo:
+
+> Normalmente iría en `frontend/nginx.conf`. La excepción que me dieron cubre este
+> archivo.
+
+Respetó el límite correctamente. **El límite estaba mal puesto por mí**: veinte
+líneas de `printf` escapado son más difíciles de leer y de corregir que un archivo
+de configuración.
+
+Queda autorizado **`frontend/nginx.conf`, para H6.0 y para su mantenimiento
+posterior**, con Avril revisando el Pull Request igual que en el resto de la
+excepción. No hace falta rehacer lo ya fusionado: se mueve la próxima vez que
+alguien lo toque.

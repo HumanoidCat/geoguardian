@@ -160,7 +160,20 @@ H1.13,"H1.13 Trigger de auditoria sobre predicciones, con prueba","Epica E1 | 3 
 
 Rubrica o objetivo: BD-2
 Depende de: H1.8
-Sprint: S1 (semanas 8-9)
+Sprint: S1
+
+BLOQUEADA 2026-08-27, y no por su dependencia declarada.
+
+El trigger audita `analitico.riesgo` y **esa tabla no existe**:
+`init-db` crea el ESQUEMA `analitico` vacio, y NINGUNA historia del
+backlog declara crear la tabla. Se reviso E1, E3 y E7 una por una.
+
+Lo detecto Cesar al intentar hacerla. H1.8 esta cerrada, asi que la
+dependencia declarada se cumple y aun asi la historia es imposible.
+
+PENDIENTE DE DECISION DEL PM: a que historia se le asigna crear
+`analitico.riesgo`, o si H1.13 se difiere con la condicion de D-27.
+No se le pone una dependencia inventada mientras tanto. (semanas 8-9)
 
 Definition of Done:
 - [ ] Criterios de aceptacion verificados por otra persona
