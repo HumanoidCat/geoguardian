@@ -47,9 +47,27 @@ Debajo de la línea de la historia:
 `estimada` es lo que dijiste **antes de arrancar**. Si no hubo estimación previa,
 `n/d` **con el motivo entre paréntesis**. Ver **D-24**.
 
-### 4. Traer `dev` y **después** regenerar la matriz
+### 4. Traer `dev`, comprobar que tu historia tiene fila, y regenerar la matriz
 
-En ese orden, siempre:
+> **Lo primero: ¿tu historia tiene fila en `docs/trazabilidad.csv`?**
+>
+> ```bash
+> grep "^H1.4," docs/trazabilidad.csv
+> ```
+>
+> Si no devuelve nada, **pedila antes de marcar `[x]`**. `trazabilidad.csv` es un
+> archivo compartido y agregar una fila requiere aprobación del PM.
+>
+> **Por qué importa el orden.** Si marcás `[x]` sin la fila, `generar_matriz.py` y
+> `verificar_estado.py` fallan con «hay historias cerradas sin fila en
+> docs/trazabilidad.csv», y quedás entre dejar el CI en rojo o tocar un archivo
+> compartido sin permiso. **Ninguna de las dos es aceptable.**
+>
+> Las filas de las historias planificadas al inicio ya existen. Las que se
+> agregaron después —o que nadie cargó— no. Lo detectó César el 27 de agosto, con
+> cuatro historias hechas que no podía cerrar.
+
+**Y después, en este orden siempre:**
 
 ```bash
 git merge origin/dev
