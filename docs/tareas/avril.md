@@ -101,6 +101,9 @@
     descartaron a NASA POWER.
   - El codigo queda en el historial. Si el proyecto llegara a estimar a
     resolucion menor que el distrito, la interpolacion vuelve a tener sentido.
+  - **Retirado del visor el 2026-08-26.** Evidencia del retiro y de que no se
+    rompio nada mas en
+    `docs/evidencias/computacion-grafica/D-28-retiro-mapa-calor.md`.
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
