@@ -131,8 +131,16 @@
 - [ ] **H3.1** · Construir la linea base climatologica por distrito, mes y tipo de evento
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.0
 
-- [ ] **H3.2** · Definir y documentar la validacion por ventana expansiva
+- [x] **H3.2** · Definir y documentar la validacion por ventana expansiva (2026-08-26)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H3.0 · **bloquea a: H3.3, H3.4, H3.5**
+  - horas: estimada 6.0 . real 4.0
+  - Criterios escritos antes en `docs/evidencias/objetivos/H3.2-criterios-aceptacion.md`;
+    evidencia en `H3.2-ventana-expansiva.md`.
+  - **El codigo corrigio dos de mis tres estimaciones del embargo.** CA-2 estimo
+    9 dias para la lluvia y 38 para la sequia; salen 7 en los tres eventos. La
+    sequia porque **CA-3 la absorbe**: con el corte en frontera de mes, exigir que
+    la etiqueta no mire dentro de la prueba equivale a siete dias.
+  - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
 ## Sprint 3 (semanas 8-9) — 35.7 h
