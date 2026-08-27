@@ -67,6 +67,22 @@ Debajo de la línea de la historia:
 > agregaron después —o que nadie cargó— no. Lo detectó César el 27 de agosto, con
 > cuatro historias hechas que no podía cerrar.
 
+> **Y regenerá la matriz aunque todavía no marques `[x]`.**
+>
+> ```bash
+> python docs/herramientas/generar_matriz.py
+> ```
+>
+> El procedimiento supone que quien fusiona es quien cierra la historia, y **no
+> siempre coinciden**. El 27 de agosto tres Pull Requests entraron con sus
+> archivos de `docs/evidencias/` mientras sus historias seguían sin marcar,
+> esperando una fila de `trazabilidad.csv`. Eso solo alcanzó para desfasar la
+> matriz y **dejó `dev` en rojo en los tres merges seguidos**.
+>
+> **Subir un archivo a `docs/evidencias/` ya cambia la matriz**, marques o no. Es
+> el primero de los tres motivos que el propio `verificar_estado.py` enumera
+> cuando falla.
+
 **Y después, en este orden siempre:**
 
 ```bash
