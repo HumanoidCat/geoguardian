@@ -39,8 +39,9 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-25 | El incendio es binario y se acota a los tres distritos con senal | Aceptada | 2026-08-20 |
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 | D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
-| D-28 | Se retira el mapa de calor: interpola donde no hay medicion | Aceptada | 2026-08-24 |
+| D-28 | Se retira el mapa de calor: interpola donde no hay medicion | **Revertida por D-30** · partia de un hecho falso | 2026-08-24 |
 | D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada | 2026-08-26 |
+| D-30 | El mapa de calor vuelve, recortado contra los poligonos | Aceptada · revierte D-28 | 2026-08-27 |
 
 ---
 
@@ -2678,7 +2679,20 @@ diferido que se arrastra sin decision es peor que uno descartado.
 
 ## D-28 · Se retira el mapa de calor: interpola donde no hay medicion
 
-**Estado.** Aceptada
+> **REVERTIDA POR D-30 el 2026-08-27. Se deja completa y sin editar.**
+>
+> El registro se conserva porque el error no esta en el razonamiento sino en el
+> **hecho** del que parte. Todo lo que sigue esta escrito sobre una objecion
+> conceptual que el profesor **no hizo**: el reporto un defecto de recorte
+> -la capa se salia del canton y habia distritos que no marcaba- y eso se
+> convirtio, en la redaccion de este registro, en una objecion a interpolar.
+>
+> El propio contexto de aqui abajo dice que son **dos problemas de distinto
+> peso**, y despues los trata como uno solo para retirar la capa. Esa costura es
+> el defecto, y por eso el registro se queda visible en vez de corregirse. Ver
+> **I-14** y **D-30**.
+
+**Estado.** Revertida por D-30 el 2026-08-27, por partir de un hecho falso
 **Fecha.** 2026-08-24
 **Decide.** Alejandro, Lead PM
 **Lo detecta.** El profesor del curso, mirando el visor publicado
@@ -2800,8 +2814,20 @@ estimacion sea el distrito, no hay nada que interpolar.
 
 Copiar `docs/plantillas/plantilla-adr.md`, numerar con el siguiente `D-NN`,
 agregar la fila al indice de arriba y abrir el Pull Request. Una decision que
-sustituye a otra no la borra: la anterior pasa a estado
-**Sustituida por D-NN** y se queda donde esta.
+deja atras a otra **no la borra**: la anterior cambia de estado y se queda donde
+esta, entera.
+
+Hay tres formas de dejar atras una decision, y no son intercambiables:
+
+| Estado | Cuando | Ejemplo |
+|---|---|---|
+| **Revisada por D-NN** | El razonamiento sigue en pie; cambia una parte | D-08, cuando D-19 corrigio el ajuste del SPI |
+| **Sustituida por D-NN** | El problema sigue existiendo y se resuelve de otra manera | — |
+| **Revertida por D-NN** | La decision partia de un **hecho falso** y se deshace | D-28, revertida por D-30 |
+
+La tercera se agrego el 2026-08-27. Llamarle "sustituida" a una decision tomada
+sobre un hecho que no era cierto oculta justamente lo que hay que aprender. Ver
+**I-14**.
 
 ---
 
@@ -2909,4 +2935,145 @@ Esta decision se cumple, o no, de forma comprobable. Las cuatro condiciones:
 **Lo que esta decision NO mide**, y queda escrito para no confundirlo: que el dato
 sea correcto. El manifiesto prueba que dos personas tienen **lo mismo**, no que
 ese algo este bien. La calidad la mide H1.5.
+
+---
+
+## D-30 · El mapa de calor vuelve, recortado contra los poligonos
+
+**Estado.** Aceptada · **revierte D-28**
+**Fecha.** 2026-08-27
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** Alejandro, al contrastar D-28 contra la evidencia que la origino
+**Afecta.** Restituye el entregable de **H5.4**. Revierte parcialmente **H5.8**.
+
+### Contexto
+
+D-28 retiro la capa de mapa de calor el 24 de agosto, sobre la base de que
+interpolar entre los centroides de ocho poligonos afirma una resolucion espacial
+que el dato no tiene.
+
+**Ese argumento nunca lo hizo el profesor.** Lo que dijo esta escrito, textual,
+en `docs/evidencias/computacion-grafica/retroalimentacion-docente-visor-2026-08-24.md`:
+
+> *"La capa de calor se pinta sobre el rectangulo que encierra al canton, con los
+> bordes rectos a la vista, en vez de recortarse contra los poligonos
+> distritales"*
+
+Y, en la misma conversacion, que **se salia del canton y habia distritos que no
+marcaba**. La transparencia le parecio bien.
+
+Eso es un **defecto de render**, y tiene arreglo. El argumento conceptual -que
+interpolar produce valores donde no hay medicion- se agrego despues, del lado del
+equipo, y sobre el se decidio retirar la capa. El propio texto de D-28 dice que
+son *"dos problemas de distinto peso"* y a renglon seguido los junta.
+
+**Lo que costo.** 515 lineas, tres modulos y el entregable de una historia
+cerrada, retirados por un problema que el arreglo corrige en dos lineas.
+
+### Decision
+
+**La capa vuelve, con el defecto arreglado.** El arreglo tiene dos mitades y
+**ninguna alcanza sola**:
+
+1. **El encuadre sale de los poligonos, no de los centroides.** Un centroide esta
+   por definicion adentro de su distrito: encuadrar sobre ellos deja afuera la
+   mitad exterior de los distritos del borde. El `margen = 0.03` que habia estaba
+   puesto para tapar el corte recto y no compensaba eso.
+2. **El lienzo se recorta contra la union de los poligonos**, con
+   `destination-in` y regla par-impar, antes de colocarse. El borde de la
+   superficie pasa a ser el limite del canton.
+
+**Lo que no se toca:** la opacidad, la rampa BuPu de **D-21**, los ocho puntos de
+origen dibujados encima y la leyenda que declara sobre cuantos se calculo. Nada
+de eso tenia defecto.
+
+### Justificacion
+
+**Por que la objecion conceptual de D-28 no sostiene el retiro.** Sigue siendo
+cierto que la estimacion es distrital y que un degradado continuo sugiere mas
+resolucion de la que hay. Pero eso **ya estaba resuelto por diseño y esta escrito
+en el codigo desde H5.4**: los ocho puntos de origen se dibujan *encima* de la
+superficie justamente para que se vea de donde sale cada valor, y la leyenda
+declara el conteo. La capa viene apagada por defecto.
+
+D-28 trato ese riesgo como si no estuviera atendido. Estaba, y con el mismo
+criterio que **D-07** y **D-22**: no se rellena donde no hay dato, se declara.
+
+**Por que las dos mitades.** Medido sobre las geometrias del SNIT con
+`frontend/herramientas/verificar_recorte_calor.mjs`:
+
+| encuadre | pintado fuera del canton | canton sin pintar |
+|---|---|---|
+| centroides + 0,03 (lo que habia) | 23,8 % | 20,7 % |
+| poligonos, sin recortar | 40,5 % | 0,0 % |
+| **poligonos + recorte** | **0,0 %** | **0,0 %** |
+
+Encuadrar sobre los poligonos y no recortar **empeora** el desborde, porque la
+caja envolvente de una forma irregular es mucho mayor que la forma. Recortar sin
+corregir el encuadre quita el desborde y deja los mismos huecos. La tabla es la
+razon por la que el arreglo no es una linea.
+
+**Por que un verificador y no una captura.** Es el aprendizaje de **I-06** y
+**I-10** aplicado otra vez: este defecto vivio cuatro dias en el sitio publico
+porque solo se veia mirando. Ahora hay una maquina que lo mira en cada Pull
+Request, y que **falla si alguien vuelve a encuadrar sobre los centroides**.
+
+### Alternativas descartadas
+
+**Dejar la capa retirada y no volver sobre D-28.** Es la mas comoda y la peor: el
+registro quedaria como precedente de que se puede retirar un entregable ajeno
+sobre un hecho no verificado.
+
+**Corregir el texto de D-28 en su lugar.** Se descarta por la misma razon por la
+que D-08 y D-14 se conservan revisadas y no reescritas: una bitacora que se edita
+para quedar bien deja de servir para aprender. D-28 se queda entera, con el aviso
+arriba.
+
+**Recortar con `clip-path` sobre el elemento ya colocado.** Se expresaria en
+pixeles de pantalla y habria que recalcularlo en cada zoom. El recorte sobre el
+lienzo se hace una vez.
+
+**Regla `nonzero` en vez de `evenodd`.** El GeoJSON del SNIT no garantiza la
+regla de la mano derecha, y con `nonzero` un anillo interior escrito al reves
+quedaria relleno.
+
+### Consecuencias
+
+**Se restituye H5.4** con su entregable en pantalla. Sus 8 puntos y 12,5 horas
+vuelven a corresponder a algo que existe.
+
+**Se revierte parcialmente H5.8.** Ver **I-14**: el encuadre ajustado al canton
+salio de la misma lectura. Se conserva de esa historia la marca de seleccion
+accesible y el `zoomSnap`, que no dependian de ella.
+
+**El documento IEEE vuelve a estar bien** en la parte que menciona el mapa de
+calor entre las capas del visor. Lo que D-28 mandaba corregir ya no hay que
+corregirlo.
+
+**Queda una deuda medida, no inventada.** Los ocho poligonos simplificados **no
+teselan**: su union deja 142 huecos diminutos entre distritos vecinos. No afecta
+a esta capa -la tolerancia del verificador los cubre- pero esta anotado por si
+alguna vez importa.
+
+### Medicion
+
+`node frontend/herramientas/verificar_recorte_calor.mjs`, en el CI desde este
+cambio. Corre `dibujarSuperficie()` de verdad sobre un canvas simulado y compara
+lo pintado contra una implementacion **independiente** de punto-en-poligono por
+lanzamiento de rayos, escrita aparte. Dos algoritmos distintos que tienen que
+coincidir; si compartieran codigo, un error estaria en los dos.
+
+Comprueba, sobre 86 576 muestras:
+
+1. El encuadre contiene **los ocho distritos enteros**
+2. **0 km2** pintados fuera del canton
+3. **0 km2** del canton sin pintar
+4. Que el estado anterior **si falla** las dos anteriores, o sea que la medicion
+   distingue. Sin esta cuarta, las tres primeras podrian estar pasando por no
+   medir nada.
+
+**Criterio de revision.** Se vuelve sobre esta decision si el visor pasara a
+estimar a una resolucion distinta de la distrital, o si aparece evidencia de que
+un lector interpreta la superficie como medicion continua pese a los puntos de
+origen. Lo segundo se sabra en **H9.2a**, la validacion externa.
 

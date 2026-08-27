@@ -58,6 +58,19 @@ bordes rectos a la vista, en vez de recortarse contra los poligonos distritales.
 Se ve una caja azulada que no corresponde a ningun limite territorial y que se
 extiende sobre cantones vecinos.
 
+> **NOTA AGREGADA EL 2026-08-27. Lo que sigue, hasta el final de esta seccion,
+> es del equipo, no del profesor.** Aqui empieza la interpretacion que produjo
+> D-28, y es donde esta el defecto que registra **I-14**. El profesor reporto
+> **un defecto de recorte**: la capa se salia del canton y habia distritos que no
+> marcaba. Le gustaba la transparencia. Nunca objeto interpolar.
+>
+> La frase *"una segunda cuestion, distinta de la primera"* la escribio el
+> equipo, y describe correctamente que son dos cosas. D-28 las junto igual.
+>
+> **Resultado real:** la capa volvio el 2026-08-27 por **D-30**, con el recorte
+> arreglado. El defecto que el profesor si reporto se corrigio y se le puso un
+> verificador.
+
 Se describe en pantalla como *"probabilidad interpolada entre los ocho
 distritos"*, y ahi hay una **segunda cuestion, distinta de la primera**:
 interpolar entre ocho poligonos produce valores intermedios donde no hay
@@ -105,6 +118,16 @@ proyecto pone lo que decide no resolver.
 | 4 | Lago Arenal | Solo limitacion en el documento IEEE. **No se hace nada** |
 
 Los puntos 1 y 2 se le pasaron a Avril el mismo dia.
+
+**Corregido el 2026-08-27, por I-14.** Dos de las cuatro filas decian mas de lo
+que el profesor dijo:
+
+| # | Observacion | Destino real |
+|---|---|---|
+| 1 | Encuadre | Se ajusto de mas: se encerro el mapa en la forma del canton, leyendo su **captura** como especificacion. **Revertido a ancho completo.** Se conserva el `zoomSnap`, que si acercaba el canton |
+| 2 | Borde de seleccion | Correcto. **Se queda** |
+| 3 | Mapa de calor | Era un **defecto de recorte**. Arreglado por **D-30**, con verificador en el CI. D-28 queda revertida |
+| 4 | Lago Arenal | Sin cambios. **No se hace nada** |
 
 ---
 

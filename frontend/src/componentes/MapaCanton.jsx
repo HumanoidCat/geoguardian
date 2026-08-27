@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { CAPAS_BASE } from '../datos/capasBase'
+import CapaMapaCalor from './CapaMapaCalor'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
@@ -56,29 +57,26 @@ const NOMBRE_POR_NIVEL = {
  * dentro del arbol de MapContainer.
  *
  * ---------------------------------------------------------------------------
- * POR QUE ADEMAS LE DA FORMA AL CONTENEDOR
+ * POR QUE EL CONTENEDOR **NO** LLEVA LA FORMA DEL CANTON. Ver I-14.
  * ---------------------------------------------------------------------------
  *
- * `fitBounds` encaja el recuadro del canton dentro del contenedor ajustando por
- * la dimension que aprieta, y deja el sobrante en la otra. Si las dos formas no
- * se parecen, ese sobrante es enorme.
+ * Entre el 24 y el 26 de agosto este componente le imponia al contenedor la
+ * relacion de aspecto del canton, 0,83, para que `fitBounds` no dejara sobrante.
+ * El efecto en pantalla ancha era una columna angosta de mapa con dos bandas
+ * vacias a los lados, y el canton flotando solo, sin nada alrededor.
  *
- * Medido sobre las geometrias del SNIT: el canton mide 31,2 km de ancho por
- * 37,5 km de alto, o sea que es **mas alto que ancho**, relacion 0,83. El
- * contenedor era al reves: toda la columna del mapa menos el panel, contra un
- * alto de rejilla. En pantalla ancha daba una relacion cercana a 2,7.
+ * Eso salio de leer una **captura** del profesor como si fuera una
+ * especificacion. Una captura recortada muestra solo una parte porque es una
+ * captura; no pedia que el visor mostrara solo el canton. Lo que si dijo fue que
+ * el canton se veia chico, y para eso alcanza con encuadrar, que ya se hacia.
  *
- * Resultado: el recuadro del canton ocupaba **el 26 % del area del mapa** y los
- * poligonos el 19 %. El resto era Liberia, Bagaces, Canas y el Pacifico. Lo
- * senalo el profesor al ver el sitio publicado.
+ * El contexto regional -Canas, Liberia, el lago Arenal, la Fortuna- no es
+ * sobrante: es lo que le permite al Comite Municipal de Emergencias ubicar el
+ * canton respecto de sus vecinos.
  *
- * El arreglo no es mover el encuadre: es **darle al contenedor la forma del
- * canton**, calculada del mismo recuadro que ya se usa para encuadrar. No hay
- * ninguna coordenada escrita a mano, y si las geometrias cambiaran otra vez, la
- * forma se recalcula sola.
- *
- * El alto lleva tope en el CSS, atado al alto de la ventana: antes de esto el
- * mapa ya salia de la pantalla y habia que desplazarse para verlo entero.
+ * Lo que si se conserva de esa version, porque no dependia de esa lectura:
+ * `zoomSnap` a 0,1 -que se llevaba la mitad de la escala por redondeo- y el
+ * `bringToFront` del distrito seleccionado.
  */
 function AjustarEncuadre({ coleccion }) {
   const mapa = useMap()
@@ -88,19 +86,6 @@ function AjustarEncuadre({ coleccion }) {
 
     const limites = L.geoJSON(coleccion).getBounds()
     if (!limites.isValid()) return
-
-    // La relacion de aspecto se mide sobre el recuadro PROYECTADO y no sobre
-    // grados. Un grado de longitud y uno de latitud no miden lo mismo, y a la
-    // latitud de Tilaran la diferencia es de un 9 %: usar grados deformaria el
-    // contenedor justo en la direccion que estamos tratando de corregir.
-    const suroeste = L.CRS.EPSG3857.project(limites.getSouthWest())
-    const noreste = L.CRS.EPSG3857.project(limites.getNorthEast())
-    const anchoCanton = Math.abs(noreste.x - suroeste.x)
-    const altoCanton = Math.abs(noreste.y - suroeste.y)
-    if (!(anchoCanton > 0) || !(altoCanton > 0)) return
-
-    const aspecto = anchoCanton / altoCanton
-    mapa.getContainer().style.setProperty('--mapa-aspecto', String(aspecto))
 
     // El contenedor del mapa todavia esta creciendo cuando este efecto corre.
     // Leaflet mide el tamano que hay en ese instante, y si es mas chico que el
@@ -156,10 +141,11 @@ function AjustarEncuadre({ coleccion }) {
       if (clientWidth < 50 || clientHeight < 50) return
 
       mapa.invalidateSize()
-      // 16 px y no 32: el margen ya no hace falta para compensar la diferencia
-      // de forma entre el contenedor y el canton, y cada pixel de margen es
-      // area que el canton no ocupa.
-      mapa.fitBounds(limites, { padding: [16, 16] })
+      // Vuelve a 32 px. Con el contenedor ancho, `fitBounds` ajusta por el alto
+      // y el margen que decide cuanto se acerca es el vertical: a 16 px el
+      // canton llega casi al borde de arriba y de abajo, y se pierde la
+      // referencia de que hay algo mas alla del limite.
+      mapa.fitBounds(limites, { padding: [32, 32] })
     }
 
     const reencuadrarPronto = () => {
@@ -248,6 +234,8 @@ export default function MapaCanton({
   capaBase,
   superpuestas,
   opacidad,
+  exponente,
+  centroides,
 }) {
   const base = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0]
 
@@ -378,6 +366,17 @@ export default function MapaCanton({
 
         {coleccion && (
           <>
+            {/* Va primero para que quede debajo de los poligonos: la superficie
+                es contexto, no el dato principal. */}
+            {superpuestas.mapaCalor && (
+              <CapaMapaCalor
+                coleccion={coleccion}
+                centroides={centroides}
+                riesgos={riesgos}
+                exponente={exponente}
+              />
+            )}
+
             {superpuestas.riesgo && (
               <GeoJSON key={clave} data={coleccion} style={estilo} onEachFeature={porCadaDistrito} />
             )}

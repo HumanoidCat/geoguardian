@@ -198,6 +198,21 @@ jobs:
       - name: La escala de riesgo cumple los criterios de accesibilidad
         if: steps.existe.outputs.si == 'true'
         run: python frontend/herramientas/verificar_escala.py
+      # El mapa de calor se pintaba sobre el rectangulo que encierra al canton:
+      # 23,8 % de la superficie caia sobre los cantones vecinos y el 20,7 % del
+      # canton quedaba sin pintar. Vivio cuatro dias en el sitio publico porque
+      # solo se veia mirando la pantalla, que es la misma clase de defecto que
+      # I-06 e I-10.
+      #
+      # Esta herramienta corre dibujarSuperficie() de verdad sobre un canvas
+      # simulado y contrasta lo pintado contra una implementacion independiente
+      # de punto-en-poligono. Ver I-14 y D-30.
+      #
+      # Sin `--if-present` ni `continue-on-error`: si desaparece, esto sale en
+      # rojo. Un control que se salta solo se ve igual que uno que pasa.
+      - name: La capa de calor se recorta contra los poligonos
+        if: steps.existe.outputs.si == 'true'
+        run: node frontend/herramientas/verificar_recorte_calor.mjs
 
   pruebas:
     name: Pruebas contra PostgreSQL
