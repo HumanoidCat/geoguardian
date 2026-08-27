@@ -279,6 +279,8 @@ jobs:
       # construidas a mano, donde la respuesta correcta se conoce.
       - name: Los criterios de H3.0 se cumplen
         run: python -m backend.modelado.verificar_h30
+      - name: Los criterios de H3.2 se cumplen
+        run: python -m backend.modelado.verificar_h32
 
   # ------------------------------------------------------------------------- #
   # H11.5 · Publicar el visor como sitio estatico                              #
