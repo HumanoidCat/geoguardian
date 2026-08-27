@@ -67,6 +67,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H7.1 | Semaforo de riesgo por distrito y evento con umbrales documentados | frontend | npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H7.1-semaforo.md | CG-2 | Avril | **Con evidencia** |
 | H11.5 | Publicar el visor como sitio estatico con datos declarados simulados | .github/workflows/ci.yml, frontend/vite.config.js, frontend/src/datos/cliente.js | docs/herramientas/verificar_h115.py, 22 comprobaciones sobre el dist construido | docs/evidencias/arquitectura-software/H11.5-visor-publicado.md | CICD | Alejandro | **Con evidencia** |
 | H3.0 | Implementar el etiquetado de los tres eventos y su distribucion de clases | backend/modelado/etiquetado.py, backend/modelado/generar_etiquetas.py | backend/modelado/verificar_h30.py, 24 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.0-etiquetado.md | OE2 | Alejandro | **Con evidencia** |
+| H5.7 | Selector de fecha que recarga el estado del mapa | frontend | npm run lint, npm run build, verificacion visual con la API arriba y abajo | docs/evidencias/computacion-grafica/H5.7-selector-fecha.md | CG-4 | Avril | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.
