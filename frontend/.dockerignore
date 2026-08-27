@@ -1,0 +1,35 @@
+# Que NO entra al contexto de construccion del visor. Historia H6.0, issue #62.
+#
+# Escrito por Cesar con la excepcion del 26 de agosto: `frontend/` es de Avril y
+# este archivo entra por H6.0, y nada mas.
+#
+# `node_modules` es la linea que importa. Sin ella, el contexto se lleva la carpeta
+# entera del anfitrion —cientos de megabytes y decenas de miles de archivos— para
+# que la etapa de construccion la pise enseguida con `npm ci`. Y si el anfitrion es
+# Windows y la imagen es Alpine, los binarios compilados que viajan ni siquiera
+# sirven.
+
+node_modules/
+dist/
+.vite/
+
+# Historia de git y el propio Dockerfile
+.git/
+Dockerfile
+.dockerignore
+
+# Registros y cachés de herramientas
+npm-debug.log*
+.eslintcache
+
+# Variables de entorno: el visor recibe las suyas en tiempo de construccion por
+# `--build-arg` o en ejecucion desde nginx. Un .env dentro de la imagen quedaria
+# publicado, y en un visor todo lo que se empaqueta es visible.
+.env
+.env.*
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
