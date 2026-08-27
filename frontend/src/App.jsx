@@ -15,6 +15,7 @@ import {
   obtenerSalud,
 } from './datos/cliente'
 import SelectorFecha from './componentes/SelectorFecha'
+import { puntoEnSuperficie } from './datos/geometria'
 import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
 import TableroSemaforo from './componentes/TableroSemaforo'
 
@@ -44,6 +45,20 @@ export default function App() {
   // respaldo estatico solo existe una, y ese origen ignora lo que se le pida.
   // Confundir las dos seria rotular un dato con una fecha que no es la suya.
   const [fecha, setFecha] = useState(fechaDeHoy)
+
+  // El punto exacto donde se hizo clic, **junto al distrito al que pertenece**.
+  //
+  // El codigo viaja con el punto a proposito. La primera version guardaba solo
+  // las coordenadas y se rompio en cuanto la seleccion cambio por otra via: al
+  // elegir un distrito desde el semaforo, la ficha seguia mostrando el clic
+  // anterior, que estaba en OTRO distrito. La pantalla afirmaba "donde hiciste
+  // clic" señalando un lugar donde nadie hizo clic.
+  //
+  // Se podria limpiar el punto en cada manejador que cambia la seleccion, pero
+  // eso depende de que alguien se acuerde cada vez que se agregue un camino
+  // nuevo. Con el codigo adentro, la comprobacion es una sola y no se puede
+  // olvidar: si no corresponde al distrito de la ficha, no se muestra.
+  const [puntoClic, setPuntoClic] = useState(null)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -154,10 +169,25 @@ export default function App() {
     setSuperpuestas((previas) => ({ ...previas, [id]: !previas[id] }))
   }, [])
 
-  const distritoSeleccionado = useMemo(() => {
+  // Desde el mapa llega el codigo y el punto exacto del clic. Con el teclado el
+  // punto es null: quien navega con Enter no senalo ningun lugar del distrito, y
+  // poner el centro seria inventar un dato que nadie indico.
+  const seleccionarDesdeMapa = useCallback((codigo, punto) => {
+    setSeleccionado(codigo)
+    setPuntoClic(punto ? { codigo, longitud: punto.lng, latitud: punto.lat } : null)
+  }, [])
+
+  const rasgoSeleccionado = useMemo(() => {
     if (!coleccion || !seleccionado) return null
-    return coleccion.features.find((r) => r.properties.codigo === seleccionado)?.properties ?? null
+    return coleccion.features.find((r) => r.properties.codigo === seleccionado) ?? null
   }, [coleccion, seleccionado])
+
+  const ubicacionDelDistrito = useMemo(
+    () => puntoEnSuperficie(rasgoSeleccionado?.geometry),
+    [rasgoSeleccionado],
+  )
+
+  const distritoSeleccionado = rasgoSeleccionado?.properties ?? null
 
   const distritos = useMemo(
     () => coleccion?.features.map((rasgo) => rasgo.properties) ?? [],
@@ -217,7 +247,7 @@ export default function App() {
               coleccion={coleccion}
               riesgos={riesgos}
               seleccionado={seleccionado}
-              alSeleccionar={setSeleccionado}
+              alSeleccionar={seleccionarDesdeMapa}
               capaBase={capaBase}
               superpuestas={superpuestas}
               opacidad={opacidad}
@@ -250,6 +280,8 @@ export default function App() {
 
             <PanelDistrito
               distrito={distritoSeleccionado}
+              ubicacion={ubicacionDelDistrito}
+              puntoClic={puntoClic?.codigo === seleccionado ? puntoClic : null}
               riesgo={seleccionado ? riesgos?.[seleccionado] : null}
               nombreEvento={nombreEvento}
             />

@@ -301,11 +301,14 @@ export default function MapaCanton({
 
     capa.bindTooltip(`${nombre} (${codigo}) · ${descripcion}`, { sticky: true })
 
-    capa.on('click', () => alSeleccionar(codigo))
+    // El punto exacto del clic viaja junto al codigo, para H5.6. Con el teclado
+    // no hay punto: se pasa null en vez de inventar uno. Quien navega con Enter
+    // no senalo ningun lugar del distrito.
+    capa.on('click', (evt) => alSeleccionar(codigo, evt.latlng))
     capa.on('keydown', (evt) => {
       if (evt.originalEvent.key === 'Enter' || evt.originalEvent.key === ' ') {
         evt.originalEvent.preventDefault()
-        alSeleccionar(codigo)
+        alSeleccionar(codigo, null)
       }
     })
 
