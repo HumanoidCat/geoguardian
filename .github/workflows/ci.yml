@@ -281,6 +281,8 @@ jobs:
         run: python -m backend.modelado.verificar_h30
       - name: Los criterios de H3.2 se cumplen
         run: python -m backend.modelado.verificar_h32
+      - name: Los criterios de H3.1 se cumplen
+        run: python -m backend.modelado.verificar_h31
 
   # ------------------------------------------------------------------------- #
   # H11.5 · Publicar el visor como sitio estatico                              #

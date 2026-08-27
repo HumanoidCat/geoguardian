@@ -128,8 +128,18 @@
   - **Deja dos requisitos para H3.2:** la particion corta por episodio y no por
     fila, y la sequia arrastra bloques de 66 filas, mas de dos meses.
 
-- [ ] **H3.1** · Construir la linea base climatologica por distrito, mes y tipo de evento
+- [x] **H3.1** · Construir la linea base climatologica por distrito, mes y tipo de evento (2026-08-26)
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.0
+  - horas: estimada 5.0 . real 3.5
+  - Criterios escritos antes en `docs/evidencias/objetivos/H3.1-criterios-aceptacion.md`;
+    evidencia en `H3.1-linea-base.md`.
+  - **La primera version degeneraba en la trivial.** Predecir la clase modal por
+    distrito-mes da BAJO en las 96 celdas, porque la minoritaria es del 1-7 %. Se
+    cambio a realce sobre la tasa base.
+  - De la prediccion escrita antes acerte dos de tres: la lluvia arriba (+0,036) y
+    la sequia cerca (-0,070, que **confirma D-19**). El incendio da +0,006, por
+    debajo del margen, y el margen **no se movio**.
+
 
 - [x] **H3.2** · Definir y documentar la validacion por ventana expansiva (2026-08-26)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H3.0 · **bloquea a: H3.3, H3.4, H3.5**
