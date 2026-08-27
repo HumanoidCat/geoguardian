@@ -69,8 +69,9 @@
 - [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
   - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
 
-- [ ] **H5.7** · Selector de fecha que recarga el estado del mapa
+- [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
+  - horas: estimada 2.5 . real 1.25
 
 - [x] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-1 · depende de: H5.1

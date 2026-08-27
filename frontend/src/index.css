@@ -327,6 +327,81 @@ body {
 }
 
 /* -------------------------------------------------------------------------- *
+ * Selector de fecha
+ * -------------------------------------------------------------------------- */
+
+.selector-fecha {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+  padding: var(--espacio-3) var(--espacio-4);
+}
+
+.selector-fecha-etiqueta {
+  display: block;
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+  margin-bottom: var(--espacio-2);
+}
+
+.selector-fecha-controles {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  flex-wrap: wrap;
+}
+
+.selector-fecha input[type='date'] {
+  font: inherit;
+  padding: var(--espacio-2);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.selector-fecha-hoy {
+  font: inherit;
+  font-size: var(--texto-sm);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.selector-fecha-hoy:hover {
+  border-color: var(--texto-suave);
+}
+
+.selector-fecha-nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--texto-tenue);
+  line-height: 1.35;
+}
+
+/* Cuando el origen es el respaldo, el selector no se dibuja deshabilitado sino
+   que se reemplaza por la explicacion. Un control gris que no responde obliga a
+   adivinar por que; el texto lo dice. */
+.selector-fecha-aviso {
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  font-size: var(--texto-xs);
+  line-height: 1.5;
+  color: var(--texto);
+}
+
+/* -------------------------------------------------------------------------- *
  * Leyenda
  * -------------------------------------------------------------------------- */
 

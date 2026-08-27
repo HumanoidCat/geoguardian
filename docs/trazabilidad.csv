@@ -45,3 +45,4 @@ H3.0,Implementar el etiquetado de los tres eventos y su distribucion de clases,"
 H5.8,Encuadre del mapa en el canton y marca de seleccion accesible,frontend,"frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
 H3.2,Definir y documentar la validacion por ventana expansiva,"backend/modelado/particion.py","backend/modelado/verificar_h32.py, 61 comprobaciones sin base de datos",docs/evidencias/objetivos/,,
 H3.1,Construir la linea base climatologica por distrito mes y tipo de evento,"backend/modelado/linea_base.py, backend/modelado/evaluar_linea_base.py","backend/modelado/verificar_h31.py, 32 comprobaciones sin base de datos",docs/evidencias/objetivos/,,
+H5.7,Selector de fecha que recarga el estado del mapa,frontend,"npm run lint, npm run build, verificacion visual con la API arriba y abajo",docs/evidencias/computacion-grafica/,,
