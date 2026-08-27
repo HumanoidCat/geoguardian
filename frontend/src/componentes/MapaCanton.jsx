@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { CAPAS_BASE } from '../datos/capasBase'
-import CapaMapaCalor from './CapaMapaCalor'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
@@ -249,8 +248,6 @@ export default function MapaCanton({
   capaBase,
   superpuestas,
   opacidad,
-  exponente,
-  centroides,
 }) {
   const base = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0]
 
@@ -381,16 +378,6 @@ export default function MapaCanton({
 
         {coleccion && (
           <>
-            {/* Va primero para que quede debajo de los poligonos: la superficie
-                es contexto, no el dato principal. */}
-            {superpuestas.mapaCalor && (
-              <CapaMapaCalor
-                centroides={centroides}
-                riesgos={riesgos}
-                exponente={exponente}
-              />
-            )}
-
             {superpuestas.riesgo && (
               <GeoJSON key={clave} data={coleccion} style={estilo} onEachFeature={porCadaDistrito} />
             )}
