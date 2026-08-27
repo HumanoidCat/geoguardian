@@ -37,7 +37,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H2.4 | Anomalias respecto a la normal climatologica 1991-2020, sobre la serie cruda (D-17) | backend/senales | test_anomalias, 24 casos | docs/evidencias/senales-y-sistemas/H2.4-anomalias.md | Senales | Luna | **Con evidencia** · SC-06 pendiente: el contrato no recibe fechas y se supone que la serie arranca en enero |
 | H2.7 | Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo | backend/senales | test_percentiles, 17 casos | docs/evidencias/senales-y-sistemas/H2.7-percentiles.md | Senales | Luna | **Con evidencia** |
 | H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | **Con evidencia** |
-| H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | Pendiente |
+| H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | **Con evidencia** |
 | H3.6 | Comparativa de tres algoritmos | backend/modelado | test_comparativa | docs/evidencias/ | OE2 | Alejandro | Pendiente |
 | H4.2 | Explicabilidad con SHAP | backend/modelado | test_shap | docs/evidencias/ | OE3 | Alejandro | Pendiente |
 | H5.1 | Mapa del canton con poligonos distritales, zoom y desplazamiento | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.1-mapa-distritos.md<br>docs/evidencias/computacion-grafica/H5.1-sistema-diseno.md | CG-4 | Avril | **Con evidencia** |
@@ -69,6 +69,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H3.0 | Implementar el etiquetado de los tres eventos y su distribucion de clases | backend/modelado/etiquetado.py, backend/modelado/generar_etiquetas.py | backend/modelado/verificar_h30.py, 37 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.0-etiquetado.md | OE2 | Alejandro | **Con evidencia** |
 | H5.8 | Encuadre del mapa en el canton y marca de seleccion accesible | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.8-encuadre-y-seleccion.md | CG-1 | Avril | **Con evidencia** |
 | H3.2 | Definir y documentar la validacion por ventana expansiva | backend/modelado/particion.py | backend/modelado/verificar_h32.py, 61 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.2-ventana-expansiva.md | OE2 | Alejandro | **Con evidencia** |
+| H3.1 | Construir la linea base climatologica por distrito mes y tipo de evento | backend/modelado/linea_base.py, backend/modelado/evaluar_linea_base.py | backend/modelado/verificar_h31.py, 32 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.1-linea-base.md | OE2 | Alejandro | **Con evidencia** |
 
 Completar con el resto del backlog conforme entren al sprint: se agrega la fila a
 `docs/trazabilidad.csv` y se regenera.
