@@ -35,6 +35,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # Graphviz hace falta para regenerar el entidad-relacion y contrastarlo
+      # contra el que esta versionado. Es la unica dependencia de sistema que
+      # este trabajo necesita.
+      - name: Instalar Graphviz
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
       # Estos cuatro verificadores existen por errores que ya ocurrieron:
       #   backlog    -> tres dependencias apuntaban a sprints posteriores (semana 4)
       #   adr        -> la rubrica exige seis registros y hay que probar que estan
@@ -58,6 +63,16 @@ jobs:
         run: pip install pydantic==2.10.4
       - name: Las cifras de la documentacion siguen siendo ciertas
         run: python docs/herramientas/verificar_documentacion.py
+      # El mismo criterio, aplicado a los dibujos: el entidad-relacion se deriva
+      # de basedatos/ddl/*.sql, asi que si alguien agrega una tabla y no
+      # regenera, el diagrama del documento pasa a mentir. Un diagrama
+      # desactualizado es peor que ninguno porque se ve autorizado.
+      #
+      # No compara bytes: Graphviz no garantiza la misma salida entre versiones
+      # y eso pondria el CI en rojo sin que ningun diagrama estuviera mal.
+      # Compara el contenido. Ver el encabezado del verificador.
+      - name: Los diagramas describen el repositorio de hoy
+        run: python docs/herramientas/verificar_diagramas.py
       # El tablero de GitHub era el unico lugar que declara el avance sin una
       # maquina que lo cruzara contra el repositorio. `como-llenar-el-pr.md` ya
       # advertia el modo de fallo -"Cierra H10.1" no cierra nada, GitHub solo

@@ -1,0 +1,133 @@
+<svg width="1042pt" height="289pt"
+ viewBox="0.00 0.00 1042.20 289.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 267.6)">
+<title>flujo_modelado</title>
+<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-267.6 1020.6,-267.6 1020.6,21.6 -21.6,21.6"/>
+<g id="clust1" class="cluster">
+<title>cluster_est</title>
+<path fill="#f6ecdc" stroke="#b9c0c8" d="M648,-8C648,-8 796,-8 796,-8 802,-8 808,-14 808,-20 808,-20 808,-226 808,-226 808,-232 802,-238 796,-238 796,-238 648,-238 648,-238 642,-238 636,-232 636,-226 636,-226 636,-20 636,-20 636,-14 642,-8 648,-8"/>
+<text text-anchor="middle" x="722" y="-225.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Estimadores &#160;· &#160;contrato de H3.6</text>
+</g>
+<!-- series -->
+<g id="node1" class="node">
+<title>series</title>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M109,-187.5C109,-187.5 12,-187.5 12,-187.5 6,-187.5 0,-181.5 0,-175.5 0,-175.5 0,-150.5 0,-150.5 0,-144.5 6,-138.5 12,-138.5 12,-138.5 109,-138.5 109,-138.5 115,-138.5 121,-144.5 121,-150.5 121,-150.5 121,-175.5 121,-175.5 121,-181.5 115,-187.5 109,-187.5"/>
+<text text-anchor="middle" x="60.5" y="-171.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Series diarias</text>
+<text text-anchor="middle" x="60.5" y="-160.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">1991&#45;2025</text>
+<text text-anchor="middle" x="60.5" y="-149.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">crudo.medicion_diaria</text>
+</g>
+<!-- etiquetado -->
+<g id="node3" class="node">
+<title>etiquetado</title>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M379,-154C379,-154 278,-154 278,-154 272,-154 266,-148 266,-142 266,-142 266,-106 266,-106 266,-100 272,-94 278,-94 278,-94 379,-94 379,-94 385,-94 391,-100 391,-106 391,-106 391,-142 391,-142 391,-148 385,-154 379,-154"/>
+<text text-anchor="middle" x="328.5" y="-138" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.0 &#160;Etiquetado</text>
+<text text-anchor="middle" x="328.5" y="-127" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SPI&#45;3 por mes &#160;· &#160;D&#45;19</text>
+<text text-anchor="middle" x="328.5" y="-116" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">P95/P99 de 72 h</text>
+<text text-anchor="middle" x="328.5" y="-105" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">focos en (t, t+7]</text>
+</g>
+<!-- series&#45;&gt;etiquetado -->
+<g id="edge1" class="edge">
+<title>series&#45;&gt;etiquetado</title>
+<path fill="none" stroke="#5b636d" d="M121.31,-146.25C121.31,-146.25 258.6,-146.25 258.6,-146.25"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="258.6,-148.7 265.6,-146.25 258.6,-143.8 258.6,-148.7"/>
+</g>
+<!-- focos -->
+<g id="node2" class="node">
+<title>focos</title>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M98,-109.5C98,-109.5 23,-109.5 23,-109.5 17,-109.5 11,-103.5 11,-97.5 11,-97.5 11,-72.5 11,-72.5 11,-66.5 17,-60.5 23,-60.5 23,-60.5 98,-60.5 98,-60.5 104,-60.5 110,-66.5 110,-72.5 110,-72.5 110,-97.5 110,-97.5 110,-103.5 104,-109.5 98,-109.5"/>
+<text text-anchor="middle" x="60.5" y="-93.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Focos de calor</text>
+<text text-anchor="middle" x="60.5" y="-82.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">2001&#45;2024</text>
+<text text-anchor="middle" x="60.5" y="-71.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">crudo.foco_calor</text>
+</g>
+<!-- focos&#45;&gt;etiquetado -->
+<g id="edge2" class="edge">
+<title>focos&#45;&gt;etiquetado</title>
+<path fill="none" stroke="#5b636d" d="M110.28,-101.75C110.28,-101.75 258.76,-101.75 258.76,-101.75"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="258.76,-104.2 265.76,-101.75 258.76,-99.3 258.76,-104.2"/>
+<text text-anchor="middle" x="193.5" y="-87.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">I&#45;11: nada antes de 2001</text>
+</g>
+<!-- particion -->
+<g id="node4" class="node">
+<title>particion</title>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M577,-154C577,-154 458,-154 458,-154 452,-154 446,-148 446,-142 446,-142 446,-106 446,-106 446,-100 452,-94 458,-94 458,-94 577,-94 577,-94 583,-94 589,-100 589,-106 589,-106 589,-142 589,-142 589,-148 583,-154 577,-154"/>
+<text text-anchor="middle" x="517.5" y="-138" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.2 &#160;Particion</text>
+<text text-anchor="middle" x="517.5" y="-127" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ventana expansiva &#160;· &#160;D&#45;04</text>
+<text text-anchor="middle" x="517.5" y="-116" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">5 pliegues</text>
+<text text-anchor="middle" x="517.5" y="-105" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">embargo de 7 dias</text>
+</g>
+<!-- etiquetado&#45;&gt;particion -->
+<g id="edge3" class="edge">
+<title>etiquetado&#45;&gt;particion</title>
+<path fill="none" stroke="#5b636d" d="M391.17,-124C391.17,-124 438.84,-124 438.84,-124"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="438.84,-126.45 445.84,-124 438.84,-121.55 438.84,-126.45"/>
+</g>
+<!-- trivial -->
+<g id="node5" class="node">
+<title>trivial</title>
+<path fill="white" stroke="#b9c0c8" d="M759.5,-210C759.5,-210 683.5,-210 683.5,-210 677.5,-210 671.5,-204 671.5,-198 671.5,-198 671.5,-184 671.5,-184 671.5,-178 677.5,-172 683.5,-172 683.5,-172 759.5,-172 759.5,-172 765.5,-172 771.5,-178 771.5,-184 771.5,-184 771.5,-198 771.5,-198 771.5,-204 765.5,-210 759.5,-210"/>
+<text text-anchor="middle" x="721.5" y="-194" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Linea base trivial</text>
+<text text-anchor="middle" x="721.5" y="-183" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.1</text>
+</g>
+<!-- particion&#45;&gt;trivial -->
+<g id="edge4" class="edge">
+<title>particion&#45;&gt;trivial</title>
+<path fill="none" stroke="#5b636d" d="M589.19,-150.33C642.12,-150.33 705,-150.33 705,-150.33 705,-150.33 705,-164.62 705,-164.62"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="702.55,-164.62 705,-171.62 707.45,-164.62 702.55,-164.62"/>
+</g>
+<!-- clima -->
+<g id="node6" class="node">
+<title>clima</title>
+<path fill="white" stroke="#b9c0c8" d="M776.5,-143C776.5,-143 666.5,-143 666.5,-143 660.5,-143 654.5,-137 654.5,-131 654.5,-131 654.5,-117 654.5,-117 654.5,-111 660.5,-105 666.5,-105 666.5,-105 776.5,-105 776.5,-105 782.5,-105 788.5,-111 788.5,-117 788.5,-117 788.5,-131 788.5,-131 788.5,-137 782.5,-143 776.5,-143"/>
+<text text-anchor="middle" x="721.5" y="-127" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Linea base climatologica</text>
+<text text-anchor="middle" x="721.5" y="-116" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">realce &#160;· &#160;H3.1</text>
+</g>
+<!-- particion&#45;&gt;clima -->
+<g id="edge5" class="edge">
+<title>particion&#45;&gt;clima</title>
+<path fill="none" stroke="#5b636d" d="M589.14,-124C589.14,-124 647.48,-124 647.48,-124"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="647.48,-126.45 654.48,-124 647.48,-121.55 647.48,-126.45"/>
+</g>
+<!-- algos -->
+<g id="node7" class="node">
+<title>algos</title>
+<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M780,-76C780,-76 663,-76 663,-76 657,-76 651,-70 651,-64 651,-64 651,-28 651,-28 651,-22 657,-16 663,-16 663,-16 780,-16 780,-16 786,-16 792,-22 792,-28 792,-28 792,-64 792,-64 792,-70 786,-76 780,-76"/>
+<text text-anchor="middle" x="721.5" y="-60" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Regresion Logistica</text>
+<text text-anchor="middle" x="721.5" y="-49" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Random Forest</text>
+<text text-anchor="middle" x="721.5" y="-38" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">XGBoost</text>
+<text text-anchor="middle" x="721.5" y="-27" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.3&#45;H3.5 &#160;PENDIENTES</text>
+</g>
+<!-- particion&#45;&gt;algos -->
+<g id="edge6" class="edge">
+<title>particion&#45;&gt;algos</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M589.11,-101.33C640.23,-101.33 700,-101.33 700,-101.33 700,-101.33 700,-83.26 700,-83.26"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="702.45,-83.26 700,-76.26 697.55,-83.26 702.45,-83.26"/>
+</g>
+<!-- tabla -->
+<g id="node8" class="node">
+<title>tabla</title>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M987,-154C987,-154 867,-154 867,-154 861,-154 855,-148 855,-142 855,-142 855,-106 855,-106 855,-100 861,-94 867,-94 867,-94 987,-94 987,-94 993,-94 999,-100 999,-106 999,-106 999,-142 999,-142 999,-148 993,-154 987,-154"/>
+<text text-anchor="middle" x="927" y="-138" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.6 &#160;Tabla comparativa</text>
+<text text-anchor="middle" x="927" y="-127" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">F1&#45;macro &#160;· &#160;D&#45;10</text>
+<text text-anchor="middle" x="927" y="-116" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">sin ganador si la ventaja</text>
+<text text-anchor="middle" x="927" y="-105" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">es menor que la dispersion</text>
+</g>
+<!-- trivial&#45;&gt;tabla -->
+<g id="edge7" class="edge">
+<title>trivial&#45;&gt;tabla</title>
+<path fill="none" stroke="#5b636d" d="M739,-171.94C739,-159.93 739,-146.67 739,-146.67 739,-146.67 847.85,-146.67 847.85,-146.67"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="847.85,-149.12 854.85,-146.67 847.85,-144.22 847.85,-149.12"/>
+</g>
+<!-- clima&#45;&gt;tabla -->
+<g id="edge8" class="edge">
+<title>clima&#45;&gt;tabla</title>
+<path fill="none" stroke="#5b636d" d="M788.5,-124C788.5,-124 847.77,-124 847.77,-124"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="847.77,-126.45 854.77,-124 847.77,-121.55 847.77,-126.45"/>
+</g>
+<!-- algos&#45;&gt;tabla -->
+<g id="edge9" class="edge">
+<title>algos&#45;&gt;tabla</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M744,-76.05C744,-87.42 744,-97.67 744,-97.67 744,-97.67 847.94,-97.67 847.94,-97.67"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="847.94,-100.12 854.94,-97.67 847.94,-95.22 847.94,-100.12"/>
+</g>
+</g>
+</svg>

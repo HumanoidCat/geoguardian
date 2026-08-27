@@ -1,0 +1,160 @@
+<svg width="598pt" height="620pt"
+ viewBox="0.00 0.00 598.20 620.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 598.6)">
+<title>componentes</title>
+<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-598.6 576.6,-598.6 576.6,21.6 -21.6,21.6"/>
+<g id="clust1" class="cluster">
+<title>cluster_pres</title>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M69,-383C69,-383 317,-383 317,-383 323,-383 329,-389 329,-395 329,-395 329,-557 329,-557 329,-563 323,-569 317,-569 317,-569 69,-569 69,-569 63,-569 57,-563 57,-557 57,-557 57,-395 57,-395 57,-389 63,-383 69,-383"/>
+<text text-anchor="middle" x="97" y="-556.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Presentacion</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_serv</title>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M176,-135.5C176,-135.5 310,-135.5 310,-135.5 316,-135.5 322,-141.5 322,-147.5 322,-147.5 322,-333 322,-333 322,-339 316,-345 310,-345 310,-345 176,-345 176,-345 170,-345 164,-339 164,-333 164,-333 164,-147.5 164,-147.5 164,-141.5 170,-135.5 176,-135.5"/>
+<text text-anchor="middle" x="191.5" y="-332.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Servicio</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_dom</title>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M342,-10C342,-10 488,-10 488,-10 494,-10 500,-16 500,-22 500,-22 500,-216 500,-216 500,-222 494,-228 488,-228 488,-228 342,-228 342,-228 336,-228 330,-222 330,-216 330,-216 330,-22 330,-22 330,-16 336,-10 342,-10"/>
+<text text-anchor="middle" x="358" y="-215.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Dominio</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_datos</title>
+<path fill="#e8f0e4" stroke="#b9c0c8" d="M20,-8C20,-8 144,-8 144,-8 150,-8 156,-14 156,-20 156,-20 156,-205 156,-205 156,-211 150,-217 144,-217 144,-217 20,-217 20,-217 14,-217 8,-211 8,-205 8,-205 8,-20 8,-20 8,-14 14,-8 20,-8"/>
+<text text-anchor="middle" x="30" y="-204.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Datos</text>
+</g>
+<!-- visor -->
+<g id="node1" class="node">
+<title>visor</title>
+<polygon fill="white" stroke="#b9c0c8" points="230,-541 138,-541 138,-501 230,-501 230,-541"/>
+<text text-anchor="middle" x="184" y="-524" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="184" y="-513" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Visor React</text>
+</g>
+<!-- mapa -->
+<g id="node2" class="node">
+<title>mapa</title>
+<polygon fill="white" stroke="#b9c0c8" points="157,-442 65,-442 65,-391 157,-391 157,-442"/>
+<text text-anchor="middle" x="111" y="-425" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="111" y="-414" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">MapaCanton</text>
+<text text-anchor="middle" x="111" y="-403" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Leaflet</text>
+</g>
+<!-- visor&#45;&gt;mapa -->
+<g id="edge1" class="edge">
+<title>visor&#45;&gt;mapa</title>
+<path fill="none" stroke="#5b636d" d="M147.5,-500.85C147.5,-484.13 147.5,-460.24 147.5,-442.15"/>
+</g>
+<!-- cliente -->
+<g id="node3" class="node">
+<title>cliente</title>
+<polygon fill="white" stroke="#b9c0c8" points="321,-442 193,-442 193,-391 321,-391 321,-442"/>
+<text text-anchor="middle" x="257" y="-425" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="257" y="-414" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Cliente de datos</text>
+<text text-anchor="middle" x="257" y="-403" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">negocia origen &#160;· &#160;D&#45;23</text>
+</g>
+<!-- visor&#45;&gt;cliente -->
+<g id="edge2" class="edge">
+<title>visor&#45;&gt;cliente</title>
+<path fill="none" stroke="#5b636d" d="M211.5,-500.85C211.5,-484.13 211.5,-460.24 211.5,-442.15"/>
+</g>
+<!-- api -->
+<g id="node4" class="node">
+<title>api</title>
+<polygon fill="white" stroke="#b9c0c8" points="309,-317 205,-317 205,-266 309,-266 309,-317"/>
+<text text-anchor="middle" x="257" y="-300" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="257" y="-289" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API FastAPI</text>
+<text text-anchor="middle" x="257" y="-278" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">OpenAPI &#160;· &#160;H6.1</text>
+</g>
+<!-- cliente&#45;&gt;api -->
+<g id="edge3" class="edge">
+<title>cliente&#45;&gt;api</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M257,-390.9C257,-390.9 257,-324.06 257,-324.06"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="259.45,-324.06 257,-317.06 254.55,-324.06 259.45,-324.06"/>
+<text text-anchor="middle" x="285.5" y="-355.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">HTTP &#160;· &#160;/riesgo</text>
+</g>
+<!-- repositorio -->
+<g id="node5" class="node">
+<title>repositorio</title>
+<polygon fill="white" stroke="#b9c0c8" points="314,-194.5 172,-194.5 172,-143.5 314,-143.5 314,-194.5"/>
+<text text-anchor="middle" x="243" y="-177.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="243" y="-166.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Repositorio</text>
+<text text-anchor="middle" x="243" y="-155.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">patron Repository &#160;· &#160;H6.2</text>
+</g>
+<!-- api&#45;&gt;repositorio -->
+<g id="edge4" class="edge">
+<title>api&#45;&gt;repositorio</title>
+<path fill="none" stroke="#5b636d" d="M257,-265.82C257,-265.82 257,-201.65 257,-201.65"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="259.45,-201.65 257,-194.65 254.55,-201.65 259.45,-201.65"/>
+</g>
+<!-- contratos -->
+<g id="node6" class="node">
+<title>contratos</title>
+<polygon fill="white" stroke="#b9c0c8" points="491.5,-69 338.5,-69 338.5,-18 491.5,-18 491.5,-69"/>
+<text text-anchor="middle" x="415" y="-52" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="415" y="-41" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Contratos</text>
+<text text-anchor="middle" x="415" y="-30" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Protocol congelados &#160;· &#160;D&#45;06</text>
+</g>
+<!-- api&#45;&gt;contratos -->
+<g id="edge5" class="edge">
+<title>api&#45;&gt;contratos</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M309.01,-291C327.7,-291 344.25,-291 344.25,-291 344.25,-291 344.25,-76.05 344.25,-76.05"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="346.7,-76.05 344.25,-69.05 341.8,-76.05 346.7,-76.05"/>
+<text text-anchor="middle" x="548.5" y="-167.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">usa</text>
+</g>
+<!-- base -->
+<g id="node9" class="node">
+<title>base</title>
+<path fill="white" stroke="#b9c0c8" d="M147.5,-66C147.5,-68.76 118.14,-71 82,-71 45.86,-71 16.5,-68.76 16.5,-66 16.5,-66 16.5,-21 16.5,-21 16.5,-18.24 45.86,-16 82,-16 118.14,-16 147.5,-18.24 147.5,-21 147.5,-21 147.5,-66 147.5,-66"/>
+<path fill="none" stroke="#b9c0c8" d="M147.5,-66C147.5,-63.24 118.14,-61 82,-61 45.86,-61 16.5,-63.24 16.5,-66"/>
+<text text-anchor="middle" x="82" y="-46.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«base de datos»</text>
+<text text-anchor="middle" x="82" y="-35.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">PostgreSQL + PostGIS</text>
+</g>
+<!-- repositorio&#45;&gt;base -->
+<g id="edge6" class="edge">
+<title>repositorio&#45;&gt;base</title>
+<path fill="none" stroke="#5b636d" d="M171.98,-175C154.54,-175 140.75,-175 140.75,-175 140.75,-175 140.75,-76.48 140.75,-76.48"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="143.2,-76.48 140.75,-69.48 138.3,-76.48 143.2,-76.48"/>
+</g>
+<!-- modelado -->
+<g id="node7" class="node">
+<title>modelado</title>
+<polygon fill="white" stroke="#b9c0c8" points="470,-200 350,-200 350,-138 470,-138 470,-200"/>
+<text text-anchor="middle" x="410" y="-183" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="410" y="-172" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Modelado</text>
+<text text-anchor="middle" x="410" y="-161" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">etiquetado, particion,</text>
+<text text-anchor="middle" x="410" y="-150" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">comparacion</text>
+</g>
+<!-- modelado&#45;&gt;contratos -->
+<g id="edge7" class="edge">
+<title>modelado&#45;&gt;contratos</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M410,-137.98C410,-137.98 410,-76.1 410,-76.1"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="412.45,-76.1 410,-69.1 407.55,-76.1 412.45,-76.1"/>
+<text text-anchor="middle" x="418.5" y="-102.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">usa</text>
+</g>
+<!-- modelado&#45;&gt;base -->
+<g id="edge8" class="edge">
+<title>modelado&#45;&gt;base</title>
+<path fill="none" stroke="#5b636d" d="M349.59,-169C338.19,-169 329.75,-169 329.75,-169 329.75,-169 329.75,-52 329.75,-52 329.75,-52 154.74,-52 154.74,-52"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="154.74,-49.55 147.74,-52 154.74,-54.45 154.74,-49.55"/>
+</g>
+<!-- etl -->
+<g id="node8" class="node">
+<title>etl</title>
+<polygon fill="white" stroke="#b9c0c8" points="134,-189 42,-189 42,-149 134,-149 134,-189"/>
+<text text-anchor="middle" x="88" y="-172" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text text-anchor="middle" x="88" y="-161" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ETL</text>
+</g>
+<!-- etl&#45;&gt;contratos -->
+<g id="edge10" class="edge">
+<title>etl&#45;&gt;contratos</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M134.01,-162C144.31,-162 152.25,-162 152.25,-162 152.25,-162 152.25,-35 152.25,-35 152.25,-35 331.3,-35 331.3,-35"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="331.3,-37.45 338.3,-35 331.3,-32.55 331.3,-37.45"/>
+<text text-anchor="middle" x="284.5" y="-102.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">usa</text>
+</g>
+<!-- etl&#45;&gt;base -->
+<g id="edge9" class="edge">
+<title>etl&#45;&gt;base</title>
+<path fill="none" stroke="#5b636d" d="M88,-148.84C88,-148.84 88,-78.1 88,-78.1"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="90.45,-78.1 88,-71.1 85.55,-78.1 90.45,-78.1"/>
+</g>
+</g>
+</svg>

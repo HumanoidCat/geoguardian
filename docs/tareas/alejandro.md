@@ -174,6 +174,21 @@
   - **Desbloquea parcialmente el documento IEEE:** la seccion VI deja de estar
     vacia y reporta lo que si esta medido.
 
+- **Diagramas del proyecto** — 2026-08-27, sin historia propia todavia
+  - `docs/herramientas/generar_diagramas.py` produce seis: entidad-relacion,
+    flujo de datos, componentes, secuencia, despliegue y flujo de modelado.
+  - El **entidad-relacion es derivado**: sale de parsear `basedatos/ddl/*.sql`.
+    Los otros cinco se declaran en el generador, que es su unica fuente.
+  - `verificar_diagramas.py` en el CI: 25 comprobaciones. Falla si alguien
+    agrega una tabla al DDL y no regenera.
+  - **DECISION PENDIENTE DE ALEJANDRO.** Dos de los seis -componentes y
+    secuencia- son el entregable de **H6.5**, que esta asignada a Avril. Hay que
+    elegir, y no lo decide quien escribio el codigo:
+    - reasignar H6.5 a Alejandro, o
+    - dejarla de Avril para que la cierre usando estos, o
+    - dejar estos como material del documento IEEE y que H6.5 siga aparte.
+    Hasta que se decida, **H6.5 no se toca**: sigue abierta y de Avril.
+
 - [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6
 
