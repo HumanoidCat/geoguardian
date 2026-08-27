@@ -22,6 +22,15 @@ known-first-party = ["contratos", "backend"]
 # formas de invocar tienen que dar el mismo resultado, porque si no el CI y la
 # maquina de quien escribe la prueba discrepan. Encontrado en el PR #110.
 pythonpath = ["."]
-testpaths = ["backend/tests"]
+# `backend/` y no `backend/tests`, desde el 2026-08-27.
+#
+# Apuntaba solo a la carpeta de Luna, asi que las pruebas que cada quien escribe
+# junto a su modulo **no las ejecutaba nadie**: 46 de Cesar -de H6.2 y H1.4-
+# quedaban invisibles mientras el CI reportaba 130 en verde.
+#
+# Es I-06 otra vez: el CI corriendo pytest de una forma que ninguna persona usa.
+# Con `backend/` se recogen 176 y no hace falta que nadie mueva sus archivos a la
+# carpeta de otro.
+testpaths = ["backend"]
 python_files = ["test_*.py"]
 addopts = "-ra"

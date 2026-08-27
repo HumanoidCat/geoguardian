@@ -62,13 +62,17 @@ export const CAPAS_SUPERPUESTAS = [
     descripcion: 'Coropleta con la escala de tres niveles',
     conOpacidad: true,
   },
-  {
-    id: 'mapaCalor',
-    nombre: 'Mapa de calor',
-    descripcion: 'Probabilidad interpolada entre los ocho distritos',
-    conOpacidad: false,
-    conExponente: true,
-  },
+  // El mapa de calor se retiro el 2026-08-26 por D-28. Interpolar por distancia
+  // inversa entre los centroides de ocho poligonos produce valores donde no hay
+  // ninguna medicion: el riesgo se estima POR DISTRITO, un valor por poligono, y
+  // un degradado continuo comunica una resolucion espacial que el dato no tiene.
+  //
+  // Es el mismo criterio por el que I-05 y D-15 descartaron a NASA POWER para
+  // precipitacion: si su celda no permitia hablar por distrito, un mapa de calor
+  // que sugiere variacion DENTRO del distrito afirma todavia mas.
+  //
+  // No se arreglo ni se etiqueto, se quito: el problema no era que faltara el
+  // aviso, era que se mostraba. H5.4 queda cerrada, con nota de revision.
   {
     id: 'limites',
     nombre: 'Limites distritales',
@@ -85,23 +89,10 @@ export const CAPAS_SUPERPUESTAS = [
 
 export const CAPAS_INICIALES = {
   riesgo: true,
-  mapaCalor: false,
   limites: false,
   etiquetas: false,
 }
 
-/**
- * Exponente de la interpolacion por distancia inversa.
- *
- * Decide cuanto pesa la cercania. Con 1 la superficie queda casi plana, un
- * promedio general del canton. Con 4 cada distrito domina su entorno y aparecen
- * "islas" con bordes marcados, que es engañoso porque sugiere una frontera que
- * el dato no tiene.
- *
- * 2 es el valor convencional y el que se usa por defecto. Se deja ajustable
- * porque la eleccion del exponente cambia la lectura del mapa, y esconderla
- * seria presentar una decision como si fuera un hecho.
- */
-export const EXPONENTE_IDW_INICIAL = 2
-export const EXPONENTE_IDW_MINIMO = 1
-export const EXPONENTE_IDW_MAXIMO = 4
+// Las constantes del exponente de la interpolacion salieron con la capa, por
+// D-28. No quedan sin uso: una constante exportada que nadie consume es una
+// invitacion a reconstruir lo que se acaba de decidir retirar.

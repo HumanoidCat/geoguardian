@@ -1,7 +1,8 @@
 """
 Verificador de la API. Dueno: Cesar. Historia H6.1, issue #59.
 
-Cubre CA-1 a CA-10. CA-11 (maquina limpia) se verifica por fuera.
+Cubre CA-1 a CA-10, mas CA-12 y CA-13, que saldan las dos garantias que
+prometio SC-03. CA-11 (maquina limpia) se verifica por fuera.
 
 POR QUE USA TestClient Y NO UN SERVIDOR
 
@@ -17,21 +18,48 @@ de prueba no demuestra que el proceso arranque.
 USO
 
     python -m backend.api.verificar_h61
+    python backend/api/verificar_h61.py
+
+Las dos formas funcionan. La segunda lo hace desde H6.2; ver el arreglo del
+path mas abajo.
 """
 
 from __future__ import annotations
 
 import ast
 import re
+import sys
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
-from fastapi.testclient import TestClient
+# El verificador se invoca de dos formas y las dos tienen que funcionar:
+#
+#     python -m backend.api.verificar_h61      agrega la raiz del repositorio
+#     python backend/api/verificar_h61.py      agrega backend/api/, no la raiz
+#
+# Sin estas dos lineas la segunda falla con "No module named 'backend'". Es el
+# mismo motivo por el que `pyproject.toml` declara `pythonpath` para pytest: si
+# una forma de invocar funciona y la otra no, el CI y la maquina de quien
+# escribe discrepan sobre si el control corre.
+#
+# `verificar_h60.py` no necesita nada de esto porque solo usa biblioteca
+# estandar. Este importa `backend` y `contratos`. Deuda anotada al revisar SC-03
+# y saldada en H6.2.
+RAIZ_REPOSITORIO = Path(__file__).resolve().parents[2]
+if str(RAIZ_REPOSITORIO) not in sys.path:
+    sys.path.insert(0, str(RAIZ_REPOSITORIO))
 
-from backend.api.aplicacion import crear_aplicacion
-from backend.api.dependencias import obtener_repositorio
-from contratos.enums import ModoOperacion, TipoEvento
-from contratos.esquemas import Distrito, MedicionDiaria, Riesgo, Salud
+# Los imports que siguen van despues del arreglo del path A PROPOSITO, y por eso
+# llevan la excepcion de E402: puestos arriba, el modulo no se puede importar
+# invocado por ruta, que es exactamente lo que las lineas de arriba arreglan.
+from fastapi.testclient import TestClient  # noqa: E402
+
+from backend.api.aplicacion import crear_aplicacion  # noqa: E402
+from backend.api.dependencias import obtener_repositorio  # noqa: E402
+from contratos.enums import ModoOperacion, NivelRiesgo, TipoEvento  # noqa: E402
+from contratos.esquemas import Distrito, MedicionDiaria, Riesgo, Salud  # noqa: E402
+from contratos.simulados.datos import RepositorioSimulado  # noqa: E402
 
 RAIZ_API = Path(__file__).resolve().parent
 
@@ -46,6 +74,20 @@ RUTAS_ESPERADAS = [
 
 CODIGO = "50801"
 FECHA = "2024-06-15"
+
+# Varias fechas para la monotonia: con ocho distritos por fecha, una sola daria
+# ocho pares (probabilidad, nivel) por evento y el orden no significaria gran
+# cosa. Tres dan veinticuatro.
+FECHAS_MONOTONIA = ["2024-01-15", "2024-06-15", "2024-11-15"]
+
+# Orden de severidad. `NivelRiesgo` es un Enum de cadenas y no define orden, asi
+# que se declara aca en vez de comparar los valores como texto, que daria
+# alto < bajo < medio.
+ORDEN_NIVEL = {
+    NivelRiesgo.BAJO.value: 0,
+    NivelRiesgo.MEDIO.value: 1,
+    NivelRiesgo.ALTO.value: 2,
+}
 
 
 @dataclass
@@ -419,6 +461,148 @@ def ca10_no_encontrado(cliente: TestClient) -> Resultado:
 
 
 # --------------------------------------------------------------------------- #
+# CA-12 y CA-13 - las dos garantias que prometio SC-03                         #
+# --------------------------------------------------------------------------- #
+
+
+def ca12_idempotencia(cliente: TestClient) -> Resultado:
+    """
+    La misma consulta de riesgo devuelve siempre lo mismo.
+
+    SC-03 lo prometio con estas palabras: "dentro de un proceso y entre procesos
+    distintos". Se comprueban las dos mitades, y la segunda es la que vale: la
+    primera sola pasaria aunque el simulado guardara la respuesta en una cache.
+
+    LO QUE ESTA COMPROBACION **NO** ES
+
+    No es "un GET devuelve siempre lo mismo". La idempotencia de HTTP restringe
+    el efecto sobre el servidor, no la representacion devuelta: `/salud` cambia
+    entre llamadas y no viola ninguna regla. Lo que se comprueba aca es la
+    garantia que el simulado dio sobre sus propios datos, que es otra cosa y mas
+    fuerte. La correccion esta en SC-03, aportada al aprobar la solicitud.
+    """
+    detalle: list[str] = []
+    ok = True
+
+    parametros = {"fecha": FECHA, "tipo_evento": TipoEvento.SEQUIA.value}
+    primera = cliente.get("/riesgos", params=parametros).json()
+    segunda = cliente.get("/riesgos", params=parametros).json()
+
+    if primera != segunda:
+        ok = False
+        cambiados = [
+            a.get("codigo_distrito") for a, b in zip(primera, segunda, strict=False) if a != b
+        ]
+        detalle.append(f"  [MAL] dos peticiones identicas difieren en: {cambiados}")
+    else:
+        detalle.append(
+            f"  [ok ] dos GET /riesgos identicos devolvieron las mismas {len(primera)} filas"
+        )
+
+    # La instancia de la API esta cacheada con lru_cache. Esta es otra, con su
+    # propio generador recien creado: si los valores dependieran del estado del
+    # generador, esta mitad falla y la de arriba no.
+    aparte = RepositorioSimulado()
+    fecha = date.fromisoformat(FECHA)
+    discrepan: list[str] = []
+    for fila in primera:
+        propio = aparte.obtener_riesgo(fila["codigo_distrito"], fecha, TipoEvento.SEQUIA)
+        if propio is None:
+            discrepan.append(f"{fila['codigo_distrito']}: la instancia nueva devolvio None")
+        elif propio.nivel.value != fila["nivel"] or propio.probabilidad != fila["probabilidad"]:
+            discrepan.append(
+                f"{fila['codigo_distrito']}: la API dice {fila['nivel']}/{fila['probabilidad']}"
+                f" y la instancia nueva {propio.nivel.value}/{propio.probabilidad}"
+            )
+
+    if discrepan:
+        ok = False
+        detalle.append("  [MAL] una instancia nueva del simulado no reproduce los valores:")
+        detalle.extend(f"    {d}" for d in discrepan)
+    else:
+        detalle.append(
+            f"  [ok ] una instancia nueva del simulado, ajena a la que la API cachea,"
+            f" reprodujo los {len(primera)} valores"
+        )
+
+    return Resultado("CA-12", "La misma consulta de riesgo devuelve siempre lo mismo", ok, detalle)
+
+
+def ca13_monotonia(cliente: TestClient) -> Resultado:
+    """
+    Una probabilidad mayor nunca produce un nivel menor.
+
+    Segunda garantia de SC-03. El defecto que la origino fue concreto: el 20 de
+    agosto el distrito 50802 salio con nivel `bajo` y probabilidad 0,90, porque
+    el simulado sorteaba las dos cosas por separado. Bajo D-21 `probabilidad` es
+    P(nivel = alto), asi que esa fila era imposible.
+
+    De esta propiedad dependen el mapa de calor de H5.4, que interpola la
+    probabilidad, y el semaforo continuo de H7.1.
+    """
+    detalle: list[str] = []
+    ok = True
+
+    for tipo in TipoEvento:
+        pares: list[tuple[float, str]] = []
+        for fecha in FECHAS_MONOTONIA:
+            filas = cliente.get(
+                "/riesgos", params={"fecha": fecha, "tipo_evento": tipo.value}
+            ).json()
+            pares.extend(
+                (f["probabilidad"], f["nivel"])
+                for f in filas
+                if f["probabilidad"] is not None and f["nivel"] is not None
+            )
+
+        if not pares:
+            ok = False
+            detalle.append(f"  [MAL] {tipo.value}: ninguna fila trae nivel y probabilidad")
+            continue
+
+        pares.sort()
+        inversiones = [
+            (pares[i], pares[i + 1])
+            for i in range(len(pares) - 1)
+            if ORDEN_NIVEL[pares[i + 1][1]] < ORDEN_NIVEL[pares[i][1]]
+        ]
+        if inversiones:
+            ok = False
+            antes, despues = inversiones[0]
+            detalle.append(
+                f"  [MAL] {tipo.value}: {len(inversiones)} inversiones."
+                f" La primera: {antes} y despues {despues}"
+            )
+        else:
+            niveles = sorted({n for _, n in pares}, key=lambda n: ORDEN_NIVEL[n])
+            detalle.append(
+                f"  [ok ] {tipo.value}: {len(pares)} pares ordenados por probabilidad,"
+                f" niveles {niveles}"
+            )
+
+    # SC-05 dejo el incendio binario: emitir MEDIO seria producir un valor que el
+    # contrato ya no admite, y un doble que emite valores imposibles no sirve
+    # para sustituir al original.
+    incendio = [
+        f
+        for fecha in FECHAS_MONOTONIA
+        for f in cliente.get(
+            "/riesgos", params={"fecha": fecha, "tipo_evento": TipoEvento.INCENDIO.value}
+        ).json()
+    ]
+    con_medio = [f for f in incendio if f["nivel"] == NivelRiesgo.MEDIO.value]
+    if con_medio:
+        ok = False
+        detalle.append(
+            f"  [MAL] incendio emitio nivel medio en {len(con_medio)} filas; SC-05 lo hizo binario"
+        )
+    else:
+        detalle.append(f"  [ok ] incendio no emite nivel medio en {len(incendio)} filas (SC-05)")
+
+    return Resultado("CA-13", "Una probabilidad mayor nunca da un nivel menor", ok, detalle)
+
+
+# --------------------------------------------------------------------------- #
 
 
 def main() -> int:
@@ -438,6 +622,8 @@ def main() -> int:
         resultados.append(ca8_modo_simulado(cliente))
         resultados.append(ca9_nulos(cliente))
         resultados.append(ca10_no_encontrado(cliente))
+        resultados.append(ca12_idempotencia(cliente))
+        resultados.append(ca13_monotonia(cliente))
 
     resultados.append(ca7_sustitucion())
     resultados.sort(key=lambda r: int(r.criterio.split("-")[1]))
@@ -452,7 +638,7 @@ def main() -> int:
     if fallidos:
         print("NO CUMPLEN: " + ", ".join(r.criterio for r in fallidos))
         return 1
-    print("Los diez criterios verificados aqui se cumplen.")
+    print("Los doce criterios verificados aqui se cumplen.")
     print("Falta CA-11, que se verifica levantando el servidor en una maquina limpia.")
     return 0
 

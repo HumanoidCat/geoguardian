@@ -21,11 +21,21 @@ datos reales, que es justo el escenario que ese campo existe para evitar.
 
 from __future__ import annotations
 
+import logging
+import os
 from functools import lru_cache
 
 from contratos.enums import ModoOperacion
 from contratos.repositorio import Repositorio
 from contratos.simulados.datos import RepositorioSimulado
+
+from .repositorio_postgres import RepositorioPostgres
+
+log = logging.getLogger(__name__)
+
+# Variable que elige la implementacion. Vacia o distinta de 'postgres' deja el
+# simulado, que es el valor por omision a proposito. Ver mas abajo.
+VARIABLE_REPOSITORIO = "GEOGUARDIAN_REPOSITORIO"
 
 
 @lru_cache(maxsize=1)
@@ -40,13 +50,33 @@ def _repositorio_simulado() -> RepositorioSimulado:
     return RepositorioSimulado()
 
 
+@lru_cache(maxsize=1)
+def _repositorio_postgres() -> RepositorioPostgres:
+    """Una sola conexion para toda la vida del proceso, como el simulado."""
+    return RepositorioPostgres()
+
+
 def obtener_repositorio() -> Repositorio:
     """
-    Devuelve la implementacion activa del repositorio.
+    Devuelve la implementacion activa, elegida por configuracion.
 
-    Hoy es el simulado. En H6.2 pasara a ser el de PostgreSQL, decidiendo aqui
-    segun la configuracion, y ningun endpoint cambia.
+        GEOGUARDIAN_REPOSITORIO=postgres   -> RepositorioPostgres
+        cualquier otra cosa, o sin definir -> RepositorioSimulado
+
+    **EL SIMULADO SIGUE SIENDO EL VALOR POR OMISION, Y ES DELIBERADO.**
+
+    H6.2 dejo el repositorio contra PostgreSQL funcionando, pero solo seis de sus
+    dieciseis metodos tienen tabla detras. Entre los diez que faltan estan
+    `obtener_riesgo` y `obtener_riesgos_por_fecha`, que son los que alimentan las
+    coropletas del visor: activarlo hoy por omision romperia el visor de Avril.
+
+    Lo que H6.2 demuestra es que **la sustitucion funciona sin tocar un endpoint**.
+    El dia que existan las tablas, esto pasa a `postgres` y nada mas cambia. Ver la
+    cabecera de `repositorio_postgres.py` para la lista de que falta y quien lo trae.
     """
+    if os.getenv(VARIABLE_REPOSITORIO, "").strip().lower() == "postgres":
+        log.info("Repositorio contra PostgreSQL, elegido por %s", VARIABLE_REPOSITORIO)
+        return _repositorio_postgres()
     return _repositorio_simulado()
 
 

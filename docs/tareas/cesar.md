@@ -65,8 +65,12 @@
 - [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
   - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8
 
-- [ ] **H1.4** · Documentar y aplicar criterios de imputacion de faltantes
-  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7, H2.1**
+- [ ] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados
+  - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7**
+  - Reducida por **D-22** el 2026-08-20: las series de H1.1 no tienen un solo
+    faltante en 12 784 dias, asi que la historia pierde *aplicar* y conserva
+    *declarar la regla y probarla contra huecos inyectados*.
+  - **La dependencia de H2.1 quedo obsoleta**, porque H2.1 se cerro sin ella.
 
 - [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4

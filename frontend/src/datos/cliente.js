@@ -143,8 +143,14 @@ async function leerJson(ruta, queEs) {
  * `toISOString()` devuelve UTC. Costa Rica es UTC-6, asi que a partir de las 18:00
  * el visor pediria el riesgo de manana, todas las noches, y la API no tendria nada
  * que devolver.
+ *
+ * Se exporta desde H5.7 porque ahora hay tres lugares que necesitan la misma
+ * cuenta: la consulta a la API, el tope superior del selector de fecha y la
+ * leyenda, que declara si la estimacion es de hoy. Antes habia dos definiciones
+ * de "hoy en hora local" en el proyecto y basta que una cambie para que el visor
+ * se contradiga a si mismo.
  */
-function fechaDeHoy() {
+export function fechaDeHoy() {
   const ahora = new Date()
   const mes = String(ahora.getMonth() + 1).padStart(2, '0')
   const dia = String(ahora.getDate()).padStart(2, '0')
@@ -261,16 +267,30 @@ async function pedirDistritos() {
  * Devuelve el paquete completo, no solo el mapa de riesgos, porque trae la fecha y
  * la marca de simulado que el visor necesita declarar en pantalla.
  *
- * Contra la API se pide el dia de hoy. Si no hay estimacion para hoy, los ocho
- * distritos quedan sin estimacion y asi se muestra: no se cae hacia atras a una
- * fecha anterior. Ensenar la estimacion de ayer rotulada como la de hoy es un dato
- * con forma valida y contenido falso, que es como empezo la incidencia I-04.
+ * `fecha` es opcional y por omision es hoy, que era el unico comportamiento
+ * posible antes de H5.7. Si no hay estimacion para la fecha pedida, los ocho
+ * distritos quedan sin estimacion y asi se muestra: **no se cae hacia atras a una
+ * fecha anterior**. Ensenar la estimacion de otro dia rotulada con la fecha pedida
+ * es un dato con forma valida y contenido falso, que es como empezo la incidencia
+ * I-04.
+ *
+ * ---------------------------------------------------------------------------
+ * EL RESPALDO ESTATICO IGNORA LA FECHA, Y ESO SE DECLARA HACIA ARRIBA
+ * ---------------------------------------------------------------------------
+ *
+ * Los archivos de respaldo tienen **una sola fecha**, la que llevaban al
+ * exportarse. No hay forma de servir otra desde ahi.
+ *
+ * El paquete que devuelve el respaldo trae su propia `fecha`, no la pedida, y por
+ * eso el visor puede notar la diferencia y bloquear el selector en vez de
+ * ofrecer una eleccion que no existe. Devolver el paquete rotulado con la fecha
+ * pedida seria el defecto de I-04 otra vez, en otra capa.
  *
  * Un distrito puede venir con `nivel` en null: el contrato lo permite mientras no
  * exista un modelo entrenado. Eso no se corrige aca, se muestra como ausencia de
  * estimacion.
  */
-export async function obtenerRiesgos(evento) {
+export async function obtenerRiesgos(evento, fechaPedida = null) {
   const { origen, salud } = await resolverOrigen()
 
   if (origen !== ORIGEN_API) {
@@ -281,7 +301,7 @@ export async function obtenerRiesgos(evento) {
     return paquete
   }
 
-  const fecha = fechaDeHoy()
+  const fecha = fechaPedida ?? fechaDeHoy()
   const consulta = new URLSearchParams({ fecha, tipo_evento: evento })
   const lista = await leerJson(`${RUTA_API}/riesgos?${consulta}`, `los riesgos de ${evento}`)
 
@@ -311,7 +331,9 @@ export async function obtenerRiesgos(evento) {
  * decirlo dejaria una columna vacia que se leeria como "sin riesgo" en vez de
  * "no se pudo consultar".
  */
-export async function obtenerRiesgosDeVariosEventos(eventos) {
-  const paquetes = await Promise.all(eventos.map((evento) => obtenerRiesgos(evento)))
+export async function obtenerRiesgosDeVariosEventos(eventos, fechaPedida = null) {
+  const paquetes = await Promise.all(
+    eventos.map((evento) => obtenerRiesgos(evento, fechaPedida)),
+  )
   return Object.fromEntries(eventos.map((evento, indice) => [evento, paquetes[indice]]))
 }

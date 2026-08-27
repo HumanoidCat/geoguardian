@@ -12,6 +12,7 @@
  * La leyenda muestra ademas cuantos distritos hay en cada nivel. Sin ese conteo,
  * quien mira el mapa tiene que contar cuadros a ojo.
  */
+import { fechaDeHoy } from '../datos/cliente'
 
 const NIVELES = [
   { id: 'alto', nombre: 'Alto' },
@@ -19,13 +20,11 @@ const NIVELES = [
   { id: 'bajo', nombre: 'Bajo' },
 ]
 
-/** Hoy en hora local. La misma cuenta que hace cliente.js al pedirle a la API. */
-function hoyLocal() {
-  const ahora = new Date()
-  const mes = String(ahora.getMonth() + 1).padStart(2, '0')
-  const dia = String(ahora.getDate()).padStart(2, '0')
-  return `${ahora.getFullYear()}-${mes}-${dia}`
-}
+// `hoyLocal` vivia aca, con la misma cuenta que hace cliente.js. Desde H5.7 se
+// importa `fechaDeHoy` de cliente.js: eran dos definiciones de "hoy en hora
+// local" y basta que una cambie para que el visor se contradiga a si mismo, que
+// es la forma de I-07 aplicada al codigo en vez de a los documentos.
+const hoyLocal = fechaDeHoy
 
 export default function LeyendaRiesgo({ nombreEvento, riesgos, simulado, fecha }) {
   const valores = Object.values(riesgos ?? {})

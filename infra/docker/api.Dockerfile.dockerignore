@@ -1,0 +1,65 @@
+# Que NO entra al contexto de construccion de la imagen de la API.
+# Historia H6.0, issue #62.
+#
+# POR QUE ESTE NOMBRE Y NO `.dockerignore` EN LA RAIZ
+#
+# El contexto de esta imagen es la raiz del repositorio, porque la API importa
+# `contratos/` y `basedatos/`. Docker buscaria entonces un `.dockerignore` en la
+# raiz, que es un archivo nuevo de primer nivel y **queda fuera de la excepcion
+# que se me concedio**: esa cubre `infra/docker/api.Dockerfile` y su
+# `.dockerignore`, no la raiz del repositorio.
+#
+# BuildKit acepta un archivo por Dockerfile con el nombre
+# `<ruta-del-dockerfile>.dockerignore`, que tiene prioridad sobre el de la raiz.
+# Asi el archivo vive dentro de `infra/docker/`, que es lo que se pidio.
+#
+# Requiere BuildKit, que viene por omision en Docker Desktop y en las versiones
+# recientes del motor.
+#
+# QUE PASA SI ESTO NO ESTUVIERA
+#
+# El contexto se llevaria `.venv`, `.git` y los `evidencia-*.txt`: cientos de
+# megabytes enviados al motor en cada construccion para terminar descartados.
+
+# Entornos y dependencias locales
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+
+# Historia de git
+.git/
+.github/
+
+# Lo que la API no necesita para arrancar
+frontend/
+infra/k8s/
+docs/
+notebooks/
+datos/
+backend/etl/
+backend/senales/
+backend/modelado/
+backend/calidad/
+backend/tests/
+basedatos/ddl/
+basedatos/consultas/
+basedatos/seguridad/
+
+# Secretos: nunca entran a una imagen. El .env se pasa por variables de entorno
+# en tiempo de ejecucion, que es lo que hace docker-compose.yml.
+.env
+*.env
+
+# Salidas de las corridas, que quedan sueltas en la raiz
+evidencia-*.txt
+*.csv
+*.dump
+*.backup
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

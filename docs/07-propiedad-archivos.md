@@ -337,3 +337,81 @@ catalogo de eventos historicos y plan de pruebas.
 
 La division existe para que el documento tenga una sola voz sin convertir a
 Alejandro en cuello de botella para todo lo escrito.
+
+## Excepción: las imágenes de contenedor, para H6.0
+
+**Concedida el 2026-08-26.** Pedida por César, que **paró H6.0 antes de escribir**
+al ver que la historia era suya y las tres carpetas donde vive eran de otros.
+
+| Quién | Dónde | Para qué historia |
+|---|---|---|
+| César | `infra/docker/api.Dockerfile` y su `.dockerignore` | **H6.0, y nada más** |
+| César | `frontend/Dockerfile` y su `.dockerignore` | **H6.0, y nada más** |
+| César | `docker-compose.yml`, **solo los dos servicios nuevos** | **H6.0, y nada más** |
+
+**Avril revisa el Pull Request por la parte del visor**, igual que César revisa el
+de Sentinel-2 por ser dueño de `backend/etl`.
+
+**Por qué la excepción es tan estrecha.** Nada de `infra/k8s`, ningún componente ni
+estilo del visor, y del compose **solo se agregan bloques**: el servicio `db` no se
+toca. Fuera de eso, `infra` sigue siendo de Alejandro y `frontend` de Avril.
+
+**Por qué no se partió la historia en dos.** Era la alternativa que César mismo
+propuso —él la imagen de la API, Avril la del visor— y la descartó su propio
+argumento: H6.0 son **2,9 h**, y partirla deja dos pedazos de hora y media más la
+coordinación entre ellos. Avril tiene 25 h del Sprint 2 abiertas y H1.6 del
+Sprint 1.
+
+**Y dónde va el Dockerfile de la API: en `infra/docker/`.** César preguntó si no
+sería mejor `backend/api/`, junto al código que empaqueta, que además caería en su
+carpeta y evitaría el permiso. Se descartó por una razón concreta: `init-db` ya
+vive en `infra/docker/` y esta tabla dice que `infra` es «Docker, manifiestos de
+Kubernetes». **Mover un archivo para no necesitar permiso sería dejar que la
+propiedad de archivos decida la arquitectura**, y los permisos existen para evitar
+que dos personas se pisen, no para determinar dónde vive una cosa.
+
+> **Por qué esto está escrito acá y no solo en el mensaje que se le respondió.**
+> Un mensaje fuera del repositorio es un lugar más declarando estado, y ninguna
+> máquina lo cruza. César llegó a este pedido leyendo un backlog de cinco días
+> atrás; el permiso que se le concede no puede vivir en un archivo con el mismo
+> problema. Si el mensaje y esta tabla llegaran a decir cosas distintas, **manda
+> esta tabla**.
+
+## `pyproject.toml` · compartido, y hasta hoy sin declarar
+
+**Agregado el 2026-08-27.** Lo señaló César, y es el mismo hueco que Avril había
+encontrado con `datos/` y `notebooks/`: un archivo que todo el mundo puede
+necesitar y que no estaba ni en la tabla de carpetas ni en la lista de
+compartidos.
+
+| Sección | Quién la toca | Cómo |
+|---|---|---|
+| `[tool.ruff]` | Alejandro | directo |
+| `[tool.pytest.ini_options]` | **cualquiera**, con solicitud | afecta a las pruebas de los cuatro |
+| dependencias | **cualquiera**, con solicitud | el stack está cerrado |
+
+**Por qué importa que `testpaths` sea compartido y no de una persona.** Apuntaba a
+`backend/tests`, que es la carpeta de Luna, así que las pruebas que cada quien
+escribe junto a su módulo **no las ejecutaba nadie**. El 27 de agosto eran 46 de
+César, invisibles mientras el CI reportaba 130 en verde. Desde hoy apunta a
+`backend/` y se recogen 176.
+
+Es I-06: el CI corriendo pytest de una forma que ninguna persona usa.
+
+## Ampliación de la excepción de H6.0 · `frontend/nginx.conf`
+
+**Agregada el 2026-08-27.** La excepción original cubría el `Dockerfile` del visor
+y su `.dockerignore`, y César respetó ese límite escribiendo la configuración de
+nginx **dentro** del Dockerfile con `printf`, declarándolo:
+
+> Normalmente iría en `frontend/nginx.conf`. La excepción que me dieron cubre este
+> archivo.
+
+Respetó el límite correctamente. **El límite estaba mal puesto por mí**: veinte
+líneas de `printf` escapado son más difíciles de leer y de corregir que un archivo
+de configuración.
+
+Queda autorizado **`frontend/nginx.conf`, para H6.0 y para su mantenimiento
+posterior**, con Avril revisando el Pull Request igual que en el resto de la
+excepción. No hace falta rehacer lo ya fusionado: se mueve la próxima vez que
+alguien lo toque.

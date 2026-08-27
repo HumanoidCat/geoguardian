@@ -7,7 +7,7 @@
 
 > ## Estado de este documento
 >
-> **Borrador de trabajo, 18 de agosto de 2026.** Contiene las secciones que ya no
+> **Borrador de trabajo, 26 de agosto de 2026.** Contiene las secciones que ya no
 > van a cambiar y **declara vacías las que dependen de resultados que todavía no
 > existen**.
 >
@@ -15,13 +15,25 @@
 > |---|---|
 > | I. Introducción | Redactada |
 > | II. Trabajo relacionado | Redactada, sobre H10.5a y H10.5b |
-> | III. Metodología | Redactada. Puede ajustarse si cambia una decisión |
+> | III. Metodología | Redactada. **Ampliada el 26 de agosto** con el etiquetado, la partición y las dos líneas base |
 > | IV. Arquitectura | Redactada |
-> | V. Hallazgos sobre disponibilidad de datos | **Redactada. Es el aporte que ya existe** |
+> | V. Hallazgos sobre disponibilidad de datos | **Redactada. Es el aporte que ya existe.** Siete subsecciones desde el 26 de agosto |
 > | VI. Resultados | **Vacía. Necesita H3.6** |
 > | VII. Discusión | **Vacía. Necesita la sección VI** |
 > | VIII. Limitaciones | Redactada, se amplía con resultados |
 > | IX. Conclusiones | **Vacía. Necesita las secciones VI y VII** |
+>
+> **Qué cambió el 26 de agosto.** Cerraron el etiquetado de la variable objetivo,
+> la partición temporal y las dos líneas base. La sección III describía un
+> modelado que todavía no existía cuando se escribió, y en particular decía «una
+> línea base climatológica» cuando son dos. La sección V ganó el hallazgo G, que
+> es el más generalizable de todos los que trae este trabajo.
+>
+> **Y desde hoy las cifras de este documento las cruza una máquina.** Era el único
+> documento del proyecto sin ese control, y ocho días bastaron para que **cinco de
+> sus cifras dejaran de ser ciertas**. El anexo del final ya no es una promesa:
+> cada número que declara lo comprueba `verificar_documentacion.py` en cada
+> ejecución del pipeline.
 >
 > Las secciones vacías declaran **qué van a contener y qué hace falta para
 > escribirlas**. Un apartado en blanco sin explicación es indistinguible de un
@@ -97,7 +109,7 @@ negativa **ya está medida**, antes de entrenar ningún modelo.
 ## II. Trabajo relacionado
 
 > Esta sección se redacta a partir de `docs/investigacion/estado-del-arte.md`, de
-> Luna, y de las 18 fichas de `docs/investigacion/referencias.md`. Lo que sigue es
+> Luna, y de las 19 fichas de `docs/investigacion/referencias.md`. Lo que sigue es
 > la síntesis; el insumo completo está en esos dos documentos.
 
 ### A. Existe un sistema nacional, y declara sus límites
@@ -224,18 +236,78 @@ Rosa, Líbano y Tierras Morenas, que concentran el 88 % de los focos—. Los otr
 cinco se reportan como «sin datos suficientes»: dos de ellos registran **un solo
 foco en veinticuatro años**.
 
+El etiquetado produce **99 296 filas**: ocho distritos por 12 412 fechas, de
+1991-01-01 a 2024-12-24. Los tres eventos resultan modelables, incluido el
+incendio, que era el que más probabilidades tenía de no serlo:
+
+| Evento | Filas sin dato | Filas en alto | % observado | Episodios |
+|---|---|---|---|---|
+| Lluvia intensa | 0 | 3 195 | 3,22 % | 496 |
+| Sequía | 664 | 7 290 | 7,39 % | 110 |
+| Incendio | 29 216 | 865 | 1,23 % | 106 |
+
+**La unidad de muestra son episodios, no filas**, y la distinción no es cosmética.
+Un solo foco de calor marca siete filas como «alto»: es la misma detección vista
+desde siete fechas distintas, con etiqueta idéntica y casi todas las
+características compartidas. Contar filas sobreestima la muestra por un factor de
+hasta siete, y una partición que corte por el medio de un episodio deja el mismo
+evento a ambos lados del corte. El caso extremo es la sequía, cuyos episodios
+promedian **66,3 filas** —más de dos meses consecutivos— porque el índice no
+cambia dentro del mes.
+
+El reparto por distrito reproduce el criterio de acotamiento **sin que esté
+programado**, y cae dentro de la banda medida de forma independiente sobre los
+focos cargados: Santa Rosa 2,93 %, Líbano 2,59 % y Tierras Morenas 2,56 %, contra
+un rango esperado de 2,6 % a 2,9 %.
+
 ### E. Modelos y validación
 
 Se comparan **tres algoritmos** —Regresión Logística, Random Forest y XGBoost—
-contra una **línea base climatológica** construida por distrito, mes y tipo de
-evento. La métrica principal es **F1-macro**, por el desbalance esperado entre
-clases.
+contra **dos líneas base**, no una. La métrica principal es **F1-macro**, por el
+desbalance entre clases.
+
+| Línea base | Qué predice | Para qué sirve |
+|---|---|---|
+| **Trivial** | siempre la clase mayoritaria del entrenamiento | el piso absoluto |
+| **Climatológica** | la clase de mayor realce en ese distrito y ese mes calendario | el piso informado |
+
+**La trivial no es un artificio retórico.** Sobre el evento de incendio alcanza
+**F1-macro 0,494** acertando el 98,8 % de las filas, porque la clase minoritaria
+es el 1,23 % del conjunto observado. Un informe que reportara solo exactitud haría
+parecer excelente a un modelo que no predice nada, y ese es exactamente el número
+que hay que superar.
+
+La climatológica **no puede definirse como la clase más frecuente** del
+distrito-mes, que es la formulación de manual: sobre estos datos degenera en la
+trivial por construcción. Con una clase minoritaria de entre el 1 % y el 7 %, la
+clase modal es «bajo» en las **noventa y seis** celdas de distrito por mes. Se
+define entonces sobre el **realce** de cada clase respecto de su propia tasa base,
+que sí discrimina sin dejar de mirar únicamente el calendario.
 
 **La validación es por ventana expansiva y el corte aleatorio está prohibido.** Una
 partición aleatoria sobre una serie temporal permite que el modelo vea el futuro:
 produce métricas altas y sin significado. La prohibición está codificada en los
-contratos del proyecto y verificada automáticamente: el evaluador rechaza una
-partición fuera de orden temporal.
+contratos del proyecto y verificada automáticamente.
+
+La partición son **cinco pliegues expansivos** —cada uno entrena con todo el
+pasado disponible y evalúa el bloque siguiente— con tres propiedades que la
+implementación obligó a fijar:
+
+1. **Un embargo de siete días entre entrenamiento y prueba.** La etiqueta de la
+   fila `t` describe la ventana `(t, t+7]`, así que pegar los conjuntos filtraría
+   el futuro aunque el corte pareciera limpio.
+2. **Los cortes caen en frontera de mes calendario.** El SPI-3 no cambia dentro
+   del mes: un episodio de sequía ocupa **66,3 filas consecutivas** en promedio, y
+   cortar a mitad de mes dejaría el mismo valor del índice a ambos lados.
+3. **Cada evento se parte sobre su propio período observado.** La serie climática
+   arranca en 1991 y el archivo de focos de calor en 2001, de modo que el evento
+   de incendio se particiona sobre 2001-2024. Partirlo sobre la serie completa
+   dejaría el primer bloque de entrenamiento **sin un solo episodio observado**.
+
+Las dos primeras se escribieron por separado y resultan no ser independientes: con
+el corte en frontera de mes, exigir que la etiqueta de sequía no mire dentro de la
+prueba equivale a exigir que `t+7` caiga en un mes anterior, y el embargo colapsa
+de los treinta y ocho días que su alcance sugiere a siete.
 
 ---
 
@@ -416,6 +488,44 @@ De ahí sale la observación más general de esta sección:
 
 *Fuente de E y F:* `docs/investigacion/catalogo-eventos.md`, 46 registros de 29
 eventos distintos entre 1970 y 2026.
+
+### G. Dos fuentes con distinta fecha de inicio producen una ausencia que parece un dato
+
+El hallazgo más caro de esta sección se detectó **después** de que el etiquetado
+pasara todas sus comprobaciones automáticas, y es generalizable a cualquier
+trabajo que combine una serie climática larga con un archivo satelital corto.
+
+La serie de precipitación arranca en **1991**; el archivo de focos de calor, en
+**2001**, porque antes no existía el instrumento que los detecta. Al unir las dos
+en una sola tabla, la regla de etiquetado del incendio —«alto si hay al menos un
+foco en la ventana, bajo si no hay ninguno»— devolvía **bajo** para toda la década
+de los noventa. La cuenta de focos daba cero, correctamente, y la razón no era que
+no hubiera incendios: era que **no había satélite observando**.
+
+Son **29 216 filas, el 29,4 % del conjunto etiquetado**, afirmando ausencia de
+evento sobre un período sin observación. El efecto sobre la clase minoritaria es
+directo:
+
+    incendio en alto, sobre las 99 296 filas         0,87 %
+    incendio en alto, sobre las 70 080 observadas    1,23 %
+
+Y un modelo entrenado sobre ese conjunto habría aprendido que la década de los
+noventa era segura.
+
+Lo instructivo es que **el criterio que lo prohíbe ya estaba escrito y verificado**.
+El etiquetado exige explícitamente que la ausencia de dato no se convierta en una
+clase, y su comprobación automática aplicaba esa regla a la precipitación y al
+índice de sequía —donde funcionaba, produciendo etiquetas nulas— pero no al
+incendio, que es el único de los tres eventos cuya fuente empieza en otra fecha.
+
+También estaba puesta la cota del extremo derecho: el etiquetado se acota a 2024
+porque los focos terminan antes que la serie climática. **Una cota puesta en un
+extremo invita a suponer que el otro no hace falta.**
+
+La corrección consiste en declarar el período de cobertura del instrumento como
+una constante explícita, y devolver etiqueta nula fuera de él. No se infiere del
+dato cargado: inferirla del mínimo de las detecciones diría que un distrito sin
+focos nunca fue observado, que es la misma confusión en la otra dirección.
 
 ---
 
@@ -628,7 +738,7 @@ que no estima nada.
 
 ## Referencias
 
-> Las 18 fichas verificadas están en `docs/investigacion/referencias.md`, cada una
+> Las 19 fichas verificadas están en `docs/investigacion/referencias.md`, cada una
 > con su DOI comprobado contra la editorial y una ficha de contenido que declara
 > qué dice, por qué es relevante y dónde se usa.
 >
@@ -640,7 +750,25 @@ que no estima nada.
 
 ## Anexo · De dónde sale cada cifra de este documento
 
-Ninguna está escrita de memoria.
+Ninguna está escrita de memoria, **y desde el 26 de agosto de 2026 eso no es una
+declaración de intenciones**: las cifras marcadas con `verificar_documentacion.py`
+las recalcula esa herramienta desde el repositorio en cada ejecución del pipeline,
+y el documento hace fallar la integración continua si alguna se desfasa.
+
+El control se agregó porque hacía falta: entre el 18 y el 26 de agosto, **cinco de
+las cifras de este anexo dejaron de ser ciertas** sin que nadie lo notara.
+
+| Cifra | Decía | Es | 
+|---|---|---|
+| Referencias | 18 | **27** |
+| Referencias con ficha | 18 | **19** |
+| Comprobaciones de contratos | 33 | **47** |
+| Trabajos de integración continua | 5 | **6** |
+| Controles de cifras | 8 | **20** |
+
+Es el mismo defecto que este trabajo documenta en otras partes: un dato con forma
+válida y contenido falso, que ninguna validación detecta porque nadie escribió la
+validación.
 
 | Cifra | Origen |
 |---|---|
@@ -653,6 +781,6 @@ Ninguna está escrita de memoria.
 | −0,84; +0,60; 99 de 99; 0,425 | `medir_spi_por_mes.py` |
 | 39,90 / 54,86 / 63,40 / 87,70 mm; 8,5× | `medir_percentiles.py` |
 | 98 fichas, 46 registros, 29 eventos | `docs/investigacion/catalogo-eventos.md` |
-| 18 referencias | `docs/investigacion/referencias.md` |
-| 33 comprobaciones, 5 trabajos de CI, 8 controles | `verificar_documentacion.py` |
+| 27 referencias, 19 con ficha | `docs/investigacion/referencias.md` |
+| 47 comprobaciones, 6 trabajos de CI, 20 controles | `verificar_documentacion.py` |
 | Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |

@@ -92,7 +92,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H5.2** Cuatro o mas capas conmutables con control de opacidad | avril | 5 | 4.8 | CG-4 | H5.1 | — |
 | **H5.3** Coropletas de riesgo por evento con rampa de color y leyenda | avril | 7 | 6.7 | CG-1 | H5.1 | H5.4, H5.7, H7.1 |
 | **H1.13** Trigger de auditoria sobre predicciones, con prueba | cesar | 3 | 2.9 | BD-2 | H1.8 | — |
-| **H1.4** Documentar y aplicar criterios de imputacion de faltantes | cesar | 5 | 7.8 | BD-1 | H1.1 | H1.7, H2.1 |
+| **H1.4** Declarar los criterios de imputacion y probarlos contra huecos inyectados | cesar | 3 | 4.7 | BD-1 | H1.1 | H1.7 |
 | **H1.7** Versionar el dataset consolidado para reproducibilidad | cesar | 3 | 2.9 | OE1 | H1.4 | — |
 | **H1.8** Crear esquemas, roles y usuarios con minimo privilegio | cesar | 5 | 4.8 | BD-2 | H1.3 | H1.13, H1.9, H10.7 |
 | **H6.0** Dockerfile de la API y del visor con imagen construida localmente | cesar | 3 | 2.9 | CICD | H6.1 | H11.1 |

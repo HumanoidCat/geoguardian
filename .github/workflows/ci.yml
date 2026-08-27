@@ -279,6 +279,35 @@ jobs:
       # construidas a mano, donde la respuesta correcta se conoce.
       - name: Los criterios de H3.0 se cumplen
         run: python -m backend.modelado.verificar_h30
+      - name: Los criterios de H3.2 se cumplen
+        run: python -m backend.modelado.verificar_h32
+      - name: Los criterios de H3.1 se cumplen
+        run: python -m backend.modelado.verificar_h31
+      # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
+      # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
+      # historias y quedaron colgando. Un verificador que solo se ejecuta cuando
+      # alguien se acuerda no protege de nada: es I-06 y es I-10.
+      #
+      # Entran ahora y no antes: en el PR #189 se intentaron agregar con sus
+      # historias todavia sin fusionar, y un paso que invoca un modulo inexistente
+      # pone el CI en rojo sin que haya nada roto. **El orden importa: primero el
+      # archivo, despues el paso que lo llama.**
+      #
+      # No se usa `--if-present` ni ninguna condicion de existencia: un control
+      # que se salta solo se ve igual que uno que pasa.
+      - name: Los criterios de H6.2 se cumplen
+        run: python -m backend.api.verificar_h62
+      - name: Los criterios de H1.4 se cumplen
+        run: python -m backend.etl.verificar_h14
+      # H6.0 y H1.7 necesitan Docker y la base cargada respectivamente, asi que
+      # no corren aca. Se declaran para que se vea que la omision es deliberada:
+      #   verificar_h60  construye imagenes; pide un demonio Docker
+      #   verificar_h17  compara el manifiesto contra la base real
+      - name: Los verificadores que necesitan Docker o la base se declaran
+        run: |
+          echo "verificar_h60 necesita un demonio Docker; se corre a mano."
+          echo "verificar_h17 necesita la base cargada; se corre a mano."
+          echo "Ver docs/15-cerrar-una-historia.md."
 
   # ------------------------------------------------------------------------- #
   # H11.5 · Publicar el visor como sitio estatico                              #

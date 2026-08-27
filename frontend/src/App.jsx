@@ -5,17 +5,18 @@ import LeyendaRiesgo from './componentes/LeyendaRiesgo'
 import MapaCanton from './componentes/MapaCanton'
 import PanelDistrito from './componentes/PanelDistrito'
 import SelectorEvento from './componentes/SelectorEvento'
-import { CAPAS_INICIALES, CAPA_BASE_INICIAL, EXPONENTE_IDW_INICIAL } from './datos/capasBase'
+import { CAPAS_INICIALES, CAPA_BASE_INICIAL } from './datos/capasBase'
 import {
+  ORIGEN_API,
+  fechaDeHoy,
   obtenerDistritos,
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
 } from './datos/cliente'
+import SelectorFecha from './componentes/SelectorFecha'
 import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
 import TableroSemaforo from './componentes/TableroSemaforo'
-import { centroidesDeColeccion } from './datos/interpolacion'
-import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 
 const EVENTO_INICIAL = 'sequia'
 
@@ -37,8 +38,12 @@ export default function App() {
   const [capaBase, setCapaBase] = useState(CAPA_BASE_INICIAL)
   const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
   const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
-  const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
   const [paquetesTodos, setPaquetesTodos] = useState(null)
+
+  // La fecha que se PIDE. No es la misma que la que trae el paquete: contra el
+  // respaldo estatico solo existe una, y ese origen ignora lo que se le pida.
+  // Confundir las dos seria rotular un dato con una fecha que no es la suya.
+  const [fecha, setFecha] = useState(fechaDeHoy)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -77,7 +82,7 @@ export default function App() {
 
     async function cargar() {
       try {
-        const paquete = await obtenerRiesgos(evento)
+        const paquete = await obtenerRiesgos(evento, fecha)
         if (!vigente) return
         setPaqueteRiesgos(paquete)
       } catch (causa) {
@@ -96,7 +101,7 @@ export default function App() {
     return () => {
       vigente = false
     }
-  }, [evento])
+  }, [evento, fecha])
 
   // Los tres eventos a la vez, para el semaforo de H7.1. Es una carga aparte
   // porque responde otra pregunta: el mapa muestra donde esta el riesgo de un
@@ -108,7 +113,7 @@ export default function App() {
   useEffect(() => {
     let vigente = true
 
-    obtenerRiesgosDeVariosEventos(IDS_EVENTOS)
+    obtenerRiesgosDeVariosEventos(IDS_EVENTOS, fecha)
       .then((paquetes) => {
         if (vigente) setPaquetesTodos(paquetes)
       })
@@ -119,11 +124,19 @@ export default function App() {
     return () => {
       vigente = false
     }
-  }, [])
+  }, [fecha])
 
   const cambiarEvento = useCallback((nuevo) => {
     setCargandoRiesgos(true)
     setEvento(nuevo)
+  }, [])
+
+  // El estado de carga se enciende aca y no dentro del efecto, por lo mismo que
+  // en `cambiarEvento`: encenderlo en el efecto provoca un render en cascada y el
+  // linter lo rechaza con razon.
+  const cambiarFecha = useCallback((nueva) => {
+    setCargandoRiesgos(true)
+    setFecha(nueva)
   }, [])
 
   // Desde el semaforo: seleccionar un distrito lleva el mapa a ese evento y a ese
@@ -146,8 +159,6 @@ export default function App() {
     return coleccion.features.find((r) => r.properties.codigo === seleccionado)?.properties ?? null
   }, [coleccion, seleccionado])
 
-  const centroides = useMemo(() => centroidesDeColeccion(coleccion), [coleccion])
-
   const distritos = useMemo(
     () => coleccion?.features.map((rasgo) => rasgo.properties) ?? [],
     [coleccion],
@@ -155,6 +166,14 @@ export default function App() {
 
   const nombreEvento = nombreDeEvento(evento)
   const riesgos = paqueteRiesgos?.riesgos ?? null
+
+  // El selector se bloquea cuando los datos NO vienen de la API, porque el
+  // respaldo estatico tiene una sola fecha y no puede servir otra.
+  //
+  // Se decide por `origen` y no por `modo`: `modo` dice que son los datos
+  // -simulados o reales- y `origen` por donde llegaron. Lo que limita aca es el
+  // camino, no el contenido. Es la misma separacion de H6.6.
+  const sinEleccionDeFecha = salud !== null && salud.origen !== ORIGEN_API
 
   return (
     <div className="aplicacion">
@@ -188,6 +207,12 @@ export default function App() {
         <main className="contenido">
           <div className="columna-mapa">
             <SelectorEvento seleccionado={evento} alCambiar={cambiarEvento} />
+            <SelectorFecha
+              fecha={fecha}
+              alCambiar={cambiarFecha}
+              bloqueado={sinEleccionDeFecha}
+              fechaDelRespaldo={paqueteRiesgos?.fecha}
+            />
             <MapaCanton
               coleccion={coleccion}
               riesgos={riesgos}
@@ -196,8 +221,6 @@ export default function App() {
               capaBase={capaBase}
               superpuestas={superpuestas}
               opacidad={opacidad}
-              exponente={exponente}
-              centroides={centroides}
             />
           </div>
 
@@ -209,8 +232,6 @@ export default function App() {
               alAlternarSuperpuesta={alternarSuperpuesta}
               opacidad={opacidad}
               alCambiarOpacidad={setOpacidad}
-              exponente={exponente}
-              alCambiarExponente={setExponente}
             />
 
             {cargandoRiesgos ? (
@@ -224,14 +245,6 @@ export default function App() {
                 riesgos={riesgos}
                 simulado={paqueteRiesgos?.simulado}
                 fecha={paqueteRiesgos?.fecha}
-              />
-            )}
-
-            {superpuestas.mapaCalor && !cargandoRiesgos && (
-              <LeyendaMapaCalor
-                centroides={centroides}
-                riesgos={riesgos}
-                exponente={exponente}
               />
             )}
 
