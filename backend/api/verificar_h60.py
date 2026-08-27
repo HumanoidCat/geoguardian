@@ -185,7 +185,9 @@ def ca2_visor(url_visor: str) -> Resultado:
 
     ok, cuerpo = esperar_http(f"{url_visor}/")
     if not ok:
-        return Resultado("CA-2", "La imagen del visor sirve el build estatico", False, [f"  FALLA: {cuerpo}"])
+        return Resultado(
+            "CA-2", "La imagen del visor sirve el build estatico", False, [f"  FALLA: {cuerpo}"]
+        )
 
     detalle.append(f"  GET {url_visor}/ respondio 200 ({len(cuerpo)} bytes)")
 
@@ -208,7 +210,9 @@ def ca2_visor(url_visor: str) -> Resultado:
 
     if "/src/main.jsx" in cuerpo:
         cumple = False
-        detalle.append("  FALLA: el HTML todavia apunta a /src/main.jsx, que es el fuente sin construir")
+        detalle.append(
+            "  FALLA: el HTML todavia apunta a /src/main.jsx, que es el fuente sin construir"
+        )
 
     # Y el archivo referenciado tiene que existir de verdad. Un index.html que
     # apunta a un bundle ausente devuelve 200 y una pagina en blanco.
@@ -347,7 +351,9 @@ def ca3_sin_secretos() -> Resultado:
         # nosotros tambien aparece y se escruta. PATH sale por eso: la etapa de
         # ejecucion le antepone /opt/venv/bin.
         agregadas = [v for v in entorno if v not in set(entorno_base)]
-        detalle.append(f"  {imagen}: base `{base}`, variables agregadas por nosotros: {len(agregadas)}")
+        detalle.append(
+            f"  {imagen}: base `{base}`, variables agregadas por nosotros: {len(agregadas)}"
+        )
         for variable in agregadas:
             detalle.append(f"    {variable}")
 
@@ -368,9 +374,13 @@ def ca3_sin_secretos() -> Resultado:
     estado = proceso.stdout.strip()
     detalle.append(f"  {IMAGEN_API}: requirements.txt en la imagen final -> {estado}")
     if estado == "presente":
-        detalle.append("    aviso: no es una credencial, pero la separacion en dos etapas deberia dejarlo fuera")
+        detalle.append(
+            "    aviso: no es una credencial, pero la separacion en dos etapas deberia dejarlo fuera"
+        )
 
-    return Resultado("CA-3", "Las imagenes no contienen credenciales ni el archivo .env", cumple, detalle)
+    return Resultado(
+        "CA-3", "Las imagenes no contienen credenciales ni el archivo .env", cumple, detalle
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -387,7 +397,12 @@ def ca4_sin_privilegios() -> Resultado:
     proceso = dentro(IMAGEN_API, "id -u; id -un")
     lineas = [linea.strip() for linea in proceso.stdout.splitlines() if linea.strip()]
     if len(lineas) < 2:
-        return Resultado("CA-4", "La imagen de la API no corre como root", False, [f"  FALLA: {proceso.stderr[:200]}"])
+        return Resultado(
+            "CA-4",
+            "La imagen de la API no corre como root",
+            False,
+            [f"  FALLA: {proceso.stderr[:200]}"],
+        )
 
     uid, nombre = lineas[0], lineas[1]
     detalle.append(f"  usuario dentro del contenedor: {nombre} (uid {uid})")
@@ -396,8 +411,12 @@ def ca4_sin_privilegios() -> Resultado:
         detalle.append("  FALLA: el uid 0 es root")
 
     # Y no debe poder escribir donde no le toca.
-    prueba = dentro(IMAGEN_API, "touch /etc/prueba-escritura 2>&1 && echo ESCRIBIO || echo BLOQUEADO")
-    resultado_escritura = prueba.stdout.strip().splitlines()[-1] if prueba.stdout.strip() else "sin salida"
+    prueba = dentro(
+        IMAGEN_API, "touch /etc/prueba-escritura 2>&1 && echo ESCRIBIO || echo BLOQUEADO"
+    )
+    resultado_escritura = (
+        prueba.stdout.strip().splitlines()[-1] if prueba.stdout.strip() else "sin salida"
+    )
     detalle.append(f"  escritura en /etc: {resultado_escritura}")
     if resultado_escritura == "ESCRIBIO":
         cumple = False
@@ -416,8 +435,12 @@ def ca5_evidencia() -> Resultado:
     ruta = RAIZ / "docs" / "evidencias" / "arquitectura-software" / "H6.0-imagenes-docker.md"
 
     if not ruta.exists():
-        return Resultado("CA-5", "docker build y docker run documentados con su salida", False,
-                         [f"  FALLA: no existe {ruta.relative_to(RAIZ)}"])
+        return Resultado(
+            "CA-5",
+            "docker build y docker run documentados con su salida",
+            False,
+            [f"  FALLA: no existe {ruta.relative_to(RAIZ)}"],
+        )
 
     texto = ruta.read_text(encoding="utf-8")
     detalle.append(f"  {ruta.relative_to(RAIZ)} existe ({len(texto.splitlines())} lineas)")
@@ -434,7 +457,9 @@ def ca5_evidencia() -> Resultado:
         else:
             detalle.append(f"  la evidencia incluye `{marca}`")
 
-    return Resultado("CA-5", "docker build y docker run documentados con su salida", cumple, detalle)
+    return Resultado(
+        "CA-5", "docker build y docker run documentados con su salida", cumple, detalle
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -483,17 +508,28 @@ def ca7_paso_a_la_api(url_visor: str) -> Resultado:
     """
     ok, cuerpo = esperar_http(f"{url_visor}/api/salud", limite_s=30)
     if not ok:
-        return Resultado("CA-7", "El visor alcanza la API por /api/ (extra)", False, [f"  FALLA: {cuerpo}"])
+        return Resultado(
+            "CA-7", "El visor alcanza la API por /api/ (extra)", False, [f"  FALLA: {cuerpo}"]
+        )
     try:
         salud = json.loads(cuerpo)
     except json.JSONDecodeError:
-        return Resultado("CA-7", "El visor alcanza la API por /api/ (extra)", False,
-                         [f"  FALLA: /api/salud no devolvio JSON: {cuerpo[:120]}"])
-    return Resultado("CA-7", "El visor alcanza la API por /api/ (extra)", True, [
-        f"  GET {url_visor}/api/salud respondio 200",
-        f"  cuerpo: {json.dumps(salud, ensure_ascii=False)}",
-        "  o sea que nginx paso la peticion al servicio `api` por la red de Docker",
-    ])
+        return Resultado(
+            "CA-7",
+            "El visor alcanza la API por /api/ (extra)",
+            False,
+            [f"  FALLA: /api/salud no devolvio JSON: {cuerpo[:120]}"],
+        )
+    return Resultado(
+        "CA-7",
+        "El visor alcanza la API por /api/ (extra)",
+        True,
+        [
+            f"  GET {url_visor}/api/salud respondio 200",
+            f"  cuerpo: {json.dumps(salud, ensure_ascii=False)}",
+            "  o sea que nginx paso la peticion al servicio `api` por la red de Docker",
+        ],
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -501,10 +537,14 @@ def ca7_paso_a_la_api(url_visor: str) -> Resultado:
 
 def main() -> int:
     analizador = argparse.ArgumentParser(description="Verifica los criterios de H6.0")
-    analizador.add_argument("--sin-construir", action="store_true",
-                            help="reusa las imagenes ya construidas en vez de volver a construirlas")
-    analizador.add_argument("--dejar-arriba", action="store_true",
-                            help="no baja los contenedores al terminar")
+    analizador.add_argument(
+        "--sin-construir",
+        action="store_true",
+        help="reusa las imagenes ya construidas en vez de volver a construirlas",
+    )
+    analizador.add_argument(
+        "--dejar-arriba", action="store_true", help="no baja los contenedores al terminar"
+    )
     argumentos = analizador.parse_args()
 
     print("Verificacion de las imagenes de Docker de H6.0 (issue #62)")
