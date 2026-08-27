@@ -40,6 +40,7 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 | D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
 | D-28 | Se retira el mapa de calor: interpola donde no hay medicion | Aceptada | 2026-08-24 |
+| D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada | 2026-08-26 |
 
 ---
 
@@ -2801,3 +2802,111 @@ Copiar `docs/plantillas/plantilla-adr.md`, numerar con el siguiente `D-NN`,
 agregar la fila al indice de arriba y abrir el Pull Request. Una decision que
 sustituye a otra no la borra: la anterior pasa a estado
 **Sustituida por D-NN** y se queda donde esta.
+
+---
+
+## D-29 · El dataset se versiona por manifiesto en el repositorio y archivo fuera
+
+**Estado.** Aceptada
+**Fecha.** 2026-08-26
+**Decide.** Alejandro, Lead PM
+**Lo pide.** Cesar, que paro H1.7 antes de escribir porque el como no estaba anotado
+**Desbloquea.** **H1.7**, 2,9 h
+
+### Contexto
+
+H1.7 pide versionar el dataset consolidado para reproducibilidad. El acuerdo
+verbal existia desde la revision de H1.2 y **nunca se escribio**, asi que Cesar se
+detuvo antes de implementarlo. Hizo bien: una decision no registrada implementada
+en codigo es una decision que nadie puede auditar despues.
+
+El dataset consolidado no es chico. Solo la serie climatica son **102 272 filas**,
+mas 242 focos de calor dentro del canton y las geometrias oficiales del SNIT.
+
+### Decision
+
+**El manifiesto va al repositorio. El archivo, no.**
+
+| Que | Donde | Por que |
+|---|---|---|
+| **Manifiesto** en texto: version, fecha, filas por tabla, ventana temporal, y la **suma SHA-256 de cada fuente** | **versionado**, en `basedatos/ddl/` | es lo que hace falta para saber que se uso, y pesa kilobytes |
+| **El archivo** consolidado | **`release asset` de GitHub**, fuera del arbol | binario grande que cambiaria en cada recarga |
+
+Reglas que lo acompanan:
+
+1. **La suma de las geometrias del SNIT va dentro del manifiesto.** Es la fuente
+   que ya nos fallo una vez -**I-03**- y la que produjo **I-10**. Si el SNIT
+   republica su capa, la suma cambia y se ve.
+2. **La primera version es igual al volcado que ya tiene Luna**, para que H1.5 y
+   H1.7 describan el mismo dato y no dos fotos distintas.
+3. **La version se declara, no se infiere.** `v1`, `v2`, con fecha. Un manifiesto
+   sin numero de version obliga a comparar sumas para saber si algo cambio.
+4. **Lo escribe un programa, no una persona.** Es **I-07**: una cifra derivada a
+   mano se desfasa. El mismo patron de `procedencia-focos.md` y
+   `procedencia-mediciones.md`, que ya se generan solos.
+
+### Justificacion
+
+El repositorio tiene que responder **«que dato produjo este resultado»** sin
+guardar el dato. Un manifiesto con sumas lo responde: dos personas con el mismo
+manifiesto pueden comprobar que tienen lo mismo, y quien lea el proyecto dentro de
+un anio sabe exactamente que habia.
+
+Meter el archivo al arbol lo haria crecer sin techo y ensuciaría cada `git diff`
+con un binario que nadie puede revisar.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| **DVC o Git LFS** | resuelven bien el problema y **agregan una herramienta mas** que las cuatro personas tendrian que instalar y aprender a dos semanas del cierre. La recarga completa toma 870 s: reproducir es viable sin ellas |
+| **Versionar el CSV en el repositorio** | 102 272 filas en cada commit. El repositorio deja de ser revisable |
+| **No versionar nada, basta la procedencia** | `procedencia-*.md` dice **como** se cargo, no **que** salio. Dos corridas del mismo cargador con el SNIT republicado dan procedencias identicas y datos distintos |
+| **Guardarlo en la base y ya** | la base es un contenedor local que se borra con `docker compose down -v`. No es un archivo |
+
+### Consecuencias
+
+**H1.7 queda desbloqueada** y su alcance es exactamente: el programa que genera el
+manifiesto, el manifiesto de la version 1, y la publicacion del archivo como
+release asset.
+
+**H1.5 de Luna gana un insumo**: el manifiesto le da los conteos por tabla que su
+reporte de calidad tiene que explicar.
+
+**Y queda una obligacion nueva**: cuando el dataset se recargue, el manifiesto se
+regenera. Si alguien recarga y no lo regenera, el manifiesto miente. Eso hoy no lo
+comprueba ninguna maquina, y **se anota como deuda**: el verificador que cruce el
+manifiesto contra la base es trabajo pendiente, no parte de H1.7.
+
+### Medicion
+
+Esta decision se cumple, o no, de forma comprobable. Las cuatro condiciones:
+
+1. **El manifiesto existe y lo genero un programa.** Se comprueba corriendo el
+   generador dos veces sobre la misma base: **tiene que producir bytes identicos**.
+   Si difiere, hay algo escrito a mano o una marca de tiempo que no deberia estar
+   en el contenido versionado.
+
+2. **Las sumas detectan un cambio de fuente.** Se comprueba alterando un byte de
+   una fuente y regenerando: la suma correspondiente **tiene que cambiar**. Un
+   manifiesto cuya suma no se mueve ante un cambio no protege de nada.
+
+3. **Los conteos del manifiesto coinciden con la base.** La cifra de referencia de
+   la version 1, medida hoy:
+
+       geo.distrito            8 distritos
+       crudo.medicion_diaria   102 272 filas, 1991-01-01 a 2025-12-31
+       crudo.foco_calor        242 dentro del canton, 2001-01-01 a 2024-12-31
+
+   Si el manifiesto declara otra cosa sin que nadie haya recargado, **el
+   manifiesto esta mal**, no la base.
+
+4. **La version 1 coincide con el volcado de Luna.** Se comprueba contra el que ya
+   uso para H2.3 y H2.7: mismas filas, misma ventana. Si no coinciden, H1.5 y H1.7
+   estarian describiendo dos datos distintos y el reporte de calidad no aplicaria
+   al dataset publicado.
+
+**Lo que esta decision NO mide**, y queda escrito para no confundirlo: que el dato
+sea correcto. El manifiesto prueba que dos personas tienen **lo mismo**, no que
+ese algo este bien. La calidad la mide H1.5.
+

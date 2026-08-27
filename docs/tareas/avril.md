@@ -73,8 +73,9 @@
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
   - horas: estimada 2.5 . real 1.25
 
-- [ ] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible
+- [x] **H5.8** · Encuadre del mapa en el canton y marca de seleccion accesible (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-1 · depende de: H5.1
+  - horas: estimada 2.0 . real 2.4
   - Sale de la retroalimentacion del profesor sobre el visor publicado, el
     2026-08-24. Ver `docs/evidencias/computacion-grafica/`.
   - **No reabre H5.1 ni H5.3**, que estan cerradas y con evidencia. Es trabajo
@@ -101,6 +102,9 @@
     descartaron a NASA POWER.
   - El codigo queda en el historial. Si el proyecto llegara a estimar a
     resolucion menor que el distrito, la interpolacion vuelve a tener sentido.
+  - **Retirado del visor el 2026-08-26.** Evidencia del retiro y de que no se
+    rompio nada mas en
+    `docs/evidencias/computacion-grafica/D-28-retiro-mapa-calor.md`.
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6

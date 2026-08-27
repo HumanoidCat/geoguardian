@@ -122,6 +122,43 @@ def incidencias() -> int:
     return len([i for i in re.findall(r"^## (I-\d+)", texto, re.M) if i != "I-00"])
 
 
+def referencias_citadas() -> int:
+    """Referencias distintas en `docs/investigacion/referencias.md`.
+
+    Se cuentan **identificadores distintos** `[N]`, no apariciones: una misma
+    referencia se cita varias veces dentro de su propia ficha.
+
+    Agregado por H10.5c. El documento IEEE declaraba **18** cuando ya eran 27,
+    ocho dias despues de escribirlo.
+    """
+    texto = (RAIZ / "docs" / "investigacion" / "referencias.md").read_text(encoding="utf-8")
+    return len({int(n) for n in re.findall(r"\[(\d+)\]", texto)})
+
+
+def fichas_de_referencias() -> int:
+    """Referencias que traen **ficha de contenido**, no solo numero.
+
+    No es lo mismo que `referencias_citadas()`: H10.5a listo `[1]`-`[8]` solo por
+    numero, para que la numeracion fuera continua, y les escribio ficha de `[9]`
+    en adelante. Cada ficha es un encabezado `### [N] Autor — Titulo`.
+
+    La distincion importa porque el documento IEEE usa las dos palabras como si
+    fueran una, y no lo son.
+    """
+    texto = (RAIZ / "docs" / "investigacion" / "referencias.md").read_text(encoding="utf-8")
+    return len(re.findall(r"^###\s*\[\d+\]", texto, re.M))
+
+
+def controles_de_esta_herramienta() -> int:
+    """Cuantas afirmaciones vigila este mismo programa.
+
+    Es autorreferente a proposito: el documento IEEE cita esa cifra, y sin esto
+    seria el unico numero de su anexo que nadie comprueba. Se resuelve en tiempo
+    de llamada, cuando `AFIRMACIONES` ya esta construida.
+    """
+    return len(AFIRMACIONES)
+
+
 def trabajos_de_ci() -> int:
     """
     Cuenta los trabajos del pipeline.
@@ -262,6 +299,7 @@ AFIRMACIONES = [
             ("docs/ARRANQUE.md", r"pasar las \*\*(\d+) verificaciones\*\*"),
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
+            ("docs/13-documento-ieee.md", r"\| (\d+) comprobaciones, \d+ trabajos de CI"),
             ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
             # La hoja de verificacion de la seccion 10 lleva la cifra en la
             # columna de observaciones. Se agrego el 20 de agosto: decia 31
@@ -324,6 +362,7 @@ AFIRMACIONES = [
         [
             ("README.md", r"Integración continua \| (\w+) trabajos"),
             ("docs/10-manual-tecnico.md", r"Integración continua, (\w+) trabajos"),
+            ("docs/13-documento-ieee.md", r"comprobaciones, (\d+) trabajos de CI"),
         ],
     ),
     # Se agrego al integrar D-17 y D-18: el manual tecnico decia 15 decisiones
@@ -334,6 +373,45 @@ AFIRMACIONES = [
         "registros ADR",
         registros_adr,
         [("docs/10-manual-tecnico.md", r"Las (\d+) decisiones de arquitectura")],
+    ),
+    # ----------------------------------------------------------------------- #
+    # El documento IEEE, agregado por H10.5c
+    # ----------------------------------------------------------------------- #
+    #
+    # Era el UNICO documento del proyecto cuyas cifras no cruzaba ninguna
+    # maquina, y tiene un anexo que promete «ninguna esta escrita de memoria».
+    # Ocho dias despues de escribirlo, cinco de sus cifras eran falsas:
+    #
+    #     referencias                18   ->  27
+    #     fichas                     18   ->  19
+    #     comprobaciones             33   ->  47
+    #     trabajos de CI              5   ->   6
+    #     controles                   8   ->  17
+    #
+    # Es el mismo defecto de I-07, y la razon por la que el Primer Avance del 17
+    # de agosto quedo inservible. Un anexo de procedencia escrito en prosa es una
+    # intencion, no un control.
+    Afirmacion(
+        "referencias citadas",
+        referencias_citadas,
+        [("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|")],
+    ),
+    # `fichas` y `referencias` NO son lo mismo, y el documento las usaba como si
+    # lo fueran: H10.5a listo [1]-[8] solo por numero y escribio ficha de [9] en
+    # adelante. Se comprueban por separado a proposito.
+    Afirmacion(
+        "referencias con ficha de contenido",
+        fichas_de_referencias,
+        [
+            ("docs/13-documento-ieee.md", r"de las (\d+) fichas de `docs/investigacion"),
+            ("docs/13-documento-ieee.md", r"Las (\d+) fichas verificadas"),
+            ("docs/13-documento-ieee.md", r"\d+ referencias, (\d+) con ficha"),
+        ],
+    ),
+    Afirmacion(
+        "controles de verificar_documentacion",
+        controles_de_esta_herramienta,
+        [("docs/13-documento-ieee.md", r"trabajos de CI, (\d+) controles")],
     ),
 ]
 

@@ -5,7 +5,7 @@ import LeyendaRiesgo from './componentes/LeyendaRiesgo'
 import MapaCanton from './componentes/MapaCanton'
 import PanelDistrito from './componentes/PanelDistrito'
 import SelectorEvento from './componentes/SelectorEvento'
-import { CAPAS_INICIALES, CAPA_BASE_INICIAL, EXPONENTE_IDW_INICIAL } from './datos/capasBase'
+import { CAPAS_INICIALES, CAPA_BASE_INICIAL } from './datos/capasBase'
 import {
   ORIGEN_API,
   fechaDeHoy,
@@ -17,8 +17,6 @@ import {
 import SelectorFecha from './componentes/SelectorFecha'
 import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
 import TableroSemaforo from './componentes/TableroSemaforo'
-import { centroidesDeColeccion } from './datos/interpolacion'
-import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 
 const EVENTO_INICIAL = 'sequia'
 
@@ -40,7 +38,6 @@ export default function App() {
   const [capaBase, setCapaBase] = useState(CAPA_BASE_INICIAL)
   const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
   const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
-  const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
   const [paquetesTodos, setPaquetesTodos] = useState(null)
 
   // La fecha que se PIDE. No es la misma que la que trae el paquete: contra el
@@ -162,8 +159,6 @@ export default function App() {
     return coleccion.features.find((r) => r.properties.codigo === seleccionado)?.properties ?? null
   }, [coleccion, seleccionado])
 
-  const centroides = useMemo(() => centroidesDeColeccion(coleccion), [coleccion])
-
   const distritos = useMemo(
     () => coleccion?.features.map((rasgo) => rasgo.properties) ?? [],
     [coleccion],
@@ -226,8 +221,6 @@ export default function App() {
               capaBase={capaBase}
               superpuestas={superpuestas}
               opacidad={opacidad}
-              exponente={exponente}
-              centroides={centroides}
             />
           </div>
 
@@ -239,8 +232,6 @@ export default function App() {
               alAlternarSuperpuesta={alternarSuperpuesta}
               opacidad={opacidad}
               alCambiarOpacidad={setOpacidad}
-              exponente={exponente}
-              alCambiarExponente={setExponente}
             />
 
             {cargandoRiesgos ? (
@@ -254,14 +245,6 @@ export default function App() {
                 riesgos={riesgos}
                 simulado={paqueteRiesgos?.simulado}
                 fecha={paqueteRiesgos?.fecha}
-              />
-            )}
-
-            {superpuestas.mapaCalor && !cargandoRiesgos && (
-              <LeyendaMapaCalor
-                centroides={centroides}
-                riesgos={riesgos}
-                exponente={exponente}
               />
             )}
 
