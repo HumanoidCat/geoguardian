@@ -18,7 +18,7 @@
 > | III. Metodología | Redactada. **Ampliada el 26 de agosto** con el etiquetado, la partición y las dos líneas base |
 > | IV. Arquitectura | Redactada |
 > | V. Hallazgos sobre disponibilidad de datos | **Redactada. Es el aporte que ya existe.** Siete subsecciones desde el 26 de agosto |
-> | VI. Resultados | **Parcial desde el 27 de agosto.** Cinco subsecciones con lo medido; VI-E declara lo que falta |
+> | VI. Resultados | **Parcial desde el 27 de agosto.** Seis subsecciones con lo medido; VI-E declara lo que falta y VI-F trae la validación externa contra 46 eventos reales |
 > | VII. Discusión | **Vacía. Necesita los tres algoritmos (H3.3 a H3.5)** |
 > | VIII. Limitaciones | Redactada, se amplía con resultados |
 > | IX. Conclusiones | **Vacía. Necesita la sección VII** |
@@ -677,6 +677,69 @@ métricas están correlacionadas. Una prueba que suponga independencia producir�
 un valor *p* que suena riguroso y no lo es. Se reportarán la media, la desviación
 y los cinco valores individuales.
 
+### F. Validación externa del etiquetado contra eventos reales
+
+Antes de que exista un modelo hay una pregunta previa que casi nunca se plantea:
+**¿la verdad de terreno reconoce los eventos que de verdad ocurrieron?** Si las
+etiquetas no los reconocen, ningún modelo entrenado sobre ellas podrá hacerlo.
+
+Se contrastó el etiquetado contra el catálogo de **46 eventos históricos de
+Tilarán** extraídos de DesInventar Costa Rica. Un evento del día *E* se considera
+anunciado si alguna etiqueta en la ventana previa marcaba riesgo medio o alto.
+
+| Evento | Registros | Contrastables | Detecta | Cobertura | Tasa base | **Realce** |
+|---|---|---|---|---|---|---|
+| Lluvia intensa | 38 | 34 | 22 | 64,7 % | 13,7 % | **4,74×** |
+| Sequía · ventana de 7 d | 7 | 7 | 0 | 0,0 % | 15,6 % | 0,00× |
+| Sequía · ventana de 90 d | 7 | 7 | 7 | 100,0 % | 15,6 % | **6,42×** |
+| Incendio | 1 | 0 | — | — | 2,7 % | — |
+
+**La métrica que importa es el realce, no la cobertura.** Una cobertura alta se
+consigue marcando siempre; el realce —cuántas veces más frecuente es la marca
+ante un evento real que en un día cualquiera— no.
+
+**No se reporta precisión, y la omisión es deliberada.** El catálogo registra
+daños reportados, no fenómenos, y está incompleto por construcción: una marca sin
+registro no es un falso positivo, puede ser un evento real que nadie reportó.
+Calcular precisión contra un catálogo incompleto produce un número que aparenta
+rigor y está mal por definición.
+
+#### El cero de la sequía son dos relojes distintos
+
+Con la ventana de siete días la sequía dio 0 de 7. La causa no es el etiquetado:
+los siete registros llevan **la misma fecha, 2014-09-30**, y el etiquetado marcó
+sequía en esos distritos **de enero a agosto de 2014**. La marca más cercana está
+a **−37 días** en los ocho distritos.
+
+El catálogo registra la fecha de la **declaratoria administrativa**, que se emite
+después de evaluar los daños; el etiquetado marca el mes en que el SPI-3 cae bajo
+el umbral. Una declaratoria por sequía llega al final del episodio, y el SPI-3
+integra tres meses por construcción: no es un indicador diario. La ventana de 90
+días es el propio período de integración del índice, no un valor ajustado a
+posteriori.
+
+#### Los fallos de lluvia intensa apuntan a un desfase, no a una omisión
+
+De los 12 eventos no detectados, **9 tenían una marca a 14 días o menos, y en 9
+de los 12 la marca llegó *después* del evento**. El patrón admite tres
+explicaciones que este contraste no puede separar: imprecisión de fecha en la
+fuente —DesInventar suele registrar la fecha del reporte—, que el máximo del
+acumulado de 72 h caiga uno o dos días después del daño, o daño sin extremo
+meteorológico sobre una cuenca ya saturada.
+
+Distinguirlas requeriría la serie horaria y las fichas completas. Queda anotado
+como línea abierta.
+
+#### Lo que esto establece, y lo que no
+
+Establece un **piso para los modelos**: el etiquetado alcanza realce 4,74× en
+lluvia intensa sobre eventos reales verificados por una fuente externa. Un modelo
+que no lo supere no está aportando sobre la verdad de terreno.
+
+No establece nada sobre incendio —el único registro del catálogo es de 2026,
+posterior a la serie— lo que confirma la limitación anticipada en V-E antes de
+medir.
+
 ## VII. Discusión
 
 > **VACÍA. Depende de los tres entrenamientos, H3.3 a H3.5.**
@@ -916,6 +979,8 @@ validación.
 | 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
 | F1-macro de las dos líneas base, sección VI-D | `python -m backend.modelado.comparar` |
 | 23 veces la ventaja, incendio | La misma corrida: rango 0,138 ÷ ventaja 0,006 |
+| Cobertura, tasa base y realce de VI-F; los −37 días | `python -m backend.modelado.contrastar_catalogo` |
+| 46 registros del catálogo | `docs/investigacion/catalogo-eventos.csv`, H4.3 |
 
 **Tres cifras de la sección VI no las puede recalcular la integración continua**,
 y conviene decir cuáles y por qué:
