@@ -1002,3 +1002,98 @@ merge no se cumple: se desactiva mentalmente.** Y un control que la gente aprend
 a ignorar es peor que no tenerlo, porque el dia que avise de algo real nadie va a
 mirar. Si una regla ya esta decidida y su aplicacion es mecanica, **la ejecuta la
 maquina**; lo que se le deja a una persona es lo que requiere criterio.
+
+---
+
+## I-14 · Una retroalimentacion de tres frases se convirtio en dos cambios que nadie pidio
+
+**Fecha.** 2026-08-27 (los cambios: 24 y 26 de agosto)
+
+**Quien lo detecto.** Alejandro, al ver el visor publicado despues del merge a
+`main` y no reconocerlo.
+
+**Que paso.** El 24 de agosto el profesor miro el sitio publicado y dijo, textual:
+
+> *"en UI esta muy quedado y hay que mejorarlo"*
+
+y sobre eso, tres observaciones concretas: que el canton se veia chico, que el
+borde del distrito seleccionado parecia un defecto de dibujo, y que la capa de
+calor se pintaba sobre un rectangulo, se salia del canton y dejaba distritos sin
+marcar. Mando ademas una **captura** del visor.
+
+Tres dias despues el visor tenia dos cambios que **no estaban en esa lista**:
+
+1. **El mapa quedo encerrado en una columna angosta** con la forma del canton
+   -relacion 0,83- y dos bandas vacias a los lados. Se perdio el contexto
+   regional: Canas, Liberia, el lago Arenal.
+2. **La capa de calor no existe.** Se retiro entera por **D-28**: 515 lineas,
+   tres modulos y el entregable de H5.4.
+
+Ninguna de las dos cosas se pidio. La primera salio de leer la captura como si
+fuera una especificacion; la segunda, de convertir un defecto de recorte en una
+objecion a interpolar.
+
+**Causa raiz.** Las dos tienen la misma forma, y no es descuido de nadie en
+particular: **un dato observado se elevo a intencion, y despues se razono con
+rigor sobre esa intencion inventada.**
+
+| Lo que habia | En que se convirtio | Que produjo |
+|---|---|---|
+| una captura recortada del visor | "el visor debe mostrar solo el canton" | el encuadre de H5.8 |
+| "se sale del canton y hay distritos sin marcar" | "interpolar afirma lo que el dato no dice" | D-28 |
+
+Lo que hace visible el defecto es que **la costura quedo escrita**. El documento
+de evidencia dice, sobre las dos observaciones del mapa de calor, *"ahi hay una
+segunda cuestion, distinta de la primera"*. D-28 lo repite -*"dos problemas de
+distinto peso"*- y a renglon seguido los trata como uno para retirar la capa. La
+separacion estaba anotada y aun asi no se respeto.
+
+Hay un agravante que conviene nombrar sin rodeos, porque cambia como hay que
+trabajar de aqui en adelante: **el equipo redacta las especificaciones con ayuda
+de IA, y una premisa mal puesta no se discute, se implementa.** No hay friccion.
+Una persona a la que le piden retirar un entregable ajeno pregunta por que; una
+herramienta que recibe el argumento ya construido lo ejecuta bien, rapido y
+completo. La calidad de la ejecucion fue la que oculto el problema: 166 lineas de
+ADR, tres capturas de evidencia y un merge limpio, todo sobre un hecho falso.
+
+**Accion tomada.**
+
+1. **D-30 revierte D-28.** La capa vuelve, con el defecto de recorte arreglado:
+   el encuadre sale de los poligonos y el lienzo se recorta contra su union.
+   D-28 se conserva entera, con un aviso arriba: una bitacora que se edita para
+   quedar bien deja de servir.
+2. **El encuadre vuelve al mapa de ancho completo.** De H5.8 se conserva la marca
+   de seleccion accesible y el `zoomSnap`, que no dependian de la lectura errada.
+3. **`frontend/herramientas/verificar_recorte_calor.mjs`**, en el CI. Mide sobre
+   las geometrias reales que no se pinta nada fuera del canton y que no queda
+   territorio sin pintar. El defecto original **habria salido en rojo**.
+4. **Se le pidio permiso a Avril por escrito** antes de tocar `frontend/`, con la
+   explicacion completa. La carpeta es suya por **D-16**.
+
+**Aprendizaje.** Tres reglas, y la tercera es la que de verdad importa.
+
+**Uno. Una captura es una observacion, no una especificacion.** Muestra un
+sintoma. Lo que hay que hacer con ella es preguntar, no deducir.
+
+**Dos. Un defecto de implementacion no habilita una decision de alcance.** Si al
+arreglar algo aparece un argumento para retirarlo, ese argumento es una decision
+separada, va a su propio registro y se discute con quien escribio el codigo. No
+viaja de polizon en el arreglo.
+
+**Tres, y es la que cambia el proceso. Cuando una decision se apoya en lo que
+dijo alguien de afuera, la cita textual va en el registro, no la interpretacion.**
+D-28 parafraseaba al profesor; si hubiera transcrito sus palabras, la
+contradiccion habria sido visible al releer el propio documento antes de
+aprobarlo.
+
+**Y lo que se sigue de trabajar con IA:** **la responsabilidad se corre hacia
+arriba, a las premisas.** El razonamiento se puede delegar; el hecho del que
+parte, no. Una premisa equivocada ya no produce un trabajo mediocre que se nota:
+produce un trabajo impecable en la direccion equivocada, y eso es mas dificil de
+detectar, no menos.
+
+**Impacto.** Cuatro dias con el visor publicado sin una capa que funcionaba y con
+un encuadre que nadie pidio, justo en la semana del Primer Avance. 515 lineas
+retiradas y restituidas. El entregable de H5.4 fuera de pantalla durante ese
+tiempo. Trabajo de Avril hecho dos veces por un pedido mal formulado: la primera
+implementacion no tenia ningun defecto.
