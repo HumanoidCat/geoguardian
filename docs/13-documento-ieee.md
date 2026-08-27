@@ -1,4 +1,17 @@
+---
+author:
+  - name: "Alejandro Josué Rodríguez Zamora"
+  - name: "César Andrés Ubau Calvo"
+  - name: "Luis Alejandro Luna García"
+  - name: "Avril Madrigal Elizondo"
+institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
+date: "27 de agosto de 2026"
+lang: es
+---
+
 # Estimación de riesgo climático por distrito con datos abiertos: el caso del cantón de Tilarán, Costa Rica
+
+::: no-entregable
 
 **Historia:** H10.5c · **Rúbrica:** IEEE · **Responsable:** Alejandro
 **Depende de:** H10.5b (cerrada) · **Bloquea a:** H10.6, el cartel académico
@@ -42,6 +55,8 @@
 > **Ninguna cifra de este documento está escrita de memoria.** Todas salen de una
 > herramienta del repositorio o de una fuente citada, y la sección de verificación
 > al final dice de cuál.
+
+:::
 
 ---
 
