@@ -24,8 +24,17 @@ export const EVENTOS = [
   {
     id: 'incendio',
     nombre: 'Incendio forestal',
+    // El umbral anterior era por percentiles del conteo: bajo si 0, medio si
+    // 1 <= n <= P90, alto si n > P90. Se retiro por SC-05 y D-25 al medirlo: con
+    // 242 focos en 24 anios, el P90 vale 0,0 en los ocho distritos, asi que la
+    // condicion del nivel medio —entre 1 y 0— estaba vacia. No producia tres
+    // clases, producia dos, y fallaba asi desde el primer dia.
+    //
+    // El alcance queda acotado a Santa Rosa, Libano y Tierras Morenas, que
+    // concentran 213 de los 242 focos. Arenal y Cabeceras tienen un foco en
+    // veinticuatro anios y se reportan como sin datos suficientes.
     umbral:
-      'Focos de calor FIRMS en ventana de 7 dias. Alto por encima del percentil 90 historico del distrito. No hay estandar internacional: es criterio del equipo, pendiente de validar con los actores locales.',
+      'Focos de calor FIRMS en ventana de 7 dias. Alto si hay al menos un foco; bajo si no hay ninguno. El nivel medio no existe para este evento. No hay estandar internacional: es criterio del equipo, pendiente de validar con los actores locales.',
   },
   {
     id: 'lluvia_intensa',
@@ -50,7 +59,7 @@ export const EVENTOS = [
  */
 export const UMBRAL_CORTO = {
   sequia: 'Alto: SPI-3 ≤ -1.5',
-  incendio: 'Alto: focos > P90',
+  incendio: 'Alto: al menos 1 foco en 7 dias',
   lluvia_intensa: 'Alto: acumulado 72 h > P99',
 }
 
