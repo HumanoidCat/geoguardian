@@ -36,6 +36,65 @@ services:
       start_period: 30s
     shm_size: 256mb
 
+  # Los dos servicios de abajo los agrego Cesar en la historia H6.0, con la
+  # excepcion concedida el 26 de agosto: docker-compose.yml es archivo compartido
+  # y el permiso cubre SOLO agregar estos dos bloques. El servicio `db` no se
+  # toco. Ver docs/07-propiedad-archivos.md.
+
+  api:
+    build:
+      # El contexto es la raiz del repositorio, no infra/docker: la API importa
+      # `contratos/` y `basedatos/`, que viven arriba.
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    image: geoguardian-api
+    container_name: geoguardian-api
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-geoguardian}
+      POSTGRES_USER: ${POSTGRES_USER:-geoguardian}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el archivo .env}
+      # Dentro de la red de Docker la base se alcanza por el nombre del servicio,
+      # no por localhost.
+      #
+      # Ojo con el nombre: `conexion.py` lee SOLO `POSTGRES_HOST_LOCAL`, que se
+      # llamo asi porque los guiones del ETL corren desde la maquina anfitriona,
+      # fuera de esta red. Aqui adentro ese nombre queda enganoso —lo que se pone
+      # es el nombre del servicio, no algo local— y aun asi es la variable que hay
+      # que definir. Renombrarla toca los guiones de H1.1 y H1.2, asi que se deja
+      # y se declara. `POSTGRES_HOST` se define por coherencia con .env; hoy
+      # `conexion.py` no la lee.
+      POSTGRES_HOST: db
+      POSTGRES_HOST_LOCAL: db
+      POSTGRES_PORT: 5432
+      # El repositorio contra PostgreSQL llega con H6.2 y todavia no tiene tabla
+      # para diez de sus dieciseis metodos, asi que el simulado sigue siendo el
+      # valor por omision. Ver backend/api/dependencias.py.
+      GEOGUARDIAN_REPOSITORIO: ${GEOGUARDIAN_REPOSITORIO:-simulado}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        # No basta con que el contenedor exista: tiene que aceptar conexiones. El
+        # servicio db ya declara su healthcheck y aqui se espera a que pase.
+        condition: service_healthy
+
+  visor:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: geoguardian-visor
+    container_name: geoguardian-visor
+    restart: unless-stopped
+    ports:
+      - "${VISOR_PORT:-5173}:80"
+    depends_on:
+      # Sin condicion de salud: el visor arranca igual y su cliente cae al
+      # respaldo estatico declarandolo, que es lo que pide el criterio CA-3 de
+      # H6.6. Obligarlo a esperar haria que una API caida deje al visor sin
+      # levantar, que es peor.
+      - api
+
 volumes:
   datos_db:
     name: geoguardian_datos_db
