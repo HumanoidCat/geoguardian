@@ -374,6 +374,15 @@ def ca6_se_puede_recalcular(manifiesto: str) -> Resultado:
         ok = False
         detalle.append("  [MAL] no declara que columnas quedan fuera")
 
+    # D-22 mantiene la dependencia de H1.7 sobre H1.4 porque "versionar el dataset
+    # requiere saber que se hizo con lo que falta". Sin esta seccion, el manifiesto
+    # obliga a suponerlo.
+    if "| metodo_imputacion | imputado |" in manifiesto:
+        detalle.append("  [ok ] declara el estado de imputacion, que es lo que pide D-22")
+    else:
+        ok = False
+        detalle.append("  [MAL] no declara que se hizo con lo que falta")
+
     return Resultado("CA-6", "El manifiesto dice como se calcula cada suma", ok, detalle)
 
 

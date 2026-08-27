@@ -34,6 +34,23 @@ De los 494 focos de calor, **242 caen dentro del canton** y el
 resto fuera, con `codigo_distrito` nulo: la caja de descarga es un rectangulo
 y el canton no lo es. Las dos cifras son ciertas y D-29 cita la de adentro.
 
+## Que se hizo con lo que falta
+
+D-22 redujo H1.4 al comprobar que las series climaticas no tienen un solo
+faltante en 12 784 dias -CHIRPS y POWER son productos de malla, completos
+por construccion- pero **mantuvo la dependencia de H1.7 sobre H1.4**:
+versionar el dataset requiere saber que se hizo con lo que falta, aunque hoy
+no falte nada. Esta seccion es esa respuesta.
+
+| metodo_imputacion | imputado | Filas |
+|---|---|---|
+| `sin_imputar` | false | 102272 |
+
+**Ninguna fila fue imputada.** No es que no se haya aplicado la regla: es
+que no hubo sobre que aplicarla. Decirlo explicitamente es distinto de
+callarlo, y el dia que Sentinel-2 traiga huecos reales -H1.6- la
+diferencia entre dos versiones de este manifiesto se va a poder leer.
+
 ## Sumas del contenido cargado
 
 Responden si dos copias del dataset son la misma. Dos personas con el mismo

@@ -187,6 +187,35 @@ def medir_tabla(
     }
 
 
+def estado_de_imputacion(cursor) -> list[tuple[str, bool, int]]:
+    """
+    Que se hizo con lo que falta, en `crudo.medicion_diaria`.
+
+    D-22 redujo H1.4 porque las series de H1.1 no tienen un solo faltante en
+    12 784 dias: CHIRPS y POWER son productos de malla, completos por
+    construccion. Pero **mantuvo la dependencia de H1.7 sobre H1.4** con estas
+    palabras: "versionar el dataset consolidado requiere saber que se hizo con lo
+    que falta, aunque hoy no falte nada".
+
+    Esto es esa linea. Hoy la respuesta es "nada", y **decirlo explicitamente es
+    distinto de no decir nada**: un manifiesto que calla sobre imputacion obliga a
+    suponer, y el dia que Sentinel-2 traiga huecos de verdad -H1.6- la diferencia
+    entre las dos versiones se va a poder leer.
+
+    El `ORDER BY` no es cosmetico: sin el, dos corridas podrian devolver las filas
+    en otro orden y el manifiesto dejaria de ser byte a byte identico.
+    """
+    cursor.execute(
+        """
+        SELECT metodo_imputacion, imputado, count(*)
+          FROM crudo.medicion_diaria
+         GROUP BY metodo_imputacion, imputado
+         ORDER BY metodo_imputacion, imputado
+        """
+    )
+    return cursor.fetchall()
+
+
 def focos_dentro_del_canton(cursor) -> int:
     """
     Los focos con distrito asignado.
@@ -234,7 +263,9 @@ def sumas_del_snit() -> list[tuple[str, str]]:
 # --------------------------------------------------------------------------- #
 
 
-def escribir_manifiesto(version: str, fecha: date, tablas: list[dict], dentro: int, snit) -> str:
+def escribir_manifiesto(
+    version: str, fecha: date, tablas: list[dict], dentro: int, snit, imputacion
+) -> str:
     lineas: list[str] = []
     a = lineas.append
 
@@ -279,6 +310,30 @@ def escribir_manifiesto(version: str, fecha: date, tablas: list[dict], dentro: i
     a(f"De los {focos['filas']} focos de calor, **{dentro} caen dentro del canton** y el")
     a("resto fuera, con `codigo_distrito` nulo: la caja de descarga es un rectangulo")
     a("y el canton no lo es. Las dos cifras son ciertas y D-29 cita la de adentro.")
+    a("")
+
+    a("## Que se hizo con lo que falta")
+    a("")
+    a("D-22 redujo H1.4 al comprobar que las series climaticas no tienen un solo")
+    a("faltante en 12 784 dias -CHIRPS y POWER son productos de malla, completos")
+    a("por construccion- pero **mantuvo la dependencia de H1.7 sobre H1.4**:")
+    a("versionar el dataset requiere saber que se hizo con lo que falta, aunque hoy")
+    a("no falte nada. Esta seccion es esa respuesta.")
+    a("")
+    a("| metodo_imputacion | imputado | Filas |")
+    a("|---|---|---|")
+    for metodo, imputado, cuenta in imputacion:
+        a(f"| `{metodo}` | {str(imputado).lower()} | {cuenta} |")
+    a("")
+    total_imputadas = sum(c for _, imp, c in imputacion if imp)
+    if total_imputadas == 0:
+        a("**Ninguna fila fue imputada.** No es que no se haya aplicado la regla: es")
+        a("que no hubo sobre que aplicarla. Decirlo explicitamente es distinto de")
+        a("callarlo, y el dia que Sentinel-2 traiga huecos reales -H1.6- la")
+        a("diferencia entre dos versiones de este manifiesto se va a poder leer.")
+    else:
+        a(f"**{total_imputadas} filas llevan algun valor imputado.** La regla que se")
+        a("aplico la declara H1.4.")
     a("")
 
     a("## Sumas del contenido cargado")
@@ -372,8 +427,9 @@ def main(argumentos=None) -> int:
         with conectar() as conexion, conexion.cursor() as cursor:
             tablas = [medir_tabla(cursor, e, t, f, p) for e, t, f, p in TABLAS]
             dentro = focos_dentro_del_canton(cursor)
+            imputacion = estado_de_imputacion(cursor)
         contenido = escribir_manifiesto(
-            opciones.version, opciones.fecha, tablas, dentro, sumas_del_snit()
+            opciones.version, opciones.fecha, tablas, dentro, sumas_del_snit(), imputacion
         )
     except ErrorManifiesto as error:
         print(f"FALLA: {error}", file=sys.stderr)
