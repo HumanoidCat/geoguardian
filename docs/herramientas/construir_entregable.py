@@ -37,6 +37,7 @@ import re
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -180,6 +181,79 @@ def sin_bloques_internos(markdown: str) -> str:
 def _sin_saltos_de_pagina_sueltos(latex: str) -> str:
     """Quita los `\\pagebreak` que pandoc arrastra de los `---` del Markdown."""
     return latex.replace("\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}", "")
+
+
+#: Ancho util de una pagina carta con margenes de 1 pulgada, en twips.
+#: 8,5 in - 2 in = 6,5 in, y 1 in son 1440 twips.
+ANCHO_UTIL_TWIPS = 9360
+
+
+def anchos_de_tabla(docx: Path) -> int:
+    """Le pone anchos de columna a las tablas del .docx. Devuelve cuantas arreglo.
+
+    ===========================================================================
+    EL DEFECTO, QUE ES SILENCIOSO Y POR ESO GRAVE
+    ===========================================================================
+
+    Pandoc 2.9 emite las tablas con la rejilla **vacia**:
+
+        <w:tblGrid />
+
+    sin un solo `<w:gridCol>`. Word lo tolera y calcula los anchos solo, asi que
+    **el .docx se ve perfecto**. LibreOffice no: colapsa todas las columnas menos
+    la primera.
+
+    Y como el PDF se produce convirtiendo el .docx con LibreOffice, el resultado
+    es el peor de los casos: **el documento que se revisa esta bien y el que se
+    entrega esta mal.** Se detecto extrayendo el texto del PDF del zip y buscando
+    una cifra que tenia que estar; la tabla de la primera pagina mostraba los
+    rotulos y ningun valor.
+
+    ===========================================================================
+    LA CORRECCION
+    ===========================================================================
+
+    Se cuentan las celdas de la primera fila de cada tabla y se escribe una
+    rejilla con columnas iguales, mas un ancho de tabla del 100 %. Es lo que Word
+    hubiera calculado, escrito de forma explicita para que no dependa del lector.
+
+    Columnas iguales y no proporcionales al contenido: repartir por longitud de
+    texto exigiria medir la fuente, y el reparto parejo ya resuelve el defecto.
+    """
+    with zipfile.ZipFile(docx) as archivo:
+        piezas = {n: archivo.read(n) for n in archivo.namelist()}
+
+    documento = piezas["word/document.xml"].decode("utf-8")
+    arregladas = 0
+
+    def rejilla(coincidencia: re.Match) -> str:
+        nonlocal arregladas
+        tabla = coincidencia.group(0)
+        if "<w:gridCol" in tabla:
+            return tabla
+
+        primera = re.search(r"<w:tr\b.*?</w:tr>", tabla, re.DOTALL)
+        if not primera:
+            return tabla
+        columnas = len(re.findall(r"<w:tc\b", primera.group(0)))
+        if columnas == 0:
+            return tabla
+
+        ancho = ANCHO_UTIL_TWIPS // columnas
+        celdas = "".join(f'<w:gridCol w:w="{ancho}" />' for _ in range(columnas))
+        arregladas += 1
+        return tabla.replace("<w:tblGrid />", f"<w:tblGrid>{celdas}</w:tblGrid>").replace(
+            '<w:tblW w:type="pct" w:w="0.0" />', '<w:tblW w:type="pct" w:w="5000" />'
+        )
+
+    documento = re.sub(r"<w:tbl>.*?</w:tbl>", rejilla, documento, flags=re.DOTALL)
+    piezas["word/document.xml"] = documento.encode("utf-8")
+
+    with zipfile.ZipFile(docx, "w", zipfile.ZIP_DEFLATED) as archivo:
+        for nombre, contenido in piezas.items():
+            archivo.writestr(nombre, contenido)
+
+    return arregladas
 
 
 def _pandoc() -> str:
@@ -365,6 +439,10 @@ def main() -> int:
     if proceso.returncode != 0:
         print(f"\n  pandoc fallo:\n{proceso.stderr}")
         return 1
+
+    arregladas = anchos_de_tabla(docx)
+    if arregladas:
+        print(f"  {arregladas} tabla(s) con anchos de columna escritos, para LibreOffice")
     print(f"  {docx}")
 
     if args.sin_pdf:

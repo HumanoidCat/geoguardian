@@ -40,8 +40,9 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 | D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
 | D-28 | Se retira el mapa de calor: interpola donde no hay medicion | **Revertida por D-30** · partia de un hecho falso | 2026-08-24 |
-| D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada | 2026-08-26 |
+| D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada · **revisada por D-31** | 2026-08-26 |
 | D-30 | El mapa de calor vuelve, recortado contra los poligonos | Aceptada · revierte D-28 | 2026-08-27 |
+| D-31 | El recibo de carga y la version del dataset son dos artefactos | Aceptada · revisa D-29 | 2026-08-27 |
 
 ---
 
@@ -2904,6 +2905,18 @@ regenera. Si alguien recarga y no lo regenera, el manifiesto miente. Eso hoy no 
 comprueba ninguna maquina, y **se anota como deuda**: el verificador que cruce el
 manifiesto contra la base es trabajo pendiente, no parte de H1.7.
 
+> **REVISADO POR D-31 el 2026-08-27.** Esta obligacion se escribio pensando en
+> recargas ocasionales. Con H1.14 -ingesta recurrente- pasaria a incumplirse
+> todos los dias, y perseguir un dataset que se mueve destruiria la propiedad que
+> hace util al manifiesto: que dos personas con la misma version tengan lo mismo.
+>
+> **D-31 separa el recibo de carga de la version del dataset.** El manifiesto de
+> esta decision es la *version*, y ya no tiene que regenerarse sola: se corta a
+> mano. El registro por carga vive en la base.
+>
+> El generador de H1.7 no cambia. La regla 1 -que la suma del SNIT viaje dentro
+> del manifiesto- sigue valiendo entera.
+
 ### Medicion
 
 Esta decision se cumple, o no, de forma comprobable. Las cuatro condiciones:
@@ -3076,4 +3089,143 @@ Comprueba, sobre 86 576 muestras:
 estimar a una resolucion distinta de la distrital, o si aparece evidencia de que
 un lector interpreta la superficie como medicion continua pese a los puntos de
 origen. Lo segundo se sabra en **H9.2a**, la validacion externa.
+
+---
+
+## D-31 · El recibo de carga y la version del dataset son dos artefactos
+
+**Estado.** Aceptada · **revisa D-29**
+**Fecha.** 2026-08-27
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** Cesar, al revisar si H1.14 tiene sentido sin base alojada
+**Afecta.** **H1.7** (cerrada), **H1.14**, y la trazabilidad de las cifras del
+documento IEEE.
+
+### Contexto
+
+**D-29** decidio versionar el dataset por manifiesto: un documento con sumas
+SHA-256 de cada fuente, sus conteos y sus rangos temporales, que responde *«¿dos
+personas tienen exactamente lo mismo?»*.
+
+Esa decision se tomo pensando en **recargas ocasionales**, y lo dejo escrito como
+deuda: *si alguien recarga y no lo regenera, el manifiesto miente*.
+
+**H1.14 convierte esa deuda de excepcion en rutina.** Si la ingesta corre a
+diario, el manifiesto queda desactualizado **todos los dias**. Cesar lo planteo
+como una eleccion entre dos disenos:
+
+1. que H1.14 regenere el manifiesto al terminar cada carga, o
+2. que el manifiesto pase a ser una foto fechada de una carga concreta.
+
+### Decision
+
+**Ninguna de las dos, porque la pregunta esta mal planteada.** El manifiesto esta
+haciendo **dos trabajos que no son el mismo**, y por eso ninguna respuesta cierra:
+
+| | Que responde | Cada cuanto | Quien lo produce | Donde vive |
+|---|---|---|---|---|
+| **Recibo de carga** | ¿que entro, cuando, con que sumas? | una por carga | el cargador | la base, en `control` |
+| **Version del dataset** | ¿vos y yo tenemos lo mismo? | cuando alguien la corta | una persona | el repositorio |
+
+D-29 describio el segundo, y el cargador termino produciendo el primero. De ahi
+la contradiccion.
+
+**Se separan:**
+
+1. **El recibo de carga va a la base**, no a un archivo del repositorio. Una fila
+   por carga en el esquema `control`: producto, rango de fechas, filas
+   insertadas, sumas y momento. Es registro de lo que la base contiene, y la base
+   es donde vive.
+
+2. **La version del dataset se corta a mano**, con el generador de H1.7 sin
+   cambios. Congela, se numera, y **es lo que citan los resultados**. Deja de
+   intentar describir algo que se mueve.
+
+3. **`basedatos/ddl/procedencia-*.md` deja de ser un archivo que el cargador
+   escribe** y pasa a ser una vista generada desde los recibos, producida por
+   alguien con copia de trabajo cuando hace falta.
+
+### Justificacion
+
+**Una version que se regenera sola no es una version.** Es la foto de ayer. La
+seccion VI del documento IEEE no puede citar «la ultima carga»: tiene que citar
+algo que no se mueva, o el resultado deja de ser reproducible en el sentido en
+que D-29 lo prometio.
+
+**Y un cargador que escribe dentro del arbol de git asume una persona sentada
+frente al repositorio.** Lo reporto Cesar y es el mismo patron que ya aparecio
+con `trazabilidad.csv`: un artefacto que el repositorio necesita, producido por
+algo que no es un humano con copia de trabajo. Una ingesta programada en un
+contenedor efimero escribiria esos archivos donde nadie los va a ver nunca.
+
+**Por que el recibo va a la base y no a un archivo.** Porque describe el estado
+de la base, y porque es el unico lugar al que un proceso automatico puede
+escribir sin credenciales de git. Es la misma separacion que el proyecto ya hace
+entre `crudo` -lo descargado- y `analitico` -lo derivado-, aplicada al registro
+de la propia descarga.
+
+**Lo que esto le devuelve a D-29.** Su regla 1 -que la suma del SNIT viaje dentro
+del manifiesto, porque esa fuente ya fallo en I-03 y produjo I-10- **sigue
+valiendo entera**. Lo que cambia es que el manifiesto ya no tiene que perseguir
+un dataset que se mueve.
+
+### Alternativas descartadas
+
+**Que H1.14 regenere el manifiesto en cada carga.** Es la opcion 1 de Cesar.
+Convierte el manifiesto en un archivo que cambia a diario dentro del repositorio,
+y obliga al proceso automatico a hacer commit. Ademas destruye la propiedad que
+lo hacia util: dos personas con la misma «version 1» dejarian de tener lo mismo.
+
+**Que el manifiesto sea una foto fechada.** Es la opcion 2. No resuelve nada:
+sigue habiendo un solo artefacto tratando de responder dos preguntas, y la
+pregunta de reproducibilidad se queda sin respuesta.
+
+**No hacer nada hasta que la base este alojada.** Tentador, porque hoy no hay
+ingesta programada. Se descarta porque H1.14 se cierra antes que el alojamiento,
+y cerrarla sin esta decision la obligaria a elegir una de las dos opciones malas.
+
+**Un `control.carga` con la fila entera del manifiesto en JSON.** Guardar el
+documento en vez de sus campos. Se descarta porque un JSON opaco en una columna
+no se puede consultar: la pregunta «¿cuando se recargo CHIRPS por ultima vez?»
+volveria a requerir leer archivos.
+
+### Consecuencias
+
+**H1.7 no se reabre.** Su generador sirve igual, y lo que produce pasa a llamarse
+por su nombre: una version, no un estado.
+
+**H1.14 se simplifica.** No tiene que regenerar nada; emite su recibo y termina.
+Se renombra el mismo dia a **«Ingesta reejecutable con cadencia declarada por
+evento y producto declarado»**, porque *periodica* no lo puede cumplir sin
+alojamiento.
+
+**Aparece trabajo nuevo, y se declara en vez de esconderse:** la tabla del recibo
+y la vista generada de procedencia. Va a la historia de alojamiento, que todavia
+no esta abierta.
+
+**El documento IEEE gana una frase que hoy no puede escribir**, y la va a
+necesitar: *los resultados de la seccion VI se calcularon sobre la version N del
+dataset*. Hoy diria «sobre el dataset», que no identifica nada.
+
+### Medicion
+
+Se comprueba cuando exista la tabla del recibo:
+
+1. **Dos cargas seguidas producen dos recibos y una sola version.** Si producen
+   dos versiones, la separacion no se aplico.
+2. **La version no cambia sin que una persona la corte.** Correr la ingesta no
+   toca ningun archivo del repositorio.
+3. **El recibo permite responder «¿cuando se recargo CHIRPS?» con una consulta**,
+   sin abrir un archivo.
+4. **La vista de procedencia se puede regenerar y sale identica** mientras no
+   haya cargas nuevas. Es la misma propiedad que se le exige a la matriz de
+   trazabilidad y a los diagramas.
+
+**Lo que esta decision NO resuelve**, y queda escrito: dónde corre la ingesta. Esa
+es la historia de alojamiento, con su propia decision.
+
+**Criterio de revision.** Se vuelve sobre esto si el dataset dejara de recargarse
+-en cuyo caso la separacion sobra y D-29 alcanza- o si apareciera una herramienta
+de versionado de datos que el equipo ya use por otro motivo, que es la condicion
+con la que D-29 descarto DVC.
 

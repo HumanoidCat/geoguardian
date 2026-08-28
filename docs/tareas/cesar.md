@@ -62,8 +62,28 @@
 
 ## Sprint 1 (semanas 4-5) — 30.9 h
 
+- [ ] **H1.15** · Crear `analitico.riesgo` con sus restricciones
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.3, H1.8 · **bloquea a: H1.13**
+  - **Abierta el 2026-08-27** por decision del PM, despues de que la detectaras
+    al intentar H1.13. La tabla no existia y ninguna historia la creaba.
+  - **No se metio dentro de H1.13** a proposito: esa historia es el disparador de
+    auditoria, y juntar el esquema con el disparador hace que discutir uno
+    arrastre al otro.
+  - Se puede construir y probar **contra una tabla vacia**, asi que no espera al
+    modelo de E3.
+  - Dos cosas que el DDL tiene que cumplir, y no son negociables:
+    - `probabilidad` es **P(nivel = alto)**, por **D-21**. Que el `COMMENT` de la
+      columna lo diga, no solo el contrato.
+    - **La ausencia es `NULL`, nunca `0`.** Un distrito sin estimacion tiene que
+      poder distinguirse de uno con riesgo bajo. Es **D-07**, y es lo que el
+      etiquetado y el visor ya hacen.
+
 - [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
-  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8, H1.15
+  - **Desbloqueada el 2026-08-27.** Estuvo detenida porque `analitico.riesgo` no
+    existia y ninguna historia la creaba, con H1.8 -su dependencia declarada- ya
+    cerrada. Ahora depende tambien de **H1.15**, que si la crea.
+  - La dependencia es real y medida, no inventada para desatascar el tablero.
 
 - [x] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados (2026-08-27)
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7**
@@ -118,7 +138,7 @@
 
 ## Sprint 3 (semanas 8-9) — 47.0 h
 
-- [ ] **H1.14** · Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite
+- [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
   - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
     **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
@@ -133,6 +153,16 @@
     que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
   - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
     Kubernetes son locales. La programacion queda declarada y sin destino.
+  - **RENOMBRADA el 2026-08-27**, de «Ingesta periodica de las tres fuentes». Lo
+    planteo Cesar y el PM lo acepto: *una ingesta programada contra una base que
+    solo existe cuando alguien levanta `docker compose` no es periodica, es un
+    guion con un `cron` escrito al lado.* La historia se cierra con lo que si
+    demuestra -cadencia, producto declarado, idempotencia- y **donde corre sale a
+    la historia de alojamiento**, todavia sin abrir.
+  - **Y por D-31, esta historia NO regenera el manifiesto de H1.7.** Emite su
+    recibo de carga en la base y termina. El manifiesto es una version que se
+    corta a mano; perseguir con el a un dataset que se mueve destruiria la
+    propiedad que lo hace util.
 
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada

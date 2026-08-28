@@ -1,6 +1,6 @@
 # Backlog completo
 
-**88 historias · 431 puntos · 631.0 horas** (incluye 20 % de revision)
+**89 historias · 434 puntos · 633.9 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -55,7 +55,7 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 | Cesar | 18.3 | 27.8 | 31.5 | 47.0** | 34.0 | 158.6 | 128 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
 | Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 114.6 | 94 |
-| **Equipo** | 83.0 | 104.2 | 155.7 | 132.7 | 155.4 | **631.0** | **431** |
+| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 155.4 | **633.9** | **434** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -78,7 +78,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.1** Plan de pruebas con casos por modulo | luna | 5 | 4.8 | QA | contratos | — |
 | **H10.5a** Recopilar 15 referencias IEEE con ficha de contenido | luna | 8 | 21.1 | IEEE | - | H10.5b |
 
-## Sprint 1 · semanas 4-5 · 15 historias · 104.2 h
+## Sprint 1 · semanas 4-5 · 16 historias · 107.1 h
 
 **Foco.** Dataset consolidado, API y reporte de calidad  
 **Hito.** Entrega institucional (semana 4)
@@ -91,7 +91,8 @@ Las celdas con `**` estan por encima del compromiso.
 | **H1.6** Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% | avril | 5 | 7.8 | CG-3 | - | H5.5, H8.4 |
 | **H5.2** Cuatro o mas capas conmutables con control de opacidad | avril | 5 | 4.8 | CG-4 | H5.1 | — |
 | **H5.3** Coropletas de riesgo por evento con rampa de color y leyenda | avril | 7 | 6.7 | CG-1 | H5.1 | H5.4, H5.7, H7.1 |
-| **H1.13** Trigger de auditoria sobre predicciones, con prueba | cesar | 3 | 2.9 | BD-2 | H1.8 | — |
+| **H1.13** Trigger de auditoria sobre predicciones, con prueba | cesar | 3 | 2.9 | BD-2 | H1.8, H1.15 | — |
+| **H1.15** Crear analitico.riesgo con sus restricciones | cesar | 3 | 2.9 | BD-2 | H1.3, H1.8 | H1.13 |
 | **H1.4** Declarar los criterios de imputacion y probarlos contra huecos inyectados | cesar | 3 | 4.7 | BD-1 | H1.1 | H1.7 |
 | **H1.7** Versionar el dataset consolidado para reproducibilidad | cesar | 3 | 2.9 | OE1 | H1.4 | — |
 | **H1.8** Crear esquemas, roles y usuarios con minimo privilegio | cesar | 5 | 4.8 | BD-2 | H1.3 | H1.13, H1.9, H10.7 |

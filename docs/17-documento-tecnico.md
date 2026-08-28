@@ -474,7 +474,7 @@ calidad— y la distinción está escrita para no confundirlas.
 
 ## X. Decisiones de arquitectura
 
-Treinta decisiones registradas, cada una con contexto, alternativas descartadas,
+31 decisiones registradas, cada una con contexto, alternativas descartadas,
 consecuencias y criterio de revisión. Las que más gobiernan el código:
 
 | ADR | Decisión |
@@ -492,6 +492,7 @@ consecuencias y criterio de revisión. Las que más gobiernan el código:
 | D-23 | El visor negocia su origen una vez y degrada declarándolo |
 | D-25 | El incendio es binario y se acota a tres distritos |
 | D-29 | El dataset se versiona por manifiesto |
+| D-31 | El recibo de carga y la versión del dataset son dos artefactos |
 
 Una decisión que se deja atrás **no se borra**: cambia de estado y se conserva
 entera. El registro distingue tres formas de hacerlo —*revisada*, *sustituida* y
