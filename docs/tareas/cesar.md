@@ -65,29 +65,37 @@
 - [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
   - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8
 
-- [ ] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados
+- [x] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados (2026-08-27)
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7**
   - Reducida por **D-22** el 2026-08-20: las series de H1.1 no tienen un solo
     faltante en 12 784 dias, asi que la historia pierde *aplicar* y conserva
     *declarar la regla y probarla contra huecos inyectados*.
   - **La dependencia de H2.1 quedo obsoleta**, porque H2.1 se cerro sin ella.
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.4-criterios-imputacion.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 0.5
 
-- [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
+- [x] **H1.7** · Versionar el dataset consolidado para reproducibilidad (2026-08-27)
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.7-manifiesto-dataset.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 0.5
 
 - [x] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio (2026-08-19)
   - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9, H10.7**
   - Evidencia: `docs/evidencias/bases-de-datos/H1.8-roles-minimo-privilegio.md`
 
-- [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
+- [x] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente (2026-08-27)
   - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.0-imagenes-docker.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 2.5
 
 - [x] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints (2026-08-19)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H11.1, H6.0, H6.2, H6.5, H7.2, H8.3**
   - Evidencia: `docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md`
 
-- [ ] **H6.2** · Patron Repository con pruebas unitarias sin base de datos
+- [x] **H6.2** · Patron Repository con pruebas unitarias sin base de datos (2026-08-27)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1 · **bloquea a: H10.2, H6.3**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.2-repositorio-postgres.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 3.0
 
 
 ## Sprint 2 (semanas 6-7) — 31.5 h
