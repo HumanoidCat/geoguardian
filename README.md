@@ -118,7 +118,7 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
 | Visor publicado | https://humanoidcat.github.io/geoguardian/ · datos simulados, sin API ni base |
 | Integración continua | 6 trabajos: contratos, backlog y documentación, linter, frontend, pruebas y publicación del visor |
-| Backlog | 88 historias, 431 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
+| Backlog | 89 historias, 434 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
 
 ## Documentación
