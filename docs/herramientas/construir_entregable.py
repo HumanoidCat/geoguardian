@@ -439,6 +439,34 @@ def main() -> int:
     if limpio != original:
         quitados = original.count(f"::: {MARCA_INTERNA}")
         print(f"  {quitados} bloque(s) marcados como internos, fuera del entregable")
+
+    # EL LOGO VA EN LOS DOS DOCUMENTOS, Y HASTA HOY SOLO IBA EN UNO
+    #
+    # El profesor pidio los dos documentos con el logo de la universidad. El
+    # camino IEEE lo recibe por `--variable=logo:`, que la plantilla coloca
+    # sobre el bloque de titulo. **El camino .docx no usa esa plantilla**, asi
+    # que nunca lo recibio: el tecnico salio sin logo desde el primer dia y
+    # nadie lo noto, porque para notarlo hay que abrir el PDF y mirar la
+    # portada, no leer el Markdown.
+    #
+    # Se resuelve anteponiendo la imagen al contenido en vez de con una
+    # plantilla de Word. Es menos elegante y tiene una ventaja que aca pesa
+    # mas: **se ve igual en el .docx y en el .pdf**, sin depender de que el
+    # convertidor respete encabezados de pagina.
+    if LOGO.exists():
+        relativo = LOGO.relative_to(documento.parent).as_posix()
+        partes = limpio.split("---\n", 2)
+        if limpio.startswith("---\n") and len(partes) == 3:
+            # La imagen se reinserta **despues** del bloque YAML. Puesta antes
+            # del `---` inicial, pandoc deja de reconocer el frontmatter y los
+            # cuatro autores desaparecen del documento.
+            limpio = f"---\n{partes[1]}---\n\n![]({relativo}){{width=45mm}}\n{partes[2]}"
+        else:
+            limpio = f"![]({relativo}){{width=45mm}}\n\n{limpio}"
+        print(f"  logo de la universidad, desde {relativo}")
+    else:
+        print(f"  AVISO: no esta el logo en {LOGO}. El documento sale sin el.")
+
     fuente = trabajo / documento.name
     fuente.write_text(limpio, encoding="utf-8")
 

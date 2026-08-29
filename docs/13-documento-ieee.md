@@ -85,16 +85,44 @@ resolución espacial, SPI, Costa Rica.
 
 ### A. Problema
 
-Tilarán es un cantón de 669,23 km² en la vertiente del embalse Arenal, con ocho
-distritos y un régimen climático marcado por una estación seca de diciembre a
-abril. Sus tres afectaciones climáticas recurrentes son la lluvia intensa, la
-sequía agrícola y el incendio forestal.
+El 5 de octubre de 2017, la tormenta tropical Nate cruzó el cantón de Tilarán.
+Los siete distritos con registro reportaron daños **ese mismo día**, y lo que
+reportaron no se parece:
 
-Las herramientas de alerta disponibles para el cantón operan a escala nacional o
-regional. La pregunta que este proyecto plantea no es si se puede estimar riesgo
-climático —eso está resuelto— sino **si se puede hacerlo por distrito, para un
+| Distrito | Daño principal | Pérdidas |
+|---|---|---|
+| Quebrada Grande | 93 fincas de ganadería de leche, 31 de plátano, una escuela | **726 148 USD** |
+| Tilarán | puentes, derrumbe de carril, tomate y aves | 313 371 USD |
+| Tronadora | puentes, carril y cuneta obstruidos | 166 310 USD |
+| Santa Rosa | colapso de alcantarillado, corte de carretera | 32 669 USD |
+| Tierras Morenas | media calzada obstruida, maíz y tomate | 24 681 USD |
+| Arenal | socavación de calzada, cuatro fincas de ganado | **1 808 USD** |
+| Líbano | cortes totales de carretera por socavación | 15 400 m de vía |
+
+En total, **1,26 millones de dólares y 223 km de vías dañadas en un día**. Y
+entre el distrito más afectado y el menos afectado hay un factor de **cuatrocientos**.
+
+Ahí está el problema, y no es la falta de un pronóstico. El Instituto
+Meteorológico Nacional emitió aviso; lo que ese aviso no podía decir es que en
+Quebrada Grande había que mover ganado lechero y en Arenal vigilar una calzada.
+**Un valor único para todo el cantón es simultáneamente exagerado para unos
+distritos e insuficiente para otros**, y quien decide —evacuar, cerrar un paso,
+adelantar una cosecha— decide por distrito.
+
+No es un evento aislado. El catálogo de este trabajo reúne **46 eventos con
+daños documentados en Tilarán entre 1970 y 2026**, incluido un fallecido por
+deslizamiento en Río Chiquito en 1976. Los siete distritos aparecen.
+
+Las herramientas de alerta disponibles operan a escala nacional o regional. La
+pregunta de este proyecto no es si se puede estimar riesgo climático —eso está
+resuelto— sino **si esa estimación se puede llevar hasta el distrito, para un
 cantón concreto, usando únicamente datos abiertos y sin infraestructura de
 observación propia**.
+
+Y hay una razón para dudar antes de empezar, que es la que vuelve interesante la
+pregunta: **los datos abiertos globales se distribuyen en celdas más grandes que
+un distrito de Tilarán.** Si la fuente no distingue lo que hay que distinguir,
+ningún modelo lo recupera. La sección V lo mide.
 
 ### B. Pregunta de investigación
 
@@ -1043,6 +1071,113 @@ dependen de que exista un modelo entrenado; publicar antes sería publicar un ma
 que no estima nada.
 
 ---
+
+## VIII-bis. Amenazas a la validez
+
+La sección anterior enumera **lo que el sistema no hace**. Esta enumera algo
+distinto y menos cómodo: **por qué las conclusiones de este trabajo podrían
+estar equivocadas**, aun siendo correcto todo el cálculo.
+
+Se separan a propósito. Una limitación se resuelve con más trabajo; una amenaza
+a la validez puede seguir ahí después de todo el trabajo del mundo, y lo único
+honesto es declararla.
+
+### A. La serie diaria de CHIRPS no se mide: se reparte
+
+Es la amenaza más seria y la descubrimos leyendo la fuente primaria. Los autores
+de CHIRPS escriben `[28]`:
+
+> «The basic time step of the CHIRP is the pentad. All other time steps are
+> either aggregates (dekadal and monthly) or **disaggregations (daily)**.
+> Pentadal CHIRP values are disaggregated to daily precipitation estimates based
+> on daily CFS fields rescaled to 0.05° resolution.»
+
+Es decir: **el día de CHIRPS es el total de cinco días repartido entre ellos
+según la forma que da un modelo de reanálisis.** La etiqueta de lluvia intensa
+de este trabajo se construye sobre acumulados de 72 h de esa serie, o sea sobre
+un reparto interno al péntada cuya distribución temporal no proviene de la
+observación.
+
+**El efecto se ve en nuestros propios datos.** De los 12 eventos de lluvia no
+detectados, nueve tenían una marca a catorce días o menos, y en nueve la marca
+llegó *después* del evento. Un error de fecha por debajo del péntada es
+exactamente lo que este diseño produce.
+
+La consecuencia práctica: el etiquetado de lluvia es más confiable sobre **si**
+ocurrió un episodio que sobre **qué día** ocurrió. Y como el horizonte del
+sistema es de siete días, ese desfase cabe entero dentro del horizonte.
+
+### B. La validación cruzada bloquea el tiempo y no el espacio
+
+El diseño experimental corta en frontera de mes y aplica un embargo de siete
+días, lo que impide que una fila de entrenamiento mire dentro del bloque de
+prueba **en el eje temporal**.
+
+No hace nada equivalente en el eje espacial. Los ocho distritos comparten celdas
+de las fuentes gruesas, de modo que dos filas del mismo día en distritos vecinos
+**no son observaciones independientes**. Roberts et al. `[32]` muestran que
+ignorar una estructura de dependencia al validar **subestima el error
+predictivo**, y —esto es lo incómodo— que la subestimación no se detecta mirando
+los residuos del modelo ajustado.
+
+No se corrigió aquí. Se declara, y queda como el primer cambio que le
+corresponde al diseño de la partición.
+
+### C. El catálogo registra daños donde hay gente que los reporte
+
+El contraste contra eventos reales es la única validación externa de este
+trabajo, y su fuente tiene un sesgo conocido: DesInventar cataloga cuando hubo
+**pérdidas reportadas**, no cuando ocurrió un fenómeno. Un aguacero idéntico
+sobre un potrero sin infraestructura no entra.
+
+Se ve en la propia distribución: **19 de los 46 registros son de Tilarán
+centro**, el distrito con más población y más camino. No es que ahí llueva más.
+
+Por eso se mide cobertura y **no se reporta precisión**: una marca sin registro
+en el catálogo no es un falso positivo, puede ser un evento real que nadie
+reportó. Calcular precisión contra un catálogo incompleto produce un número que
+aparenta rigor y está mal por construcción.
+
+### D. El veredicto sobre la escala del SPI descansa sobre un solo episodio
+
+Los siete registros de sequía del catálogo son **una fecha, 2014-09-30, en siete
+distritos**. No son siete episodios independientes: el tamaño de muestra
+efectivo está más cerca de uno.
+
+El intervalo de Wilson los cuenta como siete extracciones independientes, así
+que los intervalos de cobertura reportados en VI-E son **optimistas**. La
+consecuencia es asimétrica y se reporta como tal: descartar el SPI-3 —que falló
+de forma idéntica en los ocho distritos— es defendible con un episodio; coronar
+al SPI-6 o al SPI-12 no lo sería. Entre esas dos, la elección se tomó **por
+número de episodios y no por evidencia externa**, y así está declarada.
+
+### E. Asignar una celda de 5,5 km a un distrito más chico es una operación con nombre
+
+Lo que este sistema hace con cada fuente es *downscaling*: inferir el valor de
+una unidad pequeña a partir de un dato definido sobre una unidad mayor. Gotway y
+Young `[31]` lo clasifican dentro del **problema de cambio de soporte**, y lo
+emparentan con el **problema de la unidad de área modificable** de Openshaw
+`[30]`: los resultados de un análisis dependen de las unidades sobre las que se
+agregó, y esas unidades son arbitrarias.
+
+Aquí la asignación se hace de la forma más simple —el valor de la celda que
+contiene al distrito— sin modelo de desagregación. Es defendible por
+transparencia y **no es neutral**: hereda la heterogeneidad interna de la celda
+sin representarla.
+
+Esta amenaza y el hallazgo central del trabajo son la misma cosa vista desde dos
+lados. Que cuatro de cinco variables no distingan distritos es la manifestación
+medible de este problema en un caso concreto.
+
+### F. El catálogo lo construyó una sola persona
+
+Las 46 fichas se extrajeron y codificaron por un único integrante del equipo, sin
+segunda lectura independiente ni medida de acuerdo entre codificadores. Las
+decisiones de asignar un evento a un distrito y de clasificarlo por tipo son
+juicios, y no hay forma de saber cuánto variarían con otro lector.
+
+Es una debilidad estándar de este tipo de trabajo y se declara porque afecta a la
+única validación externa que el proyecto tiene.
 
 ## IX. Conclusiones
 
