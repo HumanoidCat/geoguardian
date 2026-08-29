@@ -38,9 +38,14 @@ unos **21**.
 
 ### Por qué esto le pega directamente a la sequía
 
-El SPI-3 mira una ventana de **90 días que termina hoy**. Con esa latencia, entre
-**21 y 51 de esos 90 días** solo existen como producto preliminar en el momento
-de estimar. O sea: **entre el 23 % y el 57 % de la ventana no es dato final.**
+El SPI-6 mira una ventana de **180 días que termina hoy**. Con esa latencia, entre
+**21 y 51 de esos 180 días** solo existen como producto preliminar en el momento
+de estimar. O sea: **entre el 12 % y el 28 % de la ventana no es dato final.**
+
+**Era del 23 % al 57 % con el SPI-3**, la escala anterior. D-32 la cambió a 6 por
+otro motivo —el SPI-3 no detectaba el único episodio de sequía del catálogo— y
+esta mejora es un efecto secundario que se descubrió después. No se usa como
+argumento a favor del cambio, porque no lo fue.
 
 ### Y el preliminar es peor de lo que su nombre sugiere
 
@@ -110,9 +115,10 @@ hasta 2024, y para el año en curso hace falta la clave de la API.
 | Lluvia intensa | CHIRPS | 21-51 d final, 2 d preliminar | diaria con preliminar, declarándolo |
 | Sequía | CHIRPS | 21-51 d final | **semanal como mucho** |
 
-**Para sequía hay una razón más, y es independiente de la latencia.** El SPI-3
-mira 90 días, de los cuales 83 ya se conocían ayer. Actualizarlo a diario mueve la
-aguja poquísimo aunque el dato llegara al instante.
+**Para sequía hay una razón más, y es independiente de la latencia.** El SPI-6
+mira 180 días, de los cuales 179 ya se conocían ayer. Actualizarlo a diario mueve
+la aguja poquísimo aunque el dato llegara al instante, y con la escala nueva
+menos todavía.
 
 ---
 

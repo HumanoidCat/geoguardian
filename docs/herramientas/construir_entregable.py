@@ -414,10 +414,24 @@ def main() -> int:
     if args.ieee:
         return construir_ieee(documento, salida)
 
+    # Las notas internas se quitan en **los dos** caminos. La primera version
+    # solo las quitaba en el IEEE, y el documento tecnico -que el profesor pidio
+    # que NO fuera IEEE- salio con «Historia: H10.4 · Responsable: Alejandro» en
+    # la portada. Se detecto leyendo el PDF, no el Markdown.
+    trabajo = salida / f".{documento.stem}"
+    trabajo.mkdir(parents=True, exist_ok=True)
+    original = documento.read_text(encoding="utf-8")
+    limpio = sin_bloques_internos(original)
+    if limpio != original:
+        quitados = original.count(f"::: {MARCA_INTERNA}")
+        print(f"  {quitados} bloque(s) marcados como internos, fuera del entregable")
+    fuente = trabajo / documento.name
+    fuente.write_text(limpio, encoding="utf-8")
+
     docx = salida / f"{documento.stem}.docx"
     orden = [
         _pandoc(),
-        str(documento),
+        str(fuente),
         "-o",
         str(docx),
         # Sin esto, pandoc busca las imagenes desde el directorio actual y no
@@ -434,6 +448,11 @@ def main() -> int:
         # Las tablas de este documento llevan celdas largas; sin `pipe_tables`
         # explicito pandoc a veces las lee como texto.
         "--from=markdown+pipe_tables+yaml_metadata_block",
+        # El `#` de nivel 1 es el TITULO, igual que en el camino IEEE. Sin esto
+        # pandoc arma el bloque de titulo solo con autores y fecha, y el titulo
+        # real aparece despues como un encabezado suelto: en el PDF salian los
+        # cuatro nombres arriba y el nombre del documento debajo.
+        "--shift-heading-level-by=-1",
     ]
     proceso = subprocess.run(orden, capture_output=True, text=True, check=False)
     if proceso.returncode != 0:
@@ -466,8 +485,10 @@ def main() -> int:
     if proceso.returncode != 0 or not pdf.exists():
         print(f"\n  La conversion a PDF fallo:\n{proceso.stderr or proceso.stdout}")
         print("  El .docx ya esta, se puede exportar a PDF desde Word.\n")
+        shutil.rmtree(trabajo, ignore_errors=True)
         return 0
     print(f"  {pdf}")
+    shutil.rmtree(trabajo, ignore_errors=True)
 
     print("\n  Recordatorio: el .docx y el .pdf son artefactos. Si hay que")
     print(f"  corregir algo, se corrige {documento.name} y se vuelve a construir.\n")

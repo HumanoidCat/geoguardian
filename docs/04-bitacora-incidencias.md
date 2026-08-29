@@ -1097,3 +1097,68 @@ un encuadre que nadie pidio, justo en la semana del Primer Avance. 515 lineas
 retiradas y restituidas. El entregable de H5.4 fuera de pantalla durante ese
 tiempo. Trabajo de Avril hecho dos veces por un pedido mal formulado: la primera
 implementacion no tenia ningun defecto.
+
+---
+
+## I-15 · El zip de la entrega se armo con los PDF viejos y nada lo advirtio
+
+**Fecha.** 2026-08-28
+
+**Quien lo detecto.** Alejandro, al pegar la salida completa de los cinco
+comandos de reconstruccion en vez de solo el ultimo.
+
+**Que paso.** Despues de cambiar la escala del SPI por **D-32**, se corrio la
+secuencia que reconstruye los entregables:
+
+    generar_figuras.py              OK, tres figuras nuevas
+    contrastar_catalogo.py          OK
+    construir_entregable.py --ieee  FALLO: falta XeLaTeX
+    construir_entregable.py         FALLO: falta pandoc, con traza
+    armar_entrega.py                **armo el zip igual**
+
+El paquete salio con nombre correcto, fecha de hoy y 1,9 MB. Y con **los dos
+documentos anteriores al cambio de escala**: los que dicen que la sequia da 0 de
+7, que el SPI-3 es la escala del proyecto y que la ventana no final es del 23 %
+al 57 %.
+
+**Causa raiz.** `armar_entrega.py` comprobaba que cada pieza **existiera**. No
+comprobaba que estuviera **al dia**. Y su propio encabezado declaraba, desde que
+se escribio, que existia para evitar «un zip incompleto que parece correcto»: la
+intencion estaba bien y la comprobacion cubria la mitad del problema.
+
+Hay un segundo factor, de forma: en PowerShell, pegar cinco comandos seguidos
+**no detiene la secuencia cuando uno falla**. La traza de pandoc quedo sepultada
+entre la salida del comando anterior y la del siguiente, que informaba exito.
+
+**Por que es peor que un zip incompleto.** Un paquete al que le falta un archivo
+se nota al abrirlo. Uno que trae el archivo equivocado, con el nombre correcto y
+fecha reciente, **no se nota**: hay que leer el contenido y saber que buscar.
+
+Es I-06 -un paso que se salta en silencio se ve igual que uno que se cumplio-
+llegando hasta el artefacto que se entrega, que es el ultimo lugar donde deberia
+llegar y el unico donde nadie lo revisa despues.
+
+**Que se cambio.** `armar_entrega.py` compara ahora la fecha de cada pieza contra
+la de su fuente Markdown **y contra la de todas las figuras**, y se niega a armar
+el zip si alguna quedo atras. Con la ruta del archivo que la dejo obsoleta, que
+es lo que convierte el aviso en instruccion.
+
+Se compara por fecha y no por suma porque el PDF no contiene al Markdown: no hay
+suma que cruzar. Es un criterio mas debil, y **se prefiere errar hacia la
+molestia**: un falso positivo cuesta reconstruir; un falso negativo cuesta
+entregar el documento equivocado.
+
+Queda una salida, `--aunque-esten-viejos`, y **el zip lo declara adentro**. Una
+bandera que evita un control sin dejar rastro en el artefacto es peor que no
+tener el control: da permiso y borra la evidencia de haberlo usado.
+
+**Lo que NO se hizo, y conviene decirlo.** No se encadenaron los comandos con
+`&&` ni se escribio un guion que los envuelva. Eso arregla el sintoma en una
+maquina y no en la de al lado; el control vive en la herramienta, que es donde
+sirve corra quien corra.
+
+**Impacto.** Ninguno hacia afuera: el zip no se entrego. El costo real es la
+confianza que el paquete tenia sin merecerla desde que la herramienta existe,
+porque **este defecto no era nuevo, solo no se habia disparado antes**: hasta hoy
+nunca habia fallado la construccion de los PDF con figuras recien regeneradas al
+lado.

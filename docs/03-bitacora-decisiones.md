@@ -3229,3 +3229,252 @@ es la historia de alojamiento, con su propia decision.
 de versionado de datos que el equipo ya use por otro motivo, que es la condicion
 con la que D-29 descarto DVC.
 
+
+## D-32 · La escala del SPI se decide midiendo, no por costumbre
+
+**Estado.** Aceptada · **revisa D-19** · **medida y resuelta: SPI-6**
+**Fecha.** 2026-08-28
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** Al leer completa la referencia `[15]`, que ya se citaba
+**Afecta.** **D-19**, el etiquetado de sequia de H3.0, y las conclusiones sobre
+sequia del documento de investigacion.
+
+### Contexto
+
+**D-19 fijo SPI-3 y nadie lo midio.** Se adopto porque es la escala mas comun en
+la literatura de sequia agricola. Es un argumento de costumbre.
+
+La referencia `[15]` -Quesada-Hernandez, Hidalgo y Alfaro, 2020- se citaba desde
+H10.5a como respaldo local de que el SPI es pertinente en Guanacaste. **Su ficha
+se habia escrito sobre el resumen.** Leido el articulo completo el 2026-08-28,
+dice tres cosas que la ficha no recogia:
+
+1. **Evalua SPI-6 y SPI-12. No evalua SPI-3.** El SPI-12 se toma en diciembre,
+   para describir el ano; el SPI-6 en octubre, para la estacion lluviosa del
+   Pacifico. Concluye que esas dos son las mejor asociadas con impactos
+   socio-productivos reales.
+2. **Trabaja a escala cantonal, no distrital**, teniendo disponibles registros de
+   distrito. Es una decision del trabajo mas cercano al nuestro, en sentido
+   contrario al nuestro.
+3. Integra **cuatro** fuentes de impacto -DesInventar, EM-DAT, IMN y prensa-, no
+   una.
+
+Es decir: **la referencia que citabamos como respaldo de nuestra escala no
+respalda nuestra escala.** Respalda la familia del indice y otras dos escalas
+concretas, en la misma provincia.
+
+### Decision
+
+**No se cambia a SPI-6 ni se defiende SPI-3 con argumentos. Se miden las tres y
+se decide con el dato.** `backend/modelado/comparar_escalas_spi.py` rehace el
+etiquetado de sequia completo para SPI-3, SPI-6 y SPI-12 -mismos cortes de
+McKee, mismo ajuste gamma por mes calendario- y contrasta cada uno contra el
+catalogo.
+
+### Justificacion
+
+Tres razones para medir en vez de adoptar la escala de la referencia:
+
+- **La referencia no es nuestra unidad.** Trabaja por canton, con estaciones
+  meteorologicas; nosotros por distrito, con CHIRPS. Adoptar su conclusion sin
+  medir seria repetir el error de D-19 con otra escala: reemplazar una costumbre
+  por otra.
+- **Ya sabemos que la respuesta puede ser «no se puede saber».** Con siete
+  registros, los siete con la misma fecha, es probable que las tres escalas
+  queden empatadas. Eso tambien es un resultado, y hace falta poder decirlo con
+  un numero al lado en vez de con una opinion.
+- **La herramienta sirve despues.** Si aparecen mas registros -y `[15]` muestra
+  el camino, integrar IMN y prensa a DesInventar-, la comparacion se vuelve a
+  correr sin escribir nada nuevo.
+
+Y una razon de forma: **la ficha de `[15]` se habia escrito sobre el resumen.**
+Este registro existe porque leer el articulo completo cambio lo que sabiamos.
+El criterio que se saca de ahi, y que aplica a toda la bibliografia, es que un
+resumen alcanza para decidir si una referencia es pertinente y **no** alcanza
+para apoyarse en ella.
+
+### Lo que la comparacion reporta, y por que asi
+
+**Todo con intervalo de Wilson al 95 %.** Es el segundo cambio que trae esta
+decision: el documento reportaba proporciones como puntos -«64,7 % de cobertura»
+sobre 34 eventos- y **sin intervalo no se puede afirmar que 64,7 % y 13,7 % son
+distintos**. Se usa Wilson y no el intervalo de Wald por `[34]`: Wald es
+erratico con muestras chicas y ademas colapsa a [0, 0] cuando la proporcion es
+cero, que es exactamente nuestro caso en sequia.
+
+**El realce decide, no la cobertura.** Una escala larga marca mas dias por
+construccion: el SPI-12 senala rachas de un ano donde el SPI-3 senala rachas de
+un trimestre. Comparar coberturas premiaria a la escala larga por la razon
+equivocada.
+
+**La ventana estricta compara; la ventana propia diagnostica.** Cada escala se
+contrasta ademas con su periodo de integracion -90, 180 y 360 dias-, pero eso
+**no** entra en la comparacion: una ventana mas larga detecta mas por
+construccion. Se reporta al lado.
+
+**Y se cuentan los episodios, no solo los dias.** Dos escalas pueden marcar el
+mismo numero de dias repartidos en muy distinto numero de rachas. Los episodios
+son el tamano de muestra efectivo para cualquier modelo que se entrene despues.
+
+### Medicion
+
+La herramienta corre en el CI con `--sintetico`, que comprueba el camino de
+calculo y **no concluye nada** sobre las escalas: lo declara en su primera
+linea. La medicion que decide se corre contra la base:
+
+    python -m backend.modelado.comparar_escalas_spi --fallos
+
+**Criterio de aceptacion de la decision, fijado antes de ver el resultado**,
+que es la mitad del valor de fijarlo:
+
+1. **Si los intervalos de cobertura de las tres se solapan, se mantiene SPI-3** y
+   se declara en el documento que la escala no esta respaldada por medicion
+   propia ni por la referencia local. No se cambia de escala por una diferencia
+   puntual que la muestra no sostiene.
+2. **Si una escala separa su intervalo de las otras dos y su realce excluye el
+   1,0**, se adopta esa escala y se revisa D-19.
+3. **Si ninguna escala excluye el 1,0 de su realce**, ninguna distingue, y eso se
+   escribe tal cual: es un resultado sobre el catalogo, no sobre las escalas.
+
+### Lo que se midio, el 2026-08-28
+
+| Escala | Cobertura, IC 95 % | Realce, rango | Tasa base | Episodios |
+|---|---|---|---|---|
+| **SPI-3** | 0 % [0 %, 35,4 %] | 0,00 [0,00, **2,38**] | 15,1 % | 204 |
+| **SPI-6** | 100 % [64,6 %, 100 %] | 6,50 [4,13, 6,59] | 15,4 % | 129 |
+| **SPI-12** | 100 % [64,6 %, 100 %] | 5,39 [3,43, 5,46] | 18,6 % | 68 |
+
+**El criterio no anticipo este caso, y hay que decirlo.** Se escribio pensando
+en «una gana» o «empatan todas». Lo que salio es **una pierde y dos empatan**:
+el intervalo del SPI-3 no toca el de las otras dos, pero SPI-6 y SPI-12 no se
+separan entre si.
+
+Eso obligo a corregir la herramienta antes de leer el resultado. `veredicto()`
+buscaba la de mayor cobertura, veia el solape entre SPI-6 y SPI-12 y devolvia
+«sin veredicto», **enterrando el unico hallazgo accionable**: que la escala en
+uso habia quedado descartada. Ahora descarta primero y empata despues, que es el
+orden correcto cuando la muestra es chica. Queda cubierto por
+`test_descarta_la_escala_separada_hacia_abajo`.
+
+**SPI-3 queda descartado**, por dos razones que apuntan al mismo lado:
+
+- Su intervalo, 0 %-35,4 %, esta enteramente por debajo del de las otras dos.
+- El **1,0 cae dentro del rango de su realce**, [0,00, 2,38]: ante el unico
+  episodio que el catalogo permite probar, marcaba con la misma frecuencia que
+  un dia cualquiera.
+
+Y el fallo **no es aleatorio**: la marca mas cercana quedo a **-37 dias, el
+mismo -37 en los ocho distritos**. Una coincidencia se dispersa entre distritos;
+un valor identico en los ocho es la firma de algo estructural. Lo es: **el SPI-3
+sale de sequia antes de que el dano se declare.** Integra tres meses, y para
+fines de septiembre de 2014 las lluvias de setiembre ya lo habian recuperado
+mientras la declaratoria se emitia el dia 30.
+
+### Por que SPI-6 y no SPI-12, dicho sin disimular
+
+**El catalogo no los separa.** Los dos dan 7 de 7 con intervalos identicos. La
+eleccion se hace por otro criterio, y corresponde declarar cual:
+
+| | SPI-6 | SPI-12 |
+|---|---|---|
+| Episodios | **129** | 68 |
+| Tasa base | **15,4 %** | 18,6 % |
+| Realce puntual | **6,50** | 5,39 |
+
+- **Episodios: casi el doble.** Es el tamano de muestra efectivo para cualquier
+  modelo que se entrene despues. Con 68 episodios repartidos en ocho distritos y
+  cinco pliegues, no queda sequia suficiente en cada pliegue.
+- **Menor tasa base para la misma deteccion.** SPI-12 marca 3,2 puntos mas de
+  dias para detectar lo mismo: avisa mas para acertar igual.
+- **`[15]` toma el SPI-6 en octubre** para describir la estacion lluviosa de la
+  vertiente del Pacifico, que es el regimen de Tilaran. El SPI-12 lo toma en
+  diciembre para el balance anual.
+
+El realce puntual favorece al SPI-6, pero **sus rangos se solapan** —[4,13, 6,59]
+contra [3,43, 5,46]— asi que no decide, y no se usa como si decidiera.
+
+### La advertencia que ningun intervalo da por si solo
+
+**Los siete registros son una fecha en siete distritos, no siete episodios.**
+El intervalo de Wilson los cuenta como siete extracciones independientes y no lo
+son: el *n* efectivo esta mas cerca de **uno**. La herramienta ahora lo calcula
+e imprime siempre, en vez de confiar en que quien lee la tabla se acuerde.
+
+La consecuencia es que **el resultado es asimetrico**:
+
+- El **100 %** de SPI-6 y SPI-12 no corona a nadie. Confirmar con *n* efectivo
+  de uno no establece nada general.
+- El **0 %** de SPI-3 si lo descarta. Falsar es mas barato que confirmar: si una
+  escala no marca el unico episodio que el catalogo permite probar, y falla de
+  forma identica en los ocho distritos, ese episodio alcanza para dudar de ella.
+
+Asi hay que escribirlo en el documento. **No** «medimos y SPI-6 es la mejor»,
+sino «SPI-3 falla el unico caso comprobable de forma sistematica; entre SPI-6 y
+SPI-12 el catalogo no decide y elegimos SPI-6 por numero de episodios».
+
+### Alternativas descartadas
+
+**Cambiar a SPI-6 sin medir, siguiendo a `[15]`.** Descartada. Es el atajo que
+parece prudente -alinearse con la literatura local- y repite exactamente el
+error que se esta corrigiendo: adoptar una escala por autoridad ajena en vez de
+por evidencia propia. Ademas `[15]` mide sobre estaciones y por canton; sus
+conclusiones no se transportan sin mas a celdas CHIRPS por distrito.
+
+**Mantener SPI-3 y no decir nada.** Descartada, y es la alternativa que habria
+sido invisible: nadie iba a notar la diferencia entre lo que dice `[15]` y lo
+que hacemos, porque para notarla habia que leer el articulo completo. Callarlo
+habria dejado en el documento una cita que aparenta respaldar algo que no
+respalda.
+
+**Reportar las tres escalas sin veredicto, como informacion.** Descartada. Un
+documento de investigacion que enumera tres opciones y no se compromete no
+decidio nada; y el criterio de aceptacion de abajo se fija **antes** de ver el
+resultado justamente para no poder escurrir la decision despues.
+
+**Ampliar primero el catalogo y medir despues.** Tentadora, porque el problema
+real es el tamano de muestra. Descartada por orden: integrar IMN y prensa es
+trabajo de campo de varias semanas y hay que decidir la escala para la entrega.
+La herramienta queda escrita para volver a correrla cuando el catalogo crezca,
+que es lo que convierte esto en un aplazamiento honesto y no en un olvido.
+
+**Usar el intervalo de Wald por ser el conocido.** Descartada por `[34]`:
+colapsa a [0, 0] con proporcion cero, que es nuestro caso en sequia, y declara
+certeza absoluta donde menos informacion hay.
+
+### Consecuencias
+
+**A favor.**
+
+- La escala del SPI pasa de ser una costumbre a ser una decision con criterio
+  escrito y comprobable.
+- El proyecto gana intervalos de confianza donde antes reportaba puntos, y eso
+  se derrama sobre **todas** las proporciones del documento, no solo sobre
+  sequia. La cobertura de lluvia -22 de 34- deja de ser un numero suelto.
+- Queda una herramienta que se vuelve a correr sola cuando cambie el catalogo.
+- El criterio sobre fichas escritas desde el resumen queda registrado y se puede
+  aplicar hacia atras sobre el resto de la bibliografia.
+
+**En contra, y se asume.**
+
+- **Hay que reetiquetar y volver a medir todo lo que dependia de la sequia.**
+  `etiquetas.csv` se regenera, las lineas base de H3.6 se vuelven a correr, y
+  las cifras de sequia del documento cambian. Es el costo de haber fijado la
+  escala sin medirla en D-19: se paga entero y con retraso.
+- **El criterio de aceptacion no cubrio el caso que salio.** Anticipaba «una
+  gana» o «empatan todas», y salio «una pierde y dos empatan». Se corrigio la
+  herramienta antes de leer el resultado, no despues, pero el hecho es que el
+  criterio estaba incompleto.
+- Los intervalos suponen observaciones independientes y no lo son: el SPI de un
+  mes es constante dentro del mes y los distritos comparten celdas de la fuente.
+  Son, si acaso, **optimistas**, y hay que declararlo cada vez que se citan.
+- **La eleccion entre SPI-6 y SPI-12 no la decidio el catalogo.** La decidio el
+  numero de episodios. Es un criterio razonable y no es evidencia externa, y el
+  documento tiene que presentarlo como lo que es.
+- Aparece una segunda diferencia con `[15]` que esta medicion **no** resuelve:
+  **la escala espacial.** Ellos eligieron canton teniendo el distrito
+  disponible; nosotros elegimos distrito. Eso va a amenazas a la validez y no se
+  arregla aqui.
+
+**Criterio de revision.** Se vuelve sobre esto cuando el catalogo crezca. Con
+siete registros de una sola fecha, cualquier veredicto es fragil, y la propia
+`[15]` muestra el camino para ampliarlo: integrar IMN y prensa a DesInventar.

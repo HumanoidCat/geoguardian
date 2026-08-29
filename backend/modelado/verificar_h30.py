@@ -81,15 +81,15 @@ def main() -> int:
     # Se leen del contrato en vez de repetirlos. Si alguien cambia el docstring
     # de NivelRiesgo sin cambiar el codigo, esto no lo detecta; lo que detecta es
     # que el etiquetado use OTROS cortes que los de las funciones del contrato.
-    comprobar("SPI-3 de -1.6 es alto", nivel_sequia(-1.6) is NivelRiesgo.ALTO)
+    comprobar("SPI de -1.6 es alto", nivel_sequia(-1.6) is NivelRiesgo.ALTO)
     comprobar(
-        "SPI-3 de -1.5 es alto, el corte es inclusivo", nivel_sequia(-1.5) is NivelRiesgo.ALTO
+        "SPI de -1.5 es alto, el corte es inclusivo", nivel_sequia(-1.5) is NivelRiesgo.ALTO
     )
-    comprobar("SPI-3 de -1.2 es medio", nivel_sequia(-1.2) is NivelRiesgo.MEDIO)
+    comprobar("SPI de -1.2 es medio", nivel_sequia(-1.2) is NivelRiesgo.MEDIO)
     comprobar(
-        "SPI-3 de -1.0 es medio, el corte es inclusivo", nivel_sequia(-1.0) is NivelRiesgo.MEDIO
+        "SPI de -1.0 es medio, el corte es inclusivo", nivel_sequia(-1.0) is NivelRiesgo.MEDIO
     )
-    comprobar("SPI-3 de -0.9 es bajo", nivel_sequia(-0.9) is NivelRiesgo.BAJO)
+    comprobar("SPI de -0.9 es bajo", nivel_sequia(-0.9) is NivelRiesgo.BAJO)
     comprobar("un SPI ausente no se convierte en clase", nivel_sequia(None) is None)
 
     comprobar(
@@ -237,7 +237,7 @@ def main() -> int:
         "todas las filas de un mes comparten su etiqueta de sequia",
         len(distintos) <= 1,
         f"julio de 2015 tiene {len(distintos)} niveles distintos. La etiqueta sale "
-        "del SPI-3 del mes que contiene a t+7, asi que cambia en el borde del mes.",
+        "del SPI-6 del mes que contiene a t+7, asi que cambia en el borde del mes.",
     )
 
     # ---------------------------------------------------------------- CA-6 -- #
