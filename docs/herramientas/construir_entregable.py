@@ -144,6 +144,63 @@ def _bloques_anchos(latex: str) -> str:
     )
 
 
+def _portada(markdown: str, base: Path) -> tuple[str, str]:
+    """Arma la portada del .docx: titulo, autores, logo. Devuelve (texto, titulo).
+
+    ===========================================================================
+    EL DEFECTO QUE ESTO CORRIGE, Y LO INTRODUJE YO
+    ===========================================================================
+
+    Pandoc toma como **titulo del documento** el primer `#` del cuerpo, y solo
+    si es el primer bloque. Al insertar el logo delante para cumplir el pedido
+    del profesor, el primer bloque paso a ser la imagen: el `#` dejo de ser el
+    titulo y quedo como un encabezado cualquiera.
+
+    El resultado en la portada era exactamente al reves de lo que corresponde:
+    los autores arriba de todo, el logo suelto en el medio, y el nombre del
+    documento **impreso mas chico que la seccion que le sigue**.
+
+    La leccion: `--shift-heading-level-by=-1` **depende del orden de los
+    bloques**, y por eso es fragil. Aca se reemplaza por metadatos explicitos,
+    que no dependen de nada.
+
+    ===========================================================================
+    QUE HACE
+    ===========================================================================
+
+    Saca el `#` del cuerpo y lo declara como `title:` en el YAML. Con el titulo
+    en los metadatos, pandoc usa el estilo «Title» -grande, arriba de todo- sin
+    importar que venga despues, y el logo puede ir donde corresponda sin romper
+    nada.
+    """
+    if not markdown.startswith("---\n"):
+        return markdown, ""
+
+    partes = markdown.split("---\n", 2)
+    if len(partes) != 3:
+        return markdown, ""
+    _, yaml, cuerpo = partes
+
+    titulo = ""
+    lineas = cuerpo.lstrip("\n").split("\n")
+    if lineas and lineas[0].startswith("# "):
+        titulo = lineas[0][2:].strip()
+        cuerpo = "\n".join(lineas[1:])
+
+    if titulo and "title:" not in yaml:
+        # Va **primero** en el YAML por legibilidad del archivo intermedio; a
+        # pandoc el orden de las claves le da igual.
+        yaml = f'title: "{titulo}"\n' + yaml
+
+    if LOGO.exists():
+        relativo = LOGO.relative_to(base).as_posix()
+        # Despues del bloque de titulo, no antes: antes es lo que rompia la
+        # deteccion del titulo.
+        cuerpo = f"\n![]({relativo}){{width=42mm}}\n{cuerpo}"
+
+    return f"---\n{yaml}---\n{cuerpo}", titulo
+
+
 def _tabla_ancha(especificacion: str, cuerpo: str) -> str:
     """Un `longtable` de pandoc convertido en `table*` que cruza las columnas."""
     # `\endfirsthead` viene precedido de una copia del encabezado. Si esta, se
@@ -382,8 +439,29 @@ def anchos_de_tabla(docx: Path) -> int:
         if columnas == 0:
             return tabla
 
-        ancho = ANCHO_UTIL_TWIPS // columnas
-        celdas = "".join(f'<w:gridCol w:w="{ancho}" />' for _ in range(columnas))
+        # ANCHOS PROPORCIONALES AL CONTENIDO, NO IGUALES
+        #
+        # El reparto parejo resolvia el defecto de LibreOffice y producia uno
+        # visual: en la tabla de contenido, la columna de numeros -«1», «2»…-
+        # se llevaba la mitad del ancho y quedaba un hueco enorme antes del
+        # nombre de la seccion.
+        #
+        # Se mide el texto de cada columna en **todas** las filas y se reparte
+        # en proporcion, con un piso para que ninguna quede impresa en vertical.
+        # Es la misma idea que `_pesos_de_columnas` aplica al camino IEEE.
+        largos = [1.0] * columnas
+        for fila in re.findall(r"<w:tr\b.*?</w:tr>", tabla, re.DOTALL):
+            celdas_fila = re.findall(r"<w:tc\b.*?</w:tc>", fila, re.DOTALL)
+            if len(celdas_fila) != columnas:
+                continue
+            for i, celda in enumerate(celdas_fila):
+                texto = "".join(re.findall(r"<w:t[^>]*>(.*?)</w:t>", celda, re.DOTALL))
+                largos[i] = max(largos[i], float(len(texto)))
+
+        largos = [max(x, 4.0) for x in largos]
+        total = sum(largos)
+        anchos = [max(1, int(ANCHO_UTIL_TWIPS * x / total)) for x in largos]
+        celdas = "".join(f'<w:gridCol w:w="{a}" />' for a in anchos)
         arregladas += 1
         return tabla.replace("<w:tblGrid />", f"<w:tblGrid>{celdas}</w:tblGrid>").replace(
             '<w:tblW w:type="pct" w:w="0.0" />', '<w:tblW w:type="pct" w:w="5000" />'
@@ -397,6 +475,60 @@ def anchos_de_tabla(docx: Path) -> int:
             archivo.writestr(nombre, contenido)
 
     return arregladas
+
+
+def centrar_imagenes_solas(docx: Path) -> int:
+    """Centra los parrafos que contienen **solo** una imagen. Devuelve cuantos.
+
+    Pandoc no centra imagenes en el .docx: las deja alineadas a la izquierda,
+    que es lo correcto para una figura dentro del texto y **queda mal en la
+    portada**, con el logo pegado al margen debajo de un titulo y unos autores
+    centrados.
+
+    Se probaron las dos formas de escribirlo en Markdown -con y sin texto
+    alternativo- y ninguna cambia la alineacion: es una decision de la plantilla
+    de referencia, no del Markdown. Asi que se corrige donde se decide, sobre el
+    XML, igual que `anchos_de_tabla`.
+
+    **Solo toca parrafos sin texto.** Una imagen intercalada en un parrafo con
+    palabras alrededor se centraria arrastrando el texto con ella.
+    """
+    with zipfile.ZipFile(docx) as archivo:
+        piezas = {n: archivo.read(n) for n in archivo.namelist()}
+
+    documento = piezas["word/document.xml"].decode("utf-8")
+    centrados = 0
+
+    def centrar(coincidencia: re.Match) -> str:
+        nonlocal centrados
+        parrafo = coincidencia.group(0)
+        if "<w:drawing>" not in parrafo:
+            return parrafo
+        # Con texto adentro no es un parrafo de imagen sola.
+        if re.search(r"<w:t[ >]", parrafo):
+            return parrafo
+        if 'w:jc w:val="center"' in parrafo:
+            return parrafo
+
+        centrados += 1
+        if "<w:pPr>" in parrafo:
+            return parrafo.replace("<w:pPr>", '<w:pPr><w:jc w:val="center" />', 1)
+        # Sin propiedades previas, el bloque va justo despues de abrir `w:p`.
+        return re.sub(
+            r"(<w:p\b[^>]*>)",
+            r'\1<w:pPr><w:jc w:val="center" /></w:pPr>',
+            parrafo,
+            count=1,
+        )
+
+    documento = re.sub(r"<w:p\b[^>]*>.*?</w:p>", centrar, documento, flags=re.DOTALL)
+    piezas["word/document.xml"] = documento.encode("utf-8")
+
+    with zipfile.ZipFile(docx, "w", zipfile.ZIP_DEFLATED) as archivo:
+        for nombre, contenido in piezas.items():
+            archivo.writestr(nombre, contenido)
+
+    return centrados
 
 
 def _pandoc() -> str:
@@ -597,19 +729,9 @@ def main() -> int:
     # plantilla de Word. Es menos elegante y tiene una ventaja que aca pesa
     # mas: **se ve igual en el .docx y en el .pdf**, sin depender de que el
     # convertidor respete encabezados de pagina.
-    if LOGO.exists():
-        relativo = LOGO.relative_to(documento.parent).as_posix()
-        partes = limpio.split("---\n", 2)
-        if limpio.startswith("---\n") and len(partes) == 3:
-            # La imagen se reinserta **despues** del bloque YAML. Puesta antes
-            # del `---` inicial, pandoc deja de reconocer el frontmatter y los
-            # cuatro autores desaparecen del documento.
-            limpio = f"---\n{partes[1]}---\n\n![]({relativo}){{width=45mm}}\n{partes[2]}"
-        else:
-            limpio = f"![]({relativo}){{width=45mm}}\n\n{limpio}"
-        print(f"  logo de la universidad, desde {relativo}")
-    else:
-        print(f"  AVISO: no esta el logo en {LOGO}. El documento sale sin el.")
+    limpio, titulo = _portada(limpio, documento.parent)
+    if titulo:
+        print(f"  portada: «{titulo}»")
 
     fuente = trabajo / documento.name
     fuente.write_text(limpio, encoding="utf-8")
@@ -648,6 +770,9 @@ def main() -> int:
     arregladas = anchos_de_tabla(docx)
     if arregladas:
         print(f"  {arregladas} tabla(s) con anchos de columna escritos, para LibreOffice")
+    centradas = centrar_imagenes_solas(docx)
+    if centradas:
+        print(f"  {centradas} imagen(es) centradas")
     print(f"  {docx}")
 
     if args.sin_pdf:

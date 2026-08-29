@@ -5,7 +5,7 @@ author:
   - "Luis Alejandro Luna García"
   - "Avril Madrigal Elizondo"
 institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
-date: "27 de agosto de 2026"
+date: "28 de agosto de 2026"
 lang: es
 ---
 
@@ -601,7 +601,7 @@ focos nunca fue observado, que es la misma confusión en la otra dirección.
 
 ## VI. Resultados
 
-> **PARCIAL, desde el 27 de agosto de 2026.** Se reporta lo que está medido —el
+> **PARCIAL, desde el 28 de agosto de 2026.** Se reporta lo que está medido —el
 > piso contra el que se comparará todo— y se declara lo que falta.
 >
 > **Lo que hay:** el etiquetado de la variable objetivo, la partición temporal,
