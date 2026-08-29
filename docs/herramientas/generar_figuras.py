@@ -319,6 +319,114 @@ def figura_cobertura(plt) -> Path:
     return destino
 
 
+# =========================================================================== #
+# 4 · El problema, en un solo dia                                              #
+# =========================================================================== #
+
+
+def figura_nate(plt) -> Path:
+    """Perdidas por distrito el 2017-10-05, el dia que Nate cruzo el canton.
+
+    **Es la unica figura que ilustra el problema y no un resultado.** Va en la
+    seccion I porque ahi es donde pega: los siete distritos con registro
+    reportaron danos el mismo dia, por el mismo temporal, y entre el mayor y el
+    menor hay un factor de cuatrocientos.
+
+    Eso es lo que un aviso a escala de canton no puede decir, y decirlo con una
+    tabla de siete filas no tiene la misma fuerza que verlo.
+
+    **La escala es logaritmica, y hay que saberlo al leerla.** En escala lineal,
+    seis de las siete barras quedan pegadas al cero y la figura solo muestra que
+    Quebrada Grande fue lo peor -que es cierto y no es el punto-. El punto es el
+    *rango*, y el rango solo se ve en logaritmo. Se rotula en el eje.
+
+    Los datos salen del catalogo, no escritos a mano: si el catalogo se corrige,
+    la figura se corrige.
+    """
+    import csv
+    import re
+
+    catalogo = RAIZ / "docs" / "investigacion" / "catalogo-eventos.csv"
+    #: Nombre legible de cada distrito. El codigo no le dice nada al lector.
+    NOMBRES = {
+        "50801": "Tilarán",
+        "50802": "Quebrada Grande",
+        "50803": "Tronadora",
+        "50804": "Santa Rosa",
+        "50805": "Líbano",
+        "50806": "Tierras Morenas",
+        "50807": "Arenal",
+        "50808": "Arenal (Nuevo)",
+    }
+
+    perdidas: dict[str, float] = {}
+    with catalogo.open(encoding="utf-8", newline="") as archivo:
+        for fila in csv.DictReader(archivo):
+            if fila.get("fecha_inicio", "").strip() != "2017-10-05":
+                continue
+            # «Perdidas: 726148 USD» o «Perdidas registradas: 1808 USD».
+            hallado = re.search(r"[Pp]érdidas[^.]*?(\d[\d\s.,]*)\s*USD", fila["descripcion"])
+            if not hallado:
+                hallado = re.search(r"[Pp]erdidas[^.]*?(\d[\d\s.,]*)\s*USD", fila["descripcion"])
+            if hallado:
+                perdidas[fila["codigo_distrito"]] = float(
+                    hallado.group(1).replace(" ", "").replace(",", "").replace(".", "")
+                )
+
+    if not perdidas:
+        raise RuntimeError(
+            "no se hallaron perdidas del 2017-10-05 en el catalogo; "
+            "si cambio el formato de las descripciones, hay que ajustar el patron"
+        )
+
+    orden = sorted(perdidas.items(), key=lambda par: par[1])
+    nombres = [NOMBRES.get(codigo, codigo) for codigo, _ in orden]
+    valores = [valor for _, valor in orden]
+
+    figura, eje = plt.subplots(figsize=(6.4, 3.0))
+    barras = eje.barh(nombres, valores, color=AZUL, height=0.62)
+    # El extremo se destaca porque el contraste entre extremos ES la figura.
+    barras[-1].set_color(ARENA)
+    barras[0].set_color(GRIS)
+
+    eje.set_xscale("log")
+    eje.set_xlabel("Pérdidas del 5 de octubre de 2017, en dólares · escala logarítmica")
+    eje.set_xlim(1_000, 2_000_000)
+
+    for barra, valor in zip(barras, valores, strict=True):
+        eje.text(
+            valor * 1.15,
+            barra.get_y() + barra.get_height() / 2,
+            f"{valor:,.0f}".replace(",", " "),
+            va="center",
+            fontsize=8,
+            color=TINTA,
+        )
+
+    # **El rotulo cuenta las barras, no los distritos afectados.** La primera
+    # version decia «siete distritos» y la figura mostraba seis: Libano reporto
+    # dano ese mismo dia -15 400 m de via- sin cifra en dolares, asi que no
+    # tiene barra. Un titulo que no coincide con lo que se ve es peor que un
+    # titulo pobre, y en una figura sobre disparidad entre distritos, contar mal
+    # los distritos es el error mas caro posible.
+    razon = max(valores) / min(valores)
+    eje.set_title(
+        f"Un temporal, un día, {len(valores)} distritos con pérdidas cuantificadas:\n"
+        f"{_coma(razon, 0)}× entre el mayor y el menor",
+        fontsize=9,
+        color=TINTA,
+        pad=10,
+    )
+    eje.spines[["top", "right"]].set_visible(False)
+    eje.tick_params(labelsize=8)
+    figura.tight_layout()
+
+    destino = SALIDA / "nate-por-distrito.png"
+    figura.savefig(destino, dpi=200)
+    plt.close(figura)
+    return destino
+
+
 def main() -> int:
     etiquetas = RAIZ / "datos" / "procesados" / "etiquetas.csv"
     if not etiquetas.exists():
@@ -332,7 +440,7 @@ def main() -> int:
     plt = _matplotlib()
 
     print("\nFiguras de resultados\n")
-    for fabrica in (figura_lineas_base, figura_contraste, figura_cobertura):
+    for fabrica in (figura_nate, figura_lineas_base, figura_contraste, figura_cobertura):
         destino = fabrica(plt)
         print(f"  {destino.relative_to(RAIZ)}")
     print()

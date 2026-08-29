@@ -100,7 +100,15 @@ reportaron no se parece:
 | Líbano | cortes totales de carretera por socavación | 15 400 m de vía |
 
 En total, **1,26 millones de dólares y 223 km de vías dañadas en un día**. Y
-entre el distrito más afectado y el menos afectado hay un factor de **cuatrocientos**.
+entre el distrito más afectado y el menos afectado hay un factor de
+**cuatrocientos**, que la Fig. 1 hace visible en escala logarítmica: en escala
+lineal seis de las siete barras quedan pegadas al cero y se pierde justamente lo
+que importa, que es el rango.
+
+![Pérdidas por distrito el 5 de octubre de 2017, tormenta tropical Nate](figuras/nate-por-distrito.png)
+
+Líbano no aparece en la figura porque su ficha reporta el daño en metros de vía
+—15 400— y no en dólares. Reportó ese mismo día, como los demás.
 
 Ahí está el problema, y no es la falta de un pronóstico. El Instituto
 Meteorológico Nacional emitió aviso; lo que ese aviso no podía decir es que en
@@ -633,7 +641,7 @@ eventos.
 El incendio se estima además solo en **Santa Rosa, Líbano y Tierras Morenas**,
 porque en los demás la señal es demasiado escasa para sostener una estimación.
 
-La Fig. 1 muestra el período que describe cada etiqueta. La franja con trama es
+La Fig. 2 muestra el período que describe cada etiqueta. La franja con trama es
 la década en que el archivo de focos no existe, y es la razón de que el
 componente de incendio sea el más débil de los tres.
 
@@ -710,7 +718,7 @@ estacionalidad; si la climatológica predijera bien la sequía, sería señal de
 ese ajuste no está operando, y el defecto habría reaparecido un nivel más arriba.
 La línea base climatológica queda **0,070 por debajo** del piso trivial.
 
-La Fig. 2 hace visible por qué dos de los tres veredictos son empates. Las barras
+La Fig. 3 hace visible por qué dos de los tres veredictos son empates. Las barras
 de error son la dispersión entre pliegues: en lluvia intensa los intervalos no se
 tocan, y en sequía e incendio se solapan por completo.
 
@@ -772,7 +780,7 @@ son: la cobertura sale de 34 y 7 observaciones, la tasa base de casi cien mil.
 Con esos tamaños el intervalo de Wald —el que suele escribirse— tiene cobertura
 errática y colapsa a un punto cuando la proporción es 0 o 1 `[34]`.
 
-La Fig. 3 pone la cobertura al lado de la tasa base, que es lo que vuelve
+La Fig. 4 pone la cobertura al lado de la tasa base, que es lo que vuelve
 interpretable al realce. El incendio no aparece: su único registro en el catálogo
 es posterior a la serie etiquetada.
 

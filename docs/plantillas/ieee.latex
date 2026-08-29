@@ -87,6 +87,22 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+%% LAS TABLAS TIENEN QUE CORTAR LINEA, Y CON `l` NO CORTAN
+%%
+%% Pandoc emite `@{}ll@{}` cuando calcula que la tabla cabe. Ese calculo lo hace
+%% contra el ancho de una pagina normal, y este documento va **a dos columnas**:
+%% una celda larga en una columna `l` no corta linea, se sale de la caja y se
+%% imprime sobre el margen. Salia en la tabla de fuentes y en la de umbrales.
+%%
+%% `tabularx` reparte el ancho disponible entre las columnas `X`, que si cortan.
+%% `L{peso}` permite darle mas ancho a la columna con el texto mas largo en vez
+%% de repartir en partes iguales, que dejaria «Evento» con el mismo ancho que
+%% una justificacion de tres lineas.
+%%
+%% Los pesos los calcula `construir_entregable.py` desde el contenido de cada
+%% columna, no se escriben a mano.
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{enumitem}

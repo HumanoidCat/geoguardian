@@ -62,38 +62,181 @@ LOGO = RAIZ / "docs" / "plantillas" / "logo-invenio.png"
 # fuente y sigue sirviendo igual para el .docx.
 
 
-def _longtable_a_tabla(latex: str) -> str:
-    """Convierte los `longtable` de pandoc en `table*` que cruza las columnas."""
+def _pesos_de_columnas(cuerpo: str, columnas: int) -> list[float]:
+    """Ancho relativo de cada columna, segun el largo de su celda mas larga.
+
+    **Por que hace falta.** Pandoc decide la especificacion de columnas contra
+    el ancho de una pagina normal, y este documento va a dos columnas. Cuando
+    calcula que la tabla cabe emite `l`, que **no corta linea**: una celda larga
+    se sale de la caja y se imprime sobre el margen.
+
+    Repartir en partes iguales lo arregla y desperdicia: en la tabla de umbrales
+    dejaria «Evento» con el mismo ancho que una justificacion de tres lineas.
+    Asi que se mide el contenido.
+
+    Se usa el **maximo** y no el promedio porque lo que decide si una celda
+    desborda es su caso peor, no su caso tipico.
+
+    Los pesos se normalizan para que sumen `columnas`, que es lo que `tabularx`
+    espera: con `\\hsize=#1\\hsize`, la suma de los pesos tiene que ser igual al
+    numero de columnas o el ancho total deja de ser `\\textwidth`.
+    """
+    largos = [1.0] * columnas
+    for linea in cuerpo.splitlines():
+        linea = linea.strip()
+        if not linea or linea.startswith("\\"):
+            continue
+        celdas = linea.replace("\\tabularnewline", "").split("&")
+        if len(celdas) != columnas:
+            continue
+        for i, celda in enumerate(celdas):
+            # Se descuentan los comandos de LaTeX: `\textbf{...}` ocupa siete
+            # caracteres en la fuente y cero en la pagina.
+            visible = re.sub(r"\\[a-zA-Z]+\{?|\}", "", celda).strip()
+            largos[i] = max(largos[i], float(len(visible)))
+
+    # Un piso, para que una columna de una letra no quede impresa en vertical.
+    largos = [max(x, 6.0) for x in largos]
+    total = sum(largos)
+    return [x * columnas / total for x in largos]
+
+
+#: Caracteres que caben en una columna del documento IEEE, en tipografia
+#: monoespaciada a cuerpo pequeno. Medido sobre la salida, no estimado: el
+#: diagrama de modulos tiene 79 y se salia; los bloques de 44 no.
+ANCHO_DE_COLUMNA = 48
+
+
+def _bloques_anchos(latex: str) -> str:
+    """Los bloques literales que no caben en una columna cruzan las dos.
+
+    **Por que hace falta.** Un `verbatim` no corta linea: si la linea mas larga
+    excede el ancho de la columna, el texto se imprime sobre el margen derecho
+    y LaTeX lo reporta como un Overfull hbox, que no detiene la compilacion.
+
+    Y **no se puede dejar que corte**. Estos bloques son diagramas de flechas
+    alineados por espacios: partirlos por la mitad no los hace mas angostos,
+    los destruye.
+
+    Asi que se promueven a `figure*`, que ocupa el ancho de la pagina, igual que
+    las tablas anchas. No llevan `\\caption` a proposito: no son figuras del
+    documento, no se referencian, y numerarlas correria la numeracion de las que
+    si se referencian.
+    """
 
     def reemplazo(coincidencia: re.Match) -> str:
-        especificacion = coincidencia.group(1)
-        cuerpo = coincidencia.group(2)
+        contenido = coincidencia.group(1)
+        lineas = contenido.strip("\n").split("\n")
+        if max((len(x) for x in lineas), default=0) <= ANCHO_DE_COLUMNA:
+            return coincidencia.group(0)
+        return (
+            "\\begin{figure*}[t]\n\\centering\n\\begin{minipage}{\\textwidth}\n"
+            "\\footnotesize\n"
+            f"\\begin{{verbatim}}{contenido}\\end{{verbatim}}\n"
+            "\\end{minipage}\n\\end{figure*}"
+        )
 
-        # `\endfirsthead` viene precedido de una copia del encabezado. Si esta,
-        # se descarta todo lo anterior: en una tabla que no se parte en paginas
-        # ese encabezado duplicado saldria dos veces.
-        if "\\endfirsthead" in cuerpo:
-            cuerpo = cuerpo.split("\\endfirsthead", 1)[1]
-        for marca in ("\\endhead", "\\endfoot", "\\endlastfoot"):
-            cuerpo = cuerpo.replace(marca, "")
+    return re.sub(
+        r"\\begin\{verbatim\}(.*?)\\end\{verbatim\}",
+        reemplazo,
+        latex,
+        flags=re.DOTALL,
+    )
 
-        # Dentro de `table*` el ancho disponible es el del texto, no el de una
-        # columna. Sin esto las celdas se calculan contra 3,5 in y la tabla sale
-        # apretada en la mitad izquierda.
-        cuerpo = cuerpo.replace("\\columnwidth", "\\textwidth")
 
+def _tabla_ancha(especificacion: str, cuerpo: str) -> str:
+    """Un `longtable` de pandoc convertido en `table*` que cruza las columnas."""
+    # `\endfirsthead` viene precedido de una copia del encabezado. Si esta, se
+    # descarta todo lo anterior: en una tabla que no se parte en paginas ese
+    # encabezado duplicado saldria dos veces.
+    if "\\endfirsthead" in cuerpo:
+        cuerpo = cuerpo.split("\\endfirsthead", 1)[1]
+    for marca in ("\\endhead", "\\endfoot", "\\endlastfoot"):
+        cuerpo = cuerpo.replace(marca, "")
+
+    # Dentro de `table*` el ancho disponible es el del texto, no el de una
+    # columna. Sin esto las celdas se calculan contra 3,5 in y la tabla sale
+    # apretada en la mitad izquierda.
+    cuerpo = cuerpo.replace("\\columnwidth", "\\textwidth")
+
+    # Cuantas columnas tiene. Se cuentan los tipos de columna, no los `@{}` ni
+    # los `>{...}`, que se sustituyen antes por un marcador neutro.
+    sin_grupos = re.sub(r"@\{[^}]*\}|>\{[^}]*\}", "", especificacion)
+    sin_grupos = re.sub(r"[pmb]\{[^}]*\}", "P", sin_grupos)
+    columnas = len(re.findall(r"[lcrPX]", sin_grupos))
+
+    if columnas < 2:
+        # Una tabla de una columna no tiene problema de reparto.
         return (
             "\\begin{table*}[t]\n\\centering\\footnotesize\n"
             f"\\begin{{tabular}}{{{especificacion}}}\n{cuerpo}\n"
             "\\end{tabular}\n\\end{table*}"
         )
 
-    return re.sub(
-        r"\\begin\{longtable\}\[\]\{([^}]*)\}(.*?)\\end\{longtable\}",
-        reemplazo,
-        latex,
-        flags=re.DOTALL,
+    pesos = _pesos_de_columnas(cuerpo, columnas)
+    nueva = "@{}" + "".join(f"L{{{p:.3f}}}" for p in pesos) + "@{}"
+
+    # `tabularx` y no `tabular`: es el que reparte un ancho fijo entre las
+    # columnas `X`. Con `tabular` los pesos no significan nada.
+    return (
+        "\\begin{table*}[t]\n\\centering\\footnotesize\n"
+        f"\\begin{{tabularx}}{{\\textwidth}}{{{nueva}}}\n{cuerpo}\n"
+        "\\end{tabularx}\n\\end{table*}"
     )
+
+
+def _longtable_a_tabla(latex: str) -> str:
+    """Convierte los `longtable` de pandoc en `table*` que cruza las columnas."""
+    # LA ESPECIFICACION SE EXTRAE CONTANDO LLAVES, NO CON `[^}]*`
+    #
+    # **Este era el defecto que hacia que las tablas se salieran de la pagina.**
+    # La primera version usaba `\\{([^}]*)\\}` para capturar la especificacion de
+    # columnas. Pandoc emite `@{}lll@{}`, y `[^}]*` se detiene en la llave de
+    # `@{}`: la especificacion salia **vacia** y `lll@{}}` se fugaba al cuerpo
+    # de la tabla.
+    #
+    # El resultado era una tabla sin especificacion de columnas valida. LaTeX no
+    # se quejaba lo suficiente como para hacer fallar la compilacion -solo
+    # emitia un Overfull hbox- asi que el PDF salia con el texto impreso sobre
+    # el margen derecho y el proceso terminaba en verde.
+    #
+    # Es el mismo patron que I-15: un paso que produce algo incorrecto sin
+    # fallar. Aca ademas era visible en el PDF, y aun asi hubo que mirarlo.
+    salida: list[str] = []
+    resto = latex
+    ABRE = "\\begin{longtable}[]{"
+
+    while ABRE in resto:
+        antes, despues = resto.split(ABRE, 1)
+        salida.append(antes)
+
+        # La llave que cierra la especificacion es la que equilibra a la que
+        # abre. `@{}` mete un par completo que no cuenta como cierre.
+        nivel, corte = 1, None
+        for i, caracter in enumerate(despues):
+            if caracter == "{":
+                nivel += 1
+            elif caracter == "}":
+                nivel -= 1
+                if nivel == 0:
+                    corte = i
+                    break
+        if corte is None:
+            salida.append(ABRE)
+            resto = despues
+            continue
+
+        especificacion = despues[:corte]
+        tras_especificacion = despues[corte + 1 :]
+        if "\\end{longtable}" not in tras_especificacion:
+            salida.append(ABRE + despues)
+            resto = ""
+            break
+        cuerpo, resto = tras_especificacion.split("\\end{longtable}", 1)
+        salida.append(_tabla_ancha(especificacion, cuerpo))
+
+    salida.append(resto)
+    return "".join(salida)
 
 
 def _figuras_anchas(latex: str) -> str:
@@ -340,6 +483,7 @@ def construir_ieee(documento: Path, salida: Path) -> int:
 
     latex = tex.read_text(encoding="utf-8")
     latex = _longtable_a_tabla(latex)
+    latex = _bloques_anchos(latex)
     # Ensanchar ANTES de copiar: la primera pasada mira el entorno `figure`, y la
     # segunda ya no distingue de donde vino cada ruta.
     latex = _figuras_anchas(latex)
