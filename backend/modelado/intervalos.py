@@ -131,9 +131,7 @@ def wilson(exitos: int, total: int, z: float = Z_95) -> Intervalo:
     )
 
 
-def realce_con_intervalo(
-    cobertura: Intervalo, tasa_base: Intervalo
-) -> tuple[float, float, float]:
+def realce_con_intervalo(cobertura: Intervalo, tasa_base: Intervalo) -> tuple[float, float, float]:
     """Realce puntual y su rango, propagando los dos intervalos por los extremos.
 
     El realce es `cobertura / tasa_base`. Su rango se obtiene combinando los

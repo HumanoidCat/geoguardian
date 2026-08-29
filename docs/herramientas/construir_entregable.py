@@ -348,24 +348,38 @@ def construir_ieee(documento: Path, salida: Path) -> int:
     tex.write_text(latex, encoding="utf-8")
 
     # Dos pasadas: la primera resuelve las referencias, la segunda las coloca.
+    #
+    # LA SALIDA VA EN VIVO, Y NO ES UN DETALLE DE COMODIDAD
+    #
+    # La primera version capturaba la salida y la mostraba solo al fallar. Con
+    # una distribucion de TeX ya armada eso esta bien: la compilacion tarda
+    # segundos. **En una instalacion recien hecha, no.** MiKTeX descarga los
+    # paquetes que faltan sobre la marcha, tarda minutos, y a veces abre un
+    # dialogo pidiendo confirmacion.
+    #
+    # Capturando la salida, todo eso ocurre detras de una pantalla en blanco:
+    # el proceso **esta trabajando y parece colgado**, que es indistinguible de
+    # estar colgado de verdad. Costo varias vueltas de diagnostico equivocado el
+    # 2026-08-28, ninguna sobre el problema real.
+    #
+    # Mostrarla en vivo cuesta perder el resumen de las ultimas lineas al
+    # fallar. No importa: xelatex ya escribe todo en su `.log`, que queda al
+    # lado del `.tex` y se puede leer entero en vez de en un extracto.
+    print("\n  Compilando con xelatex. La salida va en vivo:")
+    print("  si es la primera vez, MiKTeX descarga paquetes y tarda minutos.\n")
+
+    registro = trabajo / f"{documento.stem}.log"
     for pasada in (1, 2):
+        print(f"  --- pasada {pasada} de 2 " + "-" * 52)
         proceso = subprocess.run(
             ["xelatex", "-interaction=nonstopmode", "-halt-on-error", tex.name],
             cwd=trabajo,
-            capture_output=True,
-            text=True,
-            # pdflatex emite su registro en la codificacion del sistema, no en
-            # UTF-8, y con acentos en los titulos revienta al decodificar. El
-            # registro es para leerlo, no para procesarlo: sustituir el byte
-            # ilegible es preferible a perder el mensaje de error entero.
-            errors="replace",
             check=False,
         )
         if proceso.returncode != 0:
-            print(f"\n  xelatex fallo en la pasada {pasada}. Ultimas lineas:\n")
-            for linea in proceso.stdout.splitlines()[-25:]:
-                print(f"    {linea}")
-            print(f"\n  El .tex quedo en {tex} para poder mirarlo.\n")
+            print(f"\n  xelatex fallo en la pasada {pasada}.\n")
+            print(f"  El registro completo esta en {registro}")
+            print(f"  y el .tex en {tex}\n")
             return 1
 
     producido = trabajo / f"{documento.stem}.pdf"

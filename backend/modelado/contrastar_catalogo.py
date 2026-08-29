@@ -340,9 +340,7 @@ def main() -> int:
             # El rango del realce **se declara ausente en vez de rellenarse**: si
             # no hay tasa base no hay realce, y un guion es informacion, un cero
             # seria una mentira con formato de dato.
-            texto_realce = (
-                f"{rango[0]:.2f}x [{rango[1]:.2f}, {rango[2]:.2f}]" if rango else "—"
-            )
+            texto_realce = f"{rango[0]:.2f}x [{rango[1]:.2f}, {rango[2]:.2f}]" if rango else "—"
             print(
                 f"  {r.evento:16}{r.ventana:>5}d{r.en_catalogo:>6}{r.contrastables:>7}"
                 f"{r.detectados:>6}   {str(r.cobertura_ic):<26}{r.tasa_base:<11.1%} "

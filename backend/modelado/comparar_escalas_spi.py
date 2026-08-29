@@ -106,6 +106,7 @@ from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 #: asociadas con impactos reales en Guanacaste, que es la provincia de Tilaran.
 ESCALAS = (3, 6, 12)
 
+
 def ventana_propia(escala: int) -> int:
     """Dias del periodo de integracion de la escala. 90, 180 o 360.
 
@@ -198,9 +199,7 @@ def contar_episodios(marcados: dict[str, list[date]]) -> int:
     for fechas in marcados.values():
         ordenadas = sorted(fechas)
         total += sum(
-            1
-            for i, dia in enumerate(ordenadas)
-            if i == 0 or (dia - ordenadas[i - 1]).days > 1
+            1 for i, dia in enumerate(ordenadas) if i == 0 or (dia - ordenadas[i - 1]).days > 1
         )
     return total
 
@@ -275,9 +274,7 @@ def veredicto(mediciones: list[Medicion]) -> str:
         )
 
     descartadas = [
-        m
-        for m in utiles
-        if any(otra.cobertura.inferior > m.cobertura.superior for otra in utiles)
+        m for m in utiles if any(otra.cobertura.inferior > m.cobertura.superior for otra in utiles)
     ]
     quedan = [m for m in utiles if m not in descartadas]
 
@@ -291,8 +288,7 @@ def veredicto(mediciones: list[Medicion]) -> str:
                 f"{m.cobertura.superior:.1%} queda enteramente por debajo del de "
                 + ", ".join(f"SPI-{o.escala}" for o in superan)
                 + f".\n  Y el 1,0 {'cae dentro' if not m.distingue else 'queda fuera'} "
-                "del rango de su realce"
-                + (": no distingue." if not m.distingue else ".")
+                "del rango de su realce" + (": no distingue." if not m.distingue else ".")
             )
         lineas.append("")
 

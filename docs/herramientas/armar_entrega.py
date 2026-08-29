@@ -115,6 +115,7 @@ def desactualizados() -> list[tuple[Path, Path]]:
 
     return obsoletas
 
+
 #: **El avance de Semana 8 no va aca, y es deliberado.** Ya se entrego, es una
 #: foto de esa semana y no se vuelve a tocar. Queda en el repositorio como
 #: registro. Los entregables vivos son los dos documentos de arriba.

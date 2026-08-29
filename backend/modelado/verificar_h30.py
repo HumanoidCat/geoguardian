@@ -82,9 +82,7 @@ def main() -> int:
     # de NivelRiesgo sin cambiar el codigo, esto no lo detecta; lo que detecta es
     # que el etiquetado use OTROS cortes que los de las funciones del contrato.
     comprobar("SPI de -1.6 es alto", nivel_sequia(-1.6) is NivelRiesgo.ALTO)
-    comprobar(
-        "SPI de -1.5 es alto, el corte es inclusivo", nivel_sequia(-1.5) is NivelRiesgo.ALTO
-    )
+    comprobar("SPI de -1.5 es alto, el corte es inclusivo", nivel_sequia(-1.5) is NivelRiesgo.ALTO)
     comprobar("SPI de -1.2 es medio", nivel_sequia(-1.2) is NivelRiesgo.MEDIO)
     comprobar(
         "SPI de -1.0 es medio, el corte es inclusivo", nivel_sequia(-1.0) is NivelRiesgo.MEDIO
