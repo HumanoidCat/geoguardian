@@ -403,8 +403,11 @@ AFIRMACIONES = [
         "referencias con ficha de contenido",
         fichas_de_referencias,
         [
-            ("docs/13-documento-ieee.md", r"de las (\d+) fichas de `docs/investigacion"),
-            ("docs/13-documento-ieee.md", r"Las (\d+) fichas verificadas"),
+            # El patron que buscaba «de las N fichas de `docs/investigacion...`»
+            # se retiro el 2026-08-27: el profesor pidio que el documento de
+            # investigacion no cite rutas internas del repositorio. La cifra
+            # sigue comprobandose por las otras dos apariciones.
+            ("docs/13-documento-ieee.md", r"\*\*(\d+)\n> fichas verificadas\*\*"),
             ("docs/13-documento-ieee.md", r"\d+ referencias, (\d+) con ficha"),
         ],
     ),

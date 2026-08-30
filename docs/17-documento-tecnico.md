@@ -1,15 +1,15 @@
 ---
 author:
-  - name: "Alejandro Josué Rodríguez Zamora"
-  - name: "César Andrés Ubau Calvo"
-  - name: "Luis Alejandro Luna García"
-  - name: "Avril Madrigal Elizondo"
+  - "Alejandro Josué Rodríguez Zamora"
+  - "César Andrés Ubau Calvo"
+  - "Luis Alejandro Luna García"
+  - "Avril Madrigal Elizondo"
 institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
-date: "27 de agosto de 2026"
+date: "28 de agosto de 2026"
 lang: es
 ---
 
-# GeoGuardian: documento técnico. Arquitectura, tecnologías y verificación de un sistema de estimación de riesgo climático distrital
+# GeoGuardian · Documentación técnica
 
 ::: no-entregable
 
@@ -18,28 +18,41 @@ lang: es
 
 :::
 
-## Resumen
+## Sobre este documento
 
-Se documenta la construcción técnica de **GeoGuardian**, un sistema de estimación
-de riesgo climático a escala distrital para el cantón de Tilarán, Costa Rica,
-edificado exclusivamente sobre datos abiertos. Se describen el conjunto de
-tecnologías y la justificación de cada elección, la arquitectura en cuatro capas,
-el modelo de datos geoespacial sobre PostGIS, los contratos congelados que
-desacoplan los cuatro frentes de trabajo, el flujo de procesamiento desde la
-fuente satelital hasta el visor, y el esquema de verificación continua.
+**Qué es.** La documentación técnica del sistema GeoGuardian: qué tecnologías
+usa y por qué, cómo está organizado, cómo se verifica y cómo se instala.
 
-El eje del diseño es un principio que se aplica de forma uniforme: **una sola
-fuente, vistas derivadas, y una máquina que comprueba que coinciden.** Se reporta
-cómo ese principio se materializa en **26 verificadores automáticos** integrados
-a seis trabajos de integración continua, y se documentan las tres incidencias en
-que su ausencia produjo defectos que ningún control detectó.
+**Para quién.** Alguien que no participó en el desarrollo y tiene que entender,
+mantener o evaluar el sistema. Se asume manejo de terminal y nada más.
 
-*Palabras clave:* arquitectura de software, PostGIS, contratos de interfaz,
-verificación continua, sistemas geoespaciales, datos abiertos.
+**Qué no es.** No es el documento de investigación —ese va aparte, en formato
+IEEE, y responde una pregunta de investigación— ni el manual de usuario del
+visor.
 
-## I. Alcance y contexto
+**Estado.** Describe el sistema al 28 de agosto de 2026. Lo que no está
+construido se dice en la sección 1.2 y se repite en la 11.
 
-### A. Qué construye este sistema
+### Contenido
+
+| | Sección |
+|---|---|
+| 1 | Alcance y contexto |
+| 2 | Tecnologías |
+| 3 | Arquitectura |
+| 4 | Modelo de datos |
+| 5 | Procesamiento |
+| 6 | Interfaz de programación |
+| 7 | Visor |
+| 8 | Verificación |
+| 9 | Despliegue |
+| 10 | Decisiones de arquitectura |
+| 11 | Limitaciones técnicas |
+| 12 | Instalación y operación |
+
+## 1. Alcance y contexto
+
+### 1.1 Qué construye este sistema
 
 GeoGuardian estima el riesgo de tres eventos climáticos —**lluvia intensa,
 sequía e incendio forestal**— para cada uno de los ocho distritos del cantón de
@@ -50,7 +63,7 @@ El cantón mide **669,23 km²** y se extiende 30,7 × 36,6 km. Sus ocho distrito
 son Tilarán, Quebrada Grande, Tronadora, Santa Rosa, Líbano, Tierras Morenas,
 Arenal y Cabeceras.
 
-### B. Qué está construido hoy
+### 1.2 Qué está construido hoy
 
 | Componente | Estado |
 |---|---|
@@ -65,16 +78,16 @@ Arenal y Cabeceras.
 El sistema tiene hoy el andamiaje completo y **el piso de comparación medido**;
 lo que falta son los tres algoritmos que se comparan contra ese piso.
 
-### C. Restricciones que gobiernan el diseño
+### 1.3 Restricciones que gobiernan el diseño
 
 1. **Solo datos abiertos.** Ninguna fuente de pago ni instrumentación propia.
 2. **Cuatro personas, cuatro frentes.** El desacople entre ellos no es una
    preferencia: es la condición para avanzar en paralelo.
 3. **Todo lo que se afirme tiene que poder comprobarse por una máquina.**
 
-## II. Tecnologías
+## 2. Tecnologías
 
-### A. Lenguajes y ejecución
+### 2.1 Lenguajes y ejecución
 
 | Capa | Tecnología | Versión |
 |---|---|---|
@@ -84,7 +97,7 @@ lo que falta son los tres algoritmos que se comparan contra ese piso.
 | Contenedores | Docker, Docker Compose | — |
 | Orquestación local | k3d (Kubernetes) | — |
 
-### B. Bibliotecas del backend
+### 2.2 Bibliotecas del backend
 
 | Dominio | Biblioteca | Versión | Para qué |
 |---|---|---|---|
@@ -102,7 +115,7 @@ una afirmación sobre una fecha, no sobre un estado del repositorio.
 El archivo declara además una regla de proceso: es **compartido**, y agregar una
 dependencia exige justificar qué problema resuelve y qué se descartó.
 
-### C. Bibliotecas del frontend
+### 2.3 Bibliotecas del frontend
 
 | Biblioteca | Versión | Para qué |
 |---|---|---|
@@ -116,7 +129,7 @@ dependencia exige justificar qué problema resuelve y qué se descartó.
 poder servirse como sitio estático sin clave de API. Es la misma restricción que
 gobierna las fuentes de datos, aplicada a la presentación.
 
-### D. Por qué PostGIS y no un archivo
+### 2.4 Por qué PostGIS y no un archivo
 
 La alternativa evaluada era mantener las geometrías como GeoJSON en disco y las
 series en Parquet. Se descartó por tres capacidades que el proyecto usa de forma
@@ -135,9 +148,9 @@ El punto 3 no es menor: **D-18** registra que el nombre de un poblado no
 identifica a un distrito, y la asignación por texto habría introducido errores
 silenciosos.
 
-## III. Arquitectura
+## 3. Arquitectura
 
-### A. Estructura en cuatro capas
+### 3.1 Estructura en cuatro capas
 
 ![Componentes del sistema](diagramas/componentes.png)
 
@@ -146,7 +159,7 @@ La separación es la de un diseño por capas convencional, con una particularida
 `Protocol` de Python y esquemas Pydantic sin importaciones de FastAPI, de
 SQLAlchemy ni de nada de infraestructura.
 
-### B. Los contratos congelados
+### 3.2 Los contratos congelados
 
 El 3 de agosto de 2026, antes de escribir una línea de implementación, se
 congelaron las interfaces entre los cuatro frentes: `contratos/`, hoy en
@@ -175,11 +188,11 @@ construyera **antes** de que existiera la base de datos.
 ejecución del pipeline y es el primero de los seis trabajos de integración
 continua.
 
-### C. Flujo de datos, de la fuente a la pantalla
+### 3.3 Flujo de datos, de la fuente a la pantalla
 
 ![Flujo de datos, de la fuente abierta al visor](diagramas/flujo-datos.png)
 
-### D. Secuencia de una consulta
+### 3.4 Secuencia de una consulta
 
 ![Consulta de riesgo por distrito](diagramas/secuencia-consulta-riesgo.png)
 
@@ -192,11 +205,11 @@ sola vez** al arrancar, no en cada petición. Reintentar por consulta producirí
 una interfaz que a veces muestra datos reales y a veces simulados sin que el
 usuario pueda saber cuál está viendo.
 
-## IV. Modelo de datos
+## 4. Modelo de datos
 
 ![Modelo entidad-relación](diagramas/entidad-relacion.png)
 
-### A. Los cuatro esquemas
+### 4.1 Los cuatro esquemas
 
 | Esquema | Contiene | Por qué separado |
 |---|---|---|
@@ -212,7 +225,7 @@ exigiría volver a bajar datos de las APIs externas.
 **`analitico.riesgo` no está creada.** Ninguna historia la produce y es una deuda
 declarada, no un olvido.
 
-### B. Claves e integridad
+### 4.2 Claves e integridad
 
 `geo.distrito` usa el **código oficial DTA del IGN**, cinco dígitos, como clave
 primaria. No un identificador autoincremental: el código oficial es estable,
@@ -231,7 +244,7 @@ Las restricciones no son decorativas. `crudo.foco_calor` declara **catorce
 Esa última es la que impide que un error de signo en la carga meta un foco del
 otro hemisferio sin que nadie lo note.
 
-### C. Migraciones con suma de verificación
+### 4.3 Migraciones con suma de verificación
 
 `control.migracion` registra número, archivo, **suma SHA-256** y fecha de
 aplicación. La suma responde una pregunta que el número no puede: *¿el archivo de
@@ -241,7 +254,7 @@ repositorio hoy?*
 Sin ella, editar una migración ya aplicada produce dos bases que se creen iguales
 y no lo son.
 
-### D. La proyección, medida y no supuesta
+### 4.4 La proyección, medida y no supuesta
 
 Las geometrías se almacenan en **EPSG:4326** porque es lo que Leaflet consume, y
 se transforman a **EPSG:8908** (CR-SIRGAS / CRTM05) para todo cálculo métrico.
@@ -251,11 +264,11 @@ proyección transversa de Mercator sobre el elipsoide GRS80: la diferencia máxi
 medida es de **0,005 mm**, lo que confirma que no hay desplazamiento de datum
 entre los dos sistemas y que la conversión no introduce error apreciable.
 
-## V. Procesamiento
+## 5. Procesamiento
 
 ![Flujo del modelado](diagramas/flujo-modelado.png)
 
-### A. Fuentes y su resolución
+### 5.1 Fuentes y su resolución
 
 | Variable | Fuente | Resolución | Aptitud |
 |---|---|---|---|
@@ -270,9 +283,10 @@ viento y radiación **tienen el mismo valor en los ocho distritos**. Se conserva
 como contexto y se declara la limitación; la única variable que distingue
 distritos es la precipitación.
 
-### B. Índices y umbrales
+### 5.2 Índices y umbrales
 
-- **Sequía:** SPI-3 ajustado **por mes calendario** (D-19), con cortes en −1,0
+- **Sequía:** SPI-6 ajustado **por mes calendario** (D-19, escala revisada por
+  D-32 tras medirla), con cortes en −1,0
   para nivel medio y −1,5 para alto, según la escala de la OMM.
 - **Lluvia intensa:** percentiles 95 y 99 del **acumulado de 72 horas**.
 - **Incendio:** binario, presencia de al menos un foco en la ventana de siete
@@ -286,7 +300,7 @@ Norte, con una estación seca marcada, marcaría sequía todos los febreros.
 reduce la amplitud de los picos en un 48,6 % y elimina los 37 eventos extremos
 del período. Los índices se calculan sobre la serie cruda: **D-17**.
 
-### C. Etiquetado y cobertura
+### 5.3 Etiquetado y cobertura
 
 El etiquetado produce **99 296 filas** con tres etiquetas cada una. La cobertura
 temporal difiere por evento:
@@ -306,7 +320,7 @@ Esa distinción —ausencia contra cero— es una regla transversal del sistema
 visor, que pinta con trama los distritos sin estimación en vez de usar el color
 más claro de la escala.
 
-### D. Validación temporal
+### 5.4 Validación temporal
 
 Ventana expansiva con **cinco pliegues** y cortes en frontera de mes (**D-04**).
 El embargo entre entrenamiento y prueba **se calcula** a partir de hasta dónde
@@ -314,12 +328,12 @@ mira la etiqueta de la última fila de entrenamiento, en lugar de fijarse como
 constante.
 
 Medido: **siete días para los tres eventos**. Para la sequía, el corte en
-frontera de mes absorbe el alcance del SPI-3, lo que reduce el embargo de los 38
+frontera de mes absorbe el alcance del SPI-6, lo que reduce el embargo de los 38
 días estimados a 7.
 
-## VI. Interfaz de programación
+## 6. Interfaz de programación
 
-### A. Endpoints
+### 6.1 Endpoints
 
 | Método y ruta | Devuelve |
 |---|---|
@@ -334,21 +348,21 @@ La especificación OpenAPI se genera desde los esquemas Pydantic, de modo que
 **no puede desincronizarse de lo que el servicio realmente acepta y devuelve**.
 Es el mismo principio que gobierna la matriz de trazabilidad y los diagramas.
 
-### B. El acceso a datos
+### 6.2 El acceso a datos
 
 Se implementa el patrón Repository sobre el `Protocol` de `contratos`. Su valor
 práctico es que las pruebas del servicio corren **sin base de datos**: se
 sustituye la implementación PostgreSQL por una en memoria que cumple el mismo
 contrato.
 
-## VII. Visor
+## 7. Visor
 
-### A. Composición
+### 7.1 Composición
 
 React 18 con Leaflet. Las capas son independientes y conmutables: coropleta de
 riesgo, mapa de calor interpolado, límites distritales y etiquetas de nombre.
 
-### B. La escala de color, verificada por colorimetría
+### 7.2 La escala de color, verificada por colorimetría
 
 La escala de tres niveles no se eligió por gusto. `verificar_escala.py` comprueba
 en cada ejecución del pipeline que:
@@ -361,7 +375,7 @@ en cada ejecución del pipeline que:
 Un mapa de riesgo cuyo orden se pierde para una persona con dicromacia no
 comunica el riesgo: lo oculta.
 
-### C. Interpolación y su recorte
+### 7.3 Interpolación y su recorte
 
 La capa de mapa de calor interpola la probabilidad por **distancia inversa**
 entre los centroides distritales, con exponente ajustable y una paleta
@@ -378,9 +392,9 @@ Antes de esa corrección, **el 23,8 % de lo pintado caía fuera del cantón y el
 20,7 % del cantón quedaba sin pintar**; Tronadora aparecía cubierta al 54,5 %.
 Hoy ambas cifras son cero, y un verificador lo comprueba en cada Pull Request.
 
-## VIII. Verificación
+## 8. Verificación
 
-### A. Seis trabajos de integración continua
+### 8.1 Seis trabajos de integración continua
 
 | Trabajo | Qué comprueba |
 |---|---|
@@ -391,7 +405,7 @@ Hoy ambas cifras son cero, y un verificador lo comprueba en cada Pull Request.
 | Pruebas contra PostgreSQL | 176 pruebas, con PostGIS como servicio |
 | Publicar el visor | Solo desde `main` |
 
-### B. Veintiséis verificadores
+### 8.2 Veintiséis verificadores
 
 Cada historia con criterios de aceptación escritos antes de implementar tiene un
 programa que los comprueba. No son pruebas unitarias: **comprueban propiedades
@@ -408,7 +422,7 @@ Ejemplos:
   canvas simulado y compara contra una implementación independiente de
   punto-en-polígono.
 
-### C. Los artefactos derivados no se editan
+### 8.3 Los artefactos derivados no se editan
 
 | Artefacto | Se deriva de |
 |---|---|
@@ -422,7 +436,7 @@ hacen fallar la integración continua si se desfasan. El control se agregó porq
 hacía falta: en ocho días, cinco cifras del documento de investigación habían
 dejado de ser ciertas sin que nadie lo notara.
 
-### D. Tres lecciones que costaron
+### 8.4 Tres lecciones que costaron
 
 **I-06 · un control que se salta se ve igual que uno que pasa.** Un verificador
 condicionado a la existencia de un archivo que nunca está en el entorno de
@@ -438,11 +452,11 @@ redacta con ayuda de herramientas de IA, y una premisa mal puesta no se discute:
 se implementa, con rigor, en la dirección equivocada. La calidad de la ejecución
 es lo que oculta el problema.
 
-## IX. Despliegue
+## 9. Despliegue
 
 ![Arquitectura de despliegue](diagramas/despliegue.png)
 
-### A. Lo que está desplegado
+### 9.1 Lo que está desplegado
 
 **Solo el visor**, como sitio estático en GitHub Pages, publicado desde `main`
 por un trabajo del propio pipeline. No hay servicio externo de despliegue: la
@@ -453,7 +467,7 @@ raíz, y lo hace **en silencio**: el archivo se pide, devuelve 404, y el visor s
 queda sin datos sin mostrar error. Un verificador comprueba sobre el artefacto
 construido —no sobre el código fuente— que ninguna ruta absoluta sobreviva.
 
-### B. Lo que no está desplegado
+### 9.2 Lo que no está desplegado
 
 **Ni la API ni la base de datos.** Ambas corren en las máquinas del equipo. La
 consecuencia es que el sitio público muestra datos simulados y lo declara.
@@ -461,7 +475,7 @@ consecuencia es que el sitio público muestra datos simulados y lo declara.
 Es la limitación técnica más visible del sistema y no tiene todavía una historia
 asignada que la resuelva.
 
-### C. Reproducibilidad del dataset
+### 9.3 Reproducibilidad del dataset
 
 El dataset consolidado se versiona **por manifiesto**, no por archivo: un
 documento con sumas SHA-256 de cada fuente, sus conteos y sus rangos temporales.
@@ -472,7 +486,7 @@ El manifiesto responde una pregunta concreta: *¿dos personas tienen exactamente
 el mismo dato?* No responde si ese dato es correcto —eso lo mide el reporte de
 calidad— y la distinción está escrita para no confundirlas.
 
-## X. Decisiones de arquitectura
+## 10. Decisiones de arquitectura
 
 31 decisiones registradas, cada una con contexto, alternativas descartadas,
 consecuencias y criterio de revisión. Las que más gobiernan el código:
@@ -500,7 +514,7 @@ entera. El registro distingue tres formas de hacerlo —*revisada*, *sustituida*
 falso**. Llamarle «sustituida» habría ocultado justamente lo que había que
 aprender.
 
-## XI. Limitaciones técnicas
+## 11. Limitaciones técnicas
 
 1. **Una sola variable resuelve el cantón.** De las cinco variables climáticas,
    solo la precipitación distingue distritos.
@@ -513,14 +527,14 @@ aprender.
 6. **Los polígonos simplificados no teselan:** su unión deja 142 huecos diminutos
    entre distritos vecinos. No afecta a los cálculos actuales y queda anotado.
 
-## XII. Instalación y operación
+## 12. Instalación y operación
 
-### A. Requisitos
+### 12.1 Requisitos
 
 Python 3.11 o superior, Node 20 o superior, Docker con Docker Compose, y
 PostgreSQL 16 con PostGIS 3.4 —que Compose levanta.
 
-### B. Puesta en marcha
+### 12.2 Puesta en marcha
 
 ```bash
 git clone https://github.com/HumanoidCat/geoguardian
@@ -535,7 +549,7 @@ python -m basedatos.aplicar_migraciones
 cd frontend && npm ci && npm run dev
 ```
 
-### C. Comprobar que la instalación quedó bien
+### 12.3 Comprobar que la instalación quedó bien
 
 ```bash
 python -m contratos.verificar          # 47 comprobaciones
@@ -550,7 +564,7 @@ Las seis órdenes corren sobre el repositorio limpio. Las que necesitan datos
 procesados —el contraste contra el catálogo y la tabla comparativa— requieren la
 base cargada.
 
-### D. Reconstruir los artefactos
+### 12.4 Reconstruir los artefactos
 
 ```bash
 python docs/herramientas/generar_matriz.py

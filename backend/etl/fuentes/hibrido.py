@@ -11,7 +11,7 @@ Decision D-15. Ninguna de las dos sirve sola:
   - CHIRPS si distingue distritos, a 0,05 grados, pero solo tiene precipitacion.
 
 La precipitacion es justamente la variable de la que dependen los dos umbrales
-del charter, sequia por SPI-3 y lluvia intensa por acumulado de 72 h. Asi que la
+del charter, sequia por SPI-6 y lluvia intensa por acumulado de 72 h. Asi que la
 que tiene que distinguir distritos viene de CHIRPS, y el resto de POWER.
 
 QUE SIGNIFICA ESO EN LOS DATOS

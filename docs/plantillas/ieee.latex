@@ -40,9 +40,38 @@
 %% TeX Gyre Termes es Times: mismas metricas, y viene tanto en TeX Live como en
 %% MiKTeX. Se prefiere a «Times New Roman» porque esa depende del sistema y no
 %% esta en Linux, donde se construye.
-\setmainfont{TeX Gyre Termes}
-\setsansfont{TeX Gyre Heros}
-\setmonofont{TeX Gyre Cursor}[Scale=0.85]
+%%
+%% **SE PIDEN POR NOMBRE DE ARCHIVO, NO POR NOMBRE DE FUENTE.** La primera
+%% version usaba `\setmainfont{TeX Gyre Termes}`, que le pide la fuente al
+%% sistema operativo. En Linux con TeX Live funciona porque la instalacion
+%% registra las fuentes; en Windows con MiKTeX **no**, y la compilacion muere
+%% con «The font "TeX Gyre Termes" cannot be found», que suena a que falta
+%% instalar algo cuando en realidad esta instalada y el motor no la ve.
+%%
+%% Pidiendola por archivo, `kpathsea` la busca dentro de la propia distribucion
+%% de TeX y no hace falta que el sistema la conozca. Funciona igual en las dos.
+\setmainfont{texgyretermes}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+]
+\setsansfont{texgyreheros}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+]
+\setmonofont{texgyrecursor}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+  Scale        = 0.85,
+]
 %% El paquete de espanol de babel da la particion silabica correcta, pero no
 %% esta en todas las distribuciones: MiKTeX lo instala solo, la imagen minima de
 %% TeX Live de la integracion continua no lo trae. Sin esta condicional el
@@ -58,6 +87,22 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+%% LAS TABLAS TIENEN QUE CORTAR LINEA, Y CON `l` NO CORTAN
+%%
+%% Pandoc emite `@{}ll@{}` cuando calcula que la tabla cabe. Ese calculo lo hace
+%% contra el ancho de una pagina normal, y este documento va **a dos columnas**:
+%% una celda larga en una columna `l` no corta linea, se sale de la caja y se
+%% imprime sobre el margen. Salia en la tabla de fuentes y en la de umbrales.
+%%
+%% `tabularx` reparte el ancho disponible entre las columnas `X`, que si cortan.
+%% `L{peso}` permite darle mas ancho a la columna con el texto mas largo en vez
+%% de repartir en partes iguales, que dejaria «Evento» con el mismo ancho que
+%% una justificacion de tres lineas.
+%%
+%% Los pesos los calcula `construir_entregable.py` desde el contenido de cada
+%% columna, no se escriben a mano.
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{enumitem}
@@ -102,9 +147,17 @@
 %% A 9 pt porque en una columna de 3,5 in una tabla a 10 pt no entra casi nunca.
 \captionsetup[table]{font=small,labelfont=sc,skip=4pt}
 \captionsetup[figure]{font=small,labelfont=sc,skip=4pt}
-\renewcommand{\tablename}{Tabla}
-\renewcommand{\figurename}{Fig.}
-\renewcommand{\refname}{Referencias}
+%% Los rotulos van dentro de `\AtBeginDocument` y no sueltos en el preambulo.
+%%
+%% babel los reescribe al empezar el documento -«Figure» con la opcion inglesa,
+%% «Cuadro» con la espanola- y pisa cualquier `\renewcommand` anterior. La
+%% primera version los ponia en el preambulo y las figuras salian rotuladas
+%% «Figure 1» en un documento en espanol. Se vio en el PDF, no en el codigo.
+\AtBeginDocument{%
+  \renewcommand{\tablename}{Tabla}%
+  \renewcommand{\figurename}{Fig.}%
+  \renewcommand{\refname}{Referencias}%
+}
 \renewcommand{\arraystretch}{1.15}
 
 %% Pandoc necesita estas dos definiciones cuando emite tablas.
@@ -166,9 +219,16 @@ $if(subtitle)$
       {\fontsize{12}{14}\selectfont\itshape $subtitle$\par}
 $endif$
       \vspace{10pt}
+      %% Acepta las dos formas de declarar autores en el YAML: una lista de
+      %% cadenas, que es lo que el escritor de .docx de pandoc entiende, y una
+      %% lista de mapas con `name`, que es lo habitual en plantillas LaTeX.
+      %%
+      %% Hacia falta: con mapas, el .docx salia **sin autores**, porque su
+      %% escritor no sabe leer `.name`. Y usar solo cadenas rompia esta
+      %% plantilla. Un solo YAML tiene que servir para los dos formatos.
       {\fontsize{11}{13}\selectfont
 $for(author)$
-        $author.name$$sep$\quad\textperiodcentered\quad
+        $if(author.name)$$author.name$$else$$author$$endif$$sep$\quad\textperiodcentered\quad
 $endfor$
       \par}
 $if(institute)$

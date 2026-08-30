@@ -68,7 +68,7 @@ class CalculadorSPI:
             precipitacion: acumulado **mensual** de precipitacion en mm, con
                 None en los meses sin dato. La serie entra cruda, sin filtrar
                 (D-17).
-            ventana_meses: 1 para SPI-1, 3 para SPI-3. El proyecto usa SPI-3
+            ventana_meses: 1 para SPI-1, 6 para SPI-6. El proyecto usa SPI-6
                 para el umbral de sequia de `contratos/enums.py`.
             meses: mes calendario de cada posicion, de 1 a 12. **Con este dato
                 la gamma se ajusta por separado para cada mes del anio**, que es
@@ -359,7 +359,7 @@ def _a_normal_estandar(
     estimador a Stagge et al. y da la formula. Es la mejor confirmacion
     disponible, y no equivale a haber leido el articulo. Ver la ficha de [27].
 
-    Con 35 anios y SPI-3 el efecto numerico entre `q` y `q / 2` es menor.
+    Con 35 anios y SPI-6 el efecto numerico entre `q` y `q / 2` es menor.
     """
     if acumulado <= 0:
         # Centro de masa de Stagge et al. (2015), ref. [27], en su forma limite

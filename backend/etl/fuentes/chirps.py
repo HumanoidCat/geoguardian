@@ -4,7 +4,7 @@ CHIRPS via ClimateSERV: precipitacion. Historia H1.1, issue #35.
 POR QUE ESTA FUENTE Y NO POWER
 
 Decision D-15. Los dos eventos que definen los umbrales del charter, sequia por
-SPI-3 y lluvia intensa por acumulado de 72 h, se calculan sobre precipitacion.
+SPI-6 y lluvia intensa por acumulado de 72 h, se calculan sobre precipitacion.
 POWER no sirve para eso: su celda cubre el canton entero y daria el mismo valor en
 los ocho distritos. CHIRPS trabaja a 0,05 grados, unos 5,5 km, y cada distrito cae
 en su propia celda.

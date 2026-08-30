@@ -21,7 +21,7 @@ etiqueta de `T` ya miro hacia adelante. Cuanto, depende del evento:
 
     incendio        focos en (t, t+7]                      -> alcanza t+7
     lluvia intensa  maximo acumulado de 72 h en la ventana -> alcanza t+7
-    sequia          SPI-3 del mes que contiene a t+7       -> alcanza el FIN
+    sequia          SPI-6 del mes que contiene a t+7       -> alcanza el FIN
                                                               de ese mes
 
 **La sequia es la que manda**, y por mucho. `ultima_fecha_que_mira()` lo calcula
@@ -55,15 +55,27 @@ previsto.
 LO QUE ESTO **NO** RESUELVE, Y HAY QUE SABERLO EN H3.4
 
 El embargo protege de que una etiqueta de entrenamiento mire dentro de la prueba.
-No dice nada sobre las **caracteristicas**: si alguien usa como entrada «el SPI-3
+No dice nada sobre las **caracteristicas**: si alguien usa como entrada «el SPI-6
 del mes en curso», en la fila `t = corte` eso exige el mes completo, que en
 operacion no se tiene el dia 1. Es un defecto de diseno de caracteristicas, no de
 particion, y le toca a **H3.4** con **CA-6**.
 
 LOS CORTES CAEN EN FRONTERA DE MES
 
-Porque el SPI-3 no cambia dentro del mes: H3.0 midio **66,3 filas por episodio de
-sequia**. Un corte a mitad de mes deja el mismo valor del indice a los dos lados.
+Porque el SPI-6 no cambia dentro del mes. Un corte a mitad de mes deja el mismo
+valor del indice a los dos lados.
+
+H3.0 mide **100,1 filas por episodio de sequia** con SPI-6, sobre 78 episodios
+distintos. Eran 66,3 con SPI-3: al integrar seis meses los episodios duran mas,
+como corresponde, y **la razon para cortar en frontera de mes se refuerza**.
+
+El precio esta en la otra columna: **15,6 episodios por pliegue** con cinco
+pliegues. Es poco, y hay que decirlo cuando se lean las metricas de sequia.
+
+**Lo que NO cambia es el embargo de siete dias.** Sale de que el corte cae en
+frontera de mes -CA-3- y no del ancho de la ventana del indice: exigir que la
+etiqueta no mire dentro de la prueba equivale a exigir que `t+7` caiga en un mes
+anterior, con SPI-3 o con SPI-6.
 
 CADA EVENTO SE PARTE SOBRE SU PROPIO PERIODO OBSERVADO
 
@@ -140,7 +152,7 @@ def ultima_fecha_que_mira(evento: TipoEvento, t: date) -> date:
     fin = t + timedelta(days=HORIZONTE_DIAS)
 
     if evento is TipoEvento.SEQUIA:
-        # El SPI-3 del mes que contiene a `t+7`. El indice de ese mes se conoce
+        # El SPI-6 del mes que contiene a `t+7`. El indice de ese mes se conoce
         # cuando el mes termina, asi que la etiqueta depende de precipitacion
         # posterior a `t+7`: hasta el ultimo dia de ese mes.
         return fin_de_mes(fin)
@@ -177,7 +189,7 @@ def sumar_meses(dia: date, meses: int) -> date:
 def cortes_mensuales(desde: date, hasta: date, bloques: int) -> list[date]:
     """Los `bloques - 1` cortes que parten `[desde, hasta]` en partes parejas.
 
-    **Cada corte es el primer dia de un mes**, que es el criterio CA-3: el SPI-3
+    **Cada corte es el primer dia de un mes**, que es el criterio CA-3: el SPI-6
     no cambia dentro del mes, asi que cortar a mitad de mes deja el mismo valor
     del indice a los dos lados.
     """
@@ -267,7 +279,7 @@ def particionar(
 #
 #   ETIQUETA        puede usar estadisticos de toda la serie. Es la verdad de
 #                   terreno, no una prediccion. Los P95/P99 de 72 h y el ajuste
-#                   del SPI-3 salen de la normal climatologica 1991-2020, que es
+#                   del SPI-6 salen de la normal climatologica 1991-2020, que es
 #                   una referencia fija publicada por la OMM y conocida de
 #                   antemano en operacion.
 #

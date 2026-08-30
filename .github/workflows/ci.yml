@@ -325,6 +325,18 @@ jobs:
       # etiquetas sinteticas deterministas y lo declara en su primera linea.
       - name: Los criterios de H3.6 se cumplen
         run: python -m backend.modelado.verificar_h36
+      # La comparacion de escalas del SPI. Corre con `--sintetico` porque la
+      # precipitacion vive en la base y aqui no hay base; la bandera lo declara
+      # en su primera linea de salida y el propio modulo advierte que con datos
+      # sinteticos **no concluye nada** sobre las escalas.
+      #
+      # Entonces, ¿que protege este paso? Que el camino de calculo corra entero:
+      # firmas, importaciones, el ajuste gamma por mes en las tres escalas, y el
+      # contraste contra el catalogo, que **si** es el catalogo real y esta
+      # versionado. La primera version usaba codigos de distrito inventados y
+      # daba «cero eventos contrastables»: verde, sin medir nada. Es I-06 otra vez.
+      - name: La comparacion de escalas del SPI corre entera
+        run: python -m backend.modelado.comparar_escalas_spi --sintetico
       # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
       # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
       # historias y quedaron colgando. Un verificador que solo se ejecuta cuando
