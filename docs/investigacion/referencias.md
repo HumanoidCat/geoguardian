@@ -139,8 +139,8 @@ Management, DOI `10.1016/j.ipm.2009.03.002`.
 ### [13] Bangor, Kortum y Miller — interpretación del puntaje SUS
 
 ```
-[13] A. Bangor, P. Kortum y J. Miller, "The System Usability Scale: An
-     empirical evaluation," International Journal of Human-Computer
+[13] A. Bangor, P. Kortum y J. Miller, "An empirical evaluation of the
+     System Usability Scale," International Journal of Human-Computer
      Interaction, vol. 24, no. 6, pp. 574-594, 2008.
 ```
 
@@ -838,6 +838,66 @@ y debe completarse antes de citar.*
   dominio, que es el que va a leer un evaluador de riesgo climático.
 - *Uso previsto:* metodología, al justificar la métrica; y discusión.
 
+### [36] Sevilla-González et al. — Versión en español validada del SUS
+
+```
+[36] M. D. R. Sevilla-Gonzalez, L. Moreno Loaeza, L. S. Lazaro-Carrera,
+     B. Bourguet Ramirez, A. Vázquez Rodríguez, M. L. Peralta-Pedrero y
+     P. Almeda-Valdes, "Spanish version of the System Usability Scale for
+     the assessment of electronic tools: Development and validation,"
+     JMIR Human Factors, vol. 7, no. 4, e21161, 2020.
+```
+
+**Fuente verificada:** JMIR Human Factors, DOI `10.2196/21161`, PMID
+`33325828`. **El artículo completo se leyó directamente** el 2026-08-22, y
+también su Multimedia Appendix 2, que contiene los diez ítems en español. Es
+acceso abierto bajo licencia Creative Commons Attribution 4.0, que permite
+reproducir los ítems citando la fuente.
+
+**Ficha de contenido**
+- *Qué dice:* traduce, adapta culturalmente y valida al español la escala SUS
+  de Brooke `[7]`. Sigue la metodología de nueve pasos de la OMS: traducción
+  directa por dos traductores independientes, síntesis, traducción inversa por
+  un hablante nativo de inglés, armonización y pilotaje. Reporta índice de
+  validez de contenido 0,92, índice de validez aparente 0,94 y alfa de Cronbach
+  0,812 (IC 95 % 0,748-0,866) sobre 88 respondentes.
+- *Por qué es relevante:* el puntaje SUS solo es comparable contra los valores
+  de referencia de la literatura si los diez ítems no se alteran. Es la única
+  traducción al español encontrada **con proceso de validación documentado**;
+  los propios autores señalan que existe otra versión en español sin evidencia
+  de su proceso de validez y confiabilidad. Permite aplicar el instrumento en
+  H9.2a sin inventar una traducción propia.
+- *Detalle que favorece a este proyecto:* los autores sustituyeron "system" por
+  "herramienta" porque adaptaron la escala a aplicaciones móviles y sitios web.
+  El visor de GeoGuardian es un sitio web.
+- *Uso previsto:* instrumento de H9.1 y H9.2a. Los diez ítems transcritos están
+  en `docs/investigacion/sus-cuestionario.md`.
+
+**Limitación que los autores declaran y que hay que arrastrar a la evidencia.**
+La validación se hizo en Ciudad de México, **solo con adultos jóvenes** —edad
+promedio 32,5 años, mayoría con grado universitario y nivel socioeconómico
+medio—. El artículo dice expresamente que la aplicabilidad a otros rangos de
+edad puede cuestionarse y que la representatividad para el resto de América
+Latina requiere estudios adicionales, porque los resultados podrían variar por
+región.
+
+Los participantes previstos para H9.2a en Tilarán son otra población: otro país,
+probablemente otro rango de edad y otra escolaridad. **Las propiedades
+psicométricas reportadas no se transfieren automáticamente**, y la evidencia de
+H9.2a debe decirlo.
+
+## Corrección de la ficha `[13]`
+
+**Detectada el 2026-08-22 al contrastar la lista de referencias de `[36]` con la
+nuestra.** El título estaba invertido: decía "The System Usability Scale: An
+empirical evaluation" cuando el correcto es "An Empirical Evaluation of the
+System Usability Scale".
+
+El DOI, el volumen, el número y las páginas siempre estuvieron bien; el error
+era solo de titulación, y habría llegado al documento IEEE sin que nadie lo
+notara. Se confirmó el título correcto en Taylor & Francis y se corrigió la
+entrada de la ficha.
+
 ## Corrección de la ficha `[15]`
 
 **La ficha original se escribió sobre el resumen. Leído el artículo completo
@@ -893,10 +953,12 @@ número.
 | Fichas agregadas por H10.5b | 2 (`[25]` y `[26]`) |
 | Fichas agregadas por la corrección de atribución de H2.3 | 1 (`[27]`) |
 | Fichas agregadas por la revisión del 2026-08-30 | 8 (`[28]` a `[35]`) |
+| Fichas agregadas por H9.1 | 1 (`[36]`) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
-| Total de la bibliografía | 35 |
+| Total de la bibliografía | 36 |
 | Referencias descartadas por no poder verificarse | 2 |
 | Fichas corregidas tras leer la fuente completa | 2 (`[24]`, `[15]`) |
+| Fichas corregidas por contraste con otra bibliografía | 1 (`[13]`, título invertido) |
 | Pendientes de verificar antes de citar | 2 (Mora-Vahrson 1994, ver `estado-del-arte.md`; autores de `[35]`) |
 | Citadas con verificación parcial declarada | 4 (`[27]`, `[31]`, `[32]`, `[35]`) |
 | Fichas que contradicen o matizan una decisión tomada | 3 (`[15]`, `[32]`, `[34]`) |

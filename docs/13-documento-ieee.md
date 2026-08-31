@@ -1296,8 +1296,8 @@ intensa.**
 
 ## Referencias
 
-> **Pendiente de composición.** El texto cita 35 referencias, de las cuales 27
-> están verificadas con su DOI comprobado contra la editorial: son las **27
+> **Pendiente de composición.** El texto cita 36 referencias, de las cuales 28
+> están verificadas con su DOI comprobado contra la editorial: son las **28
 > fichas verificadas**. El listado formal en formato IEEE se compone aquí al
 > cerrar el documento.
 
@@ -1342,7 +1342,7 @@ validación.
 | −0,84; +0,60; 99 de 99; 0,425 | `medir_spi_por_mes.py` |
 | 39,90 / 54,86 / 63,40 / 87,70 mm; 8,5× | `medir_percentiles.py` |
 | 98 fichas, 46 registros, 29 eventos | Catálogo de eventos históricos compilado para este trabajo `[26]` |
-| 35 referencias, 27 con ficha | Fichero bibliográfico del proyecto |
+| 36 referencias, 28 con ficha | Fichero bibliográfico del proyecto |
 | 47 comprobaciones, 6 trabajos de CI, 20 controles | `verificar_documentacion.py` |
 | Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |
 | 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
