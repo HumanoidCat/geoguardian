@@ -40,8 +40,9 @@ materializada en el repositorio, no la de la conversacion que la origino.
 | D-26 | El sistema declara latencia por evento, no promete tiempo real | Aceptada | 2026-08-23 |
 | D-27 | El alcance diferido se registra con condicion de reactivacion medible | Aceptada | 2026-08-24 |
 | D-28 | Se retira el mapa de calor: interpola donde no hay medicion | **Revertida por D-30** · partia de un hecho falso | 2026-08-24 |
-| D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada | 2026-08-26 |
+| D-29 | El dataset se versiona por manifiesto en el repositorio y archivo fuera | Aceptada · **revisada por D-31** | 2026-08-26 |
 | D-30 | El mapa de calor vuelve, recortado contra los poligonos | Aceptada · revierte D-28 | 2026-08-27 |
+| D-31 | El recibo de carga y la version del dataset son dos artefactos | Aceptada · revisa D-29 | 2026-08-27 |
 
 ---
 
@@ -2904,6 +2905,18 @@ regenera. Si alguien recarga y no lo regenera, el manifiesto miente. Eso hoy no 
 comprueba ninguna maquina, y **se anota como deuda**: el verificador que cruce el
 manifiesto contra la base es trabajo pendiente, no parte de H1.7.
 
+> **REVISADO POR D-31 el 2026-08-27.** Esta obligacion se escribio pensando en
+> recargas ocasionales. Con H1.14 -ingesta recurrente- pasaria a incumplirse
+> todos los dias, y perseguir un dataset que se mueve destruiria la propiedad que
+> hace util al manifiesto: que dos personas con la misma version tengan lo mismo.
+>
+> **D-31 separa el recibo de carga de la version del dataset.** El manifiesto de
+> esta decision es la *version*, y ya no tiene que regenerarse sola: se corta a
+> mano. El registro por carga vive en la base.
+>
+> El generador de H1.7 no cambia. La regla 1 -que la suma del SNIT viaje dentro
+> del manifiesto- sigue valiendo entera.
+
 ### Medicion
 
 Esta decision se cumple, o no, de forma comprobable. Las cuatro condiciones:
@@ -3077,3 +3090,391 @@ estimar a una resolucion distinta de la distrital, o si aparece evidencia de que
 un lector interpreta la superficie como medicion continua pese a los puntos de
 origen. Lo segundo se sabra en **H9.2a**, la validacion externa.
 
+---
+
+## D-31 · El recibo de carga y la version del dataset son dos artefactos
+
+**Estado.** Aceptada · **revisa D-29**
+**Fecha.** 2026-08-27
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** Cesar, al revisar si H1.14 tiene sentido sin base alojada
+**Afecta.** **H1.7** (cerrada), **H1.14**, y la trazabilidad de las cifras del
+documento IEEE.
+
+### Contexto
+
+**D-29** decidio versionar el dataset por manifiesto: un documento con sumas
+SHA-256 de cada fuente, sus conteos y sus rangos temporales, que responde *«¿dos
+personas tienen exactamente lo mismo?»*.
+
+Esa decision se tomo pensando en **recargas ocasionales**, y lo dejo escrito como
+deuda: *si alguien recarga y no lo regenera, el manifiesto miente*.
+
+**H1.14 convierte esa deuda de excepcion en rutina.** Si la ingesta corre a
+diario, el manifiesto queda desactualizado **todos los dias**. Cesar lo planteo
+como una eleccion entre dos disenos:
+
+1. que H1.14 regenere el manifiesto al terminar cada carga, o
+2. que el manifiesto pase a ser una foto fechada de una carga concreta.
+
+### Decision
+
+**Ninguna de las dos, porque la pregunta esta mal planteada.** El manifiesto esta
+haciendo **dos trabajos que no son el mismo**, y por eso ninguna respuesta cierra:
+
+| | Que responde | Cada cuanto | Quien lo produce | Donde vive |
+|---|---|---|---|---|
+| **Recibo de carga** | ¿que entro, cuando, con que sumas? | una por carga | el cargador | la base, en `control` |
+| **Version del dataset** | ¿vos y yo tenemos lo mismo? | cuando alguien la corta | una persona | el repositorio |
+
+D-29 describio el segundo, y el cargador termino produciendo el primero. De ahi
+la contradiccion.
+
+**Se separan:**
+
+1. **El recibo de carga va a la base**, no a un archivo del repositorio. Una fila
+   por carga en el esquema `control`: producto, rango de fechas, filas
+   insertadas, sumas y momento. Es registro de lo que la base contiene, y la base
+   es donde vive.
+
+2. **La version del dataset se corta a mano**, con el generador de H1.7 sin
+   cambios. Congela, se numera, y **es lo que citan los resultados**. Deja de
+   intentar describir algo que se mueve.
+
+3. **`basedatos/ddl/procedencia-*.md` deja de ser un archivo que el cargador
+   escribe** y pasa a ser una vista generada desde los recibos, producida por
+   alguien con copia de trabajo cuando hace falta.
+
+### Justificacion
+
+**Una version que se regenera sola no es una version.** Es la foto de ayer. La
+seccion VI del documento IEEE no puede citar «la ultima carga»: tiene que citar
+algo que no se mueva, o el resultado deja de ser reproducible en el sentido en
+que D-29 lo prometio.
+
+**Y un cargador que escribe dentro del arbol de git asume una persona sentada
+frente al repositorio.** Lo reporto Cesar y es el mismo patron que ya aparecio
+con `trazabilidad.csv`: un artefacto que el repositorio necesita, producido por
+algo que no es un humano con copia de trabajo. Una ingesta programada en un
+contenedor efimero escribiria esos archivos donde nadie los va a ver nunca.
+
+**Por que el recibo va a la base y no a un archivo.** Porque describe el estado
+de la base, y porque es el unico lugar al que un proceso automatico puede
+escribir sin credenciales de git. Es la misma separacion que el proyecto ya hace
+entre `crudo` -lo descargado- y `analitico` -lo derivado-, aplicada al registro
+de la propia descarga.
+
+**Lo que esto le devuelve a D-29.** Su regla 1 -que la suma del SNIT viaje dentro
+del manifiesto, porque esa fuente ya fallo en I-03 y produjo I-10- **sigue
+valiendo entera**. Lo que cambia es que el manifiesto ya no tiene que perseguir
+un dataset que se mueve.
+
+### Alternativas descartadas
+
+**Que H1.14 regenere el manifiesto en cada carga.** Es la opcion 1 de Cesar.
+Convierte el manifiesto en un archivo que cambia a diario dentro del repositorio,
+y obliga al proceso automatico a hacer commit. Ademas destruye la propiedad que
+lo hacia util: dos personas con la misma «version 1» dejarian de tener lo mismo.
+
+**Que el manifiesto sea una foto fechada.** Es la opcion 2. No resuelve nada:
+sigue habiendo un solo artefacto tratando de responder dos preguntas, y la
+pregunta de reproducibilidad se queda sin respuesta.
+
+**No hacer nada hasta que la base este alojada.** Tentador, porque hoy no hay
+ingesta programada. Se descarta porque H1.14 se cierra antes que el alojamiento,
+y cerrarla sin esta decision la obligaria a elegir una de las dos opciones malas.
+
+**Un `control.carga` con la fila entera del manifiesto en JSON.** Guardar el
+documento en vez de sus campos. Se descarta porque un JSON opaco en una columna
+no se puede consultar: la pregunta «¿cuando se recargo CHIRPS por ultima vez?»
+volveria a requerir leer archivos.
+
+### Consecuencias
+
+**H1.7 no se reabre.** Su generador sirve igual, y lo que produce pasa a llamarse
+por su nombre: una version, no un estado.
+
+**H1.14 se simplifica.** No tiene que regenerar nada; emite su recibo y termina.
+Se renombra el mismo dia a **«Ingesta reejecutable con cadencia declarada por
+evento y producto declarado»**, porque *periodica* no lo puede cumplir sin
+alojamiento.
+
+**Aparece trabajo nuevo, y se declara en vez de esconderse:** la tabla del recibo
+y la vista generada de procedencia. Va a la historia de alojamiento, que todavia
+no esta abierta.
+
+**El documento IEEE gana una frase que hoy no puede escribir**, y la va a
+necesitar: *los resultados de la seccion VI se calcularon sobre la version N del
+dataset*. Hoy diria «sobre el dataset», que no identifica nada.
+
+### Medicion
+
+Se comprueba cuando exista la tabla del recibo:
+
+1. **Dos cargas seguidas producen dos recibos y una sola version.** Si producen
+   dos versiones, la separacion no se aplico.
+2. **La version no cambia sin que una persona la corte.** Correr la ingesta no
+   toca ningun archivo del repositorio.
+3. **El recibo permite responder «¿cuando se recargo CHIRPS?» con una consulta**,
+   sin abrir un archivo.
+4. **La vista de procedencia se puede regenerar y sale identica** mientras no
+   haya cargas nuevas. Es la misma propiedad que se le exige a la matriz de
+   trazabilidad y a los diagramas.
+
+**Lo que esta decision NO resuelve**, y queda escrito: dónde corre la ingesta. Esa
+es la historia de alojamiento, con su propia decision.
+
+**Criterio de revision.** Se vuelve sobre esto si el dataset dejara de recargarse
+-en cuyo caso la separacion sobra y D-29 alcanza- o si apareciera una herramienta
+de versionado de datos que el equipo ya use por otro motivo, que es la condicion
+con la que D-29 descarto DVC.
+
+
+## D-32 · La escala del SPI se decide midiendo, no por costumbre
+
+**Estado.** Aceptada · **revisa D-19** · **medida y resuelta: SPI-6**
+**Fecha.** 2026-08-30
+**Decide.** Alejandro, Lead PM
+**Lo detecta.** Al leer completa la referencia `[15]`, que ya se citaba
+**Afecta.** **D-19**, el etiquetado de sequia de H3.0, y las conclusiones sobre
+sequia del documento de investigacion.
+
+### Contexto
+
+**D-19 fijo SPI-3 y nadie lo midio.** Se adopto porque es la escala mas comun en
+la literatura de sequia agricola. Es un argumento de costumbre.
+
+La referencia `[15]` -Quesada-Hernandez, Hidalgo y Alfaro, 2020- se citaba desde
+H10.5a como respaldo local de que el SPI es pertinente en Guanacaste. **Su ficha
+se habia escrito sobre el resumen.** Leido el articulo completo el 2026-08-30,
+dice tres cosas que la ficha no recogia:
+
+1. **Evalua SPI-6 y SPI-12. No evalua SPI-3.** El SPI-12 se toma en diciembre,
+   para describir el ano; el SPI-6 en octubre, para la estacion lluviosa del
+   Pacifico. Concluye que esas dos son las mejor asociadas con impactos
+   socio-productivos reales.
+2. **Trabaja a escala cantonal, no distrital**, teniendo disponibles registros de
+   distrito. Es una decision del trabajo mas cercano al nuestro, en sentido
+   contrario al nuestro.
+3. Integra **cuatro** fuentes de impacto -DesInventar, EM-DAT, IMN y prensa-, no
+   una.
+
+Es decir: **la referencia que citabamos como respaldo de nuestra escala no
+respalda nuestra escala.** Respalda la familia del indice y otras dos escalas
+concretas, en la misma provincia.
+
+### Decision
+
+**No se cambia a SPI-6 ni se defiende SPI-3 con argumentos. Se miden las tres y
+se decide con el dato.** `backend/modelado/comparar_escalas_spi.py` rehace el
+etiquetado de sequia completo para SPI-3, SPI-6 y SPI-12 -mismos cortes de
+McKee, mismo ajuste gamma por mes calendario- y contrasta cada uno contra el
+catalogo.
+
+### Justificacion
+
+Tres razones para medir en vez de adoptar la escala de la referencia:
+
+- **La referencia no es nuestra unidad.** Trabaja por canton, con estaciones
+  meteorologicas; nosotros por distrito, con CHIRPS. Adoptar su conclusion sin
+  medir seria repetir el error de D-19 con otra escala: reemplazar una costumbre
+  por otra.
+- **Ya sabemos que la respuesta puede ser «no se puede saber».** Con siete
+  registros, los siete con la misma fecha, es probable que las tres escalas
+  queden empatadas. Eso tambien es un resultado, y hace falta poder decirlo con
+  un numero al lado en vez de con una opinion.
+- **La herramienta sirve despues.** Si aparecen mas registros -y `[15]` muestra
+  el camino, integrar IMN y prensa a DesInventar-, la comparacion se vuelve a
+  correr sin escribir nada nuevo.
+
+Y una razon de forma: **la ficha de `[15]` se habia escrito sobre el resumen.**
+Este registro existe porque leer el articulo completo cambio lo que sabiamos.
+El criterio que se saca de ahi, y que aplica a toda la bibliografia, es que un
+resumen alcanza para decidir si una referencia es pertinente y **no** alcanza
+para apoyarse en ella.
+
+### Lo que la comparacion reporta, y por que asi
+
+**Todo con intervalo de Wilson al 95 %.** Es el segundo cambio que trae esta
+decision: el documento reportaba proporciones como puntos -«64,7 % de cobertura»
+sobre 34 eventos- y **sin intervalo no se puede afirmar que 64,7 % y 13,7 % son
+distintos**. Se usa Wilson y no el intervalo de Wald por `[34]`: Wald es
+erratico con muestras chicas y ademas colapsa a [0, 0] cuando la proporcion es
+cero, que es exactamente nuestro caso en sequia.
+
+**El realce decide, no la cobertura.** Una escala larga marca mas dias por
+construccion: el SPI-12 senala rachas de un ano donde el SPI-3 senala rachas de
+un trimestre. Comparar coberturas premiaria a la escala larga por la razon
+equivocada.
+
+**La ventana estricta compara; la ventana propia diagnostica.** Cada escala se
+contrasta ademas con su periodo de integracion -90, 180 y 360 dias-, pero eso
+**no** entra en la comparacion: una ventana mas larga detecta mas por
+construccion. Se reporta al lado.
+
+**Y se cuentan los episodios, no solo los dias.** Dos escalas pueden marcar el
+mismo numero de dias repartidos en muy distinto numero de rachas. Los episodios
+son el tamano de muestra efectivo para cualquier modelo que se entrene despues.
+
+### Medicion
+
+La herramienta corre en el CI con `--sintetico`, que comprueba el camino de
+calculo y **no concluye nada** sobre las escalas: lo declara en su primera
+linea. La medicion que decide se corre contra la base:
+
+    python -m backend.modelado.comparar_escalas_spi --fallos
+
+**Criterio de aceptacion de la decision, fijado antes de ver el resultado**,
+que es la mitad del valor de fijarlo:
+
+1. **Si los intervalos de cobertura de las tres se solapan, se mantiene SPI-3** y
+   se declara en el documento que la escala no esta respaldada por medicion
+   propia ni por la referencia local. No se cambia de escala por una diferencia
+   puntual que la muestra no sostiene.
+2. **Si una escala separa su intervalo de las otras dos y su realce excluye el
+   1,0**, se adopta esa escala y se revisa D-19.
+3. **Si ninguna escala excluye el 1,0 de su realce**, ninguna distingue, y eso se
+   escribe tal cual: es un resultado sobre el catalogo, no sobre las escalas.
+
+### Lo que se midio, el 2026-08-30
+
+| Escala | Cobertura, IC 95 % | Realce, rango | Tasa base | Episodios |
+|---|---|---|---|---|
+| **SPI-3** | 0 % [0 %, 35,4 %] | 0,00 [0,00, **2,38**] | 15,1 % | 204 |
+| **SPI-6** | 100 % [64,6 %, 100 %] | 6,50 [4,13, 6,59] | 15,4 % | 129 |
+| **SPI-12** | 100 % [64,6 %, 100 %] | 5,39 [3,43, 5,46] | 18,6 % | 68 |
+
+**El criterio no anticipo este caso, y hay que decirlo.** Se escribio pensando
+en «una gana» o «empatan todas». Lo que salio es **una pierde y dos empatan**:
+el intervalo del SPI-3 no toca el de las otras dos, pero SPI-6 y SPI-12 no se
+separan entre si.
+
+Eso obligo a corregir la herramienta antes de leer el resultado. `veredicto()`
+buscaba la de mayor cobertura, veia el solape entre SPI-6 y SPI-12 y devolvia
+«sin veredicto», **enterrando el unico hallazgo accionable**: que la escala en
+uso habia quedado descartada. Ahora descarta primero y empata despues, que es el
+orden correcto cuando la muestra es chica. Queda cubierto por
+`test_descarta_la_escala_separada_hacia_abajo`.
+
+**SPI-3 queda descartado**, por dos razones que apuntan al mismo lado:
+
+- Su intervalo, 0 %-35,4 %, esta enteramente por debajo del de las otras dos.
+- El **1,0 cae dentro del rango de su realce**, [0,00, 2,38]: ante el unico
+  episodio que el catalogo permite probar, marcaba con la misma frecuencia que
+  un dia cualquiera.
+
+Y el fallo **no es aleatorio**: la marca mas cercana quedo a **-37 dias, el
+mismo -37 en los ocho distritos**. Una coincidencia se dispersa entre distritos;
+un valor identico en los ocho es la firma de algo estructural. Lo es: **el SPI-3
+sale de sequia antes de que el dano se declare.** Integra tres meses, y para
+fines de septiembre de 2014 las lluvias de setiembre ya lo habian recuperado
+mientras la declaratoria se emitia el dia 30.
+
+### Por que SPI-6 y no SPI-12, dicho sin disimular
+
+**El catalogo no los separa.** Los dos dan 7 de 7 con intervalos identicos. La
+eleccion se hace por otro criterio, y corresponde declarar cual:
+
+| | SPI-6 | SPI-12 |
+|---|---|---|
+| Episodios | **129** | 68 |
+| Tasa base | **15,4 %** | 18,6 % |
+| Realce puntual | **6,50** | 5,39 |
+
+- **Episodios: casi el doble.** Es el tamano de muestra efectivo para cualquier
+  modelo que se entrene despues. Con 68 episodios repartidos en ocho distritos y
+  cinco pliegues, no queda sequia suficiente en cada pliegue.
+- **Menor tasa base para la misma deteccion.** SPI-12 marca 3,2 puntos mas de
+  dias para detectar lo mismo: avisa mas para acertar igual.
+- **`[15]` toma el SPI-6 en octubre** para describir la estacion lluviosa de la
+  vertiente del Pacifico, que es el regimen de Tilaran. El SPI-12 lo toma en
+  diciembre para el balance anual.
+
+El realce puntual favorece al SPI-6, pero **sus rangos se solapan** —[4,13, 6,59]
+contra [3,43, 5,46]— asi que no decide, y no se usa como si decidiera.
+
+### La advertencia que ningun intervalo da por si solo
+
+**Los siete registros son una fecha en siete distritos, no siete episodios.**
+El intervalo de Wilson los cuenta como siete extracciones independientes y no lo
+son: el *n* efectivo esta mas cerca de **uno**. La herramienta ahora lo calcula
+e imprime siempre, en vez de confiar en que quien lee la tabla se acuerde.
+
+La consecuencia es que **el resultado es asimetrico**:
+
+- El **100 %** de SPI-6 y SPI-12 no corona a nadie. Confirmar con *n* efectivo
+  de uno no establece nada general.
+- El **0 %** de SPI-3 si lo descarta. Falsar es mas barato que confirmar: si una
+  escala no marca el unico episodio que el catalogo permite probar, y falla de
+  forma identica en los ocho distritos, ese episodio alcanza para dudar de ella.
+
+Asi hay que escribirlo en el documento. **No** «medimos y SPI-6 es la mejor»,
+sino «SPI-3 falla el unico caso comprobable de forma sistematica; entre SPI-6 y
+SPI-12 el catalogo no decide y elegimos SPI-6 por numero de episodios».
+
+### Alternativas descartadas
+
+**Cambiar a SPI-6 sin medir, siguiendo a `[15]`.** Descartada. Es el atajo que
+parece prudente -alinearse con la literatura local- y repite exactamente el
+error que se esta corrigiendo: adoptar una escala por autoridad ajena en vez de
+por evidencia propia. Ademas `[15]` mide sobre estaciones y por canton; sus
+conclusiones no se transportan sin mas a celdas CHIRPS por distrito.
+
+**Mantener SPI-3 y no decir nada.** Descartada, y es la alternativa que habria
+sido invisible: nadie iba a notar la diferencia entre lo que dice `[15]` y lo
+que hacemos, porque para notarla habia que leer el articulo completo. Callarlo
+habria dejado en el documento una cita que aparenta respaldar algo que no
+respalda.
+
+**Reportar las tres escalas sin veredicto, como informacion.** Descartada. Un
+documento de investigacion que enumera tres opciones y no se compromete no
+decidio nada; y el criterio de aceptacion de abajo se fija **antes** de ver el
+resultado justamente para no poder escurrir la decision despues.
+
+**Ampliar primero el catalogo y medir despues.** Tentadora, porque el problema
+real es el tamano de muestra. Descartada por orden: integrar IMN y prensa es
+trabajo de campo de varias semanas y hay que decidir la escala para la entrega.
+La herramienta queda escrita para volver a correrla cuando el catalogo crezca,
+que es lo que convierte esto en un aplazamiento honesto y no en un olvido.
+
+**Usar el intervalo de Wald por ser el conocido.** Descartada por `[34]`:
+colapsa a [0, 0] con proporcion cero, que es nuestro caso en sequia, y declara
+certeza absoluta donde menos informacion hay.
+
+### Consecuencias
+
+**A favor.**
+
+- La escala del SPI pasa de ser una costumbre a ser una decision con criterio
+  escrito y comprobable.
+- El proyecto gana intervalos de confianza donde antes reportaba puntos, y eso
+  se derrama sobre **todas** las proporciones del documento, no solo sobre
+  sequia. La cobertura de lluvia -22 de 34- deja de ser un numero suelto.
+- Queda una herramienta que se vuelve a correr sola cuando cambie el catalogo.
+- El criterio sobre fichas escritas desde el resumen queda registrado y se puede
+  aplicar hacia atras sobre el resto de la bibliografia.
+
+**En contra, y se asume.**
+
+- **Hay que reetiquetar y volver a medir todo lo que dependia de la sequia.**
+  `etiquetas.csv` se regenera, las lineas base de H3.6 se vuelven a correr, y
+  las cifras de sequia del documento cambian. Es el costo de haber fijado la
+  escala sin medirla en D-19: se paga entero y con retraso.
+- **El criterio de aceptacion no cubrio el caso que salio.** Anticipaba «una
+  gana» o «empatan todas», y salio «una pierde y dos empatan». Se corrigio la
+  herramienta antes de leer el resultado, no despues, pero el hecho es que el
+  criterio estaba incompleto.
+- Los intervalos suponen observaciones independientes y no lo son: el SPI de un
+  mes es constante dentro del mes y los distritos comparten celdas de la fuente.
+  Son, si acaso, **optimistas**, y hay que declararlo cada vez que se citan.
+- **La eleccion entre SPI-6 y SPI-12 no la decidio el catalogo.** La decidio el
+  numero de episodios. Es un criterio razonable y no es evidencia externa, y el
+  documento tiene que presentarlo como lo que es.
+- Aparece una segunda diferencia con `[15]` que esta medicion **no** resuelve:
+  **la escala espacial.** Ellos eligieron canton teniendo el distrito
+  disponible; nosotros elegimos distrito. Eso va a amenazas a la validez y no se
+  arregla aqui.
+
+**Criterio de revision.** Se vuelve sobre esto cuando el catalogo crezca. Con
+siete registros de una sola fecha, cualquier veredicto es fragil, y la propia
+`[15]` muestra el camino para ampliarlo: integrar IMN y prensa a DesInventar.

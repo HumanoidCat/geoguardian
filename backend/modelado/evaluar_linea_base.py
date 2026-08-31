@@ -21,7 +21,7 @@ Escrita en los criterios **antes** de correr esto:
     sequia           CERCA de la trivial
 
 La tercera es la interesante. **Si la climatologica predice bien la sequia, D-19
-no esta haciendo lo que dice**: el SPI-3 se ajusta por mes calendario justamente
+no esta haciendo lo que dice**: el SPI-6 se ajusta por mes calendario justamente
 para remover la estacionalidad, asi que el mes no deberia informar casi nada.
 
 Seria el mismo defecto que D-19 se escribio para corregir, reaparecido un nivel
@@ -189,7 +189,7 @@ def main() -> int:
     print()
     if TipoEvento.SEQUIA in desvios:
         print("  ATENCION: la climatologica predice la sequia mejor de lo esperado.")
-        print("  D-19 ajusta el SPI-3 por mes calendario para remover la")
+        print("  D-19 ajusta el SPI por mes calendario para remover la")
         print("  estacionalidad. Si el mes informa, hay que revisar si ese ajuste")
         print("  esta funcionando: seria el defecto que D-19 vino a corregir,")
         print("  reaparecido un nivel mas arriba.\n")

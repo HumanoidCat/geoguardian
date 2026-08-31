@@ -276,7 +276,7 @@ def extremos_estadisticos(
     es el maximo. Para sequia el extremo es la cola **baja** de precipitacion, y
     ese caso no se cubre aqui a proposito: un dia de 0 mm en estacion seca es lo
     normal, no un atipico, y lo que convierte una racha seca en sequia es su
-    duracion y no el valor de un dia. Eso lo resuelve el SPI-3 de H2.3, que
+    duracion y no el valor de un dia. Eso lo resuelve el SPI de H2.3, que
     mide acumulados de tres meses contra la distribucion historica del mismo
     mes. Buscarlo aqui produciria miles de falsos positivos cada verano.
     """

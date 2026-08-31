@@ -60,8 +60,12 @@
 
 ## Sprint 2 (semanas 6-7) — 31.0 h
 
-- [ ] **H1.5** · Reporte formal de calidad de datos: faltantes, atipicos, sesgos
+- [x] **H1.5** · Reporte formal de calidad de datos: faltantes, atipicos, sesgos (2026-08-30)
   - `E1` · 8 pts · 12.5 h · rubrica: OE1 · depende de: H1.1
+  - horas: estimada n/d (trabajo repartido entre el 20 y el 30 de agosto, no se declaro al arrancar) . real 3.0
+  - El volcado se genero reejecutando la ETL de H1.1 en esta maquina, no se
+    espero el de Cesar. 102272 filas, el mismo conteo que documento H1.1.
+  - Hallazgo: seis de siete variables tienen 0.00 % de variacion espacial.
 
 - [x] **H2.1** · Filtrar ruido de las series con justificacion del filtro (2026-08-18)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H1.4 · **bloquea a: H2.2, H2.3, H2.4, H2.7**
@@ -75,18 +79,30 @@
 
 ## Sprint 3 (semanas 8-9) — 20.3 h
 
-- [ ] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio
+- [x] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio (2026-08-30)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: H6.2
+  - horas: estimada 2.0 . real 1.5
+  - 57 casos nuevos, 209 en la suite. Cubre 35 de los 40 del plan H10.1.
+  - Hallazgo: cuatro invariantes del contrato Repositorio, tres de prioridad 1,
+    que no cubre ni el simulado ni la implementacion de Postgres.
 
-- [ ] **H2.2** · Analisis espectral de la lluvia e interpretacion fisica
+- [x] **H2.2** · Analisis espectral de la lluvia e interpretacion fisica (2026-08-30)
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1
+  - horas: estimada n/d (trabajo repartido entre el 20 y el 30 de agosto, no se declaro al arrancar) . real 3.5
+  - Veranillo detectado en los ocho distritos, de 23 a 47 veces el modelo nulo.
+    La razon varia por factor 2.10 entre distritos: la unica variable que
+    discrimina espacialmente tambien cambia de estructura.
 
 - [x] **H2.4** · Anomalias respecto a la normal climatologica 1991-2020 (2026-08-20)
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 2.0
 
-- [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
+- [x] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos (2026-08-22)
   - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2a**
+  - horas: estimada 2.5 . real 2.5
+  - El guion indica que bloques van a H9.2a y cuales a H9.2b, segun la particion
+    del 2026-08-23. Se entregan cuatro casos y no tres: el cuarto es el unico
+    evento de incendio del catalogo.
 
 
 ## Sprint 4 (semanas 10-11) — 32.0 h

@@ -1,0 +1,264 @@
+%% Plantilla de formato de conferencia IEEE, para pandoc.
+%%
+%% POR QUE NO SE USA IEEEtran DIRECTAMENTE
+%%
+%% IEEEtran.cls es la clase oficial y seria la primera opcion, pero no esta en
+%% la distribucion de LaTeX del entorno de construccion y no se puede instalar
+%% desde ahi. Asi que se replica su maquetacion sobre `article`, que si esta.
+%%
+%% Lo que se replica, con sus medidas:
+%%
+%%     papel carta, 10 pt, dos columnas
+%%     margenes 0,75 in arriba, 1 in abajo, 0,625 in a los lados
+%%     columna de 3,5 in con 0,25 in de separacion
+%%     tipografia Times, que es la de IEEE
+%%     titulo a 24 pt, autores a 11 pt, todo centrado
+%%     secciones en numeracion ROMANA, versalitas, centradas
+%%     subsecciones con letra y titulo en cursiva
+%%     resumen y palabras clave a 9 pt, en negrita cursiva el rotulo
+%%
+%% Si algun dia hace falta la clase oficial, el contenido no cambia: es el mismo
+%% Markdown y solo se sustituye esta plantilla.
+%%
+%% EL LOGO
+%%
+%% Va arriba del titulo, cruzando las dos columnas. IEEE no lleva logo en sus
+%% articulos, pero este documento es academico y la universidad lo pide.
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%% SE COMPILA CON xelatex, NO con pdflatex.
+%%
+%% Estos documentos usan caracteres que pdflatex no acepta con `inputenc`:
+%% ≈ × · ± ≤ ≥ — °. Cada uno hay que declararlo a mano con
+%% `\DeclareUnicodeCharacter`, y el que falte tumba la compilacion entera con un
+%% mensaje que solo señala la linea. xelatex los toma como vienen.
+%%
+%% El costo es que hay que elegir la fuente por nombre, no por paquete.
+\usepackage{fontspec}
+
+%% TeX Gyre Termes es Times: mismas metricas, y viene tanto en TeX Live como en
+%% MiKTeX. Se prefiere a «Times New Roman» porque esa depende del sistema y no
+%% esta en Linux, donde se construye.
+%%
+%% **SE PIDEN POR NOMBRE DE ARCHIVO, NO POR NOMBRE DE FUENTE.** La primera
+%% version usaba `\setmainfont{TeX Gyre Termes}`, que le pide la fuente al
+%% sistema operativo. En Linux con TeX Live funciona porque la instalacion
+%% registra las fuentes; en Windows con MiKTeX **no**, y la compilacion muere
+%% con «The font "TeX Gyre Termes" cannot be found», que suena a que falta
+%% instalar algo cuando en realidad esta instalada y el motor no la ve.
+%%
+%% Pidiendola por archivo, `kpathsea` la busca dentro de la propia distribucion
+%% de TeX y no hace falta que el sistema la conozca. Funciona igual en las dos.
+\setmainfont{texgyretermes}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+]
+\setsansfont{texgyreheros}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+]
+\setmonofont{texgyrecursor}[
+  Extension    = .otf,
+  UprightFont  = *-regular,
+  BoldFont     = *-bold,
+  ItalicFont   = *-italic,
+  BoldItalicFont = *-bolditalic,
+  Scale        = 0.85,
+]
+%% El paquete de espanol de babel da la particion silabica correcta, pero no
+%% esta en todas las distribuciones: MiKTeX lo instala solo, la imagen minima de
+%% TeX Live de la integracion continua no lo trae. Sin esta condicional el
+%% documento **no compila en absoluto** en la segunda, que es donde se construye.
+%%
+%% Los rotulos se fijan a mano en los dos casos: con espanol babel pone «Cuadro»
+%% y IEEE usa «Tabla» y «Fig.».
+\IfFileExists{spanish.ldf}
+  {\usepackage[spanish,es-noquoting,es-nolists]{babel}}
+  {\usepackage[english]{babel}}
+\addto\captionsspanish{}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+%% LAS TABLAS TIENEN QUE CORTAR LINEA, Y CON `l` NO CORTAN
+%%
+%% Pandoc emite `@{}ll@{}` cuando calcula que la tabla cabe. Ese calculo lo hace
+%% contra el ancho de una pagina normal, y este documento va **a dos columnas**:
+%% una celda larga en una columna `l` no corta linea, se sale de la caja y se
+%% imprime sobre el margen. Salia en la tabla de fuentes y en la de umbrales.
+%%
+%% `tabularx` reparte el ancho disponible entre las columnas `X`, que si cortan.
+%% `L{peso}` permite darle mas ancho a la columna con el texto mas largo en vez
+%% de repartir en partes iguales, que dejaria «Evento» con el mismo ancho que
+%% una justificacion de tres lineas.
+%%
+%% Los pesos los calcula `construir_entregable.py` desde el contenido de cada
+%% columna, no se escriben a mano.
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{adjustbox}
+\usepackage[hidelinks]{hyperref}
+
+\usepackage[
+  letterpaper,
+  top=0.75in, bottom=1in, left=0.625in, right=0.625in,
+  columnsep=0.25in
+]{geometry}
+
+%% --------------------------------------------------------------------------
+%% Secciones al estilo IEEE
+%% --------------------------------------------------------------------------
+%% LaTeX **no** numera: los documentos ya traen su numeracion en el texto del
+%% encabezado -«II. Trabajo relacionado», «A. Problema»- porque tambien se leen
+%% en GitHub, donde no hay numeracion automatica.
+%%
+%% Sin esto salia «I. I. Introduccion». Se conserva la numeracion del Markdown
+%% para no tener el numero en dos lugares: es el mismo criterio con el que se
+%% generan la matriz de trazabilidad y los diagramas.
+\setcounter{secnumdepth}{0}
+
+\titleformat{\section}[block]
+  {\centering\normalsize\scshape}{}{0pt}{}
+\titlespacing*{\section}{0pt}{12pt plus 2pt minus 2pt}{6pt}
+
+\titleformat{\subsection}[block]
+  {\normalsize\itshape}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{10pt plus 2pt minus 2pt}{4pt}
+
+\titleformat{\subsubsection}[block]
+  {\normalsize\itshape}{}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{8pt}{4pt}
+
+%% --------------------------------------------------------------------------
+%% Tablas y figuras
+%% --------------------------------------------------------------------------
+%% A 9 pt porque en una columna de 3,5 in una tabla a 10 pt no entra casi nunca.
+\captionsetup[table]{font=small,labelfont=sc,skip=4pt}
+\captionsetup[figure]{font=small,labelfont=sc,skip=4pt}
+%% Los rotulos van dentro de `\AtBeginDocument` y no sueltos en el preambulo.
+%%
+%% babel los reescribe al empezar el documento -«Figure» con la opcion inglesa,
+%% «Cuadro» con la espanola- y pisa cualquier `\renewcommand` anterior. La
+%% primera version los ponia en el preambulo y las figuras salian rotuladas
+%% «Figure 1» en un documento en espanol. Se vio en el PDF, no en el codigo.
+\AtBeginDocument{%
+  \renewcommand{\tablename}{Tabla}%
+  \renewcommand{\figurename}{Fig.}%
+  \renewcommand{\refname}{Referencias}%
+}
+\renewcommand{\arraystretch}{1.15}
+
+%% Pandoc necesita estas dos definiciones cuando emite tablas.
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\newlength{\anchocol}
+\setlength{\anchocol}{\dimexpr\columnwidth-2\tabcolsep\relax}
+
+%% Listas mas compactas: en dos columnas el aire de por defecto se come el
+%% espacio util.
+\setlist[itemize]{leftmargin=1.2em,itemsep=1pt,topsep=3pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.4em,itemsep=1pt,topsep=3pt,parsep=0pt}
+
+%% Los bloques de codigo tambien: a 8 pt entran en la columna.
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+\usepackage{fancyvrb}
+\fvset{fontsize=\scriptsize}
+
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+\widowpenalty=10000
+\clubpenalty=10000
+
+%% --------------------------------------------------------------------------
+%% Bloque de titulo, cruzando las dos columnas
+%% --------------------------------------------------------------------------
+%% El logo va en una caja preparada ANTES del `\twocolumn`, y no directamente
+%% adentro. LaTeX escanea el argumento opcional de `\twocolumn` buscando `\par`,
+%% y en ese escaneo `\includegraphics` se rompe con un mensaje que no ayuda:
+%%
+%%     ! Argument of \Gin@ii has an extra }.
+%%
+%% Cuesta relacionarlo con la causa. La imagen compone bien en cualquier otro
+%% lugar del documento; el problema es solo ese argumento.
+$if(logo)$
+\newsavebox{\cajalogo}
+$endif$
+
+\begin{document}
+
+$if(logo)$
+\savebox{\cajalogo}{%
+  \includegraphics[height=$if(logo-alto)$$logo-alto$$else$12mm$endif$]{$logo$}}
+$endif$
+
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \vspace{-6pt}
+$if(logo)$
+    \begin{center}\usebox{\cajalogo}\end{center}
+    \vspace{4pt}
+$endif$
+    \begin{center}
+      {\fontsize{20}{24}\selectfont $title$\par}
+$if(subtitle)$
+      \vspace{6pt}
+      {\fontsize{12}{14}\selectfont\itshape $subtitle$\par}
+$endif$
+      \vspace{10pt}
+      %% Acepta las dos formas de declarar autores en el YAML: una lista de
+      %% cadenas, que es lo que el escritor de .docx de pandoc entiende, y una
+      %% lista de mapas con `name`, que es lo habitual en plantillas LaTeX.
+      %%
+      %% Hacia falta: con mapas, el .docx salia **sin autores**, porque su
+      %% escritor no sabe leer `.name`. Y usar solo cadenas rompia esta
+      %% plantilla. Un solo YAML tiene que servir para los dos formatos.
+      {\fontsize{11}{13}\selectfont
+$for(author)$
+        $if(author.name)$$author.name$$else$$author$$endif$$sep$\quad\textperiodcentered\quad
+$endfor$
+      \par}
+$if(institute)$
+      \vspace{3pt}
+      {\fontsize{9}{11}\selectfont\itshape $institute$\par}
+$endif$
+$if(date)$
+      \vspace{3pt}
+      {\fontsize{9}{11}\selectfont $date$\par}
+$endif$
+    \end{center}
+    \vspace{10pt}
+
+$if(abstract)$
+    \begin{center}
+    \begin{minipage}{0.92\textwidth}
+      \fontsize{9}{10.5}\selectfont
+      \noindent\textbf{\textit{Resumen}}---$abstract$
+$if(keywords)$
+      \vspace{5pt}
+
+      \noindent\textbf{\textit{Palabras clave}}---$for(keywords)$$keywords$$sep$, $endfor$
+$endif$
+    \end{minipage}
+    \end{center}
+    \vspace{14pt}
+$endif$
+  \end{@twocolumnfalse}
+]
+
+$body$
+
+\end{document}

@@ -139,8 +139,8 @@ Management, DOI `10.1016/j.ipm.2009.03.002`.
 ### [13] Bangor, Kortum y Miller — interpretación del puntaje SUS
 
 ```
-[13] A. Bangor, P. Kortum y J. Miller, "The System Usability Scale: An
-     empirical evaluation," International Journal of Human-Computer
+[13] A. Bangor, P. Kortum y J. Miller, "An empirical evaluation of the
+     System Usability Scale," International Journal of Human-Computer
      Interaction, vol. 24, no. 6, pp. 574-594, 2008.
 ```
 
@@ -580,6 +580,358 @@ y actualizar esta nota.
   atribución a `[24]`, que era incorrecta**: la guía de la OMM no plantea la
   distribución mixta.
 
+## Fichas nuevas de la revisión del 2026-08-30
+
+Ocho fichas (`[28]` a `[35]`) agregadas al ampliar la revisión bibliográfica.
+El criterio de las anteriores se mantiene sin cambios: se declara qué se leyó
+y qué no, y ninguna entra sin haber confirmado que dice lo que aquí se afirma.
+
+Tres de estas fichas **contradicen o matizan decisiones ya tomadas**. Están
+marcadas como tales, porque el valor de encontrarlas está justamente en eso y
+no en engrosar la bibliografía.
+
+### [28] Funk et al. — CHIRPS
+
+```
+[28] C. Funk et al., "The climate hazards infrared precipitation with
+     stations—a new environmental record for monitoring extremes,"
+     Scientific Data, vol. 2, art. 150066, 2015.
+```
+
+**Fuente verificada:** *Scientific Data* (Nature), DOI `10.1038/sdata.2015.66`,
+publicado 2015-12-08. **Texto completo leído** el 2026-08-30 (acceso abierto).
+
+**Ficha de contenido**
+- *Qué dice:* describe CHIRPS, un producto de precipitación cuasi-global
+  (50°S–50°N) a resolución 0,05°, con pasos diario, pentadal y mensual desde
+  1981. Combina estimaciones de lluvia derivadas de duración de nube fría
+  (CCD) en infrarrojo térmico, calibradas con TMPA 3B42 v7, e incorpora datos
+  de estaciones en dos fases mediante interpolación de anomalías sobre una
+  climatología de alta resolución.
+- *El dato decisivo para nosotros, citado del artículo:* «The basic time step
+  of the CHIRP is the pentad. All other time steps are either aggregates
+  (dekadal and monthly) or disaggregations (daily). Pentadal CHIRP values are
+  disaggregated to daily precipitation estimates based on daily CFS fields
+  rescaled to 0.05° resolution.»
+- *Por qué es relevante:* **el paso básico de CHIRPS es el péntada, no el
+  día.** La serie diaria no se mide: es el total del péntada repartido entre
+  sus cinco días según la forma diaria que da el reanálisis CFS. Nuestra
+  etiqueta de lluvia intensa se construye sobre acumulados de 72 h de esa
+  serie diaria, es decir, sobre un reparto interno al péntada cuya
+  distribución temporal proviene de un modelo y no de la observación.
+- *Uso previsto:* cita obligada de la fuente en la metodología —hoy CHIRPS se
+  usa sin referencia, que era un vacío— y **base de la amenaza a la validez
+  del etiquetado de lluvia**. Explica de forma independiente el patrón medido
+  en el contraste contra el catálogo: de 12 fallos de lluvia, 9 tenían marca a
+  ≤14 días y en 9 la marca llegó *después*. Un error de fecha por debajo del
+  péntada es exactamente lo que este diseño produce.
+
+### [29] Rojas Morales — índices distritales de riesgo en Costa Rica
+
+```
+[29] N. Rojas Morales, "Índices distritales de riesgo de desastres por
+     eventos lluviosos extremos en Costa Rica," tesis de Magister
+     Scientiae, Centro Agronómico Tropical de Investigación y Enseñanza
+     (CATIE), Turrialba, Costa Rica, 2018.
+```
+
+**Fuente verificada:** repositorio institucional del CATIE, handle
+`11554/8725`. **Documento completo leído** el 2026-08-30.
+
+**Ficha de contenido**
+- *Qué dice:* estima índices de riesgo de desastre por lluvia extrema **para
+  los 459 distritos de Costa Rica**, en dos artículos. El primero valida
+  CHIRPS v2 contra ocho estaciones del IMN, una por región climática, para
+  1981–2013. El segundo estima la probabilidad de desastre con un modelo
+  Probit, usando como variable dependiente la ocurrencia de desastre y como
+  explicativas la anomalía de precipitación —escenario de dos desviaciones
+  estándar, percentil 90— junto a variables socioeconómicas, biofísicas y
+  geográficas.
+- *Resultados de la validación, relevantes para Tilarán:* CHIRPS v2 ajusta
+  mejor en época lluviosa que en seca, y en época seca **subestima** en la
+  mayoría de las estaciones. Ajusta mejor en zonas de relieve suave que en
+  zonas montañosas, donde el relieve gobierna el patrón de lluvia. Tilarán es
+  montañoso.
+- *Por qué es relevante:* es el antecedente directo más cercano que existe al
+  problema de GeoGuardian —mismo país, misma unidad administrativa, misma
+  fuente de precipitación, mismo evento— y hasta ahora el documento no lo
+  citaba. Define el trabajo relacionado nacional y fija qué aporta GeoGuardian
+  que este trabajo no hace: operación continua, tres eventos en vez de uno, y
+  un visor.
+- *Uso previsto:* trabajo relacionado (sección II), justificación de la escala
+  distrital, y respaldo de la limitación por relieve en amenazas a la validez.
+
+### [30] Openshaw — el problema de la unidad de área modificable
+
+```
+[30] S. Openshaw, The Modifiable Areal Unit Problem, Concepts and
+     Techniques in Modern Geography (CATMOG) 38. Norwich, Reino Unido:
+     Geo Books, 1984.
+```
+
+**Fuente verificada:** monografía CATMOG 38, ISBN 0-86094-134-5, ISSN
+0306-6142. **Texto completo leído** el 2026-08-30.
+
+**Ficha de contenido**
+- *Qué dice:* nombra y descompone el problema. Cita textual de la definición:
+  «the areal units (zonal objects) used in many geographical studies are
+  arbitrary, modifiable, and subject to the whims and fancies of whoever is
+  doing, or did, the aggregating». Distingue dos subproblemas: el **problema
+  de escala** —la variación de resultados al agregar progresivamente a
+  unidades menos numerosas y más grandes— y el **problema de agregación** —la
+  variación por combinaciones alternativas de unidades manteniendo constante
+  el número de zonas—. Y lo vincula con la **falacia ecológica**: inferir
+  sobre los individuos que forman una zona a partir del dato agregado de la
+  zona, cuya gravedad depende de cuán heterogénea sea internamente.
+- *Por qué es relevante:* **le pone nombre al hallazgo central del proyecto.**
+  Que cuatro de cinco variables no distingan distritos de Tilarán no es una
+  anomalía nuestra: es un efecto de escala documentado desde 1984, medido aquí
+  en un caso concreto. Citarlo convierte una observación en una medición de un
+  fenómeno conocido, que es la diferencia entre un informe y una
+  investigación.
+- *Uso previsto:* marco conceptual de la sección I y de las conclusiones.
+
+### [31] Gotway y Young — combinación de datos espaciales incompatibles
+
+```
+[31] C. A. Gotway y L. J. Young, "Combining incompatible spatial data,"
+     Journal of the American Statistical Association, vol. 97, no. 458,
+     pp. 632-648, 2002.
+```
+
+**Fuente verificada — alcance declarado.** Datos bibliográficos confirmados en
+Taylor & Francis (JASA), DOI `10.1198/016214502760047140`, y en dos índices
+independientes. **El texto completo no se leyó: está tras muro de pago.** Lo
+que se leyó es el resumen del editor y las descripciones concordantes de tres
+fuentes secundarias. Si alguien consigue acceso institucional, corresponde
+verificar y actualizar esta nota.
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* revisa el **problema de cambio de soporte**
+  (*change of support problem*), esto es, inferir un proceso espacial a una
+  resolución a partir de datos en otra. Distingue tres casos: *upscaling*
+  (agregar puntos a un área), ***downscaling* (desagregar el dato de un área a
+  unidades menores)** y *side-scaling* (dos particiones que se solapan sin
+  anidar). Clasifica el MAUP como un caso del problema de cambio de soporte.
+- *Por qué es relevante:* es el nombre técnico exacto de lo que hace
+  GeoGuardian. Asignar el valor de una celda CHIRPS de 0,05° —unos 5,5 km— a
+  distritos de Tilarán es *downscaling*, y hacerlo por asignación directa,
+  sin modelo, es la forma que la literatura identifica como problemática. El
+  documento describe hoy esta operación sin nombrarla.
+- *Uso previsto:* metodología, al declarar la operación de asignación
+  celda→distrito, y amenazas a la validez.
+
+### [32] Roberts et al. — validación cruzada con estructura espacial y temporal
+
+```
+[32] D. R. Roberts et al., "Cross-validation strategies for data with
+     temporal, spatial, hierarchical, or phylogenetic structure,"
+     Ecography, vol. 40, no. 8, pp. 913-929, 2017.
+```
+
+**Fuente verificada:** *Ecography* (Wiley / Nordic Society Oikos), DOI
+`10.1111/ecog.02881`. Datos bibliográficos y resumen confirmados en la
+editorial y en dos repositorios institucionales. **Se leyó el resumen
+completo, no el artículo entero.**
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* cuando los datos tienen estructura
+  temporal, espacial o jerárquica, ignorarla al validar produce una
+  **subestimación seria del error predictivo**. Propone validación cruzada por
+  bloques —partir los datos de forma estratégica y no aleatoria— y recomienda
+  usarla siempre que exista estructura de dependencia, **aunque los residuos
+  del modelo ajustado no muestren correlación visible** y aunque el modelo
+  incorpore estructuras de correlación.
+- *Por qué es relevante, y en qué nos corrige:* la validación de ventana
+  expansiva ya bloquea la dimensión **temporal**, con cortes en frontera de
+  mes y embargo de 7 días. **No bloquea la dimensión espacial.** Los ocho
+  distritos de Tilarán comparten celdas de las fuentes gruesas, de modo que
+  dos filas del mismo día en distritos vecinos no son observaciones
+  independientes. Según este trabajo, eso subestima el error, y la
+  subestimación no se detecta mirando residuos.
+- *Uso previsto:* amenazas a la validez, y trabajo futuro. Complementa a
+  `[11]`, que cubre solo la dependencia temporal.
+
+### [33] Northcutt, Athalye y Mueller — errores de etiqueta
+
+```
+[33] C. G. Northcutt, A. Athalye y J. Mueller, "Pervasive label errors in
+     test sets destabilize machine learning benchmarks," in Proc. 35th
+     Conf. Neural Information Processing Systems (NeurIPS) Datasets and
+     Benchmarks Track, 2021.
+```
+
+**Fuente verificada:** actas de NeurIPS 2021, *Datasets and Benchmarks Track*;
+preprint arXiv `2103.14749`. **Se leyó el resumen y la ficha de las actas, no
+el artículo entero.**
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* identifica errores de etiqueta en los
+  conjuntos de prueba de diez de los repositorios más usados en visión,
+  lenguaje y audio, con un promedio del **3,4 %** de error; en el conjunto de
+  validación de ImageNet, 2916 errores, un 6 %. La consecuencia que interesa:
+  con suficiente proporción de etiquetas mal puestas, **un modelo de menor
+  capacidad puede ser más útil en la práctica que uno de mayor capacidad**, y
+  el orden del *ranking* se invierte.
+- *Por qué es relevante:* es el respaldo externo de la tesis del proyecto.
+  Sostiene que la calidad del etiquetado condiciona la comparación de modelos
+  y que un error en la variable objetivo no produce un fallo visible sino
+  métricas plausibles sobre un objetivo mal construido —exactamente lo que
+  dicen nuestras conclusiones sobre cuatro de los seis hallazgos—.
+- *Uso previsto:* introducción y conclusiones; convierte «decidimos validar el
+  etiquetado antes de modelar» en una decisión con respaldo en la literatura.
+
+### [34] Brown, Cai y DasGupta — intervalos para una proporción binomial
+
+```
+[34] L. D. Brown, T. T. Cai y A. DasGupta, "Interval estimation for a
+     binomial proportion," Statistical Science, vol. 16, no. 2,
+     pp. 101-133, 2001.
+```
+
+**Fuente verificada:** *Statistical Science* (Institute of Mathematical
+Statistics), DOI `10.1214/ss/1009213286`, acceso abierto en Project Euclid;
+copia del autor en la Wharton School. **Se leyó el resumen y las
+recomendaciones, no la demostración completa.**
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* la cobertura del intervalo de Wald para una
+  proporción es errática de forma mucho más persistente de lo que se suele
+  reconocer, y las recetas habituales de los libros de texto sobre cuándo es
+  seguro usarlo son engañosas. Recomienda el **intervalo de Wilson** o el de
+  Jeffreys de colas iguales para *n* pequeño, y el de Agresti-Coull para *n*
+  mayor.
+- *Por qué es relevante, y en qué nos corrige:* el documento reporta hoy
+  proporciones como valores puntuales —64,7 % de cobertura sobre 34 eventos de
+  lluvia, 13,7 % de tasa base— sin intervalo. Con *n* = 34 el intervalo es
+  ancho, y **sin él no se puede afirmar que 64,7 % y 13,7 % son distintos**:
+  solo se está mostrando la diferencia entre dos puntos. Es la carencia más
+  concreta frente a un documento de investigación bien hecho.
+- *Uso previsto:* recalcular las proporciones de la Fig. 3 y del contraste
+  contra el catálogo con intervalo de Wilson al 95 %, y apoyar las
+  conclusiones en la separación entre intervalos y no en los valores puntuales.
+
+### [35] Ben Bouallègue et al. — verificación de pronósticos de eventos raros
+
+```
+[35] Methodological and conceptual challenges in rare and severe event
+     forecast verification, Natural Hazards and Earth System Sciences,
+     vol. 22, no. 2, pp. 539-557, 2022.
+```
+
+**Fuente verificada — alcance declarado.** Artículo en acceso abierto en
+NHESS (Copernicus), volumen 22, número 2, páginas 539-557, 2022. **Se leyó el
+planteamiento y las secciones sobre exactitud y sobre los índices de destreza;
+no el artículo completo.** *La lista de autores no se transcribió de la fuente
+y debe completarse antes de citar.*
+
+**Ficha de contenido**
+- *Qué dice, según lo verificado:* en pronóstico de eventos raros, centrarse
+  en la exactitud «recompensa desempeños sin destreza e incentiva predicciones
+  de no-ocurrencia», lo que es especialmente grave cuando fallar una
+  ocurrencia cuesta mucho más que una falsa alarma. Discute índices pensados
+  para tasas base bajas —Peirce, Heidke, índice de éxito crítico— y su
+  relación con precisión y exhaustividad.
+- *Por qué es relevante:* respalda desde la meteorología operativa la elección
+  de F1-macro sobre exactitud, que hoy se justifica solo con `[12]` y `[20]`,
+  ambas de aprendizaje automático general. Y aporta el vocabulario propio del
+  dominio, que es el que va a leer un evaluador de riesgo climático.
+- *Uso previsto:* metodología, al justificar la métrica; y discusión.
+
+### [36] Sevilla-González et al. — Versión en español validada del SUS
+
+```
+[36] M. D. R. Sevilla-Gonzalez, L. Moreno Loaeza, L. S. Lazaro-Carrera,
+     B. Bourguet Ramirez, A. Vázquez Rodríguez, M. L. Peralta-Pedrero y
+     P. Almeda-Valdes, "Spanish version of the System Usability Scale for
+     the assessment of electronic tools: Development and validation,"
+     JMIR Human Factors, vol. 7, no. 4, e21161, 2020.
+```
+
+**Fuente verificada:** JMIR Human Factors, DOI `10.2196/21161`, PMID
+`33325828`. **El artículo completo se leyó directamente** el 2026-08-22, y
+también su Multimedia Appendix 2, que contiene los diez ítems en español. Es
+acceso abierto bajo licencia Creative Commons Attribution 4.0, que permite
+reproducir los ítems citando la fuente.
+
+**Ficha de contenido**
+- *Qué dice:* traduce, adapta culturalmente y valida al español la escala SUS
+  de Brooke `[7]`. Sigue la metodología de nueve pasos de la OMS: traducción
+  directa por dos traductores independientes, síntesis, traducción inversa por
+  un hablante nativo de inglés, armonización y pilotaje. Reporta índice de
+  validez de contenido 0,92, índice de validez aparente 0,94 y alfa de Cronbach
+  0,812 (IC 95 % 0,748-0,866) sobre 88 respondentes.
+- *Por qué es relevante:* el puntaje SUS solo es comparable contra los valores
+  de referencia de la literatura si los diez ítems no se alteran. Es la única
+  traducción al español encontrada **con proceso de validación documentado**;
+  los propios autores señalan que existe otra versión en español sin evidencia
+  de su proceso de validez y confiabilidad. Permite aplicar el instrumento en
+  H9.2a sin inventar una traducción propia.
+- *Detalle que favorece a este proyecto:* los autores sustituyeron "system" por
+  "herramienta" porque adaptaron la escala a aplicaciones móviles y sitios web.
+  El visor de GeoGuardian es un sitio web.
+- *Uso previsto:* instrumento de H9.1 y H9.2a. Los diez ítems transcritos están
+  en `docs/investigacion/sus-cuestionario.md`.
+
+**Limitación que los autores declaran y que hay que arrastrar a la evidencia.**
+La validación se hizo en Ciudad de México, **solo con adultos jóvenes** —edad
+promedio 32,5 años, mayoría con grado universitario y nivel socioeconómico
+medio—. El artículo dice expresamente que la aplicabilidad a otros rangos de
+edad puede cuestionarse y que la representatividad para el resto de América
+Latina requiere estudios adicionales, porque los resultados podrían variar por
+región.
+
+Los participantes previstos para H9.2a en Tilarán son otra población: otro país,
+probablemente otro rango de edad y otra escolaridad. **Las propiedades
+psicométricas reportadas no se transfieren automáticamente**, y la evidencia de
+H9.2a debe decirlo.
+
+## Corrección de la ficha `[13]`
+
+**Detectada el 2026-08-22 al contrastar la lista de referencias de `[36]` con la
+nuestra.** El título estaba invertido: decía "The System Usability Scale: An
+empirical evaluation" cuando el correcto es "An Empirical Evaluation of the
+System Usability Scale".
+
+El DOI, el volumen, el número y las páginas siempre estuvieron bien; el error
+era solo de titulación, y habría llegado al documento IEEE sin que nadie lo
+notara. Se confirmó el título correcto en Taylor & Francis y se corrigió la
+entrada de la ficha.
+
+## Corrección de la ficha `[15]`
+
+**La ficha original se escribió sobre el resumen. Leído el artículo completo
+el 2026-08-30, dice algo que la ficha no recoge y que afecta a una decisión
+nuestra.**
+
+Lo que la ficha decía —que el SPI es el índice con asociación más fuerte con
+los impactos socio-productivos registrados en Guanacaste— es correcto. Falta
+lo siguiente:
+
+- *Las escalas evaluadas son SPI-6 y SPI-12, no SPI-3.* El SPI-12 se toma en
+  diciembre, para describir el año; el SPI-6 en octubre, para describir la
+  estación lluviosa del Pacífico. **SPI-3 no se evalúa en ese trabajo.**
+  GeoGuardian usa SPI-3 por D-19. La conclusión de la referencia no respalda
+  esa escala: respalda el SPI como familia y otras dos escalas concretas.
+- *La escala espacial elegida es cantonal, no distrital.* Los autores filtran
+  los impactos «a una escala cantonal (municipal, gobierno local)», teniendo
+  disponibles registros a escala de distrito. Es una decisión del trabajo más
+  cercano al nuestro, en sentido contrario al nuestro.
+- *Las fuentes de impacto son cuatro, no tres:* DesInventar, EM-DAT, IMN **y
+  prensa nacional en papel y digital**, integradas en una base única. Nosotros
+  contrastamos contra DesInventar sola.
+- *Declaran una limitación que también es nuestra:* «en las bases de datos
+  consultadas no siempre aparecía el sector que fue afectado o el tipo de
+  impacto», lo que les obligó a un análisis más general que el planeado.
+- *Contexto que el documento no usa y debería:* Tilarán está en Guanacaste, y
+  Guanacaste es el extremo sur del **Corredor Seco Centroamericano**, que va
+  desde Chiapas hasta ahí. Es el marco geográfico natural de la parte de
+  sequía.
+
+**Consecuencia pendiente de decisión:** o se justifica SPI-3 con otro
+respaldo, o se cambia la escala, o se declara como amenaza a la validez.
+Ver la anotación en la bitácora de decisiones.
+
 ## Referencias buscadas y no incluidas
 
 Dos revisiones de aprendizaje automático aplicado a incendio y sequía
@@ -600,9 +952,13 @@ número.
 | Mínimo exigido por H10.5a | 15 |
 | Fichas agregadas por H10.5b | 2 (`[25]` y `[26]`) |
 | Fichas agregadas por la corrección de atribución de H2.3 | 1 (`[27]`) |
+| Fichas agregadas por la revisión del 2026-08-30 | 8 (`[28]` a `[35]`) |
+| Fichas agregadas por H9.1 | 1 (`[36]`) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
-| Total de la bibliografía | 27 |
+| Total de la bibliografía | 36 |
 | Referencias descartadas por no poder verificarse | 2 |
-| Fichas corregidas tras leer la fuente completa | 1 (`[24]`) |
-| Pendientes de verificar antes de citar | 1 (Mora-Vahrson 1994, ver `estado-del-arte.md`) |
-| Citadas con verificación parcial declarada | 1 (`[27]`, artículo tras muro de pago) |
+| Fichas corregidas tras leer la fuente completa | 2 (`[24]`, `[15]`) |
+| Fichas corregidas por contraste con otra bibliografía | 1 (`[13]`, título invertido) |
+| Pendientes de verificar antes de citar | 2 (Mora-Vahrson 1994, ver `estado-del-arte.md`; autores de `[35]`) |
+| Citadas con verificación parcial declarada | 4 (`[27]`, `[31]`, `[32]`, `[35]`) |
+| Fichas que contradicen o matizan una decisión tomada | 3 (`[15]`, `[32]`, `[34]`) |

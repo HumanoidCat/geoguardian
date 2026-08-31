@@ -159,21 +159,21 @@ Definition of Done:
 H1.13,"H1.13 Trigger de auditoria sobre predicciones, con prueba","Epica E1 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: BD-2
-Depende de: H1.8
+Depende de: H1.8, H1.15
 Sprint: S1
 
-BLOQUEADA 2026-08-27, y no por su dependencia declarada.
+RESUELTO 2026-08-27. Depende ahora tambien de H1.15.
 
-El trigger audita `analitico.riesgo` y **esa tabla no existe**:
-`init-db` crea el ESQUEMA `analitico` vacio, y NINGUNA historia del
-backlog declara crear la tabla. Se reviso E1, E3 y E7 una por una.
+Estuvo bloqueada porque el trigger audita `analitico.riesgo` y esa tabla
+no existia: `init-db` crea el ESQUEMA vacio y ninguna historia declaraba
+crearla. Lo detecto Cesar al intentar hacerla, con H1.8 -su dependencia
+declarada- ya cerrada.
 
-Lo detecto Cesar al intentar hacerla. H1.8 esta cerrada, asi que la
-dependencia declarada se cumple y aun asi la historia es imposible.
+El PM decidio abrir H1.15 en vez de meter la creacion aca: esta historia
+es el disparador de auditoria, y juntar el esquema con el disparador hace
+que discutir uno arrastre al otro.
 
-PENDIENTE DE DECISION DEL PM: a que historia se le asigna crear
-`analitico.riesgo`, o si H1.13 se difiere con la condicion de D-27.
-No se le pone una dependencia inventada mientras tanto. (semanas 8-9)
+La dependencia a H1.15 es real y medida, no inventada. (semanas 8-9)
 
 Definition of Done:
 - [ ] Criterios de aceptacion verificados por otra persona
@@ -181,7 +181,7 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
-H1.14,"H1.14 Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite","Epica E1 | 5 puntos | 7.8 h estimadas
+H1.14,H1.14 Ingesta reejecutable con cadencia declarada por evento y producto declarado,"Epica E1 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: BD-1
 Depende de: H1.1, H1.2
@@ -221,7 +221,57 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S3,BD-1,cesar",S3,cesar,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia
+
+RENOMBRADA 2026-08-27, de «Ingesta periodica de las tres fuentes».
+
+Lo planteo Cesar y el PM lo acepto: una ingesta programada contra una
+base que solo existe cuando alguien levanta `docker compose` no es
+periodica, es un guion con un `cron` escrito al lado.
+
+Lo que la historia SI entrega, y vale por si solo:
+- la cadencia por evento, con su medicion detras
+- que producto se cargo, porque el preliminar de CHIRPS no es el final
+- idempotencia: correrla dos veces no duplica filas
+
+Lo que sale a la historia de alojamiento, todavia sin abrir: donde corre.
+
+Y por D-31, esta historia NO regenera el manifiesto de H1.7. Emite su
+recibo de carga en la base y termina.","E1,S3,BD-1,cesar",S3,cesar,5,7.8
+H1.15,H1.15 Crear analitico.riesgo con sus restricciones,"Epica E1 | 3 puntos | 2.9 h estimadas
+
+Rubrica o objetivo: BD-2
+Depende de: H1.3, H1.8
+Sprint: S1 (semanas 8-9)
+Bloquea a: H1.13
+
+POR QUE EXISTE. H1.13 audita `analitico.riesgo` y esa tabla no existe:
+`init-db` crea el ESQUEMA vacio y ninguna historia declaraba crearla.
+Lo detecto Cesar el 2026-08-27 al intentar hacer H1.13.
+
+Se abre como historia propia y NO se mete dentro de H1.13: esa historia
+es el disparador de auditoria, y juntar el esquema con el disparador hace
+que discutir uno arrastre al otro.
+
+Se puede construir y probar contra una tabla vacia, asi que no espera al
+modelo de la epica E3.
+
+QUE TIENE QUE CUMPLIR EL DDL, y no es negociable:
+
+- `probabilidad` es P(nivel = alto), por D-21. El COMMENT de la columna
+  lo dice, no solo el contrato.
+- La ausencia es NULL, nunca 0. Un distrito sin estimacion tiene que
+  poder distinguirse de uno con riesgo bajo. Es D-07, y es lo mismo que
+  el etiquetado y el visor ya hacen.
+- Clave foranea a geo.distrito, e indice por distrito y fecha.
+- El nivel sale del enum de contratos, no de texto libre.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
 H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: Senales

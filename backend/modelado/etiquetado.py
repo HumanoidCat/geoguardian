@@ -17,7 +17,7 @@ un modelo inservible. Es el criterio **CA-4** y lo comprueba `verificar_h30.py`.
 
 LAS TRES ESCALAS NO COINCIDEN, Y ASI SE CONCILIAN
 
-    sequia          SPI-3, mensual
+    sequia          SPI-6, mensual
     lluvia intensa  acumulado de 72 h
     incendio        ventana de 7 dias
 
@@ -34,10 +34,10 @@ LAS TRES ESCALAS NO COINCIDEN, Y ASI SE CONCILIAN
     siete dias, hubo algun episodio de 72 h que superara el umbral". Los
     umbrales son los P95 y P99 **del propio distrito** sobre 1991-2020.
 
-  * **Sequia** usa el SPI-3 del **mes calendario que contiene a `t+7`**, que es
+  * **Sequia** usa el SPI-6 del **mes calendario que contiene a `t+7`**, que es
     el estado de sequia al final del horizonte.
 
-    **Consecuencia que H3.2 tiene que conocer:** el SPI-3 de un mes no cambia
+    **Consecuencia que H3.2 tiene que conocer:** el SPI-6 de un mes no cambia
     dentro del mes, asi que todas las filas de un mismo mes comparten su
     etiqueta de sequia. No es un defecto -es lo que el indice mide- pero **infla
     la correlacion entre filas vecinas**, y una particion que corte por el medio
@@ -80,7 +80,25 @@ from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 
 HORIZONTE_DIAS = 7
 VENTANA_ACUMULADO_DIAS = 3  # las "72 h" del contrato
-VENTANA_SPI_MESES = 3
+#: Escala del SPI, en meses. **Seis, por D-32, y sale de una medicion.**
+#:
+#: Fue 3 desde D-19 hasta el 2026-08-30, adoptada porque es la escala mas comun
+#: en la literatura de sequia agricola. Nadie la habia medido.
+#:
+#: `comparar_escalas_spi.py` contrasto las tres contra el catalogo: SPI-3 dio
+#: **0 de 7** y SPI-6 y SPI-12 dieron 7 de 7. El intervalo de Wilson del SPI-3,
+#: 0,0 %-35,4 %, **no se solapa** con el de las otras dos, 64,6 %-100 %, y el
+#: 1,0 cae dentro del rango de su realce: ante el unico episodio que el catalogo
+#: permite probar, marcaba con la misma frecuencia que un dia cualquiera.
+#:
+#: Y el fallo no era aleatorio: **-37 dias en los ocho distritos**, identico. El
+#: SPI-3 sale de sequia antes de que el dano se declare.
+#:
+#: Entre 6 y 12 el catalogo no decide -los dos dan 7 de 7 con intervalos
+#: solapados- y la eleccion se hace por otro criterio, declarado en D-32: el
+#: SPI-6 produce **casi el doble de episodios** que el SPI-12 con menor tasa
+#: base, y es la escala que `[15]` toma para la estacion lluviosa del Pacifico.
+VENTANA_SPI_MESES = 6
 
 # El etiquetado se corta donde termina la fuente mas corta. Ver el encabezado.
 ULTIMO_ANIO = 2024
@@ -169,13 +187,19 @@ def nivel_lluvia(
     return NivelRiesgo.BAJO
 
 
-def nivel_sequia(spi3: float | None) -> NivelRiesgo | None:
-    """SPI-3 con los cortes de McKee, Doesken y Kleist (1993), adoptados por la OMM."""
-    if spi3 is None:
+def nivel_sequia(spi: float | None) -> NivelRiesgo | None:
+    """SPI con los cortes de McKee, Doesken y Kleist (1993), adoptados por la OMM.
+
+    **Los cortes no dependen de la escala.** El SPI esta normalizado por
+    construccion, asi que -1,0 y -1,5 significan lo mismo en SPI-3, SPI-6 o
+    SPI-12. El cambio de escala de D-32 no los toca, y el parametro se llama
+    `spi` y no `spi3` justamente para que eso quede a la vista.
+    """
+    if spi is None:
         return None
-    if spi3 <= -1.5:
+    if spi <= -1.5:
         return NivelRiesgo.ALTO
-    if spi3 <= -1.0:
+    if spi <= -1.0:
         return NivelRiesgo.MEDIO
     return NivelRiesgo.BAJO
 
@@ -268,11 +292,11 @@ def etiquetar_distrito(
     p95 = percentil_acumulado(serie, fechas, 95, VENTANA_ACUMULADO_DIAS)
     p99 = percentil_acumulado(serie, fechas, 99, VENTANA_ACUMULADO_DIAS)
 
-    # SPI-3 por mes calendario. El parametro `meses` NO es opcional aca: sin el,
+    # SPI-6 por mes calendario. El parametro `meses` NO es opcional aca: sin el,
     # el indice sigue la estacionalidad en vez de la anomalia. Ver CA-3.
     totales, meses, claves = acumulado_mensual(precipitacion)
-    spi3 = CalculadorSPI().spi(totales, VENTANA_SPI_MESES, meses)
-    spi_por_mes = dict(zip(claves, spi3, strict=True))
+    valores = CalculadorSPI().spi(totales, VENTANA_SPI_MESES, meses)
+    spi_por_mes = dict(zip(claves, valores, strict=True))
 
     focos_por_dia: dict[date, int] = defaultdict(int)
     for dia in focos:
@@ -298,7 +322,7 @@ def etiquetar_distrito(
         ultimo_inicio = fin - timedelta(days=VENTANA_ACUMULADO_DIAS - 1)
         maximo = maximo_acumulado_en_ventana(precipitacion, inicio, ultimo_inicio)
 
-        # -- sequia: el SPI-3 del mes que contiene al final del horizonte --- #
+        # -- sequia: el SPI-6 del mes que contiene al final del horizonte --- #
         spi = spi_por_mes.get((fin.year, fin.month))
 
         etiquetas.append(

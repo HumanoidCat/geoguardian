@@ -2,18 +2,18 @@
 H1.1,"Series climaticas diarias, 10 anios",backend/etl,test_extractor_power,docs/evidencias/bases-de-datos/,,
 H1.2,Historico de focos de calor,backend/etl,test_extractor_firms,docs/evidencias/bases-de-datos/,,
 H1.3,Geometrias de distritos en 3FN con SRID validado,"basedatos/ddl, backend/etl","basedatos/verificar_h13.py, consultas/verificar_modelo.sql, consultas/verificar_transaccion.sql",docs/evidencias/bases-de-datos/,"BD-1, BD-3",
-H1.5,Reporte de calidad de datos,backend/calidad,test_reporte_calidad,docs/evidencias/objetivos/,,
+H1.5,Reporte de calidad de datos,backend/calidad,"test_reporte_calidad, 22 casos, mas la corrida sobre las 102272 filas reales",docs/evidencias/objetivos/,,"Hallazgo: seis de siete variables con 0.00 % de variacion espacial. Los ocho distritos comparten la celda de NASA POWER. Ver I-05"
 H1.8,"Esquemas, roles, minimo privilegio",basedatos/seguridad,test_permisos_rol,docs/evidencias/bases-de-datos/,,
 H1.9,Control transaccional con manejo de errores,basedatos/procedimientos,test_rollback,docs/evidencias/bases-de-datos/,,
 H1.10,Estrategia de respaldo probada,basedatos/respaldos,restauracion manual,docs/evidencias/bases-de-datos/,,
 H2.1,Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion,backend/senales,"test_filtros, 19 casos",docs/evidencias/senales-y-sistemas/,,pendiente reejecutar contra las series reales de H1.1
-H2.2,"Analisis espectral de estacionalidad, sobre la serie cruda (D-17)",backend/senales,test_espectro,docs/evidencias/senales-y-sistemas/,,
+H2.2,"Analisis espectral de estacionalidad, sobre la serie cruda (D-17)",backend/senales,"test_espectro, mas los seis criterios de aceptacion escritos antes de correr",docs/evidencias/senales-y-sistemas/,,"Veranillo detectado en los ocho distritos, de 23 a 47 veces el modelo nulo. La razon varia por factor 2.10 entre distritos"
 H2.3,"SPI por ventana movil, sobre la serie cruda (D-17)",backend/senales,"test_spi, 21 casos",docs/evidencias/senales-y-sistemas/,,"SC-02 resuelta por D-19 e implementada: spi() recibe el parametro `meses`. Atribuciones cerradas el 2026-08-22 tras leer WMO-No. 1090 completo"
 H2.4,"Anomalias respecto a la normal climatologica 1991-2020, sobre la serie cruda (D-17)",backend/senales,"test_anomalias, 24 casos",docs/evidencias/senales-y-sistemas/,,SC-06 pendiente: el contrato no recibe fechas y se supone que la serie arranca en enero
 H2.7,"Percentiles de lluvia intensa por distrito: R95p/R99p del ETCCDI y percentil de acumulado de 72 h, que no son lo mismo",backend/senales,"test_percentiles, 17 casos",docs/evidencias/senales-y-sistemas/,,
 H3.0,Etiquetado de la variable objetivo,backend/modelado,test_etiquetado,docs/evidencias/,,
 H3.1,Linea base climatologica,backend/modelado,test_linea_base,docs/evidencias/,,
-H3.6,Comparativa de tres algoritmos,backend/modelado,test_comparativa,docs/evidencias/,,
+H3.6,Tabla comparativa de estimadores contra la linea base por evento,"backend/modelado/comparar.py","backend/modelado/verificar_h36.py, 31 comprobaciones sin base de datos",docs/evidencias/objetivos/,,"arnes y contrato entregados; la tabla espera los tres algoritmos de H3.3, H3.4 y H3.5"
 H4.2,Explicabilidad con SHAP,backend/modelado,test_shap,docs/evidencias/,,
 H5.1,"Mapa del canton con poligonos distritales, zoom y desplazamiento",frontend,"frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
 H5.3,Coropletas de riesgo por evento con rampa de color y leyenda,frontend,"frontend/herramientas/exportar_simulados.py, npm run lint, npm run build, verificacion visual documentada",docs/evidencias/computacion-grafica/,,
@@ -21,13 +21,15 @@ H5.6,Transformacion de coordenadas,frontend,test_proyeccion,docs/evidencias/comp
 H6.1,API REST documentada,backend/api,test_openapi,docs/evidencias/arquitectura-software/,,
 H8.1,Despliegue reproducible,"docker-compose.yml, infra/docker/init-db",levantado en maquina limpia,docs/evidencias/sistemas-operativos/,,
 H8.2,ETL concurrente medido,backend/etl,test_concurrencia,docs/evidencias/sistemas-operativos/,,
-H1.14,Ingesta periodica con cadencia por evento,backend/etl,test_ingesta_idempotente,docs/evidencias/bases-de-datos/,,
+H1.14,Ingesta reejecutable con cadencia y producto declarados,backend/etl,test_ingesta_idempotente,docs/evidencias/bases-de-datos/,,
+H1.15,"Crear analitico.riesgo con sus restricciones",basedatos/ddl,test_analitico_riesgo,docs/evidencias/bases-de-datos/,,
+H9.1,"Instrumentos de validacion externa: SUS en espanol validado, guion de entrevista y dosier de casos historicos",docs/investigacion,"no aplica: es material para la sesion, no software. Los datos del dosier salen del catalogo validado por python -m backend.calidad.validar_catalogo",docs/evidencias/objetivos/,,"Cuatro casos, uno por cada tipo de evento. El de incendio es unico y su fuente es prensa: sirve para la sesion, no para el contraste de H4.4"
 H9.2a,Validacion externa de usabilidad con SUS,docs,acta de sesion,docs/evidencias/objetivos/,,
 H9.2b,Contraste de la estimacion contra eventos vividos,docs,acta de sesion,docs/evidencias/objetivos/,,
 H10.1,Plan de pruebas con casos por modulo,docs/investigacion,"no aplica: es el plan, no la suite",docs/evidencias/calidad/,,
 H10.4,Manual tecnico verificado por alguien ajeno al desarrollo,docs,"los comandos de su seccion 5, ejecutados",docs/evidencias/entregables/,,En progreso: falta la verificacion externa
 H13.1,Actas de las ceremonias Scrum,docs,contraste de cada cifra contra git log y el backlog,docs/evidencias/arquitectura-software/,,
-H10.2,Suite de pruebas del backend,backend/tests,los 39 casos del plan H10.1,docs/evidencias/calidad/,,
+H10.2,Suite de pruebas del backend contra los contratos y sus simulados,backend/tests,"57 casos nuevos en cuatro archivos, 209 en la suite",docs/evidencias/calidad/,,"35 de los 40 casos del plan H10.1. Los cinco restantes no se pueden escribir: cuatro porque el simulado no implementa la invariante y uno porque remuestrear no existe"
 H10.5a,15 referencias IEEE con ficha de contenido,docs/investigacion,verificacion de cada DOI contra la editorial,docs/evidencias/entregables/,,
 H10.5b,Estado del arte de Costa Rica,docs/investigacion,verificacion de las fuentes nuevas contra el sitio del editor,docs/evidencias/entregables/,,
 H4.3,Catalogo de 12 o mas eventos historicos con fuente,"docs/investigacion, backend/calidad",python -m backend.calidad.validar_catalogo,docs/evidencias/objetivos/,,

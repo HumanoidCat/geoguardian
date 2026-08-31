@@ -157,6 +157,37 @@
 
 - [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
+  - **Entregado el arnes y el contrato, el 2026-08-27. NO se marca `[x]`**: la
+    historia dice «tres algoritmos» y los tres -H3.3, H3.4 y H3.5, de Cesar- no
+    existen. Cerrarla con dos lineas base seria declarar hecho el contraste de
+    **D-09**, que es lo que esta historia tiene que probar.
+  - Lo que si esta: `backend/modelado/comparar.py` fija la particion, la metrica,
+    el trato de los `None` y el contrato `Estimador` que los tres tienen que
+    cumplir. Agregar un algoritmo a la tabla es agregar una entrada a
+    `DISPONIBLES`.
+  - Medido hoy con las dos lineas base: la climatologica **gana en lluvia**
+    (+0,036), y en **sequia e incendio hay empate tecnico** porque la dispersion
+    entre pliegues supera la ventaja. En incendio la dispersion es **23 veces**
+    la ventaja: explica por que H3.1 no pudo concluir.
+  - Verificador `backend/modelado/verificar_h36.py`, 31 comprobaciones, en el CI.
+    Evidencia en `docs/evidencias/objetivos/H3.6-tabla-comparativa.md`.
+  - **Desbloquea parcialmente el documento IEEE:** la seccion VI deja de estar
+    vacia y reporta lo que si esta medido.
+
+- **Diagramas del proyecto** — 2026-08-27, sin historia propia todavia
+  - `docs/herramientas/generar_diagramas.py` produce seis: entidad-relacion,
+    flujo de datos, componentes, secuencia, despliegue y flujo de modelado.
+  - El **entidad-relacion es derivado**: sale de parsear `basedatos/ddl/*.sql`.
+    Los otros cinco se declaran en el generador, que es su unica fuente.
+  - `verificar_diagramas.py` en el CI: 25 comprobaciones. Falla si alguien
+    agrega una tabla al DDL y no regenera.
+  - **DECISION PENDIENTE DE ALEJANDRO.** Dos de los seis -componentes y
+    secuencia- son el entregable de **H6.5**, que esta asignada a Avril. Hay que
+    elegir, y no lo decide quien escribio el codigo:
+    - reasignar H6.5 a Alejandro, o
+    - dejarla de Avril para que la cierre usando estos, o
+    - dejar estos como material del documento IEEE y que H6.5 siga aparte.
+    Hasta que se decida, **H6.5 no se toca**: sigue abierta y de Avril.
 
 - [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6

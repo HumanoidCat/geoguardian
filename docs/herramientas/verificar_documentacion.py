@@ -135,6 +135,24 @@ def referencias_citadas() -> int:
     return len({int(n) for n in re.findall(r"\[(\d+)\]", texto)})
 
 
+def referencias_citadas_en_el_cuerpo() -> int:
+    """Referencias distintas que el documento IEEE **cita**, sin contar el listado.
+
+    No es `referencias_citadas()`. Esa cuenta el tamano de la bibliografia; esta
+    cuenta cuantas de esas entradas aparecen de verdad en el texto.
+
+    El documento las trataba como sinonimos y por eso afirmaba «El texto cita 36
+    referencias» teniendo 12 en el cuerpo, con el control en verde: comprobaba un
+    numero cierto contra una frase falsa. Se separaron el 2026-08-30.
+
+    Se corta en `## Referencias` porque de ahi en adelante los `[N]` son el
+    listado y el anexo, no citas.
+    """
+    texto = (RAIZ / "docs" / "13-documento-ieee.md").read_text(encoding="utf-8")
+    cuerpo = texto.split("## Referencias")[0]
+    return len({int(n) for n in re.findall(r"`\[(\d+)\]`", cuerpo)})
+
+
 def fichas_de_referencias() -> int:
     """Referencias que traen **ficha de contenido**, no solo numero.
 
@@ -394,7 +412,37 @@ AFIRMACIONES = [
     Afirmacion(
         "referencias citadas",
         referencias_citadas,
-        [("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|")],
+        [
+            ("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|"),
+            # LA PROSA, QUE ESTUVO SIN VIGILAR HASTA EL 2026-08-30
+            #
+            # El documento declara el conteo en **dos** lugares: la tabla de
+            # procedencia y este parrafo, cuarenta lineas mas arriba. Solo la
+            # tabla estaba cubierta.
+            #
+            # Lo detecto Luna al agregar la ficha `[36]`: corrigio lo que la
+            # herramienta senalaba, leyo alrededor por su cuenta y encontro la
+            # otra aparicion. **Si se hubiera fiado del control, el documento
+            # habria quedado diciendo 36 en un lugar y 35 en el otro, y en verde
+            # al mismo tiempo.**
+            #
+            # Es el modo de fallo mas caro de un control: no que falle, sino que
+            # apruebe de menos y de a entender que reviso todo.
+            #
+            # EL TEXTO SE REESCRIBIO EL 2026-08-30. Decia «El texto cita 36
+            # referencias» y era falso: el cuerpo citaba 12. Esta afirmacion
+            # cuenta las **entradas de la bibliografia**, no las citas, y el
+            # documento las presentaba como lo mismo. El control estaba en verde
+            # porque comprobaba el numero correcto contra la afirmacion
+            # equivocada. Ver `referencias citadas en el cuerpo`, abajo.
+            ("docs/13-documento-ieee.md", r"La bibliografía reúne (\d+) referencias"),
+        ],
+    ),
+    # La cifra que de verdad hablaba de citas, y que nadie contaba.
+    Afirmacion(
+        "referencias citadas en el cuerpo del documento IEEE",
+        referencias_citadas_en_el_cuerpo,
+        [("docs/13-documento-ieee.md", r"Este documento cita (\d+) de forma directa")],
     ),
     # `fichas` y `referencias` NO son lo mismo, y el documento las usaba como si
     # lo fueran: H10.5a listo [1]-[8] solo por numero y escribio ficha de [9] en
@@ -403,8 +451,11 @@ AFIRMACIONES = [
         "referencias con ficha de contenido",
         fichas_de_referencias,
         [
-            ("docs/13-documento-ieee.md", r"de las (\d+) fichas de `docs/investigacion"),
-            ("docs/13-documento-ieee.md", r"Las (\d+) fichas verificadas"),
+            # El patron que buscaba «de las N fichas de `docs/investigacion...`»
+            # se retiro el 2026-08-27: el profesor pidio que el documento de
+            # investigacion no cite rutas internas del repositorio. La cifra
+            # sigue comprobandose por las otras dos apariciones.
+            ("docs/13-documento-ieee.md", r"\*\*(\d+)\n> fichas verificadas\*\*"),
             ("docs/13-documento-ieee.md", r"\d+ referencias, (\d+) con ficha"),
         ],
     ),

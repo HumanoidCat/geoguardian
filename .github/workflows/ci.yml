@@ -35,6 +35,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # Graphviz hace falta para regenerar el entidad-relacion y contrastarlo
+      # contra el que esta versionado. Es la unica dependencia de sistema que
+      # este trabajo necesita.
+      - name: Instalar Graphviz
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
       # Estos cuatro verificadores existen por errores que ya ocurrieron:
       #   backlog    -> tres dependencias apuntaban a sprints posteriores (semana 4)
       #   adr        -> la rubrica exige seis registros y hay que probar que estan
@@ -58,6 +63,16 @@ jobs:
         run: pip install pydantic==2.10.4
       - name: Las cifras de la documentacion siguen siendo ciertas
         run: python docs/herramientas/verificar_documentacion.py
+      # El mismo criterio, aplicado a los dibujos: el entidad-relacion se deriva
+      # de basedatos/ddl/*.sql, asi que si alguien agrega una tabla y no
+      # regenera, el diagrama del documento pasa a mentir. Un diagrama
+      # desactualizado es peor que ninguno porque se ve autorizado.
+      #
+      # No compara bytes: Graphviz no garantiza la misma salida entre versiones
+      # y eso pondria el CI en rojo sin que ningun diagrama estuviera mal.
+      # Compara el contenido. Ver el encabezado del verificador.
+      - name: Los diagramas describen el repositorio de hoy
+        run: python docs/herramientas/verificar_diagramas.py
       # El tablero de GitHub era el unico lugar que declara el avance sin una
       # maquina que lo cruzara contra el repositorio. `como-llenar-el-pr.md` ya
       # advertia el modo de fallo -"Cierra H10.1" no cierra nada, GitHub solo
@@ -268,7 +283,21 @@ jobs:
           # directorio actual al path de importacion y falla con "No module
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
-          python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+          #
+          # La ruta es `backend` y no `backend/tests`. Hasta el 2026-08-30 era lo
+          # segundo, y por eso el CI NUNCA ejecuto las 46 pruebas de
+          # `backend/api/test_repositorio_postgres.py` y
+          # `backend/etl/test_imputacion.py`: existen, pasan, y vivian fuera del
+          # unico directorio que el CI miraba.
+          #
+          # `testpaths = ["backend"]` de pyproject.toml no lo cubria: solo aplica
+          # cuando se invoca `pytest` SIN ruta, y aqui se le pasa una.
+          #
+          # Es I-06 otra vez, en su forma mas incomoda: quien corria pytest en su
+          # maquina veia pasar esas 46 y concluia que estaban cubiertas. El CI no
+          # las habia ejecutado ni una vez. Un control apagado que se ve igual que
+          # uno encendido.
+          python -m pytest backend -v --cov=backend --cov-report=term-missing
 
       # Los dos verificadores de criterios de aceptacion viven aca porque este es
       # el unico trabajo que instala requirements.txt, y los dos necesitan
@@ -298,6 +327,30 @@ jobs:
         run: python -m backend.modelado.verificar_h32
       - name: Los criterios de H3.1 se cumplen
         run: python -m backend.modelado.verificar_h31
+      # H3.6 fija COMO se comparan los estimadores, y su CA-7 es el unico control
+      # que cruza dos caminos independientes hasta la misma cifra: `comparar.py`
+      # a traves del contrato `Estimador`, y `evaluar_linea_base.py` llamando a
+      # las lineas base directo. Si el adaptador introdujera cualquier diferencia
+      # de trato, las dos rutas divergirian y esto sale rojo.
+      #
+      # Corre siempre. `datos/procesados/etiquetas.csv` no esta versionado, asi
+      # que en el CI **nunca** esta: un paso condicionado a su existencia habria
+      # quedado verde sin ejecutar nada. Cuando falta, el verificador construye
+      # etiquetas sinteticas deterministas y lo declara en su primera linea.
+      - name: Los criterios de H3.6 se cumplen
+        run: python -m backend.modelado.verificar_h36
+      # La comparacion de escalas del SPI. Corre con `--sintetico` porque la
+      # precipitacion vive en la base y aqui no hay base; la bandera lo declara
+      # en su primera linea de salida y el propio modulo advierte que con datos
+      # sinteticos **no concluye nada** sobre las escalas.
+      #
+      # Entonces, ¿que protege este paso? Que el camino de calculo corra entero:
+      # firmas, importaciones, el ajuste gamma por mes en las tres escalas, y el
+      # contraste contra el catalogo, que **si** es el catalogo real y esta
+      # versionado. La primera version usaba codigos de distrito inventados y
+      # daba «cero eventos contrastables»: verde, sin medir nada. Es I-06 otra vez.
+      - name: La comparacion de escalas del SPI corre entera
+        run: python -m backend.modelado.comparar_escalas_spi --sintetico
       # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
       # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
       # historias y quedaron colgando. Un verificador que solo se ejecuta cuando

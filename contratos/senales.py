@@ -63,7 +63,7 @@ class ProcesadorSenales(Protocol):
         Args:
             precipitacion: acumulado mensual en mm, con None en los meses sin
                 dato.
-            ventana_meses: 1 para SPI-1, 3 para SPI-3.
+            ventana_meses: 1 para SPI-1, 6 para SPI-6. El proyecto usa 6 (D-32).
             meses: mes calendario de cada posicion, de 1 a 12, del mismo largo
                 que `precipitacion`. **Con este dato la distribucion se ajusta
                 por separado para cada mes del anio**, que es lo que convierte

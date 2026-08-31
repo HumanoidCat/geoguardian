@@ -142,10 +142,73 @@ def main() -> int:
     for h, rp, d, rd, s in cruzadas:
         print(f"  {s}  {h:8s} ({rp}) espera a {d:8s} ({rd})")
 
+    # Se cuenta aparte de `defectos` porque no es un defecto de dependencia y el
+    # mensaje de abajo diria algo falso. Las dos cosas hacen fallar igual.
+    tabla_desfasada = tabla_de_carga_coincide(filas)
+
     if defectos:
         print("\nFALLO: el backlog tiene dependencias que no se pueden cumplir.")
         return 1
+    if tabla_desfasada:
+        print("\nFALLO: la tabla de 08-backlog.md no coincide con backlog.csv.")
+        return 1
     print("\nOK")
+    return 0
+
+
+# --------------------------------------------------------------------------- #
+# La tabla que leen las personas                                              #
+# --------------------------------------------------------------------------- #
+# `docs/08-backlog.md` publica la misma carga en una tabla, y es la que alguien
+# abre cuando quiere saber quien tiene cuanto. Hasta el 2026-08-30 **nada la
+# comprobaba**: este verificador lee `backlog.csv` y nunca miro el Markdown.
+#
+# Se desfaso. La fila de Cesar decia 158.6 h y 128 puntos cuando el CSV daba
+# 161.5 y 131; la de Avril, 114.6 y 94 contra 117.5 y 97. Y la fila **Equipo**
+# si estaba al dia -633.9 y 434-, o sea que la tabla **no cuadraba consigo
+# misma**: las filas sumaban 628.1 h y 428 puntos.
+#
+# El mecanismo se deduce del sintoma: los totales se regeneraron desde el CSV y
+# las filas por persona se dejaron a mano. Es el reparto lo que se desfasa,
+# nunca el total, porque el total es lo unico que alguien recalcula.
+#
+# Importa mas que otras cifras porque esta tabla es con la que se discute quien
+# esta sobrecargado. Una fila corta por tres puntos no se nota y cambia la
+# conversacion.
+PATRON_FILA = re.compile(r"^\| (Alejandro|Cesar|Luna|Avril) \|(.+?)\| ([\d.]+) \| (\d+) \|$", re.M)
+
+
+def tabla_de_carga_coincide(filas: list[dict]) -> int:
+    ruta = Path(__file__).resolve().parents[1] / "08-backlog.md"
+    if not ruta.exists():
+        return 0
+
+    puntos: dict[str, float] = defaultdict(float)
+    totales: dict[str, float] = defaultdict(float)
+    for fila in filas:
+        puntos[fila["responsable"]] += float(fila["puntos"])
+        totales[fila["responsable"]] += float(fila["horas"])
+
+    encontradas = PATRON_FILA.findall(ruta.read_text(encoding="utf-8"))
+    if not encontradas:
+        print("\nLa tabla de carga de 08-backlog.md no se pudo leer: cambio el formato.")
+        return 1
+
+    malas = []
+    for nombre, _, total, pts in encontradas:
+        clave = nombre.lower()
+        if abs(float(total) - totales[clave]) > 0.05 or int(pts) != round(puntos[clave]):
+            malas.append(
+                f"  - {nombre}: la tabla dice {total} h y {pts} pts; "
+                f"el CSV da {totales[clave]:.1f} h y {puntos[clave]:.0f} pts"
+            )
+
+    print(f"\nTabla de carga de 08-backlog.md: {len(encontradas)} filas comprobadas")
+    if malas:
+        print("  no coinciden con backlog.csv:")
+        print("\n".join(malas))
+        print("\n  El CSV es la fuente. Se corrige la tabla, nunca al reves.")
+        return 1
     return 0
 
 
