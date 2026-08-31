@@ -48,6 +48,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H8.2 | ETL concurrente medido | backend/etl | test_concurrencia | docs/evidencias/sistemas-operativos/ | SO-1 | Cesar | Pendiente |
 | H1.14 | Ingesta reejecutable con cadencia y producto declarados | backend/etl | test_ingesta_idempotente | docs/evidencias/bases-de-datos/ | BD-1 | Cesar | Pendiente |
 | H1.15 | Crear analitico.riesgo con sus restricciones | basedatos/ddl | test_analitico_riesgo | docs/evidencias/bases-de-datos/ | BD-2 | Cesar | Pendiente |
+| H9.1 | Instrumentos de validacion externa: SUS en espanol validado, guion de entrevista y dosier de casos historicos | docs/investigacion | no aplica: es material para la sesion, no software. Los datos del dosier salen del catalogo validado por python -m backend.calidad.validar_catalogo | docs/evidencias/objetivos/H9.1-sus-y-dosier.md | OE4 | Luna | **Con evidencia** · Cuatro casos, uno por cada tipo de evento. El de incendio es unico y su fuente es prensa: sirve para la sesion, no para el contraste de H4.4 |
 | H9.2a | Validacion externa de usabilidad con SUS | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H9.2b | Contraste de la estimacion contra eventos vividos | docs | acta de sesion | docs/evidencias/objetivos/ | OE4 | Luna | Pendiente |
 | H10.1 | Plan de pruebas con casos por modulo | docs/investigacion | no aplica: es el plan, no la suite | docs/evidencias/calidad/H10.1-plan-pruebas.md | QA | Luna | **Con evidencia** |
