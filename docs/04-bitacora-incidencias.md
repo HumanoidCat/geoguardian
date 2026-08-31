@@ -1162,3 +1162,151 @@ confianza que el paquete tenia sin merecerla desde que la herramienta existe,
 porque **este defecto no era nuevo, solo no se habia disparado antes**: hasta hoy
 nunca habia fallado la construccion de los PDF con figuras recien regeneradas al
 lado.
+
+---
+
+## I-16 · El documento decia citar 36 referencias y citaba 12, con el control en verde
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al auditar cuales de las fichas nuevas de la
+revision bibliografica habian entrado de verdad al cuerpo del documento. El
+control no lo podia detectar: la cifra que comprobaba era cierta.
+
+**Que paso.** El bloque de Referencias del documento IEEE decia:
+
+> «El texto cita 36 referencias, de las cuales 28 estan verificadas...»
+
+El cuerpo del documento citaba **12**. Las otras 24 estaban en la bibliografia y
+sostenian el documento de investigacion, las fichas y las bitacoras, pero **este
+texto no las citaba**.
+
+**Causa raiz.** La afirmacion `referencias citadas` de `verificar_documentacion.py`
+nunca conto citas. Cuenta los identificadores distintos de
+`docs/investigacion/referencias.md`, o sea **el tamano de la bibliografia**. El
+nombre decia una cosa, la funcion hacia otra, y el documento redacto la frase
+creyendo el nombre.
+
+El control comparaba **36 contra 36** y aprobaba. La cifra era correcta; la
+oracion que la contenia, falsa.
+
+**Por que este es el caso incomodo.** I-04, I-08 y I-15 son controles que no
+miraban. Este miraba, y aprobo. Un numero verificado dentro de una afirmacion que
+nadie verifico es peor que un numero sin control: el control le presta autoridad
+a la frase entera cuando solo respalda una palabra de ella.
+
+Y es exactamente lo que este mismo documento denuncia en su seccion de
+conclusiones —«un dato con forma valida y contenido falso, que ninguna validacion
+detecta porque nadie escribio la validacion»—. Estaba escrito arriba del defecto.
+
+**Que se cambio.**
+
+1. El documento dice ahora **«La bibliografia reune 36 referencias»** y, aparte,
+   **«Este documento cita 12 de forma directa»**. Son dos hechos distintos y se
+   afirman por separado.
+2. Se agrego `referencias_citadas_en_el_cuerpo()`, que cuenta los `[N]` del
+   documento IEEE cortando en `## Referencias`, con su propio control. Son 21
+   controles, no 20.
+3. La afirmacion vieja conservo su funcion y su nombre en el codigo lleva ahora
+   la advertencia de que **cuenta bibliografia, no citas**.
+
+**Lo que no se hizo.** No se forzaron citas de las 24 restantes para que el
+numero subiera. Citar una referencia que el texto no usa es peor que no citarla:
+convierte la bibliografia en decoracion. Cinco de las 36 -`[11]`, `[12]`, `[20]`,
+`[21]` y `[35]`- no se citan en ningun documento, y eso queda declarado en vez de
+disimulado; `[35]` ademas sigue sin autores transcritos y por eso no es citable.
+
+**Impacto.** El documento no se habia entregado con esa frase a un evaluador
+externo. El costo es de credibilidad interna: **la cifra mas visible del bloque
+de Referencias era la unica del documento que afirmaba algo que sus propias
+herramientas no comprobaban**, y llevaba semanas ahi.
+
+---
+
+## I-17 · El CI corre 152 de las 198 pruebas que hay en el repositorio
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al medir el alcance real de H10.2 antes de
+contestar las tres consultas de Luna sobre esa historia.
+
+**Que paso.** El trabajo de pruebas del CI invoca:
+
+    python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+
+Dos archivos de prueba **no viven en `backend/tests`**:
+
+    backend/api/test_repositorio_postgres.py    438 lineas
+    backend/etl/test_imputacion.py              255 lineas
+
+Son **46 pruebas, todas verdes**, que el CI nunca ha ejecutado.
+
+| | Pruebas | Cobertura |
+|---|---|---|
+| Lo que corre el CI | 152 | 26 % |
+| Lo que hay en el repositorio | **198** | **34 %** |
+
+Con ellas, `repositorio_postgres.py` queda en **96 %** e `imputacion.py` en
+**98 %**. Sin ellas, el reporte de cobertura del CI muestra esos dos modulos casi
+vacios y las pruebas que los cubren, inexistentes.
+
+**Causa raiz.** `pyproject.toml` declara `testpaths = ["backend"]`, que recogeria
+los dos archivos. Pero `testpaths` **solo aplica cuando se invoca `pytest` sin
+ruta**, y el CI pasa la ruta explicita. La ruta explicita gana y la configuracion
+del proyecto queda sin efecto, sin aviso.
+
+**Nadie rompio nada, y eso es lo que lo hace dificil de ver.** La linea del CI
+existe desde el 2026-08-03, cuando `backend/tests` era el unico lugar donde
+habia pruebas: era **cierta cuando se escribio**. Los dos archivos llegaron el
+2026-08-27, en sus carpetas de modulo, que es donde `pytest` los recoge por
+convencion y donde tiene sentido ponerlos. Ninguno de los dos cambios estaba mal.
+
+Es una regla que fue correcta y dejo de serlo sin que ninguna de las dos partes
+hiciera nada incorrecto. No hay un commit al que senalar.
+
+**Por que el modo de fallo es el caro.** Quien corre `pytest` en su maquina
+—sin ruta, tomando `testpaths`— ve las 198 pasar y concluye que estan cubiertas.
+El CI reporta verde sobre 152. **Las dos observaciones son ciertas y solo una es
+la que protege el repositorio.** Nadie tiene motivo para sospechar de la otra,
+porque local y CI no se contradicen: dicen «verde» los dos.
+
+Es la familia de I-06 —un control apagado que se ve igual que uno encendido— pero
+con un agravante: aca el control **si corre**, y corre sobre menos de lo que
+declara. `--cov=backend` mide el paquete entero ejercitando un tercio de el, asi
+que el porcentaje no es una cobertura baja, **es una cobertura mal medida**.
+
+Y es la misma forma que I-16, dos dias antes: una cifra correcta dentro de una
+afirmacion que nadie comprobo.
+
+**Que se cambio, y donde.** El arreglo es `backend/tests` → `backend` en
+`.github/workflows/ci.yml`, y **no va en el cambio que registra esta
+incidencia**: va en el de **H10.2**. La historia existe para encontrar
+exactamente esto y el hallazgo se revisa mejor junto al resto de su trabajo.
+
+Se redacta asi a proposito, sin «todavia» ni «pendiente», porque los dos cambios
+son independientes y pueden entrar en cualquier orden. Una incidencia que
+describe el estado del repositorio en el instante en que se escribio deja de ser
+cierta apenas se fusiona algo; la que dice **donde vive el arreglo** sigue siendo
+cierta despues.
+
+`.github/workflows/ci.yml` es archivo de Alejandro; el permiso para esa linea
+quedo dado por escrito en `gestion/respuesta-luna-h10.2.md`. No hace falta tocar
+ningun archivo de Cesar: **las 46 pruebas estan bien escritas y no se toca
+ninguna.**
+
+La guarda que comprueba que `backend/tests` no este vacio se queda como esta:
+comprueba otra cosa y sigue siendo cierta.
+
+**Lo que NO se hizo.** No se quitaron los dos archivos de sus carpetas para
+moverlos a `backend/tests`. Estan donde `pytest` los busca por convencion y donde
+quedan al lado del codigo que prueban; el que tiene que ceder es el CI.
+
+Tampoco se puso `--cov-fail-under`. Un umbral medido sobre la mitad de la suite
+fija un piso falso, y con la otra mitad recien conectada todavia no se sabe cual
+es el piso real.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
+dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
+reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
+cifra con la que se decidia donde faltaban pruebas.

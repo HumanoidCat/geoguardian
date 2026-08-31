@@ -201,16 +201,45 @@ trabajo sostenido sobre sequía en Guanacaste, y el SPI está establecido como e
 índice pertinente para la región `[15]`. Este proyecto no discute esa elección: la
 adopta.
 
-### C. El vacío que este trabajo ocupa
+### C. Ya existe estimación de riesgo por distrito en Costa Rica
 
-Hasta donde la revisión bibliográfica realizada pudo verificar, **no se localizó** trabajo
-publicado que estime riesgo climático por distrito para un cantón costarricense
-comparando algoritmos supervisados contra una línea base climatológica bajo
-validación temporal, con datos exclusivamente abiertos.
+**Y es el antecedente más cercano a este trabajo.** Rojas Morales `[29]` estima
+índices de riesgo de desastre por lluvia extrema **para los 459 distritos de
+Costa Rica**, con precipitación de CHIRPS a 0,05° y un modelo Probit que combina
+la anomalía de precipitación con variables socioeconómicas, biofísicas y
+geográficas. Mismo país, misma unidad administrativa, misma fuente de
+precipitación, mismo evento.
 
-La formulación es deliberada: **"no se localizó" no equivale a "no existe"**. La
-búsqueda cubrió literatura indexada y no alcanzó literatura gris, tesis no
-indexadas ni trabajo institucional no publicado.
+De ese trabajo se toman dos resultados que este proyecto no vuelve a discutir:
+
+- **CHIRPS v2 ajusta mejor en época lluviosa que en seca**, y en época seca
+  tiende a subestimar en la mayoría de las estaciones de validación.
+- **Ajusta mejor en zonas de relieve suave que en zonas montañosas**, donde el
+  relieve gobierna el patrón de lluvia. Tilarán es montañoso, y eso entra en las
+  amenazas a la validez.
+
+### D. El vacío que este trabajo ocupa
+
+Dado ese antecedente, el aporte no puede formularse como «estimar riesgo por
+distrito», que ya está hecho. Lo que no se localizó es trabajo publicado que, en
+un cantón costarricense, **compare algoritmos supervisados contra una línea base
+climatológica bajo validación temporal**, con datos exclusivamente abiertos, y
+que **valide la variable objetivo antes de entrenar**.
+
+Las diferencias con `[29]` son de método más que de tema:
+
+| | Rojas Morales `[29]` | Este trabajo |
+|---|---|---|
+| Alcance | 459 distritos, un evento | 8 distritos, tres eventos |
+| Modelo | Probit, un ajuste | Tres algoritmos contra dos líneas base |
+| Validación | Ajuste sobre el período completo | Ventana expansiva, cinco pliegues |
+| Verdad de terreno | Se asume | Se contrasta contra 46 eventos antes de modelar |
+| Operación | Estudio retrospectivo | Sistema que se ejecuta y publica |
+
+La formulación es deliberada: **«no se localizó» no equivale a «no existe»**. La
+búsqueda cubrió literatura indexada, y `[29]` es precisamente una tesis de
+posgrado que **no** apareció en la primera revisión y sí en la segunda. Eso es un
+dato sobre el alcance de la búsqueda, no sobre la literatura.
 
 ---
 
@@ -769,6 +798,17 @@ Antes de que exista un modelo hay una pregunta previa que casi nunca se plantea:
 **¿la verdad de terreno reconoce los eventos que de verdad ocurrieron?** Si las
 etiquetas no los reconocen, ningún modelo entrenado sobre ellas podrá hacerlo.
 
+Que la pregunta se omita no es una impresión de este trabajo. Northcutt *et al.*
+`[33]` auditaron los conjuntos de prueba de diez de los repositorios más usados
+en aprendizaje automático y encontraron un **3,4 % de error de etiqueta en
+promedio** —6 % en el conjunto de validación de ImageNet—, en datos que llevaban
+años usándose como referencia. Su resultado central es el que obliga a hacer esta
+sección: con suficiente proporción de etiquetas mal puestas, **el orden del
+*ranking* de modelos se invierte**, y un modelo de menor capacidad resulta más
+útil en la práctica que uno de mayor capacidad. Comparar tres algoritmos sobre
+una variable objetivo no auditada es, entonces, comparar contra un criterio que
+puede estar ordenando al revés.
+
 Se contrastó el etiquetado contra el catálogo de **46 eventos históricos de
 Tilarán** extraídos de DesInventar Costa Rica. Un evento del día *E* se considera
 anunciado si alguna etiqueta en la ventana previa marcaba riesgo medio o alto.
@@ -1145,6 +1185,22 @@ La consecuencia práctica: el etiquetado de lluvia es más confiable sobre **si*
 ocurrió un episodio que sobre **qué día** ocurrió. Y como el horizonte del
 sistema es de siete días, ese desfase cabe entero dentro del horizonte.
 
+**Y hay una segunda amenaza sobre la misma fuente, que es geográfica.** Rojas
+Morales `[29]` validó CHIRPS v2 contra estaciones terrestres en Costa Rica y
+reporta dos sesgos con dirección conocida: el ajuste es **peor en zonas
+montañosas** que en relieve suave, porque el relieve gobierna el patrón de
+lluvia a una escala más fina que la celda; y en **época seca** tiende a
+subestimar en la mayoría de las estaciones.
+
+Las dos condiciones se cumplen aquí. Tilarán es montañoso —los ocho distritos
+reparten la vertiente de la cordillera—, y la estación seca es justamente la
+ventana donde se mide la sequía. Esto no invalida el etiquetado, pero fija la
+dirección del error esperado en vez de dejarlo abierto: **en época seca la
+precipitación estimada tiende a quedar por debajo de la real**, lo que empuja el
+SPI hacia abajo y hace que el sistema marque sequía antes y más seguido que lo
+que justifica la observación. Un falso positivo de sequía es el error barato de
+los dos; el punto es que la asimetría está declarada y no descubierta después.
+
 ### B. La validación cruzada bloquea el tiempo y no el espacio
 
 El diseño experimental corta en frontera de mes y aplica un embargo de siete
@@ -1278,6 +1334,13 @@ que no supere ese realce no está aportando sobre la verdad de terreno. En un
 proyecto donde el modelado llega tarde, es una forma de tener evidencia externa
 antes de tenerlo.
 
+La práctica tiene respaldo en la literatura, y el respaldo es más fuerte de lo
+que el proyecto suponía al adoptarla: `[33]` documenta que las etiquetas mal
+puestas no degradan las métricas de forma visible sino que **invierten el orden
+de la comparación**. Un trabajo que compara algoritmos sin auditar su variable
+objetivo no obtiene un resultado peor —obtiene un resultado plausible y
+posiblemente al revés—.
+
 **Y sirvió para algo que no se había previsto: descartar un parámetro del
 etiquetado.** Con la escala del índice fijada por convención —SPI-3, la más
 común en la literatura de sequía agrícola— el contraste daba cero de siete. La
@@ -1333,10 +1396,13 @@ intensa.**
 
 ## Referencias
 
-> **Pendiente de composición.** El texto cita 36 referencias, de las cuales 28
-> están verificadas con su DOI comprobado contra la editorial: son las **28
-> fichas verificadas**. El listado formal en formato IEEE se compone aquí al
-> cerrar el documento.
+> **Pendiente de composición.** La bibliografía reúne 36 referencias, de las
+> cuales 28 están verificadas con su DOI comprobado contra la editorial: son las
+> **28
+> fichas verificadas**. Este documento cita 12 de forma directa; las restantes
+> sostienen el documento de investigación, las fichas de contenido y las
+> bitácoras. El listado formal en formato IEEE se compone aquí al cerrar el
+> documento.
 
 ---
 
@@ -1380,7 +1446,7 @@ validación.
 | 39,90 / 54,86 / 63,40 / 87,70 mm; 8,5× | `medir_percentiles.py` |
 | 98 fichas, 46 registros, 29 eventos | Catálogo de eventos históricos compilado para este trabajo `[26]` |
 | 36 referencias, 28 con ficha | Fichero bibliográfico del proyecto |
-| 47 comprobaciones, 6 trabajos de CI, 20 controles | `verificar_documentacion.py` |
+| 47 comprobaciones, 6 trabajos de CI, 21 controles | `verificar_documentacion.py` |
 | Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |
 | 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
 | F1-macro de las dos líneas base, sección VI-D | `comparar.py` |
