@@ -636,7 +636,7 @@ def construir_ieee(documento: Path, salida: Path) -> int:
     # Capturando la salida, todo eso ocurre detras de una pantalla en blanco:
     # el proceso **esta trabajando y parece colgado**, que es indistinguible de
     # estar colgado de verdad. Costo varias vueltas de diagnostico equivocado el
-    # 2026-08-28, ninguna sobre el problema real.
+    # 2026-08-30, ninguna sobre el problema real.
     #
     # Mostrarla en vivo cuesta perder el resumen de las ultimas lineas al
     # fallar. No importa: xelatex ya escribe todo en su `.log`, que queda al

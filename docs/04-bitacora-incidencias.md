@@ -1102,7 +1102,7 @@ implementacion no tenia ningun defecto.
 
 ## I-15 · El zip de la entrega se armo con los PDF viejos y nada lo advirtio
 
-**Fecha.** 2026-08-28
+**Fecha.** 2026-08-30
 
 **Quien lo detecto.** Alejandro, al pegar la salida completa de los cinco
 comandos de reconstruccion en vez de solo el ultimo.

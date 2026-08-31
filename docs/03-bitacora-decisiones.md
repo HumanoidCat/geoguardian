@@ -3233,7 +3233,7 @@ con la que D-29 descarto DVC.
 ## D-32 · La escala del SPI se decide midiendo, no por costumbre
 
 **Estado.** Aceptada · **revisa D-19** · **medida y resuelta: SPI-6**
-**Fecha.** 2026-08-28
+**Fecha.** 2026-08-30
 **Decide.** Alejandro, Lead PM
 **Lo detecta.** Al leer completa la referencia `[15]`, que ya se citaba
 **Afecta.** **D-19**, el etiquetado de sequia de H3.0, y las conclusiones sobre
@@ -3246,7 +3246,7 @@ la literatura de sequia agricola. Es un argumento de costumbre.
 
 La referencia `[15]` -Quesada-Hernandez, Hidalgo y Alfaro, 2020- se citaba desde
 H10.5a como respaldo local de que el SPI es pertinente en Guanacaste. **Su ficha
-se habia escrito sobre el resumen.** Leido el articulo completo el 2026-08-28,
+se habia escrito sobre el resumen.** Leido el articulo completo el 2026-08-30,
 dice tres cosas que la ficha no recogia:
 
 1. **Evalua SPI-6 y SPI-12. No evalua SPI-3.** El SPI-12 se toma en diciembre,
@@ -3336,7 +3336,7 @@ que es la mitad del valor de fijarlo:
 3. **Si ninguna escala excluye el 1,0 de su realce**, ninguna distingue, y eso se
    escribe tal cual: es un resultado sobre el catalogo, no sobre las escalas.
 
-### Lo que se midio, el 2026-08-28
+### Lo que se midio, el 2026-08-30
 
 | Escala | Cobertura, IC 95 % | Realce, rango | Tasa base | Episodios |
 |---|---|---|---|---|
