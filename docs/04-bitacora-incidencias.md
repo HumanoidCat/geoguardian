@@ -1278,10 +1278,16 @@ que el porcentaje no es una cobertura baja, **es una cobertura mal medida**.
 Y es la misma forma que I-16, dos dias antes: una cifra correcta dentro de una
 afirmacion que nadie comprobo.
 
-**Que se cambio.** Nada todavia, **a proposito**. El arreglo es `backend/tests`
-→ `backend` en `.github/workflows/ci.yml`, y va en el PR de **H10.2**, no en
-este. La historia existe para encontrar exactamente esto y el hallazgo se revisa
-mejor junto al resto de su trabajo.
+**Que se cambio, y donde.** El arreglo es `backend/tests` → `backend` en
+`.github/workflows/ci.yml`, y **no va en el cambio que registra esta
+incidencia**: va en el de **H10.2**. La historia existe para encontrar
+exactamente esto y el hallazgo se revisa mejor junto al resto de su trabajo.
+
+Se redacta asi a proposito, sin «todavia» ni «pendiente», porque los dos cambios
+son independientes y pueden entrar en cualquier orden. Una incidencia que
+describe el estado del repositorio en el instante en que se escribio deja de ser
+cierta apenas se fusiona algo; la que dice **donde vive el arreglo** sigue siendo
+cierta despues.
 
 `.github/workflows/ci.yml` es archivo de Alejandro; el permiso para esa linea
 quedo dado por escrito en `gestion/respuesta-luna-h10.2.md`. No hace falta tocar
