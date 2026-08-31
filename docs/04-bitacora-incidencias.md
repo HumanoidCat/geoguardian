@@ -1220,3 +1220,87 @@ disimulado; `[35]` ademas sigue sin autores transcritos y por eso no es citable.
 externo. El costo es de credibilidad interna: **la cifra mas visible del bloque
 de Referencias era la unica del documento que afirmaba algo que sus propias
 herramientas no comprobaban**, y llevaba semanas ahi.
+
+---
+
+## I-17 · El CI corre 152 de las 198 pruebas que hay en el repositorio
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al medir el alcance real de H10.2 antes de
+contestar las tres consultas de Luna sobre esa historia.
+
+**Que paso.** El trabajo de pruebas del CI invoca:
+
+    python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+
+Dos archivos de prueba **no viven en `backend/tests`**:
+
+    backend/api/test_repositorio_postgres.py    438 lineas
+    backend/etl/test_imputacion.py              255 lineas
+
+Son **46 pruebas, todas verdes**, que el CI nunca ha ejecutado.
+
+| | Pruebas | Cobertura |
+|---|---|---|
+| Lo que corre el CI | 152 | 26 % |
+| Lo que hay en el repositorio | **198** | **34 %** |
+
+Con ellas, `repositorio_postgres.py` queda en **96 %** e `imputacion.py` en
+**98 %**. Sin ellas, el reporte de cobertura del CI muestra esos dos modulos casi
+vacios y las pruebas que los cubren, inexistentes.
+
+**Causa raiz.** `pyproject.toml` declara `testpaths = ["backend"]`, que recogeria
+los dos archivos. Pero `testpaths` **solo aplica cuando se invoca `pytest` sin
+ruta**, y el CI pasa la ruta explicita. La ruta explicita gana y la configuracion
+del proyecto queda sin efecto, sin aviso.
+
+**Nadie rompio nada, y eso es lo que lo hace dificil de ver.** La linea del CI
+existe desde el 2026-08-03, cuando `backend/tests` era el unico lugar donde
+habia pruebas: era **cierta cuando se escribio**. Los dos archivos llegaron el
+2026-08-27, en sus carpetas de modulo, que es donde `pytest` los recoge por
+convencion y donde tiene sentido ponerlos. Ninguno de los dos cambios estaba mal.
+
+Es una regla que fue correcta y dejo de serlo sin que ninguna de las dos partes
+hiciera nada incorrecto. No hay un commit al que senalar.
+
+**Por que el modo de fallo es el caro.** Quien corre `pytest` en su maquina
+—sin ruta, tomando `testpaths`— ve las 198 pasar y concluye que estan cubiertas.
+El CI reporta verde sobre 152. **Las dos observaciones son ciertas y solo una es
+la que protege el repositorio.** Nadie tiene motivo para sospechar de la otra,
+porque local y CI no se contradicen: dicen «verde» los dos.
+
+Es la familia de I-06 —un control apagado que se ve igual que uno encendido— pero
+con un agravante: aca el control **si corre**, y corre sobre menos de lo que
+declara. `--cov=backend` mide el paquete entero ejercitando un tercio de el, asi
+que el porcentaje no es una cobertura baja, **es una cobertura mal medida**.
+
+Y es la misma forma que I-16, dos dias antes: una cifra correcta dentro de una
+afirmacion que nadie comprobo.
+
+**Que se cambio.** Nada todavia, **a proposito**. El arreglo es `backend/tests`
+→ `backend` en `.github/workflows/ci.yml`, y va en el PR de **H10.2**, no en
+este. La historia existe para encontrar exactamente esto y el hallazgo se revisa
+mejor junto al resto de su trabajo.
+
+`.github/workflows/ci.yml` es archivo de Alejandro; el permiso para esa linea
+quedo dado por escrito en `gestion/respuesta-luna-h10.2.md`. No hace falta tocar
+ningun archivo de Cesar: **las 46 pruebas estan bien escritas y no se toca
+ninguna.**
+
+La guarda que comprueba que `backend/tests` no este vacio se queda como esta:
+comprueba otra cosa y sigue siendo cierta.
+
+**Lo que NO se hizo.** No se quitaron los dos archivos de sus carpetas para
+moverlos a `backend/tests`. Estan donde `pytest` los busca por convencion y donde
+quedan al lado del codigo que prueban; el que tiene que ceder es el CI.
+
+Tampoco se puso `--cov-fail-under`. Un umbral medido sobre la mitad de la suite
+fija un piso falso, y con la otra mitad recien conectada todavia no se sabe cual
+es el piso real.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
+dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
+reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
+cifra con la que se decidia donde faltaban pruebas.

@@ -64,3 +64,17 @@ infra/docker/respaldos/*
 # repositorio seria un quinto lugar declarando el avance, que es justo lo que
 # verificar_issues.py existe para evitar.
 issues.json
+
+# Medicion de cobertura. La produce `pytest --cov`, que es como el CI invoca la
+# suite, asi que la genera cualquiera que reproduzca ese comando en su maquina.
+#
+# `.coverage` es un SQLite binario y `coverage.xml` un reporte derivado: los dos
+# son salida de una corrida, no fuente. Versionarlos mete un artefacto binario
+# que cambia en cada ejecucion y que nadie puede revisar en un diff.
+#
+# Mismo caso que `infra/docker/respaldos/`: aparecia como no seguido, o sea a un
+# `git add .` de entrar. Detectado el 2026-08-30 al medir el alcance de H10.2.
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
