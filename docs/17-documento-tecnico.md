@@ -5,7 +5,7 @@ author:
   - "Luis Alejandro Luna García"
   - "Avril Madrigal Elizondo"
 institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
-date: "28 de agosto de 2026"
+date: "30 de agosto de 2026"
 lang: es
 ---
 
@@ -30,7 +30,7 @@ mantener o evaluar el sistema. Se asume manejo de terminal y nada más.
 IEEE, y responde una pregunta de investigación— ni el manual de usuario del
 visor.
 
-**Estado.** Describe el sistema al 28 de agosto de 2026. Lo que no está
+**Estado.** Describe el sistema al 30 de agosto de 2026. Lo que no está
 construido se dice en la sección 1.2 y se repite en la 11.
 
 ### Contenido
