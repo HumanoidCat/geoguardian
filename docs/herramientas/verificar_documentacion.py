@@ -394,7 +394,24 @@ AFIRMACIONES = [
     Afirmacion(
         "referencias citadas",
         referencias_citadas,
-        [("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|")],
+        [
+            ("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|"),
+            # LA PROSA, QUE ESTUVO SIN VIGILAR HASTA EL 2026-08-30
+            #
+            # El documento declara el conteo en **dos** lugares: la tabla de
+            # procedencia y este parrafo, cuarenta lineas mas arriba. Solo la
+            # tabla estaba cubierta.
+            #
+            # Lo detecto Luna al agregar la ficha `[36]`: corrigio lo que la
+            # herramienta senalaba, leyo alrededor por su cuenta y encontro la
+            # otra aparicion. **Si se hubiera fiado del control, el documento
+            # habria quedado diciendo 36 en un lugar y 35 en el otro, y en verde
+            # al mismo tiempo.**
+            #
+            # Es el modo de fallo mas caro de un control: no que falle, sino que
+            # apruebe de menos y de a entender que reviso todo.
+            ("docs/13-documento-ieee.md", r"El texto cita (\d+) referencias"),
+        ],
     ),
     # `fichas` y `referencias` NO son lo mismo, y el documento las usaba como si
     # lo fueran: H10.5a listo [1]-[8] solo por numero y escribio ficha de [9] en

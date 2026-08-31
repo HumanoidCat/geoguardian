@@ -97,8 +97,12 @@
   - `E2` · 3 pts · 2.9 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H7.4**
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 2.0
 
-- [ ] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos
+- [x] **H9.1** · Preparar SUS, guion de entrevista y dosier de 3 casos (2026-08-22)
   - `E9` · 5 pts · 4.8 h · rubrica: OE4 · **bloquea a: H9.2a**
+  - horas: estimada 2.5 . real 2.5
+  - El guion indica que bloques van a H9.2a y cuales a H9.2b, segun la particion
+    del 2026-08-23. Se entregan cuatro casos y no tres: el cuarto es el unico
+    evento de incendio del catalogo.
 
 
 ## Sprint 4 (semanas 10-11) — 32.0 h
