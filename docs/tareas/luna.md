@@ -79,8 +79,12 @@
 
 ## Sprint 3 (semanas 8-9) — 20.3 h
 
-- [ ] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio
+- [x] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio (2026-08-30)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: H6.2
+  - horas: estimada 2.0 . real 1.5
+  - 57 casos nuevos, 209 en la suite. Cubre 35 de los 40 del plan H10.1.
+  - Hallazgo: cuatro invariantes del contrato Repositorio, tres de prioridad 1,
+    que no cubre ni el simulado ni la implementacion de Postgres.
 
 - [x] **H2.2** · Analisis espectral de la lluvia e interpretacion fisica (2026-08-30)
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1
