@@ -63,6 +63,25 @@ MINIMO_ANIOS_NORMAL = 30
 
 MESES_DEL_ANIO = 12
 
+# Para que el aviso nombre el mes en vez de su numero. Quien lee un registro no
+# tiene por que traducir "10" a octubre mientras revisa por que la normal es
+# debil. El indice 0 no se usa.
+NOMBRE_DEL_MES = (
+    "",
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "setiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+)
+
 
 class CalculadorAnomalias:
     """
@@ -140,6 +159,10 @@ def normales_por_mes(
     con el promedio anual ni con el de los meses vecinos: la normal de un mes es
     la de ese mes, y una inventada produciria anomalias que parecen validas.
 
+    Un mes **con pocos datos** si aparece, y se avisa por registro nombrandolo.
+    Ver `_avisar_meses_cortos`: el conteo es de anios con dato y por mes, no del
+    largo de la ventana pedida.
+
     Args:
         serie: valores mensuales, con None donde falta el dato.
         fechas: fecha de cada posicion, del mismo largo que la serie.
@@ -165,22 +188,57 @@ def normales_por_mes(
         raise ValueError(f"El periodo esta invertido: desde {desde} hasta {hasta}")
 
     acumulado: dict[int, list[float]] = defaultdict(list)
+    anios_con_dato: dict[int, set[int]] = defaultdict(set)
 
     for valor, fecha in zip(serie, fechas, strict=True):
         if valor is not None and desde <= fecha <= hasta:
             acumulado[fecha.month].append(valor)
+            anios_con_dato[fecha.month].add(fecha.year)
 
-    anios = (hasta.year - desde.year) + 1
-    if anios < MINIMO_ANIOS_NORMAL:
-        log.warning(
-            "La normal se calcula sobre %d anios y la OMM recomienda al menos %d "
-            "(WMO-No. 1203). El resultado existe, pero es menos estable de lo que "
-            "una normal climatologica deberia ser.",
-            anios,
-            MINIMO_ANIOS_NORMAL,
-        )
+    _avisar_meses_cortos(anios_con_dato)
 
     return {mes: sum(valores) / len(valores) for mes, valores in sorted(acumulado.items())}
+
+
+def _avisar_meses_cortos(anios_con_dato: dict[int, set[int]]) -> None:
+    """
+    Avisa por registro de los meses cuya normal sale de menos de 30 anios.
+
+    **Se cuentan los anios que hay, no la ventana que se pidio.** Una version
+    anterior calculaba `(hasta.year - desde.year) + 1`, que es el largo del
+    periodo solicitado y no dice nada sobre el dato disponible: con tres anios de
+    serie y la ventana 1991-2020 por defecto, el aviso no se disparaba nunca y
+    una "normal climatologica" de tres anios pasaba en silencio.
+
+    Es el mismo defecto que `completitud` tenia en H1.5, en otro modulo: contar
+    lo que se pidio en vez de lo que se tiene. Lo encontro Alejandro revisando
+    H2.4.
+
+    **El conteo es por mes y no global**, porque la normal se usa mes a mes. Un
+    mes al que le faltan diez anios produce una normal debil mientras los otros
+    once estan completos, y un promedio global no lo mostraria.
+
+    No bloquea: la normal se devuelve igual. Lo que cambia es que el aviso ahora
+    dice la verdad.
+    """
+    cortos = sorted(
+        (mes, len(anios))
+        for mes, anios in anios_con_dato.items()
+        if len(anios) < MINIMO_ANIOS_NORMAL
+    )
+    if not cortos:
+        return
+
+    detalle = ", ".join(f"{NOMBRE_DEL_MES[mes]} ({cuantos})" for mes, cuantos in cortos)
+    log.warning(
+        "Hay %d mes(es) cuya normal sale de menos de %d anios con dato, que es el "
+        "minimo que recomienda la OMM (WMO-No. 1203). Meses y anios disponibles: %s. "
+        "La normal se devuelve igual, pero en esos meses es menos estable de lo que "
+        "una normal climatologica deberia ser.",
+        len(cortos),
+        MINIMO_ANIOS_NORMAL,
+        detalle,
+    )
 
 
 def anomalia_con_fechas(

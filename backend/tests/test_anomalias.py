@@ -16,6 +16,7 @@ from datetime import date
 import pytest
 
 from backend.senales.anomalias import (
+    MINIMO_ANIOS_NORMAL,
     CalculadorAnomalias,
     anomalia_con_fechas,
     normales_por_mes,
@@ -192,6 +193,87 @@ def test_avisa_si_la_normal_tiene_menos_de_treinta_anios(caplog):
         )
 
     assert "30" in caplog.text
+
+
+def _eneros(cuantos: int, desde_anio: int = 1991) -> tuple[list[float | None], list[date]]:
+    """`cuantos` eneros consecutivos con dato, uno por anio."""
+    fechas = [date(desde_anio + i, 1, 1) for i in range(cuantos)]
+    return [10.0] * cuantos, fechas
+
+
+def test_avisa_aunque_la_ventana_pedida_sea_larga(caplog):
+    """
+    **El defecto que encontro Alejandro, congelado como prueba.**
+
+    Tres anios de dato pidiendo la ventana 1991-2020 por defecto. La version
+    anterior contaba `(hasta.year - desde.year) + 1`, que da 30, y no avisaba
+    nunca: una "normal climatologica" de tres anios pasaba en silencio.
+
+    Si esta prueba empieza a fallar, alguien volvio a contar la ventana en vez
+    de los anios que hay.
+    """
+    serie, fechas = _eneros(3)
+
+    with caplog.at_level("WARNING"):
+        normales_por_mes(serie, fechas)
+
+    assert "enero" in caplog.text
+    assert "(3)" in caplog.text
+
+
+def test_el_aviso_nombra_solo_los_meses_cortos(caplog):
+    """
+    Un mes al que le faltan anios no puede esconderse detras de los completos.
+
+    Enero con 30 anios y julio con 5. El promedio global daria 17,5 y no diria
+    cual de los dos es el debil; el aviso tiene que nombrar a julio y callar
+    sobre enero.
+    """
+    serie: list[float | None] = []
+    fechas: list[date] = []
+
+    for i in range(MINIMO_ANIOS_NORMAL):
+        serie.append(10.0)
+        fechas.append(date(1991 + i, 1, 1))
+    for i in range(5):
+        serie.append(20.0)
+        fechas.append(date(1991 + i, 7, 1))
+
+    with caplog.at_level("WARNING"):
+        normales = normales_por_mes(serie, fechas)
+
+    assert "julio" in caplog.text
+    assert "(5)" in caplog.text
+    assert "enero" not in caplog.text
+
+    # El aviso no cambia el resultado: los dos meses siguen saliendo.
+    assert normales[1] == pytest.approx(10.0)
+    assert normales[7] == pytest.approx(20.0)
+
+
+def test_no_avisa_con_treinta_anios_completos(caplog):
+    serie, fechas = _eneros(MINIMO_ANIOS_NORMAL)
+
+    with caplog.at_level("WARNING"):
+        normales_por_mes(serie, fechas)
+
+    assert "WMO-No. 1203" not in caplog.text
+
+
+def test_los_anios_repetidos_no_inflan_la_cuenta(caplog):
+    """
+    Doce meses de un mismo anio no son doce anios de ese mes.
+
+    Se cuentan anios distintos, no filas. Contar filas daria 12 para enero con
+    un solo enero por anio repetido y volveria a esconder el problema.
+    """
+    serie: list[float | None] = [10.0] * 12
+    fechas = [date(1991, 1, 1)] * 12
+
+    with caplog.at_level("WARNING"):
+        normales_por_mes(serie, fechas)
+
+    assert "enero (1)" in caplog.text
 
 
 # --------------------------------------------------------------------------- #
