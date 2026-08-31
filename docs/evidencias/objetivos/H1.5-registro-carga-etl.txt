@@ -1,0 +1,48 @@
+Fuente: CHIRPS + NASA POWER (hibrida, D-15)
+Ventana: 1991-01-01 a 2025-12-31
+Distritos: 8
+Inicio: 2026-08-30T19:16:36-06:00
+Las dos fuentes responden.
+
+--- 1/8 · 50801 Tilarán ---
+Tilarán: POWER 12784 dias, elevacion 381.42 m, api v2.9.7
+Tilarán: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 130.6 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 2/8 · 50802 Quebrada Grande ---
+Quebrada Grande: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Quebrada Grande: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 139.9 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 3/8 · 50803 Tronadora ---
+Tronadora: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Tronadora: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 142.2 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 4/8 · 50804 Santa Rosa ---
+Santa Rosa: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Santa Rosa: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 153.8 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 5/8 · 50805 Líbano ---
+Líbano: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Líbano: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 221.7 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 6/8 · 50806 Tierras Morenas ---
+Tierras Morenas: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Tierras Morenas: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 136.9 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 7/8 · 50807 Arenal ---
+Arenal: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Arenal: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 133.2 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+--- 8/8 · 50808 Cabeceras ---
+Cabeceras: POWER reutiliza la celda (-85.0, 10.5), ya descargada
+Cabeceras: CHIRPS 12784 dias, 0 sin dato
+escritas 12784 filas en 120.8 s; huecos {'temp_max_c': 0, 'temp_min_c': 0, 'temp_media_c': 0, 'humedad_relativa_pct': 0, 'viento_ms': 0, 'radiacion_mj_m2': 0, 'precipitacion_mm': 0}
+
+Total: 102272 filas en 1180.4 segundos
+Procedencia: C:\Users\AleLuna\Documents\geoguardian\basedatos\ddl\procedencia-mediciones.md
