@@ -283,7 +283,21 @@ jobs:
           # directorio actual al path de importacion y falla con "No module
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
-          python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+          #
+          # La ruta es `backend` y no `backend/tests`. Hasta el 2026-08-30 era lo
+          # segundo, y por eso el CI NUNCA ejecuto las 46 pruebas de
+          # `backend/api/test_repositorio_postgres.py` y
+          # `backend/etl/test_imputacion.py`: existen, pasan, y vivian fuera del
+          # unico directorio que el CI miraba.
+          #
+          # `testpaths = ["backend"]` de pyproject.toml no lo cubria: solo aplica
+          # cuando se invoca `pytest` SIN ruta, y aqui se le pasa una.
+          #
+          # Es I-06 otra vez, en su forma mas incomoda: quien corria pytest en su
+          # maquina veia pasar esas 46 y concluia que estaban cubiertas. El CI no
+          # las habia ejecutado ni una vez. Un control apagado que se ve igual que
+          # uno encendido.
+          python -m pytest backend -v --cov=backend --cov-report=term-missing
 
       # Los dos verificadores de criterios de aceptacion viven aca porque este es
       # el unico trabajo que instala requirements.txt, y los dos necesitan
