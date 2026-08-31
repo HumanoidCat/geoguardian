@@ -29,7 +29,7 @@ H9.2b,Contraste de la estimacion contra eventos vividos,docs,acta de sesion,docs
 H10.1,Plan de pruebas con casos por modulo,docs/investigacion,"no aplica: es el plan, no la suite",docs/evidencias/calidad/,,
 H10.4,Manual tecnico verificado por alguien ajeno al desarrollo,docs,"los comandos de su seccion 5, ejecutados",docs/evidencias/entregables/,,En progreso: falta la verificacion externa
 H13.1,Actas de las ceremonias Scrum,docs,contraste de cada cifra contra git log y el backlog,docs/evidencias/arquitectura-software/,,
-H10.2,Suite de pruebas del backend,backend/tests,los 39 casos del plan H10.1,docs/evidencias/calidad/,,
+H10.2,Suite de pruebas del backend contra los contratos y sus simulados,backend/tests,"57 casos nuevos en cuatro archivos, 209 en la suite",docs/evidencias/calidad/,,"35 de los 40 casos del plan H10.1. Los cinco restantes no se pueden escribir: cuatro porque el simulado no implementa la invariante y uno porque remuestrear no existe"
 H10.5a,15 referencias IEEE con ficha de contenido,docs/investigacion,verificacion de cada DOI contra la editorial,docs/evidencias/entregables/,,
 H10.5b,Estado del arte de Costa Rica,docs/investigacion,verificacion de las fuentes nuevas contra el sitio del editor,docs/evidencias/entregables/,,
 H4.3,Catalogo de 12 o mas eventos historicos con fuente,"docs/investigacion, backend/calidad",python -m backend.calidad.validar_catalogo,docs/evidencias/objetivos/,,

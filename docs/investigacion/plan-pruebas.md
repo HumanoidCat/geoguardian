@@ -172,15 +172,72 @@ QA de este plan (H10.1, H10.2) esa carpeta es `docs/evidencias/calidad/`.
 
 ## 5. Estado de implementación
 
-Ningún caso de este plan está implementado todavía. Esta tabla se actualiza a
-medida que se agregan archivos a `backend/tests/`.
+**Reconciliado contra la suite el 2026-08-30**, al arrancar H10.2. La tabla
+anterior decía cero en todo y llevaba semanas desactualizada.
 
-| Sección | Casos planificados | Casos implementados |
+| Sección | Planificados | Cubiertos | Pendientes |
+|---|---|---|---|
+| Repositorio | 11 | 7 | **4** |
+| Extractores | 5 | 5 | 0 |
+| Procesador de señales | 6 | 5 | **1** |
+| Estimador y evaluador | 10 | 10 | 0 |
+| Esquemas | 4 | 4 | 0 |
+| Calidad | 4 | 4 | 0 |
+| **Total** | **40** | **35** | **5** |
+
+Actualizada al cerrar H10.2. Los cinco pendientes **no se pueden escribir**, no
+es que falte tiempo: cuatro porque el simulado no implementa la invariante que
+protegen, y uno porque `remuestrear` no existe todavía. El detalle está en
+`docs/evidencias/calidad/H10.2-suite-contratos.md`.
+
+### Los nueve cubiertos, y con qué nombre
+
+Cinco coinciden con el nombre planificado y cuatro se implementaron con otro.
+Se listan para que la correspondencia no haya que reconstruirla:
+
+| Caso del plan | Implementado como | Archivo |
 |---|---|---|
-| Repositorio | 11 | 0 |
-| Extractores | 5 | 0 |
-| Procesador de señales | 6 | 0 |
-| Estimador y evaluador | 10 | 0 |
-| Esquemas | 4 | 0 |
-| Calidad | 4 | 0 |
-| **Total** | **40** | **0** |
+| `test_filtrar_ruido_preserva_huecos` | mismo nombre | `test_filtros.py` |
+| `test_espectro_lanza_valueerror_con_huecos` | mismo nombre | `test_espectro.py` |
+| `test_espectro_identifica_ciclo_anual` | `test_detecta_el_ciclo_anual` | `test_espectro.py` |
+| `test_spi_primeras_posiciones_none` | mismo nombre | `test_spi.py` |
+| `test_anomalia_mes_faltante_en_normal_devuelve_none` | mismo nombre | `test_anomalias.py` |
+| `test_reporte_calidad_pct_faltantes_se_calcula_no_se_declara` | `test_pct_faltantes_se_calcula_no_se_declara` | `test_reporte_calidad.py` |
+| `test_reporte_calidad_detecta_atipicos` | `test_detecta_valores_fuera_de_rango_fisico` | `test_reporte_calidad.py` |
+| `test_reporte_calidad_registra_metodo_imputacion` | `test_el_metodo_de_imputacion_queda_registrado` | `test_reporte_calidad.py` |
+| `test_variables_no_son_identicas_entre_distritos` | mismo nombre | `test_reporte_calidad.py` |
+
+### El caso que no se puede escribir todavía
+
+`test_remuestrear_mayoria_faltante_devuelve_none` es el único pendiente de la
+sección 3.3, y **no depende de H10.2**: `remuestrear` es el quinto método de
+`ProcesadorSenales` y todavía no tiene implementación. Se escribe cuando exista.
+
+### Lo que esta tabla no dice, y conviene decir
+
+**La suite tiene 148 pruebas y solo 9 corresponden a este plan.** Las otras 139
+se escribieron al implementar cada historia y son más profundas que lo que el
+plan anticipó: `test_spi.py` sola tiene 24 casos donde el plan nombraba uno.
+
+Eso no es un defecto de ninguna de las dos partes. El plan es una lista de
+comprobación **a nivel de contrato**, escrita antes de que existiera el código;
+la suite creció **a nivel de implementación**, con los bordes que cada módulo
+fue mostrando al construirse.
+
+Lo que sí es un problema es que **el plan se presentaba como el mapa de
+cobertura y no lo es**. Quien lo leyera creería que no hay nada probado, cuando
+hay 148 pruebas corriendo en CI. Esta sección existe para que las dos vistas se
+puedan cruzar.
+
+### Sobre las secciones 3.1, 3.2, 3.4 y 3.5
+
+Los 30 casos pendientes de esas cuatro secciones prueban **contratos y sus
+simulados**, no implementaciones. Los seis simulados existen —la nota "simulado:
+pendiente" de los encabezados 3.3 y 3.4 quedó vieja— así que se pueden escribir
+desde `backend/tests/` sin tocar carpeta ajena.
+
+**Verifican que el simulado cumple el contrato, no que la implementación real
+funcione.** Sirven para detectar que un simulado se desvíe o que un contrato
+cambie sin aviso, que es exactamente para lo que existen en este proyecto. No
+sustituyen a `backend/api/test_repositorio_postgres.py`, que prueba la
+implementación de Postgres y tiene otro dueño y otro propósito.
