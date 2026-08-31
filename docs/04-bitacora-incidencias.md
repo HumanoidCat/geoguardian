@@ -1162,3 +1162,61 @@ confianza que el paquete tenia sin merecerla desde que la herramienta existe,
 porque **este defecto no era nuevo, solo no se habia disparado antes**: hasta hoy
 nunca habia fallado la construccion de los PDF con figuras recien regeneradas al
 lado.
+
+---
+
+## I-16 · El documento decia citar 36 referencias y citaba 12, con el control en verde
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al auditar cuales de las fichas nuevas de la
+revision bibliografica habian entrado de verdad al cuerpo del documento. El
+control no lo podia detectar: la cifra que comprobaba era cierta.
+
+**Que paso.** El bloque de Referencias del documento IEEE decia:
+
+> «El texto cita 36 referencias, de las cuales 28 estan verificadas...»
+
+El cuerpo del documento citaba **12**. Las otras 24 estaban en la bibliografia y
+sostenian el documento de investigacion, las fichas y las bitacoras, pero **este
+texto no las citaba**.
+
+**Causa raiz.** La afirmacion `referencias citadas` de `verificar_documentacion.py`
+nunca conto citas. Cuenta los identificadores distintos de
+`docs/investigacion/referencias.md`, o sea **el tamano de la bibliografia**. El
+nombre decia una cosa, la funcion hacia otra, y el documento redacto la frase
+creyendo el nombre.
+
+El control comparaba **36 contra 36** y aprobaba. La cifra era correcta; la
+oracion que la contenia, falsa.
+
+**Por que este es el caso incomodo.** I-04, I-08 y I-15 son controles que no
+miraban. Este miraba, y aprobo. Un numero verificado dentro de una afirmacion que
+nadie verifico es peor que un numero sin control: el control le presta autoridad
+a la frase entera cuando solo respalda una palabra de ella.
+
+Y es exactamente lo que este mismo documento denuncia en su seccion de
+conclusiones —«un dato con forma valida y contenido falso, que ninguna validacion
+detecta porque nadie escribio la validacion»—. Estaba escrito arriba del defecto.
+
+**Que se cambio.**
+
+1. El documento dice ahora **«La bibliografia reune 36 referencias»** y, aparte,
+   **«Este documento cita 12 de forma directa»**. Son dos hechos distintos y se
+   afirman por separado.
+2. Se agrego `referencias_citadas_en_el_cuerpo()`, que cuenta los `[N]` del
+   documento IEEE cortando en `## Referencias`, con su propio control. Son 21
+   controles, no 20.
+3. La afirmacion vieja conservo su funcion y su nombre en el codigo lleva ahora
+   la advertencia de que **cuenta bibliografia, no citas**.
+
+**Lo que no se hizo.** No se forzaron citas de las 24 restantes para que el
+numero subiera. Citar una referencia que el texto no usa es peor que no citarla:
+convierte la bibliografia en decoracion. Cinco de las 36 -`[11]`, `[12]`, `[20]`,
+`[21]` y `[35]`- no se citan en ningun documento, y eso queda declarado en vez de
+disimulado; `[35]` ademas sigue sin autores transcritos y por eso no es citable.
+
+**Impacto.** El documento no se habia entregado con esa frase a un evaluador
+externo. El costo es de credibilidad interna: **la cifra mas visible del bloque
+de Referencias era la unica del documento que afirmaba algo que sus propias
+herramientas no comprobaban**, y llevaba semanas ahi.
