@@ -11,7 +11,7 @@ uno que se cumplio.
 
 LO DE «AL DIA» SE AGREGO POR I-15, Y ES LA MITAD QUE FALTABA
 
-Comprobar solo la existencia dejaba pasar el caso peor. El 2026-08-28 fallo la
+Comprobar solo la existencia dejaba pasar el caso peor. El 2026-08-30 fallo la
 construccion de los PDF -faltaban pandoc y XeLaTeX- y esta herramienta armo el
 zip igual, con los documentos anteriores al cambio de escala del SPI: nombre
 correcto, fecha de hoy, 1,9 MB, contenido viejo.
@@ -53,7 +53,7 @@ DIAGRAMAS = RAIZ / "docs" / "diagramas"
 #: El nombre dentro del zip **no** es el del archivo en disco: `13-` y `17-` son
 #: numeros de documento del repositorio y no le dicen nada a quien lo recibe.
 #:
-#: **La cuarta columna existe por un defecto real, del 2026-08-28.** Ese dia el
+#: **La cuarta columna existe por un defecto real, del 2026-08-30.** Ese dia el
 #: constructor de PDF fallo -faltaban pandoc y XeLaTeX- y esta herramienta armo
 #: el zip igual: comprobaba que los PDF **existieran**, no que estuvieran **al
 #: dia**. El paquete salio con 1,9 MB de documentos anteriores al cambio de

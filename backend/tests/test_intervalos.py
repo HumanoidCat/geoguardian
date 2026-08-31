@@ -161,7 +161,7 @@ def _medicion(escala: int, detectados: int, contrastables: int, marcados: int, t
 def test_descarta_la_escala_separada_hacia_abajo():
     """**La regresion que importa.**
 
-    Es el caso real medido el 2026-08-28: SPI-3 dio 0 de 7 y las otras dos 7 de
+    Es el caso real medido el 2026-08-30: SPI-3 dio 0 de 7 y las otras dos 7 de
     7. La primera version de `veredicto` buscaba la de mayor cobertura, veia que
     SPI-6 y SPI-12 se solapaban entre si, y devolvia «sin veredicto» -enterrando
     que la escala en uso habia quedado separada por debajo de las dos.

@@ -82,7 +82,7 @@ HORIZONTE_DIAS = 7
 VENTANA_ACUMULADO_DIAS = 3  # las "72 h" del contrato
 #: Escala del SPI, en meses. **Seis, por D-32, y sale de una medicion.**
 #:
-#: Fue 3 desde D-19 hasta el 2026-08-28, adoptada porque es la escala mas comun
+#: Fue 3 desde D-19 hasta el 2026-08-30, adoptada porque es la escala mas comun
 #: en la literatura de sequia agricola. Nadie la habia medido.
 #:
 #: `comparar_escalas_spi.py` contrasto las tres contra el catalogo: SPI-3 dio

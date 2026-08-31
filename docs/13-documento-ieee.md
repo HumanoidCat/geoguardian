@@ -5,7 +5,7 @@ author:
   - "Luis Alejandro Luna García"
   - "Avril Madrigal Elizondo"
 institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
-date: "28 de agosto de 2026"
+date: "30 de agosto de 2026"
 lang: es
 ---
 
@@ -601,7 +601,7 @@ focos nunca fue observado, que es la misma confusión en la otra dirección.
 
 ## VI. Resultados
 
-> **PARCIAL, desde el 28 de agosto de 2026.** Se reporta lo que está medido —el
+> **PARCIAL, desde el 30 de agosto de 2026.** Se reporta lo que está medido —el
 > piso contra el que se comparará todo— y se declara lo que falta.
 >
 > **Lo que hay:** el etiquetado de la variable objetivo, la partición temporal,
@@ -1321,7 +1321,7 @@ las cifras de este anexo dejaron de ser ciertas** sin que nadie lo notara.
 | Trabajos de integración continua | 5 | **6** |
 | Controles de cifras | 8 | **20** |
 
-**Y el control siguió sirviendo.** Al ampliar la bibliografía el 28 de agosto,
+**Y el control siguió sirviendo.** Al ampliar la bibliografía el 30 de agosto,
 las mismas dos cifras volvieron a desfasarse —de 27 a 35 referencias y de 19 a 27
 fichas— y esta vez la herramienta lo señaló en el acto, con el número correcto al
 lado. La diferencia entre las dos ocasiones no es que nadie se distrajera la

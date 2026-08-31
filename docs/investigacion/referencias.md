@@ -580,7 +580,7 @@ y actualizar esta nota.
   atribución a `[24]`, que era incorrecta**: la guía de la OMM no plantea la
   distribución mixta.
 
-## Fichas nuevas de la revisión del 2026-08-28
+## Fichas nuevas de la revisión del 2026-08-30
 
 Ocho fichas (`[28]` a `[35]`) agregadas al ampliar la revisión bibliográfica.
 El criterio de las anteriores se mantiene sin cambios: se declara qué se leyó
@@ -599,7 +599,7 @@ no en engrosar la bibliografía.
 ```
 
 **Fuente verificada:** *Scientific Data* (Nature), DOI `10.1038/sdata.2015.66`,
-publicado 2015-12-08. **Texto completo leído** el 2026-08-28 (acceso abierto).
+publicado 2015-12-08. **Texto completo leído** el 2026-08-30 (acceso abierto).
 
 **Ficha de contenido**
 - *Qué dice:* describe CHIRPS, un producto de precipitación cuasi-global
@@ -636,7 +636,7 @@ publicado 2015-12-08. **Texto completo leído** el 2026-08-28 (acceso abierto).
 ```
 
 **Fuente verificada:** repositorio institucional del CATIE, handle
-`11554/8725`. **Documento completo leído** el 2026-08-28.
+`11554/8725`. **Documento completo leído** el 2026-08-30.
 
 **Ficha de contenido**
 - *Qué dice:* estima índices de riesgo de desastre por lluvia extrema **para
@@ -670,7 +670,7 @@ publicado 2015-12-08. **Texto completo leído** el 2026-08-28 (acceso abierto).
 ```
 
 **Fuente verificada:** monografía CATMOG 38, ISBN 0-86094-134-5, ISSN
-0306-6142. **Texto completo leído** el 2026-08-28.
+0306-6142. **Texto completo leído** el 2026-08-30.
 
 **Ficha de contenido**
 - *Qué dice:* nombra y descompone el problema. Cita textual de la definición:
@@ -841,7 +841,7 @@ y debe completarse antes de citar.*
 ## Corrección de la ficha `[15]`
 
 **La ficha original se escribió sobre el resumen. Leído el artículo completo
-el 2026-08-28, dice algo que la ficha no recoge y que afecta a una decisión
+el 2026-08-30, dice algo que la ficha no recoge y que afecta a una decisión
 nuestra.**
 
 Lo que la ficha decía —que el SPI es el índice con asociación más fuerte con
@@ -892,7 +892,7 @@ número.
 | Mínimo exigido por H10.5a | 15 |
 | Fichas agregadas por H10.5b | 2 (`[25]` y `[26]`) |
 | Fichas agregadas por la corrección de atribución de H2.3 | 1 (`[27]`) |
-| Fichas agregadas por la revisión del 2026-08-28 | 8 (`[28]` a `[35]`) |
+| Fichas agregadas por la revisión del 2026-08-30 | 8 (`[28]` a `[35]`) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
 | Total de la bibliografía | 35 |
 | Referencias descartadas por no poder verificarse | 2 |
