@@ -110,6 +110,11 @@ que importa, que es el rango.
 Líbano no aparece en la figura porque su ficha reporta el daño en metros de vía
 —15 400— y no en dólares. Reportó ese mismo día, como los demás.
 
+Y son **siete distritos y no ocho**: Cabeceras no tiene ficha para este evento.
+Eso no significa que no le pasara nada. El catálogo registra daño que alguien
+reportó, y la ausencia de ficha es ausencia de reporte, no de lluvia. Es la misma
+advertencia de la sección VIII-bis-C, aplicada al caso que abre el documento.
+
 Ahí está el problema, y no es la falta de un pronóstico. El Instituto
 Meteorológico Nacional emitió aviso; lo que ese aviso no podía decir es que en
 Quebrada Grande había que mover ganado lechero y en Arenal vigilar una calzada.
@@ -928,7 +933,13 @@ episodios menos correlacionados entre pliegues.
 
 De las cinco variables climáticas, **solo la precipitación tiene resolución
 suficiente para distinguir distritos** (sección V-A). Temperatura, humedad,
-radiación y viento son, para este cantón, constantes en el eje espacial.
+radiación y viento son, para este cantón, constantes en el eje espacial: **0,00 %
+de días con al menos dos valores distintos entre los ocho distritos**, sobre
+102 272 días-distrito. La precipitación varía en el **61,62 %**.
+
+No son parecidas entre distritos: son idénticas. La causa la escribe la propia
+carga en su registro, una vez por distrito: «POWER reutiliza la celda
+(−85,0 · 10,5), ya descargada».
 
 La afirmación "riesgo por distrito" se sostiene sobre esa única variable. Es la
 limitación más importante del trabajo y está medida, no supuesta.
@@ -938,6 +949,25 @@ limitación más importante del trabajo y está medida, no supuesta.
 Concentra tres debilidades a la vez: **no tiene estándar internacional** para su
 umbral, **no tiene registro histórico** contra el cual validarse (V-E), y su
 volumen de datos de entrenamiento es el más escaso de los tres.
+
+**Y la segunda es más severa de lo que «no tiene registro» deja ver.** No se
+trata de que el catálogo empiece tarde o que el único evento quede fuera de la
+serie etiquetada, que es como se describía hasta ahora. Al compilar el catálogo
+se encontró que DesInventar distingue el tipo `FIRE` del tipo `FORESTFIRE`, y
+que **en cincuenta y seis años de registro las cuatro fichas `FIRE` de Tilarán
+son incendios estructurales** —locales comerciales, una bodega—: **ninguna es
+forestal**.
+
+El único evento de incendio del catálogo de este trabajo no proviene de
+DesInventar sino de **prensa**, y es de 2026, posterior a la serie etiquetada.
+
+La consecuencia se enuncia sin rodeos: **el componente de incendio no admite
+validación contra el registro histórico de desastres, y no por una limitación de
+este trabajo sino porque ese registro no contiene el fenómeno.** El contraste
+tendrá que apoyarse en los focos de FIRMS, que son detección satelital y no daño
+reportado, y esa sustitución cambia lo que se puede afirmar: se estaría validando
+contra otra medición del mismo cielo, no contra una consecuencia observada en
+tierra.
 
 **Ya no está supuesto: está medido.** El riesgo R16 se cerró el 20 de agosto con
 **242 focos de FIRMS en 24 años** dentro del cantón. De ahí salieron tres hechos:
@@ -1201,6 +1231,13 @@ distritos**: la celda del reanálisis global mide 68 × 55 km y cubre el cantón
 entero, de modo que temperatura, humedad, viento y radiación toman el mismo valor
 en los ocho. Solo la precipitación, con una celda de 0,05°, cae por separado en
 cada distrito.
+
+**Contado por columna del conjunto de datos son seis de siete**, porque la
+temperatura se almacena en tres —máxima, mínima y media— que provienen de la
+misma celda y por tanto comparten el defecto. Las dos formas de contar describen
+la misma medición; se usa la de cinco porque agrupa por magnitud física, que es
+como se razona sobre el problema, y se declara la otra porque es la que aparece
+en el reporte de calidad de datos.
 
 La consecuencia es más general que este cantón: **en un problema a escala
 subcantonal, la elección de fuente no es un paso preparatorio sino la decisión
