@@ -79,9 +79,15 @@ seis veces.
 
 | Quien | Donde | Para que historias |
 |---|---|---|
-| Cesar | `backend/senales` | H2.5, H2.6 |
-| Cesar | `backend/modelado` | H3.3, H3.4, H3.5, H3.7 |
-| Alejandro | `backend/senales` | lo que necesiten sus historias de modelado |
+| Cesar | `backend/senales` | H2.6 |
+| Cesar | `backend/modelado` | H3.4, H3.5, H3.7 |
+| Alejandro | `backend/senales` | lo que necesiten sus historias de modelado, **y H2.5** |
+| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3** |
+
+> **Actualizada el 2026-09-01 por D-33.** H2.5 y H3.3 pasaron de Cesar a
+> Alejandro, y la excepcion se movio con ellas **sin abrir una solicitud de
+> cambio**: es lo que dice la regla de abajo. Si Cesar las retoma, la fila vuelve
+> a su nombre por el mismo camino y sin pedir permiso.
 
 **Por que se corrigio.** `backend/senales` figuraba como carpeta de Alejandro, pero
 las cinco historias de senales son de Luna y dos de Cesar: ninguno de los dos podia

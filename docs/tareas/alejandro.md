@@ -152,7 +152,11 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
+- [x] **H2.5** · Generar lags, acumulados y medias moviles reproducibles (2026-09-01)
+  - Evidencia: `docs/evidencias/senales-y-sistemas/H2.5-caracteristicas.md`
+  - `backend/senales/caracteristicas.py`, 16 pruebas. La que importa es la de
+    fuga al futuro, **comprobada contra una fuga real de un solo dia**.
+  - horas: estimada 4.8 . real 3.0
   - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
