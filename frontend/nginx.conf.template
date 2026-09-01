@@ -1,0 +1,87 @@
+# Configuracion de nginx para el visor. Historia H11.1, por la solicitud SC-07.
+#
+# POR QUE ESTE ARCHIVO EXISTE
+#
+# Hasta el 2026-09-01 este bloque vivia embebido en `frontend/Dockerfile`, dentro
+# de un `printf`. El propio Dockerfile explicaba por que y decia que preferiria lo
+# contrario: la excepcion de H6.0 cubria ese archivo y no un tercero en la carpeta
+# de Avril, asi que se escribio ahi «para no salirse del limite exacto que se
+# concedio», y dejaba anotado que «si mas adelante Avril prefiere el archivo
+# aparte, se mueve y este bloque desaparece».
+#
+# Se movio. Ver `docs/solicitudes/SC-07-nginx-del-visor-a-archivo-aparte.md`.
+#
+# ES UNA PLANTILLA, NO UN .conf
+#
+# La imagen oficial de nginx procesa `/etc/nginx/templates/*.template` con
+# `envsubst` al arrancar y deja el resultado en `/etc/nginx/conf.d/`. Eso permite
+# que **H11.2 y H11.3 apunten el visor a otra API sin reconstruir la imagen**:
+# basta una variable de entorno distinta en el despliegue.
+#
+# Solo se sustituye `${DESTINO_API}`, que el Dockerfile declara con `ENV` para que
+# tenga valor por defecto. Las variables de nginx -`$host`, `$uri`- no se tocan:
+# el guion de la imagen sustituye unicamente las variables definidas en el
+# entorno.
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /api/ {
+        # LAS TRES LINEAS DE ABAJO SON UNA SOLA COSA. No se tocan por separado.
+        #
+        # EL PROBLEMA QUE RESUELVEN
+        #
+        # Con `proxy_pass http://api:8000/` escrito literal, **nginx resuelve el
+        # nombre al arrancar, no al recibir la peticion**. Si `api` no existe en
+        # ese momento, nginx se niega a levantar:
+        #
+        #     nginx: [emerg] host not found in upstream "api"
+        #
+        # Dentro de `docker compose` el nombre siempre existe, porque lo crea la
+        # red de compose, y por eso nunca se noto. Fuera de compose la imagen
+        # esta muerta -y ese es el escenario de H11.2, H11.3 y H11.4: en
+        # Kubernetes cada componente se despliega por separado y el visor puede
+        # arrancar antes que la API-.
+        #
+        # Lo encontro el verificador de H11.1 al **ejecutar** la imagen. El
+        # `docker build` termina en cero y la imagen se ve sana.
+        #
+        # 1. Cuando `proxy_pass` lleva una **variable**, nginx difiere la
+        #    resolucion hasta la peticion. Sin API, el visor levanta igual y
+        #    `/api/` devuelve 502, que es lo correcto: el visor ya sabe degradar
+        #    a su respaldo estatico y declararlo en pantalla, por D-23. Hoy no
+        #    llega ni a intentarlo.
+        set $destino_api ${DESTINO_API};
+
+        # 2. El `rewrite` NO es opcional. Con `proxy_pass http://api:8000/` y
+        #    barra final, nginx quitaba el prefijo `/api/` solo. Con una variable
+        #    **deja de hacerlo**, asi que hay que quitarlo a mano o la API recibe
+        #    `/api/distritos` en vez de `/distritos`.
+        #
+        #    Cambiar una cosa sin la otra da un fallo PEOR que el actual: el
+        #    contenedor arranca y todas las rutas devuelven 404, sin nada visible
+        #    al iniciar.
+        rewrite ^/api/(.*)$ /$1 break;
+
+        # 3. El `resolver` lo escribe `/docker-entrypoint.d/10-resolver.sh`
+        #    leyendolo de `/etc/resolv.conf`, y llega por el include de
+        #    `conf.d/*.conf`. No se escribe fijo: en Docker es 127.0.0.11, en
+        #    Kubernetes es el DNS del cluster. Ponerlo a mano arregla hoy y rompe
+        #    en H11.3.
+        proxy_pass $destino_api;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # El visor es una aplicacion de una sola pagina. Sin esto, recargar el
+    # navegador en cualquier ruta que no sea la raiz devuelve 404, porque el
+    # archivo no existe: la ruta la resuelve el navegador.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
