@@ -521,13 +521,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Construir${{ github.event_name == 'push' && ' y publicar' || '' }} ${{ matrix.nombre }}
+      # PRIMERO SE CONSTRUYE Y SE CARGA EN EL DEMONIO LOCAL. NO SE PUBLICA.
+      #
+      # `load: true` es obligatorio y su ausencia fue el defecto de la primera
+      # corrida: sin el, `build-push-action` deja la imagen en la cache de
+      # buildx y **no** en el demonio, asi que el paso siguiente no la encuentra
+      # y el trabajo se cae con «No esta geoguardian-api».
+      #
+      # La etiqueta es la local, la misma que usa `docker compose`, y no la de
+      # ghcr. Fue el otro defecto: el verificador busca `geoguardian-<nombre>` y
+      # el build etiquetaba `ghcr.io/humanoidcat/geoguardian/<nombre>:sha-...`.
+      # Dos nombres para la misma imagen y nada que los cruzara.
+      - name: Construir ${{ matrix.nombre }}
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.contexto }}
           file: ${{ matrix.dockerfile }}
-          push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          load: true
+          push: false
+          tags: geoguardian-${{ matrix.nombre }}
           labels: ${{ steps.meta.outputs.labels }}
           # La cache de GitHub Actions evita reconstruir las capas de
           # dependencias en cada corrida. Sin esto, `npm ci` y `pip install`
@@ -540,3 +552,23 @@ jobs:
       # .dockerignore excluyo, y eso solo se ve ejecutandola.
       - name: La imagen arranca y responde
         run: python docs/herramientas/verificar_h111.py --imagen ${{ matrix.nombre }}
+
+      # Y SOLO DESPUES SE PUBLICA.
+      #
+      # El orden importa y en la primera version estaba al reves: se publicaba y
+      # despues se comprobaba. Una imagen que no arranca no tiene por que llegar
+      # al registro, y menos con la etiqueta `latest`: quien la baje se lleva un
+      # contenedor muerto y el rojo del CI no se lo impide.
+      #
+      # Se etiqueta y se empuja con el CLI en vez de reconstruir: la imagen ya
+      # esta en el demonio y verificada. Reconstruirla con `push: true` seria
+      # publicar un artefacto **distinto** del que se verifico, aunque el
+      # contenido coincida.
+      - name: Publicar ${{ matrix.nombre }} en ghcr.io
+        if: github.event_name == 'push'
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" | while read -r etiqueta; do
+            [ -z "$etiqueta" ] && continue
+            docker tag geoguardian-${{ matrix.nombre }} "$etiqueta"
+            docker push "$etiqueta"
+          done
