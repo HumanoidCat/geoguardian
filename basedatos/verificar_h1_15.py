@@ -196,10 +196,45 @@ def verificar(conexion) -> Resultado:
             "9. un distrito inexistente se rechaza",
             ("99999", FECHA, "sequia", "alto", None, None, None, None),
         ),
+        # --- Los dos de la migracion 007, que encontro Cesar --- #
+        (
+            "11. el incendio con nivel 'medio' se rechaza (SC-05)",
+            (DISTRITO, FECHA, "incendio", "medio", None, None, None, None),
+        ),
     ]
     for nombre, parametros in casos:
         rechazo, detalle = _rechaza(conexion, INSERTA, parametros)
         r.comprobar(nombre, rechazo, detalle)
+
+    # 12. Que ninguna restriccion dependa del reloj.
+    #
+    # LA COMPROBACION QUE FALTABA, Y QUE DEJO PASAR EL DEFECTO
+    #
+    # La 006 declaraba `CHECK (fecha <= CURRENT_DATE + INTERVAL '31 days')`.
+    # PostgreSQL la acepta, asi que los 15 criterios pasaban; pero la reevalua en
+    # cada insercion, no solo al escribir la fila. Como `pg_dump` emite literales
+    # y restaurar es reinsertar, **un volcado de ayer no restaura hoy**.
+    #
+    # No se comprueba insertando -eso exigiria mover el reloj-, sino leyendo la
+    # definicion de las restricciones. Es el unico lugar donde el defecto es
+    # visible sin esperar un dia.
+    with conexion.cursor() as cursor:
+        cursor.execute("""
+            SELECT conname, pg_get_constraintdef(oid)
+            FROM pg_constraint
+            WHERE conrelid = 'analitico.riesgo'::regclass AND contype = 'c'
+        """)
+        VOLATILES = ("current_date", "now(", "current_timestamp", "localtime")
+        con_reloj = [
+            f"{nombre}: {definicion}"
+            for nombre, definicion in cursor.fetchall()
+            if any(v in definicion.lower() for v in VOLATILES)
+        ]
+        r.comprobar(
+            "12. ninguna restriccion depende de la fecha de hoy",
+            not con_reloj,
+            con_reloj[0][:80] if con_reloj else "",
+        )
 
     # 10. El COMMENT, que es lo que lee quien abre la base con un cliente SQL.
     with conexion.cursor() as cursor:

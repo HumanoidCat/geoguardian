@@ -28,16 +28,16 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
+**Total asignado:** 184 puntos · 278.6 horas · 27.9 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
-| S1 | semanas 4-5 | 22.8 | 36 | holgado |
-| S2 | semanas 6-7 | 59.5 | 36 | SOBRECARGA +23.5 h |
-| S3 | semanas 8-9 | 35.7 | 36 | ajustado |
+| S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
+| S2 | semanas 6-7 | 113.1 | 36 | SOBRECARGA +77 h |
+| S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
