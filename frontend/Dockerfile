@@ -15,14 +15,20 @@
 # lo que se publica son los archivos estaticos que produce `npm run build` y un
 # servidor de 50 MB en vez de uno de 1,5 GB.
 #
-# POR QUE LA CONFIGURACION DE NGINX ESTA AQUI ADENTRO
+# LA CONFIGURACION DE NGINX YA NO ESTA AQUI ADENTRO
 #
-# Normalmente iria en `frontend/nginx.conf`. La excepcion que me dieron cubre este
-# Dockerfile y su `.dockerignore`, no un tercer archivo en la carpeta de Avril, asi
-# que se escribe aqui para no salirse del limite exacto que se concedio.
+# Estuvo embebida en un `printf` hasta el 2026-09-01, y este mismo comentario
+# explicaba por que y decia que preferiria lo contrario: la excepcion de H6.0
+# cubria este Dockerfile y su `.dockerignore`, no un tercer archivo en la carpeta
+# de Avril, y quedaba anotado que «si mas adelante Avril prefiere el archivo
+# aparte, se mueve y este bloque desaparece».
 #
-# Es menos prolijo y esta declarado: si mas adelante Avril prefiere el archivo
-# aparte, se mueve y este bloque desaparece.
+# Se movio a `frontend/nginx.conf.template` por **H11.1**, con la solicitud de
+# cambio **SC-07**: la imagen no arrancaba fuera de `docker compose` y el arreglo
+# no cabia en un `printf` sin volverlo ilegible.
+#
+# Este archivo sigue siendo de Cesar por la excepcion de H6.0. **Avril revisa el
+# Pull Request por su parte**, y ahora hay menos que revisar aca, no mas.
 
 # --------------------------------------------------------------------------- #
 # Etapa 1: construir                                                            #
@@ -54,39 +60,23 @@ FROM nginx:1.27-alpine AS servidor
 
 COPY --from=construccion /app/dist /usr/share/nginx/html
 
-# La configuracion, con dos cosas que el visor necesita:
-#
-# 1. `try_files ... /index.html` — el visor es una aplicacion de una sola pagina.
-#    Sin esto, recargar el navegador en cualquier ruta que no sea la raiz devuelve
-#    404, porque el archivo no existe: la ruta la resuelve el navegador.
-#
-# 2. El paso a la API por `/api/`. En desarrollo lo resuelve el bloque
-#    `server.proxy` de vite.config.js, que existe desde H6.6 justamente para que el
-#    visor llegue a la API por ruta relativa y no haga falta CORS. En produccion no
-#    hay servidor de Vite, asi que la misma costura la tiene que sostener nginx o
-#    el visor pierde sus datos al empaquetarse.
-#
-#    `api` es el nombre del servicio en docker-compose.yml, que Docker resuelve por
-#    DNS dentro de su red.
-RUN printf '%s\n' \
-    'server {' \
-    '    listen 80;' \
-    '    server_name _;' \
-    '    root /usr/share/nginx/html;' \
-    '    index index.html;' \
-    '' \
-    '    location /api/ {' \
-    '        proxy_pass http://api:8000/;' \
-    '        proxy_set_header Host $host;' \
-    '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' \
-    '        proxy_set_header X-Forwarded-Proto $scheme;' \
-    '    }' \
-    '' \
-    '    location / {' \
-    '        try_files $uri $uri/ /index.html;' \
-    '    }' \
-    '}' \
-    > /etc/nginx/conf.d/default.conf
+# La configuracion va como **plantilla**: la imagen oficial de nginx procesa
+# `/etc/nginx/templates/*.template` con `envsubst` al arrancar y deja el
+# resultado en `/etc/nginx/conf.d/`. Asi H11.2 y H11.3 pueden apuntar el visor a
+# otra API cambiando una variable de entorno, sin reconstruir la imagen.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Destino por defecto: el nombre del servicio en docker-compose.yml, que Docker
+# resuelve por DNS dentro de su red. Se declara con ENV y no dentro de la
+# plantilla porque `envsubst` no admite valores por defecto: sin esto, un
+# despliegue que olvide la variable dejaria `proxy_pass` vacio.
+ENV DESTINO_API=http://api:8000
+
+# El guion que escribe la directiva `resolver` leyendola de /etc/resolv.conf.
+# La imagen de nginx ejecuta todo lo que haya en /docker-entrypoint.d/ antes de
+# arrancar, asi que no hace falta tocar el CMD.
+COPY docker-entrypoint.d/10-resolver.sh /docker-entrypoint.d/10-resolver.sh
+RUN chmod +x /docker-entrypoint.d/10-resolver.sh
 
 EXPOSE 80
 
