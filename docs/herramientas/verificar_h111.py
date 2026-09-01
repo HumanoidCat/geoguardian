@@ -124,6 +124,27 @@ def _esperar_respuesta(url: str) -> tuple[bool, str]:
     return False, ultimo
 
 
+def _codigo_http(url: str) -> int | None:
+    """El codigo de estado, o None si no hubo respuesta HTTP.
+
+    Devuelve el numero tambien cuando es un error: un 502 es una respuesta
+    valida y es justo la que se espera del visor cuando no hay API al lado.
+    `urlopen` levanta `HTTPError` para 4xx y 5xx, y ese objeto **es** la
+    respuesta, con su `.code`.
+
+    None se reserva para el caso en que no hubo dialogo HTTP: conexion rechazada
+    o tiempo agotado. Distinguirlo importa, porque «el visor contesto 502» y «el
+    visor no contesto» son diagnosticos opuestos.
+    """
+    try:
+        with urllib.request.urlopen(url, timeout=5) as respuesta:  # noqa: S310
+            return respuesta.status
+    except urllib.error.HTTPError as error:
+        return error.code
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError):
+        return None
+
+
 def verificar(nombre: str) -> int:
     if nombre not in IMAGENES:
         print(f"\nImagen desconocida: {nombre}. Las que hay: {', '.join(IMAGENES)}\n")
@@ -222,30 +243,28 @@ def verificar(nombre: str) -> int:
             # "sigue vivo pasados tres segundos" ya atrapa esa regresion. Estos
             # dos criterios existen para dejar dicho **que comportamiento se
             # espera**, no solo que no se muera.
-            codigo = _correr(
-                [
-                    "docker",
-                    "exec",
-                    contenedor,
-                    "sh",
-                    "-c",
-                    "wget -q -O /dev/null -S http://localhost/api/salud 2>&1 | "
-                    "awk '/HTTP\\// { print $2; exit }'",
-                ]
-            )
+            # Se pregunta DESDE EL ANFITRION por el puerto publicado, y no con
+            # `docker exec ... wget`. El primer intento uso el wget de BusyBox
+            # con `-q -S`, y `-q` suprime justamente las cabeceras que `-S`
+            # imprime: la comprobacion devolvia vacio y marcaba FALLA sobre un
+            # contenedor que estaba bien. **El defecto era de la prueba.**
+            #
+            # `urllib` da el codigo sin depender de que la imagen base traiga
+            # wget o curl, ni de que acepte tal o cual bandera.
+            visto = _codigo_http(f"http://127.0.0.1:{local}/api/salud")
+
             # 502 es el resultado CORRECTO sin API: nginx difirio la resolucion,
             # intento conectar y no pudo. El visor sigue sirviendo sus estaticos
             # y degrada a su respaldo declarandolo en pantalla, que es D-23.
             #
-            # Un 404 aqui seria el otro defecto, el peor: `proxy_pass` con
-            # variable pero sin el `rewrite`, que hace que la API reciba
-            # `/api/salud` en vez de `/salud`. El contenedor arranca y todas las
-            # rutas fallan sin que nada se vea al iniciar.
-            visto = codigo.stdout.strip()
+            # Un 404 seria el otro defecto, el peor: `proxy_pass` con variable
+            # pero sin el `rewrite`, que hace que la API reciba `/api/salud` en
+            # vez de `/salud`. El contenedor arranca y todas las rutas fallan sin
+            # que nada se vea al iniciar.
             comprobar(
                 "sin API, /api/ degrada con 502 en vez de matar al contenedor",
-                visto == "502",
-                f"devolvio {visto or 'nada'}",
+                visto == 502,
+                f"devolvio {visto if visto else 'sin respuesta'}",
             )
 
             # El par variable-mas-rewrite no se puede romper por separado, y con
@@ -257,10 +276,18 @@ def verificar(nombre: str) -> int:
                 ["docker", "exec", contenedor, "cat", "/etc/nginx/conf.d/default.conf"]
             ).stdout
             usa_variable = "proxy_pass $" in config_nginx
+            tiene_rewrite = "rewrite ^/api/" in config_nginx
             comprobar(
                 "si proxy_pass usa variable, existe el rewrite que quita /api/",
-                (not usa_variable) or ("rewrite ^/api/" in config_nginx),
-                "hay variable sin rewrite: la API recibiria /api/... y todo daria 404",
+                (not usa_variable) or tiene_rewrite,
+                # El detalle se imprime tambien cuando pasa, asi que describe lo
+                # que se ENCONTRO y no lo que estaria mal. La primera version
+                # decia "hay variable sin rewrite" al lado de un OK.
+                "variable + rewrite"
+                if usa_variable and tiene_rewrite
+                else "variable SIN rewrite: la API recibiria /api/... y todo daria 404"
+                if usa_variable
+                else "proxy_pass literal, no aplica",
             )
     finally:
         _correr(["docker", "rm", "-f", contenedor])

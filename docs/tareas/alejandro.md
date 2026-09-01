@@ -115,8 +115,12 @@
 - [ ] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
 
-- [ ] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io
+- [x] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io (2026-09-01)
   - `E11` · 5 pts · 4.8 h · rubrica: CICD · depende de: H6.0, H6.1 · **bloquea a: H11.2**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.1-imagenes-ghcr.md`
+  - El verificador corre las imagenes y **encontro que el visor no arrancaba
+    fuera de docker compose**. Arreglado por SC-07. api 6 de 6, visor 8 de 8.
+  - horas: estimada 4.8 . real 5.5
 
 - [x] **H13.1** · Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva (2026-08-16)
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
