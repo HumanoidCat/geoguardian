@@ -139,7 +139,19 @@
 ## Sprint 2 (semanas 6-7) — 113.1 h
 
 
-- [ ] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos
+- [x] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.9-funciones-y-bitacora.md`
+  - Migracion `009_funciones_y_bitacora_fallos.sql`, verificador
+    `basedatos/verificar_h1_9.py`: **22 de 22 criterios** contra PostgreSQL real.
+    Cada uno provoca el error y mira si la funcion siguio y si dejo registro.
+  - `control.fallo` mas `analitico.registrar_riesgo` y `registrar_riesgo_lote`.
+    La regla del modulo es **se puede continuar, nunca callar**.
+  - Tres defectos aparecieron solo al ejecutar: `numeric(5,4)` desborda antes de
+    que corra el CHECK, `'ayer'::date` da 22007 y no 22P02, y las conversiones
+    del lote ocurrian **fuera** del bloque que las atrapaba.
+  - De paso quedaron registradas **I-18** -que se referenciaba en cuatro sitios y
+    nunca se habia escrito- e **I-19**, el hallazgo de Cesar sobre los esquemas.
+  - horas: estimada 7.7 . real 3.4
   - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
