@@ -51,10 +51,32 @@ from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 MINIMO_POSITIVAS_TOTAL = 30
 MINIMO_POSITIVAS_POR_PARTICION = 10
 
-# H3.2 todavia no existe. Para poder decir algo hoy sobre "por particion", se
-# supone la forma mas comun de ventana expansiva: cinco pliegues. Si H3.2 elige
-# otra, esta cuenta se rehace, y por eso se declara en la salida.
-PLIEGUES_SUPUESTOS = 5
+# ANTES SE SUPONIAN CINCO PLIEGUES Y SE DIVIDIA. AHORA SE MIDEN.
+#
+# Este modulo decia:
+#
+#     # H3.2 todavia no existe. Para poder decir algo hoy sobre "por particion",
+#     # se supone la forma mas comun de ventana expansiva: cinco pliegues.
+#     PLIEGUES_SUPUESTOS = 5
+#
+# y evaluaba CA-6 contra `episodios_totales / 5`. Era honesto cuando se escribio
+# -H3.2 no existia- y **dejo de serlo el dia que H3.2 se cerro**, sin que nada
+# avisara.
+#
+# EL PROBLEMA NO ES LA APROXIMACION: ES QUE MIDE OTRA COSA
+#
+# CA-6 dice «menos de 10 en **cualquier** particion de entrenamiento -> no se
+# modela». Eso es un **minimo**, y una division da un **promedio**.
+#
+# Con ventana expansiva no son intercambiables: el pliegue 1 entrena con la
+# rebanada mas chica y el 5 con casi toda la serie. El promedio puede quedar
+# comodo mientras el primero no llega. **Un evento podria declararse modelable
+# violando el criterio que dice serlo.**
+#
+# Se detecto el 2026-09-01, al revisar por que la sequia bajo de 110 a 78
+# episodios con D-32 (ver I-18). 78/5 = 15,6 pasa el umbral de 10; lo que nadie
+# habia medido es cuantos tiene el pliegue 1.
+from backend.modelado.particion import particionar  # noqa: E402
 
 
 def leer_precipitacion(cursor) -> dict[str, dict[date, float | None]]:
@@ -119,6 +141,35 @@ def episodios(etiquetas: list[Etiqueta], evento: TipoEvento) -> int:
     return cuenta
 
 
+def episodios_por_pliegue(
+    por_distrito: dict[str, list[Etiqueta]], evento: TipoEvento
+) -> list[int] | None:
+    """Episodios en el **entrenamiento** de cada pliegue de H3.2.
+
+    Devuelve `None` si la particion no se puede calcular -por ejemplo porque el
+    periodo observado del evento no alcanza para los bloques pedidos-. `None` es
+    «no se pudo medir», que no es lo mismo que cero y no se debe tratar igual.
+
+    Se cuenta sobre el ENTRENAMIENTO y no sobre el pliegue entero porque CA-6
+    habla de «particion de entrenamiento»: lo que hace falta para aprender una
+    clase es haberla visto al ajustar, no al evaluar.
+    """
+    try:
+        pliegues = particionar(evento)
+    except Exception:  # noqa: BLE001 - periodo insuficiente u otro motivo declarado
+        return None
+
+    salida = []
+    for pliegue in pliegues:
+        desde, hasta = pliegue.entrenamiento
+        recortadas = {
+            codigo: [e for e in lista if desde <= e.fecha <= hasta]
+            for codigo, lista in por_distrito.items()
+        }
+        salida.append(sum(episodios(lista, evento) for lista in recortadas.values()))
+    return salida
+
+
 def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> list[str]:
     """Imprime la distribucion y devuelve los eventos que NO son modelables."""
     no_modelables: list[str] = []
@@ -144,7 +195,7 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         # las siete son la misma deteccion. Ver `episodios()`.
         filas_alto = cuenta.get(NivelRiesgo.ALTO, 0)
         positivas = sum(episodios(lista, evento) for lista in por_distrito.values())
-        por_pliegue = positivas / PLIEGUES_SUPUESTOS
+        por_pliegue_real = episodios_por_pliegue(por_distrito, evento)
 
         # El porcentaje sobre el total mezcla filas observadas con filas que
         # nadie miro, y para incendio esa mezcla son 29 224 filas anteriores al
@@ -157,14 +208,30 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         print(f"  EPISODIOS distintos      {positivas}   <- lo que decide CA-6")
         if positivas:
             print(f"  filas por episodio       {filas_alto / positivas:.1f}")
-        print(f"  episodios por pliegue    {por_pliegue:.1f}   (con {PLIEGUES_SUPUESTOS} pliegues)")
+        if por_pliegue_real is None:
+            print("  episodios por pliegue    NO SE PUDO MEDIR: la particion de H3.2 no se calcula")
+            minimo = None
+        else:
+            minimo = min(por_pliegue_real)
+            detalle = ", ".join(str(n) for n in por_pliegue_real)
+            print(f"  episodios por pliegue    {detalle}   (entrenamiento de cada uno)")
+            print(f"    el MINIMO es           {minimo}   <- lo que evalua CA-6")
+            print(
+                f"    el promedio seria      {positivas / len(por_pliegue_real):.1f}   (no es el criterio)"
+            )
 
         razones = []
         if positivas < MINIMO_POSITIVAS_TOTAL:
             razones.append(f"{positivas} episodios en total, el minimo es {MINIMO_POSITIVAS_TOTAL}")
-        if por_pliegue < MINIMO_POSITIVAS_POR_PARTICION:
+        if minimo is None:
             razones.append(
-                f"{por_pliegue:.1f} por pliegue, el minimo es {MINIMO_POSITIVAS_POR_PARTICION}"
+                "no se pudo medir la distribucion por pliegue: sin eso CA-6 no se "
+                "puede afirmar, y no afirmarlo es lo conservador"
+            )
+        elif minimo < MINIMO_POSITIVAS_POR_PARTICION:
+            razones.append(
+                f"el pliegue mas pobre tiene {minimo} episodios de entrenamiento, "
+                f"y el minimo es {MINIMO_POSITIVAS_POR_PARTICION}"
             )
 
         if razones:
