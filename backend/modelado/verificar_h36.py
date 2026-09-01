@@ -62,13 +62,14 @@ from backend.modelado import comparar as mod  # noqa: E402
 from backend.modelado import evaluar_linea_base as h31  # noqa: E402
 from backend.modelado.comparar import (  # noqa: E402
     DISPONIBLES,
-    PENDIENTES,
     REFERENCIA,
     DesdeLineaBase,
     Estimador,
     Observacion,
     Resultado,
     comparar,
+    estimadores_disponibles,
+    pendientes,
     veredicto,
 )
 from backend.modelado.linea_base import LineaBaseTrivial, f1_macro  # noqa: E402
@@ -266,22 +267,38 @@ def main() -> int:
     # ------------------------------------------------------------------ CA-3 - #
     print("\nCA-3, lo que falta se declara:")
 
-    comprobar("hay estimadores declarados como pendientes", len(PENDIENTES) > 0)
-    for algoritmo in ("regresion logistica", "random forest", "xgboost"):
+    # DESDE H3.3 LA LISTA DEPENDE DE LO QUE HAYA CARGADO.
+    #
+    # `regresion logistica` entra a la tabla **solo si la matriz de
+    # caracteristicas existe**, asi que preguntarle al diccionario estatico
+    # daria una respuesta falsa en uno de los dos casos. Se comprueban **los
+    # dos**: con matriz y sin ella, ningun algoritmo de D-09 puede desaparecer.
+    for hay_matriz in (False, True):
+        etiqueta = "con matriz" if hay_matriz else "sin matriz"
+        disponibles = estimadores_disponibles(hay_matriz)
+        faltantes = pendientes(hay_matriz)
+
+        for algoritmo in ("regresion logistica", "random forest", "xgboost"):
+            comprobar(
+                f"[{etiqueta}] '{algoritmo}' de D-09 esta en la tabla o declarado pendiente",
+                algoritmo in disponibles or algoritmo in faltantes,
+                "D-09 comprometio tres algoritmos. Uno que no aparece ni como pendiente "
+                "es un compromiso que se perdio en silencio",
+            )
         comprobar(
-            f"'{algoritmo}' de D-09 esta en la tabla o declarado pendiente",
-            algoritmo in DISPONIBLES or algoritmo in PENDIENTES,
-            "D-09 comprometio tres algoritmos. Uno que no aparece ni como pendiente "
-            "es un compromiso que se perdio en silencio",
+            f"[{etiqueta}] ningun pendiente esta tambien disponible",
+            not (set(faltantes) & set(disponibles)),
+            "si entra a la tabla, tiene que salir de la lista de pendientes",
         )
+        comprobar(
+            f"[{etiqueta}] cada pendiente dice a que historia pertenece",
+            all("H3." in v for v in faltantes.values()),
+        )
+
     comprobar(
-        "ningun pendiente esta tambien disponible",
-        not (set(PENDIENTES) & set(DISPONIBLES)),
-        "si entra a la tabla, tiene que salir de la lista de pendientes",
-    )
-    comprobar(
-        "cada pendiente dice a que historia pertenece",
-        all("H3." in v for v in PENDIENTES.values()),
+        "sin matriz quedan mas pendientes que con ella",
+        len(pendientes(False)) > len(pendientes(True)),
+        "el registro condicional de H3.3 no esta teniendo efecto",
     )
     comprobar(
         f"la referencia '{REFERENCIA}' esta disponible",

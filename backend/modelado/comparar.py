@@ -185,31 +185,86 @@ def _regresion_logistica():
     return RegresionLogistica()
 
 
+#: Las lineas base de H3.1. **No necesitan caracteristicas** -es CA-1 de esa
+#: historia- asi que estan siempre.
 DISPONIBLES: dict[str, callable] = {
     "trivial": lambda: DesdeLineaBase("trivial", LineaBaseTrivial),
     "climatologica": lambda: DesdeLineaBase("climatologica", LineaBaseClimatologica),
 }
 
-# `regresion logistica` esta ESCRITA Y PROBADA desde H3.3 -15 pruebas,
-# `backend/modelado/regresion_logistica.py`-. Sigue aca y no en `DISPONIBLES`
-# porque lo que falta no es el estimador: es que `comparar()` arme las
-# `Observacion` **con caracteristicas**. Hoy las arma con `caracteristicas={}`
-# porque este guion lee `etiquetas.csv` y las mediciones diarias viven en
-# `crudo.medicion_diaria`.
+#: Los que necesitan la matriz de H3.3 para poder correr. Entran a la tabla
+#: **solo si la matriz esta cargada**, y si no siguen apareciendo como pendientes
+#: con el motivo real.
+#:
+#: Registrarlos incondicionalmente rompe la herramienta: sin caracteristicas el
+#: estimador falla con «las observaciones no traen caracteristicas» -que es el
+#: comportamiento correcto- y se lleva por delante la comparacion entera.
+#: Comprobado el 2026-09-01: `verificar_h36` pasaba de verde a rojo.
+CON_CARACTERISTICAS: dict[str, callable] = {
+    "regresion logistica": _regresion_logistica,
+}
+
+
+def estimadores_disponibles(hay_caracteristicas: bool) -> dict[str, callable]:
+    """Que estimadores pueden correr con lo que hay cargado."""
+    if not hay_caracteristicas:
+        return dict(DISPONIBLES)
+    return {**DISPONIBLES, **CON_CARACTERISTICAS}
+
+
+def pendientes(hay_caracteristicas: bool) -> dict[str, str]:
+    """Los que faltan, con el motivo real y no solo el numero de historia."""
+    faltan = dict(PENDIENTES)
+    if not hay_caracteristicas:
+        faltan["regresion logistica"] = (
+            "H3.3, escrita y probada; necesita datos/procesados/caracteristicas.csv, "
+            "que produce `python -m backend.modelado.generar_caracteristicas`"
+        )
+    return faltan
+
+
+# --------------------------------------------------------------------------- #
+# Lo que D-34 declara no modelable                                              #
+# --------------------------------------------------------------------------- #
 #
-# Registrarlo sin la matriz **rompe la herramienta**: el estimador falla con
-# «las observaciones no traen caracteristicas» -que es el comportamiento
-# correcto, porque una regresion logistica sin entradas seria la linea base
-# trivial con otro nombre- y se lleva por delante la comparacion entera.
-# Comprobado el 2026-09-01: `verificar_h36` pasaba de verde a rojo.
+# **La sequia no se modela, y eso es un resultado, no una omision.**
 #
+# D-34 conto los episodios a nivel canton -contarlos por distrito multiplicaba la
+# muestra por 6 sin agregar informacion, porque una sequia en Tilaran no es ocho
+# sequias- y midio cuantos cae en cada pliegue de H3.2:
+#
+#     lluvia intensa    31, 60, 89, 109, 129
+#     incendio          16, 21, 28,  44,  55
+#     sequia             2,  3,  3,   6,   9
+#
+# **CA-6 de H3.0** pide 30 episodios en total y 10 como minimo por particion de
+# entrenamiento. La sequia falla los dos: 9 en total y 2 en el peor pliegue.
+#
+# Es consecuencia directa de **D-32**, que cambio SPI-3 por SPI-6: una ventana
+# mas larga detecta sequias mas reales y por eso encuentra muchas menos. La
+# decision se tomo sabiendo el costo; esto es el costo.
+#
+# POR QUE SE DECLARA Y NO SE OMITE
+#
+# Una tabla a la que le falta una fila se lee como un olvido. Una que dice «no
+# modelable, 9 episodios, hacen falta 30» es un hallazgo, y es de los que van en
+# la seccion de limitaciones del documento. Es la misma regla que PENDIENTES.
+#
+# Las lineas base **si** se corren sobre la sequia: no aprenden de episodios, y
+# saber que la climatologica hace sobre ella es informacion util.
+NO_MODELABLES: dict[TipoEvento, str] = {
+    TipoEvento.SEQUIA: (
+        "D-34: 9 episodios en el canton, 2 en el peor pliegue. "
+        "CA-6 de H3.0 pide 30 y 10. Consecuencia medida de D-32 (SPI-6)"
+    ),
+}
+
 # El texto dice el estado real y no solo la historia, para que nadie lea
 # «pendiente» como «no empezado».
+#
+# `regresion logistica` ya no vive aca: desde H3.3 esta escrita, probada y
+# **conectada**, y `pendientes()` la vuelve a listar solo si falta la matriz.
 PENDIENTES: dict[str, str] = {
-    "regresion logistica": (
-        "H3.3, escrito y probado; entra cuando comparar() lea las mediciones "
-        "diarias y arme las caracteristicas de H2.5"
-    ),
     "random forest": "H3.4",
     "xgboost": "H3.5",
 }
@@ -234,6 +289,12 @@ class Resultado:
     desviacion: float
     sin_evaluar: int
 
+    #: Motivo por cada pliegue que el estimador no pudo ajustar. Va en el
+    #: resultado y no en un registro aparte porque **una media sobre tres
+    #: pliegues no es comparable con una sobre cinco**, y quien lea la tabla
+    #: tiene que poder verlo sin ir a buscarlo.
+    saltados: list[str] = field(default_factory=list)
+
     @property
     def rango(self) -> float:
         """Cuanto se mueve entre pliegues. Es la vara para decir si dos empatan."""
@@ -241,27 +302,47 @@ class Resultado:
 
 
 def comparar(
-    evento: TipoEvento, filas: list, estimadores: dict[str, callable] | None = None
+    evento: TipoEvento,
+    filas: list,
+    estimadores: dict[str, callable] | None = None,
+    caracteristicas: dict[tuple[str, date], dict[str, float]] | None = None,
 ) -> list[Resultado]:
-    """Corre todos los estimadores sobre **los mismos** pliegues del mismo evento."""
+    """Corre todos los estimadores sobre **los mismos** pliegues del mismo evento.
+
+    `caracteristicas` mapea (distrito, fecha) a las entradas que produjo H3.3. Si
+    viene vacio, las `Observacion` salen sin caracteristicas y **solo las lineas
+    base pueden correr**: es CA-1 de H3.1 que ellas no las miren.
+
+    Si el evento esta en `NO_MODELABLES`, los estimadores que aprenden se
+    descartan y solo quedan las lineas base. No se lanza una excepcion porque la
+    tabla tiene que poder mostrar la fila con su motivo, y una excepcion la
+    dejaria vacia.
+    """
     estimadores = estimadores if estimadores is not None else DISPONIBLES
+    if evento in NO_MODELABLES:
+        estimadores = {n: f for n, f in estimadores.items() if n in DISPONIBLES}
+    caracteristicas = caracteristicas or {}
     columna = COLUMNA[evento]
 
     # CA-6 de H3.0: el incendio solo donde D-25 dice que hay senal.
     if evento is TipoEvento.INCENDIO:
         filas = [f for f in filas if f[0] in DISTRITOS_CON_INCENDIO]
 
+    def observacion(codigo: str, fecha: date) -> Observacion:
+        return Observacion(codigo, fecha, caracteristicas.get((codigo, fecha), {}))
+
     acumulado: dict[str, list[float]] = {n: [] for n in estimadores}
     huecos: dict[str, int] = {n: 0 for n in estimadores}
+    saltados: dict[str, list[str]] = {n: [] for n in estimadores}
 
     for pliegue in particionar(evento):
         ent = [
-            (Observacion(c, f), n[columna])
+            (observacion(c, f), n[columna])
             for c, f, n in filas
             if pliegue.entrenamiento[0] <= f <= pliegue.entrenamiento[1] and n[columna] is not None
         ]
         pru = [
-            (Observacion(c, f), n[columna])
+            (observacion(c, f), n[columna])
             for c, f, n in filas
             if pliegue.prueba[0] <= f <= pliegue.prueba[1] and n[columna] is not None
         ]
@@ -274,8 +355,23 @@ def comparar(
         verdad = [e for _, e in pru]
 
         for nombre, fabrica in estimadores.items():
-            modelo = fabrica().ajustar(obs_ent, eti_ent)
-            prediccion = modelo.predecir(obs_pru)
+            # UN PLIEGUE QUE NO SE PUEDE AJUSTAR SE SALTA, NO TUMBA LA TABLA.
+            #
+            # `RegresionLogistica.ajustar` se niega en dos casos legitimos: si el
+            # entrenamiento tiene una sola clase -no hay nada que aprender- o si
+            # ninguna fila trae todas sus caracteristicas. Los dos son
+            # informacion, no errores del programa.
+            #
+            # Se salta el pliegue **de ese estimador**, no de todos: las lineas
+            # base si pueden con el, y compararlas sobre pliegues distintos seria
+            # peor que no compararlas. Por eso `por_pliegue` puede tener largos
+            # distintos y la tabla imprime cuantos entraron.
+            try:
+                modelo = fabrica().ajustar(obs_ent, eti_ent)
+                prediccion = modelo.predecir(obs_pru)
+            except ValueError as motivo:
+                saltados[nombre].append(str(motivo))
+                continue
             metrica, _, evaluadas = f1_macro(verdad, prediccion)
             acumulado[nombre].append(metrica)
             huecos[nombre] += len(verdad) - evaluadas
@@ -283,7 +379,9 @@ def comparar(
     resultados = []
     for nombre, valores in acumulado.items():
         media, desviacion, _ = resumen_f1(valores) if valores else (0.0, 0.0, [])
-        resultados.append(Resultado(nombre, valores, media, desviacion, huecos[nombre]))
+        resultados.append(
+            Resultado(nombre, valores, media, desviacion, huecos[nombre], saltados[nombre])
+        )
 
     return sorted(resultados, key=lambda r: -r.media)
 
@@ -319,6 +417,12 @@ def main() -> int:
     p.add_argument(
         "--etiquetas", type=Path, default=RAIZ / "datos" / "procesados" / "etiquetas.csv"
     )
+    p.add_argument(
+        "--caracteristicas",
+        type=Path,
+        default=RAIZ / "datos" / "procesados" / "caracteristicas.csv",
+        help="matriz de H3.3. Si no existe, corren solo las lineas base.",
+    )
     args = p.parse_args()
 
     if not args.etiquetas.exists():
@@ -329,19 +433,37 @@ def main() -> int:
 
     filas = leer(args.etiquetas)
 
+    # LA AUSENCIA DE LA MATRIZ NO ES UN ERROR, ES UNA TABLA MAS CORTA.
+    #
+    # Las lineas base de H3.1 no la necesitan, y poder correr la comparacion sin
+    # ella mantiene el guion util cuando alguien solo quiere ver las referencias.
+    # Lo que si seria un error es correr sin ella **y no decirlo**: por eso el
+    # encabezado imprime cuantas filas y columnas se cargaron, y `pendientes()`
+    # vuelve a listar la regresion con el motivo real.
+    caracteristicas: dict[tuple[str, date], dict[str, float]] = {}
+    if args.caracteristicas.exists():
+        from backend.modelado.generar_caracteristicas import leer as leer_caracteristicas
+
+        caracteristicas = leer_caracteristicas(args.caracteristicas)
+    n_columnas = len({c for f in caracteristicas.values() for c in f})
+
     print("\nTabla comparativa de estimadores · H3.6")
     print(f"  filas leidas    {len(filas)}")
     print(f"  particion       H3.2, {len(particionar(TipoEvento.SEQUIA))} pliegues")
     print("  metrica         F1-macro, D-10")
     print(f"  referencia      {REFERENCIA}\n")
 
-    print(f"  estimadores en la tabla   {len(DISPONIBLES)}")
-    for nombre, historia in PENDIENTES.items():
+    estimadores = estimadores_disponibles(bool(caracteristicas))
+    print(f"  caracteristicas {len(caracteristicas)} filas, {n_columnas} columnas")
+    print(f"  estimadores en la tabla   {len(estimadores)}")
+    for nombre, historia in pendientes(bool(caracteristicas)).items():
         print(f"  PENDIENTE  {nombre:22} {historia}")
+    for evento, motivo in NO_MODELABLES.items():
+        print(f"  NO MODELABLE  {evento.value:19} {motivo}")
     print()
 
     for evento in TipoEvento:
-        resultados = comparar(evento, filas)
+        resultados = comparar(evento, filas, estimadores, caracteristicas)
         if not resultados or not resultados[0].por_pliegue:
             print(f"{evento.value.upper()}: sin pliegues evaluables\n")
             continue
@@ -349,6 +471,8 @@ def main() -> int:
         referencia = next((r for r in resultados if r.nombre == REFERENCIA), None)
 
         print(evento.value.upper())
+        if evento in NO_MODELABLES:
+            print(f"  solo lineas base. {NO_MODELABLES[evento]}")
         print(f"  {'estimador':22}{'F1-macro':>10}{'desv':>8}{'vs ref':>9}   por pliegue")
         for r in resultados:
             contra = (
@@ -365,11 +489,18 @@ def main() -> int:
         sin_evaluar = {r.nombre: r.sin_evaluar for r in resultados if r.sin_evaluar}
         if sin_evaluar:
             print(f"  filas sin prediccion, no evaluadas: {sin_evaluar}")
+        for r in resultados:
+            for motivo in r.saltados:
+                print(f"  pliegue saltado por {r.nombre}: {motivo}")
         print()
 
-    print("La tabla esta incompleta a proposito: faltan los tres algoritmos de")
-    print("D-09. Agregarlos a DISPONIBLES es todo lo que hace falta; la particion,")
-    print("la metrica y el trato de los None ya estan decididos aca.\n")
+    faltan = pendientes(bool(caracteristicas))
+    if faltan:
+        print("La tabla esta incompleta a proposito: faltan " + ", ".join(faltan))
+        print("Agregarlos a DISPONIBLES es todo lo que hace falta; la particion,")
+        print("la metrica y el trato de los None ya estan decididos aca.\n")
+    else:
+        print("Los tres algoritmos de D-09 estan en la tabla.\n")
     return 0
 
 
