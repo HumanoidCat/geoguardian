@@ -102,7 +102,12 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
+- [x] **H1.13** · Trigger de auditoria sobre predicciones, con prueba (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.13-auditoria-riesgo.md`
+  - Migracion `008_auditoria_riesgo.sql`, verificador `basedatos/verificar_h1_13.py`:
+    **12 de 12 criterios** contra PostgreSQL real. Cada uno cambia una fila y
+    mira si aparecio el registro.
+  - horas: estimada 2.9 . real 1.5
   - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8, H1.15
   - **Desbloqueada el 2026-08-27.** Estuvo detenida porque `analitico.riesgo` no
     existia y ninguna historia la creaba, con H1.8 -su dependencia declarada- ya
