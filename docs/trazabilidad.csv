@@ -4,7 +4,7 @@ H1.2,Historico de focos de calor,backend/etl,test_extractor_firms,docs/evidencia
 H1.3,Geometrias de distritos en 3FN con SRID validado,"basedatos/ddl, backend/etl","basedatos/verificar_h13.py, consultas/verificar_modelo.sql, consultas/verificar_transaccion.sql",docs/evidencias/bases-de-datos/,"BD-1, BD-3",
 H1.5,Reporte de calidad de datos,backend/calidad,"test_reporte_calidad, 22 casos, mas la corrida sobre las 102272 filas reales",docs/evidencias/objetivos/,,"Hallazgo: seis de siete variables con 0.00 % de variacion espacial. Los ocho distritos comparten la celda de NASA POWER. Ver I-05"
 H1.8,"Esquemas, roles, minimo privilegio",basedatos/seguridad,test_permisos_rol,docs/evidencias/bases-de-datos/,,
-H1.9,Control transaccional con manejo de errores,basedatos/procedimientos,test_rollback,docs/evidencias/bases-de-datos/,,
+H1.9,Control transaccional con manejo de errores,basedatos/ddl,"verificar_h1_9, 22 criterios contra PostgreSQL real",docs/evidencias/bases-de-datos/,,"Se puede continuar, nunca callar: la fila mala se registra con su SQLSTATE y el lote sigue. Sin WHEN OTHERS"
 H1.10,Estrategia de respaldo probada,basedatos/respaldos,restauracion manual,docs/evidencias/bases-de-datos/,,
 H2.1,Filtrado de ruido con justificacion del filtro. Alcance acotado por D-17: no aplica a precipitacion,backend/senales,"test_filtros, 19 casos",docs/evidencias/senales-y-sistemas/,,pendiente reejecutar contra las series reales de H1.1
 H2.2,"Analisis espectral de estacionalidad, sobre la serie cruda (D-17)",backend/senales,"test_espectro, mas los seis criterios de aceptacion escritos antes de correr",docs/evidencias/senales-y-sistemas/,,"Veranillo detectado en los ocho distritos, de 23 a 47 veces el modelo nulo. La razon varia por factor 2.10 entre distritos"

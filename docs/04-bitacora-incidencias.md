@@ -1310,3 +1310,134 @@ esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
 dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
 reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
 cifra con la que se decidia donde faltaban pruebas.
+
+---
+
+## I-18 · Un CHECK con CURRENT_DATE dejaba el respaldo en verde y la restauracion imposible
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, escribiendo el criterio 9 del
+verificador de H1.13.
+
+**Que paso.** La migracion 006 declaraba, sobre `analitico.riesgo`:
+
+    CHECK (fecha >= DATE '1981-01-01'
+           AND fecha <= CURRENT_DATE + INTERVAL '31 days')
+
+La restriccion se creo sin protestar y el verificador de H1.15 daba 15 de 15.
+Pero `CURRENT_DATE` **no es inmutable**, y PostgreSQL reevalua el CHECK **en
+cada insercion**, no solo cuando la fila entro por primera vez.
+
+Comprobado contra PostgreSQL 16.2 el mismo dia:
+
+    INSERT con fecha 2026-10-02 (hoy + 31)  -> ACEPTADA
+    INSERT con fecha 2026-10-03 (hoy + 32)  -> RECHAZADA
+
+Esa segunda fila era valida ayer.
+
+**Causa raiz.** `pg_dump` emite fechas literales y **restaurar es reinsertar**.
+Una fila estimada para dentro de 31 dias es valida el dia del volcado y deja de
+serlo al dia siguiente. El respaldo se toma en verde y se descubre inservible
+cuando hace falta, que es el unico momento en que a nadie le sirve descubrirlo.
+
+El error de fondo no es la fecha: es haber puesto **una regla de operacion**
+-«el horizonte del sistema son siete dias»- en el lugar donde viven las **reglas
+de integridad**. Una regla de integridad tiene que ser cierta para siempre; esta
+solo era cierta hoy.
+
+**Donde cae.** Sobre **H1.10**, que es «estrategia de respaldo probada». Esa
+prueba pasaria mientras se corra el mismo dia del volcado y empezaria a fallar
+sola despues, sin que nadie tocara nada. Es la forma mas incomoda de **I-06**: un
+control que hoy esta verde y **cambia de veredicto con el calendario**.
+
+**Accion tomada.** La migracion `007_riesgo_correcciones.sql` quita el limite
+superior y conserva el inferior:
+
+    CHECK (fecha >= DATE '1981-01-01')
+
+**No se fijo una fecha constante en su lugar.** Eso solo cambia el problema de
+sitio: alguien tendria que acordarse de moverla y, el dia que se pase, la base
+empieza a rechazar estimaciones legitimas.
+
+El horizonte de siete dias pasa a hacerse cumplir **donde se escribe**, y desde
+**H1.9** eso es literal: `analitico.registrar_riesgo` lo comprueba con un `RAISE`
+propio de codigo `P0001` y registra el rechazo en `control.fallo`. La regla no
+desaparecio: se movio al lugar donde puede cambiar sin romper un volcado.
+
+**Aprendizaje.** **En un CHECK solo entran expresiones inmutables.** `now()`,
+`CURRENT_DATE` y `CURRENT_TIMESTAMP` son correctos como `DEFAULT` -se evaluan una
+vez y el valor queda congelado- y son un defecto como `CHECK` -se reevaluan
+siempre-. La misma funcion, dos lugares, y en uno de ellos es una bomba de
+tiempo.
+
+PostgreSQL **no impide** crear el CHECK, asi que el compilador no ayuda: el
+control tiene que ser explicito. Quedo escrito como criterio en **dos**
+verificadores, el 9 de `verificar_h1_13.py` y el 14 de `verificar_h1_9.py`, que
+leen `pg_get_constraintdef` y exigen que no aparezca ninguna de esas funciones.
+Toda tabla nueva del esquema hereda la comprobacion.
+
+**Impacto.** Ninguna fila perdida: la tabla estaba recien creada y vacia. El
+costo real habria sido descubrirlo en H1.10 o, peor, en una restauracion de
+verdad. Se detecto por escribir un verificador que muta filas en vez de leer el
+DDL, que es la misma leccion de I-06 y de I-17.
+
+---
+
+## I-19 · Los esquemas no los crean las migraciones, y sin Docker ninguna aplica
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Cesar Ubau lo reporto durante la revision de H1.15.
+Reproducido y confirmado por Alejandro Rodriguez al verificar H1.9.
+
+**Que paso.** Aplicar las nueve migraciones de `basedatos/ddl/` sobre una base
+vacia falla en **las nueve**:
+
+    ERROR en 001_control_migracion.sql -> schema "control" does not exist
+    ERROR en 002_geo_territorio.sql    -> schema "geo" does not exist
+    ERROR en 003_seguridad_roles.sql   -> database "geoguardian" does not exist
+    ...
+    ERROR en 009_funciones_y_bitacora_fallos.sql -> schema "control" does not exist
+
+**Causa raiz.** Los cuatro esquemas -`geo`, `crudo`, `analitico`, `control`- los
+crea `infra/docker/init-db/01-extensiones.sql`, junto con las extensiones. Docker
+ejecuta esa carpeta **una sola vez, cuando el volumen esta vacio**.
+
+O sea que **el estado inicial de la base vive en dos sitios**: una parte en
+`init-db`, que corre una vez y no esta versionada como migracion, y otra en
+`ddl/`, que si. Las migraciones no son autosuficientes y **nada lo dice**.
+
+En el flujo de todos los dias no se nota, porque `docker compose up` hace las dos
+cosas en el orden correcto. Se nota al levantar PostgreSQL fuera de Docker, al
+restaurar sobre una base limpia, o al querer verificar una migracion de forma
+aislada -que es exactamente lo que hacia falta para H1.9-.
+
+**Donde cae.** Sobre **H1.10**, «estrategia de respaldo probada». Una
+restauracion que empiece por una base vacia y aplique las migraciones **no
+funciona hoy**, y esa historia existe para demostrar que si.
+
+Es la misma familia que **I-18**, y las dos apuntan al mismo lugar: el respaldo
+esta en verde y nadie ha intentado restaurarlo todavia.
+
+**Accion tomada.** Se registra y **no se arregla en H1.9**. La correccion
+-mover la creacion de esquemas a una migracion `000`, o hacer que
+`aplicar_migraciones.py` la garantice- cambia el arranque de la base para todo el
+equipo y merece revisarse junto con la prueba de restauracion que la justifica.
+**Va con H1.10.**
+
+Para verificar H1.9 se replico `init-db` en el entorno de pruebas, y eso quedo
+anotado en el documento de evidencia: es un andamio de verificacion, no una
+solucion.
+
+**Aprendizaje.** **Si el estado inicial vive en dos sitios, uno de los dos se va
+a olvidar.** El principio que el proyecto viene repitiendo -una fuente, vistas
+derivadas, y una maquina que comprueba que coinciden- aplica igual al arranque de
+la base que a la matriz de trazabilidad o al backlog.
+
+Y la forma de detectarlo fue la misma de siempre: **intentar hacerlo de verdad**,
+sobre una base vacia, en vez de asumir que el camino feliz es el unico camino.
+
+**Impacto.** Ninguna hora perdida en H1.9 mas alla de reproducirlo. El costo real
+esta diferido a H1.10, que ahora arranca sabiendo lo que tiene que arreglar en
+vez de descubrirlo.
