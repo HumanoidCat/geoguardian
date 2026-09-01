@@ -168,16 +168,52 @@ class DesdeLineaBase:
 # Es la misma regla que el documento IEEE aplica a sus secciones vacias: un
 # apartado en blanco sin explicacion es indistinguible de un olvido.
 
+
+def _regresion_logistica():
+    """Importacion diferida, para romper el ciclo con `regresion_logistica.py`.
+
+    Ese modulo importa `Observacion` de aca -tiene que hacerlo: es el contrato-,
+    asi que importarlo arriba cerraria el ciclo y Python fallaria al cargar
+    cualquiera de los dos.
+
+    Se difiere aca y no alla porque **el contrato tiene que poder leerse sin
+    cargar ningun estimador**. Al reves, `comparar.py` no se podria importar sin
+    arrastrar scikit-learn.
+    """
+    from .regresion_logistica import RegresionLogistica
+
+    return RegresionLogistica()
+
+
 DISPONIBLES: dict[str, callable] = {
     "trivial": lambda: DesdeLineaBase("trivial", LineaBaseTrivial),
     "climatologica": lambda: DesdeLineaBase("climatologica", LineaBaseClimatologica),
 }
 
+# `regresion logistica` esta ESCRITA Y PROBADA desde H3.3 -15 pruebas,
+# `backend/modelado/regresion_logistica.py`-. Sigue aca y no en `DISPONIBLES`
+# porque lo que falta no es el estimador: es que `comparar()` arme las
+# `Observacion` **con caracteristicas**. Hoy las arma con `caracteristicas={}`
+# porque este guion lee `etiquetas.csv` y las mediciones diarias viven en
+# `crudo.medicion_diaria`.
+#
+# Registrarlo sin la matriz **rompe la herramienta**: el estimador falla con
+# «las observaciones no traen caracteristicas» -que es el comportamiento
+# correcto, porque una regresion logistica sin entradas seria la linea base
+# trivial con otro nombre- y se lleva por delante la comparacion entera.
+# Comprobado el 2026-09-01: `verificar_h36` pasaba de verde a rojo.
+#
+# El texto dice el estado real y no solo la historia, para que nadie lea
+# «pendiente» como «no empezado».
 PENDIENTES: dict[str, str] = {
-    "regresion logistica": "H3.3, Cesar",
-    "random forest": "H3.4, Cesar",
-    "xgboost": "H3.5, Cesar",
+    "regresion logistica": (
+        "H3.3, escrito y probado; entra cuando comparar() lea las mediciones "
+        "diarias y arme las caracteristicas de H2.5"
+    ),
+    "random forest": "H3.4",
+    "xgboost": "H3.5",
 }
+
 
 #: La referencia contra la que se mide todo. **D-10** compara contra la linea
 #: base, y la trivial es el piso absoluto: con incendio al 1,23 %, «siempre BAJO»
