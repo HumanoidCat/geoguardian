@@ -30,9 +30,19 @@ escriben tres personas.
 
 | Carpeta | Regla | Por que |
 |---|---|---|
-| `datos/` | **Escritura libre**, como `docs/evidencias/` | Todo su contenido esta en `.gitignore` y nunca se versiona. Lo que se escribe ahi no puede colisionar entre ramas, asi que pedir permiso no controla nada |
+| `datos/` | **Escritura libre**, como `docs/evidencias/` | La carpeta entera esta en `.gitignore` y nada de lo que hay dentro se versiona. Lo que se escribe ahi no puede colisionar entre ramas, asi que pedir permiso no controla nada |
 | `notebooks/` | **Escritura libre**, con una regla | Cada quien crea los suyos con su prefijo: `avril-`, `cesar-`, `luna-`, `arz-`. Nadie edita el de otro |
 | `contratos/` | **Archivo compartido**, no carpeta con dueno | Ya estaba en la lista de archivos compartidos de mas abajo. Se anota aca para que no haya que buscarlo en dos sitios |
+
+> **Esa justificacion fue falsa hasta el 2026-09-01.** `.gitignore` filtraba
+> `datos/crudos/*` y `datos/procesados/*` -las dos subcarpetas, no la carpeta-,
+> asi que un archivo en la raiz de `datos/` salia como no seguido. Lo encontro
+> Cesar con un volcado de 28 MB ahi.
+>
+> Se anota porque el defecto no era del `.gitignore` sino de esta tabla: **la
+> regla de escritura libre se apoyaba en una propiedad que el repositorio no
+> cumplia.** Una regla de propiedad justificada con algo falso no protege nada,
+> y se lee igual que una que si.
 
 **Sobre `datos/`, una advertencia que vale mas que la regla.** Que sea de escritura
 libre no significa que lo que hay dentro sea compartido: **cada quien tiene su

@@ -7,8 +7,25 @@ __pycache__/
 .Python
 
 # Datos: nunca se versionan
-datos/crudos/*
-datos/procesados/*
+#
+# SE IGNORA LA CARPETA ENTERA, NO LAS DOS SUBCARPETAS.
+#
+# Hasta el 2026-09-01 esto decia `datos/crudos/*` y `datos/procesados/*`, o sea
+# **las subcarpetas y no la carpeta**. Un archivo en la raiz de `datos/` salia
+# como no seguido, a un `git add .` de entrar al repositorio. Lo encontro Cesar
+# revisando el PR #211, con un `geoguardian-dataset-v1.sql` de 28 MB ahi.
+#
+# Es el mismo defecto que Luna encontro el 2026-08-30 en
+# `infra/docker/respaldos/`, y lo que quedo escrito al arreglar aquel aplica
+# igual: se ignora la carpeta, no las extensiones ni las subcarpetas, porque
+# quien escribe ahi elige el nombre y el lugar.
+#
+# Y tenia una consecuencia mas cara que el riesgo de subir 28 MB:
+# `docs/07-propiedad-archivos.md` justificaba la **escritura libre** en `datos/`
+# diciendo que «todo su contenido esta en .gitignore y nunca se versiona». Con el
+# patron viejo esa frase era falsa, asi que la regla de propiedad se apoyaba en
+# algo que no se cumplia.
+datos/*
 !datos/**/.gitkeep
 
 # Los PNG de los diagramas se derivan del SVG y solo hacen falta para armar el
