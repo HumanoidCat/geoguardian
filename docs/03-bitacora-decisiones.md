@@ -3478,3 +3478,116 @@ certeza absoluta donde menos informacion hay.
 **Criterio de revision.** Se vuelve sobre esto cuando el catalogo crezca. Con
 siete registros de una sola fecha, cualquier veredicto es fragil, y la propia
 `[15]` muestra el camino para ampliarlo: integrar IMN y prensa a DesInventar.
+
+---
+
+## D-33 · Las historias abiertas de Cesar y Avril en S1 y S2 pasan al PM
+
+**Fecha.** 2026-08-31 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+
+### Contexto
+
+Semana 9 de 12. **El Sprint 1 vencio en la semana 5 y sigue abierto**: 11 de 16
+historias. El Sprint 2 vencio en la semana 7 y va en 11 de 23. El Sprint 4, que
+arranca en la semana 10, no tiene ninguna historia empezada.
+
+Estado por persona al momento de decidir, calculado con `verificar_estado.py`:
+
+| | Cerradas | Puntos | Ultimo commit en `dev` |
+|---|---|---|---|
+| Luna | 12/17 · 71 % | 65/80 · 81 % | 2026-08-30 |
+| Alejandro | 11/23 · 48 % | 59/126 · 47 % | 2026-08-28 |
+| Cesar | 9/28 · 32 % | 38/131 · 29 % | **2026-08-27** |
+| Avril | 7/21 · 33 % | 35/97 · 36 % | **2026-08-26** |
+
+Cesar y Avril llevan **cinco y seis dias sin subir nada**, y no respondieron a
+las consultas enviadas por escrito el 2026-08-28 y el 2026-08-30.
+
+### Decision
+
+**Las 12 historias abiertas de Cesar y Avril en S1 y S2 quedan a nombre del PM**:
+58 puntos, 67.2 horas.
+
+    S1  H1.15  H1.13  (Cesar)     H1.6  (Avril)
+    S2  H1.9  H1.11  H1.12  H2.5  H3.3  (Cesar)
+        H5.6  H7.2  H10.3  H10.7  (Avril)
+
+El contenido de cada historia se traspasa **sin modificar**. No es una
+reduccion de alcance ni una correccion del trabajo previo.
+
+### Justificacion
+
+Esperar ya se probo. Entre el 2026-08-26 y el 2026-08-31 no hubo un solo
+commit de ninguno de los dos, con dos consultas escritas sin responder. Una
+quinta semana de espera es la misma apuesta que ya fallo cuatro veces, y el
+Sprint 4 arranca en la semana 10.
+
+### Consecuencias, declaradas aqui y no descubiertas despues
+
+La carga del PM queda asi:
+
+| Sprint | Horas | Compromiso | Exceso |
+|---|---|---|---|
+| S1 | 36.4 | 36 | +0.4 |
+| **S2** | **113.1** | 36 | **+77.1** |
+| S3 | 40.4 | 36 | +4.4 |
+| S4 | 52.8 | 36 | +16.8 |
+
+**Total pendiente del PM: 185.6 horas. Quedan unas tres semanas. Son 62 h por
+semana contra un compromiso de 18.**
+
+**Esta decision no cabe en el calendario y se toma sabiendolo.** Se registra el
+numero para que quede claro que no se decidio por desconocerlo: se decidio
+porque la alternativa -esperar- ya se probo durante cinco semanas y produjo un
+Sprint 1 abierto en la semana 9.
+
+Lo que sigue de aqui es una de dos, y conviene decirlo ahora:
+
+1. **Se cierra menos de lo asignado.** El incumplimiento pasa a ser del PM
+   aunque el origen sea ajeno, porque el tablero dira que las historias eran
+   suyas.
+2. **Se recortan alcances o se pide ayuda.** Luna se ofrecio por escrito el
+   2026-08-30 y tiene 32 h pendientes, la carga mas baja del equipo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Repartir entre el PM y Luna | La preferencia del PM fue no cargar a quien si viene cumpliendo. Es la unica alternativa que cabia en el calendario |
+| Reasignar solo lo que bloquea a otros | Deja el Sprint 1 abierto, que es lo que la decision busca cerrar |
+| Esperar y escalar al docente | Se mantiene disponible, no excluye lo anterior |
+
+### Lo que esta decision NO hace
+
+**No cierra las historias de S3 y S4 de Cesar y Avril**, que siguen a su nombre:
+81 h de Cesar y 61.6 h de Avril. Reasignar todo seria declarar que ya no se
+espera nada de ellos, y eso no se ha decidido.
+
+**No borra el registro.** Las historias traspasadas llevan la nota en
+`docs/tareas/alejandro.md` con la fecha y el origen. El historial de git
+conserva a quien estuvieron asignadas y desde cuando.
+
+**Y no es una evaluacion del trabajo hecho.** Lo que Cesar y Avril cerraron esta
+en la matriz de trazabilidad con su evidencia, y varias de esas historias son
+dependencias de las que siguen abiertas.
+
+### Medicion
+
+Se da por buena si el **Sprint 1 queda cerrado -16 de 16- antes del cierre de
+la semana 10**, que es el unico resultado que justifica haberla tomado.
+
+Se revisa si al cierre de la semana 10 el PM cerro **menos de 40 de las 67.2
+horas** traspasadas. Ese umbral no es una meta: es el punto en que insistir
+cuesta mas que recortar alcance o aceptar la ayuda de Luna.
+
+Las dos cifras salen de `verificar_estado.py`, no de una apreciacion.
+
+### Como se revierte
+
+Si Cesar o Avril retoman, se devuelve la historia con el mismo procedimiento y
+un registro nuevo. **No hay que preguntar**: quien quiera retomar algo suyo lo
+avisa y se le devuelve.
+
+### Evidencia
+
+`docs/evidencias/gestion/D-33-atraso-y-reasignacion.md`
