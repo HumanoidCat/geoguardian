@@ -283,21 +283,7 @@ jobs:
           # directorio actual al path de importacion y falla con "No module
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
-          #
-          # La ruta es `backend` y no `backend/tests`. Hasta el 2026-08-30 era lo
-          # segundo, y por eso el CI NUNCA ejecuto las 46 pruebas de
-          # `backend/api/test_repositorio_postgres.py` y
-          # `backend/etl/test_imputacion.py`: existen, pasan, y vivian fuera del
-          # unico directorio que el CI miraba.
-          #
-          # `testpaths = ["backend"]` de pyproject.toml no lo cubria: solo aplica
-          # cuando se invoca `pytest` SIN ruta, y aqui se le pasa una.
-          #
-          # Es I-06 otra vez, en su forma mas incomoda: quien corria pytest en su
-          # maquina veia pasar esas 46 y concluia que estaban cubiertas. El CI no
-          # las habia ejecutado ni una vez. Un control apagado que se ve igual que
-          # uno encendido.
-          python -m pytest backend -v --cov=backend --cov-report=term-missing
+          python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
 
       # Los dos verificadores de criterios de aceptacion viven aca porque este es
       # el unico trabajo que instala requirements.txt, y los dos necesitan
@@ -455,3 +441,102 @@ jobs:
       - name: Desplegar
         id: despliegue
         uses: actions/deploy-pages@v4
+
+  # =========================================================================== #
+  # H11.1 · Construir las imagenes y publicarlas en ghcr.io
+  # =========================================================================== #
+  #
+  # QUE PUBLICA Y CUANDO
+  #
+  # En **todo** PR y en toda rama las imagenes se **construyen**, porque un
+  # Dockerfile que no compila tiene que salir en rojo antes de fusionarse. Pero
+  # solo se **publican** desde `main` y `dev`: un registro con una imagen por
+  # rama de trabajo es un registro que nadie puede leer.
+  #
+  # LAS ETIQUETAS INCLUYEN EL SHA, Y NO ES ADORNO
+  #
+  # Con solo `latest` no hay forma de responder «que version esta desplegada»,
+  # que es exactamente la pregunta que aparece cuando algo se rompe en
+  # produccion. Cada imagen se etiqueta con el SHA del commit **y** con el
+  # nombre de la rama; `latest` se agrega solo desde `main`.
+  #
+  # H11.2, H11.3 y H11.4 despliegan **por SHA**, no por `latest`. Desplegar una
+  # etiqueta movil significa que dos despliegues del mismo nombre pueden ser
+  # cosas distintas, y entonces el rollback deja de estar definido.
+  #
+  # NO HACE FALTA NINGUN SECRETO
+  #
+  # `GITHUB_TOKEN` alcanza para publicar en ghcr.io del mismo repositorio, con
+  # el permiso `packages: write` declarado abajo. Un secreto manual seria una
+  # cosa mas que rota y que alguien tiene que renovar.
+  imagenes:
+    name: Imagenes Docker (H11.1)
+    needs: [contratos, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      # `fail-fast: false` a proposito: si la API no compila, igual interesa
+      # saber si el visor si. Con el corte por omision, el segundo fallo queda
+      # sin diagnosticar.
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: api
+            contexto: .
+            dockerfile: infra/docker/api.Dockerfile
+          - nombre: visor
+            contexto: ./frontend
+            dockerfile: frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      # El nombre del paquete va en minusculas: ghcr.io las exige y el usuario
+      # de este repositorio tiene mayusculas. Sin esto el push falla con un
+      # error que no menciona las mayusculas en ningun lado.
+      - name: Nombre del paquete en minusculas
+        id: destino
+        run: echo "ruta=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.nombre }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ steps.destino.outputs.ruta }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # El login va condicionado igual que el push: en un PR desde una bifurcacion
+      # el token no tiene permiso de escritura, y un login que falla ahi seria un
+      # rojo que no dice nada sobre el codigo.
+      - name: Entrar a ghcr.io
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir${{ github.event_name == 'push' && ' y publicar' || '' }} ${{ matrix.nombre }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # La cache de GitHub Actions evita reconstruir las capas de
+          # dependencias en cada corrida. Sin esto, `npm ci` y `pip install`
+          # vuelven a bajar todo cada vez.
+          cache-from: type=gha,scope=${{ matrix.nombre }}
+          cache-to: type=gha,scope=${{ matrix.nombre }},mode=max
+
+      # **Se comprueba la imagen construida, no el Dockerfile.** Que el build
+      # termine no dice que la imagen arranque: puede faltar un archivo que el
+      # .dockerignore excluyo, y eso solo se ve ejecutandola.
+      - name: La imagen arranca y responde
+        run: python docs/herramientas/verificar_h111.py --imagen ${{ matrix.nombre }}
