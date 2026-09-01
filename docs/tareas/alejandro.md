@@ -179,8 +179,22 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H3.3** · Entrenar y evaluar Regresion Logistica
-  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+- [x] **H3.3** · Entrenar y evaluar Regresion Logistica (2026-09-01)
+  - Evidencia: `docs/evidencias/objetivos/H3.3-regresion-logistica.md`
+  - `generar_caracteristicas.py` arma la matriz desde `crudo.medicion_diaria` con
+    las transformaciones de H2.5; `comparar()` la consume y el estimador entra en
+    la tabla de H3.6. **17 criterios** en `verificar_h33.py` y **11 pruebas** en
+    `test_generar_caracteristicas.py`.
+  - Tres defectos aparecieron midiendo la matriz: un umbral absoluto que la
+    ventana de 3 dias no puede cumplir nunca -0 % de rendimiento-, acumulados
+    colineales con sus medias en las variables que no se suman, y columnas
+    constantes que `StandardScaler` no denuncia. De 44 columnas a 27.
+  - **D-34 pasa del ADR al codigo**: la sequia queda declarada no modelable, con
+    sus 9 episodios contra los 30 que pide CA-6 de H3.0.
+  - El estimador ya estaba escrito y probado desde el PR #217; esta entrega es la
+    matriz y el cableado.
+  - horas: estimada 9.4 . real 4.2
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.4, H3.5**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
