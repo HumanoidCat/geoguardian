@@ -46,10 +46,7 @@
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: contratos · **bloquea a: H5.2, H5.3, H5.6**
 
 
-## Sprint 1 (semanas 4-5) — 19.3 h
-
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
-  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+## Sprint 1 (semanas 4-5) — 11.5 h
 
 - [x] **H5.2** · Cuatro o mas capas conmutables con control de opacidad (2026-08-17)
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
@@ -58,16 +55,7 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 33.7 h
-
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
-
-- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
-  - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
-
-- [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
-  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
+## Sprint 2 (semanas 6-7) — 11.6 h
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
@@ -93,10 +81,6 @@
 - [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
   - horas: estimada 4.0 . real 2.0
-
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
-  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
-
 
 ## Sprint 3 (semanas 8-9) — 25.0 h
 

@@ -75,8 +75,43 @@
   - `E8` · 8 pts · 12.5 h · rubrica: Arq · depende de: H8.1
 
 
-## Sprint 1 (semanas 4-5) — 22.8 h
+## Sprint 1 (semanas 4-5) — 36.4 h
 
+
+- [ ] **H1.15** · Crear `analitico.riesgo` con sus restricciones
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.3, H1.8 · **bloquea a: H1.13**
+  - **Abierta el 2026-08-27** por decision del PM, despues de que la detectaras
+    al intentar H1.13. La tabla no existia y ninguna historia la creaba.
+  - **No se metio dentro de H1.13** a proposito: esa historia es el disparador de
+    auditoria, y juntar el esquema con el disparador hace que discutir uno
+    arrastre al otro.
+  - Se puede construir y probar **contra una tabla vacia**, asi que no espera al
+    modelo de E3.
+  - Dos cosas que el DDL tiene que cumplir, y no son negociables:
+    - `probabilidad` es **P(nivel = alto)**, por **D-21**. Que el `COMMENT` de la
+      columna lo diga, no solo el contrato.
+    - **La ausencia es `NULL`, nunca `0`.** Un distrito sin estimacion tiene que
+      poder distinguirse de uno con riesgo bajo. Es **D-07**, y es lo que el
+      etiquetado y el visor ya hacen.
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8, H1.15
+  - **Desbloqueada el 2026-08-27.** Estuvo detenida porque `analitico.riesgo` no
+    existia y ninguna historia la creaba, con H1.8 -su dependencia declarada- ya
+    cerrada. Ahora depende tambien de **H1.15**, que si la crea.
+  - La dependencia es real y medida, no inventada para desatascar el tablero.
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 - [ ] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
 
@@ -87,8 +122,62 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 59.5 h
+## Sprint 2 (semanas 6-7) — 113.1 h
 
+
+- [ ] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos
+  - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
+  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
+  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
+  - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H3.3** · Entrenar y evaluar Regresion Logistica
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
+  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H10.3** · Manual de usuario con capturas paso a paso
+  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
+  - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
@@ -153,7 +242,7 @@
   - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
-## Sprint 3 (semanas 8-9) — 35.7 h
+## Sprint 3 (semanas 8-9) — 40.4 h
 
 - [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
