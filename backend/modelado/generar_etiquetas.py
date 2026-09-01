@@ -265,7 +265,24 @@ def main() -> int:
                     e.incendio.value if e.incendio else "",
                 ]
             )
-    print(f"\nEscrito {argumentos.salida.relative_to(RAIZ)}")
+    # `relative_to` LEVANTA si la ruta no cuelga de RAIZ, y una ruta relativa
+    # -`datos\procesados\etiquetas.csv`, que es como se escribe en la linea de
+    # comandos- nunca cuelga de una absoluta.
+    #
+    # El defecto es de los caros porque **el archivo YA SE ESCRIBIO** tres
+    # lineas mas arriba: el guion hacia todo su trabajo, moria al imprimir el
+    # exito, y salia con codigo distinto de cero. Quien lo llame desde otro
+    # guion concluye que fallo y lo vuelve a correr; quien lo corra a mano ve
+    # una traza de Python despues de una salida perfecta.
+    #
+    # Se resuelve con `resolve()`, que vuelve absoluta la ruta relativa, y con
+    # el respaldo de imprimirla tal cual si aun asi cae fuera del repositorio
+    # -que es legitimo: nada impide escribir el CSV en otro disco-.
+    try:
+        destino = argumentos.salida.resolve().relative_to(RAIZ)
+    except ValueError:
+        destino = argumentos.salida
+    print(f"\nEscrito {destino}")
 
     if no_modelables:
         print(f"\nEventos NO modelables por CA-6: {', '.join(no_modelables)}")

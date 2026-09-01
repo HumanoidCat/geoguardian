@@ -1310,3 +1310,54 @@ esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
 dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
 reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
 cifra con la que se decidia donde faltaban pruebas.
+
+---
+
+## I-18 · D-32 cambio el etiquetado de sequia y los criterios de H3.2 siguieron diciendo lo viejo
+
+**Fecha.** 2026-09-01
+
+**Quien lo detecto.** Alejandro, al regenerar `etiquetas.csv` contra la base real
+para poder cerrar H3.3. La salida del guion no coincidia con lo que el documento
+de criterios de H3.2 declara como medido.
+
+**Que paso.** `docs/evidencias/objetivos/H3.2-criterios-aceptacion.md` publica la
+distribucion de clases sobre 99 296 filas reales. La fila de sequia decia:
+
+    sequia          99 296   7 290   7,34 %     110           66,3
+
+Y la corrida de hoy da:
+
+    sequia          99 296   7 811   7,87 %      78          100,1
+
+**Causa raiz.** **D-32** cambio la escala del SPI de 3 a 6 el 2026-08-30, y con
+ella el etiquetado de sequia. El documento de criterios de H3.2 se escribio antes
+y **no se regenero**. Las de lluvia e incendio no cambiaron -no dependen del SPI-,
+asi que dos de las tres filas siguen siendo correctas y la tabla se ve sana.
+
+**Por que nada lo atrapo.** `verificar_documentacion.py` vigila 44 apariciones de
+cifras derivadas, y **estas tres filas no estan entre ellas**. No es un fallo del
+control: es una cifra que nadie conecto.
+
+Es la misma familia de **I-16**: una tabla con forma valida, dos tercios ciertos y
+un tercio falso, en un documento que el CI aprueba.
+
+**Por que importa mas que un numero desactualizado.** Los episodios bajaron de
+110 a **78**, un 29 % menos. **CA-6 de H3.0 exige un minimo de 10 episodios
+positivos por particion de entrenamiento**, y con ventana expansiva el primer
+pliegue es el mas chico de los cinco. 78 repartidos dan 15,6 de promedio, no de
+minimo.
+
+D-32 se registro comprobando que la sequia pasara de 0 de 7 a 7 de 7 contra el
+catalogo, que era lo que se estaba midiendo. **No se comprobo que el numero de
+episodios siguiera alcanzando para particionar**, y eso decide si el evento es
+modelable.
+
+**Que se cambio.** La fila de sequia, con una nota que dice de donde venia la
+anterior y por que cambio. **No se toco D-32**: su medicion sigue siendo correcta,
+lo que faltaba era propagar la consecuencia.
+
+**Lo que NO se hizo, y queda abierto.** No se comprobo cuantos episodios tiene el
+**primer** pliegue de sequia. Es lo que decide si CA-6 se cumple, y sale de correr
+`verificar_h32.py` contra las etiquetas nuevas. Va con H3.3, que es la historia
+que necesita esa particion.
