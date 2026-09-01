@@ -78,7 +78,12 @@
 ## Sprint 1 (semanas 4-5) — 36.4 h
 
 
-- [ ] **H1.15** · Crear `analitico.riesgo` con sus restricciones
+- [x] **H1.15** · Crear `analitico.riesgo` con sus restricciones (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.15-analitico-riesgo.md`
+  - Migracion `006_analitico_riesgo.sql`, verificador `basedatos/verificar_h1_15.py`:
+    **15 de 15 criterios** contra PostgreSQL 16.2. Cada restriccion se
+    ejercita intentando violarla.
+  - horas: estimada 2.9 . real 2.0
   - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.3, H1.8 · **bloquea a: H1.13**
   - **Abierta el 2026-08-27** por decision del PM, despues de que la detectaras
     al intentar H1.13. La tabla no existia y ninguna historia la creaba.
