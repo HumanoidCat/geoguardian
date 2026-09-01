@@ -150,7 +150,7 @@ def main() -> int:
         print("\nFALLO: el backlog tiene dependencias que no se pueden cumplir.")
         return 1
     if tabla_desfasada:
-        print("\nFALLO: la tabla de 08-backlog.md no coincide con backlog.csv.")
+        print("\nFALLO: las tablas de carga no coinciden con backlog.csv.")
         return 1
     print("\nOK")
     return 0
@@ -203,7 +203,53 @@ def tabla_de_carga_coincide(filas: list[dict]) -> int:
                 f"el CSV da {totales[clave]:.1f} h y {puntos[clave]:.0f} pts"
             )
 
-    print(f"\nTabla de carga de 08-backlog.md: {len(encontradas)} filas comprobadas")
+    # --------------------------------------------------------------------- #
+    # Y LOS ARCHIVOS DE TAREAS, QUE TAMPOCO TENIAN NADA MIRANDO              #
+    # --------------------------------------------------------------------- #
+    # Lo encontro Cesar el 2026-09-01, revisando el PR #211. `cesar.md` decia
+    # «125 puntos · 154 horas» cuando el CSV daba 96 y 124.2, y su tabla de
+    # carga decia S3 39.2 h contra los 47.0 de la seccion. Dos causas distintas
+    # y ninguna vigilada: los 7.8 h de H1.14, agregada por D-26 sin tocar la
+    # tabla, y el traspaso de D-33, que actualizo los encabezados de sprint y no
+    # el resumen de arriba.
+    #
+    # El control de mas arriba cruzaba el CSV contra `08-backlog.md` y se
+    # detenia ahi. **Cada persona lee su propio archivo, no la tabla del
+    # backlog**, asi que el numero que de verdad se mira era el unico sin
+    # comprobar. Es el mismo defecto de I-16 en otro archivo: se vigilaba una de
+    # las apariciones de la cifra.
+    for persona in sorted(totales):
+        ruta_persona = Path(__file__).resolve().parents[1] / "tareas" / f"{persona}.md"
+        if not ruta_persona.exists():
+            continue
+        texto = ruta_persona.read_text(encoding="utf-8")
+        declara = re.search(r"\*\*Total asignado:\*\* ([\d.]+) puntos · ([\d.]+) horas", texto)
+        if not declara:
+            malas.append(f"  - {persona}.md no declara su total asignado")
+            continue
+        if abs(float(declara.group(2)) - totales[persona]) > 0.05 or int(
+            float(declara.group(1))
+        ) != round(puntos[persona]):
+            malas.append(
+                f"  - tareas/{persona}.md dice {declara.group(1)} pts y "
+                f"{declara.group(2)} h; el CSV da {puntos[persona]:.0f} y "
+                f"{totales[persona]:.1f}"
+            )
+        for sprint, horas_md in re.findall(r"\| (S\d) \| semanas [\d-]+ \| ([\d.]+) \|", texto):
+            real = sum(
+                float(f["horas"])
+                for f in filas
+                if f["responsable"] == persona and f["sprint"] == sprint
+            )
+            if abs(float(horas_md) - real) > 0.05:
+                malas.append(
+                    f"  - tareas/{persona}.md, {sprint}: la tabla dice {horas_md} h "
+                    f"y el CSV da {real:.1f}"
+                )
+
+    print(
+        f"\nTabla de carga de 08-backlog.md y de docs/tareas/: {len(encontradas)} filas y 4 archivos"
+    )
     if malas:
         print("  no coinciden con backlog.csv:")
         print("\n".join(malas))

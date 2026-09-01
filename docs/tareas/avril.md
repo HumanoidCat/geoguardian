@@ -28,15 +28,15 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 97 puntos · 117.5 horas · 11.8 h por semana en promedio
+**Total asignado:** 74 puntos · 87.6 horas · 8.8 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 2.9 | 36 | holgado |
-| S1 | semanas 4-5 | 19.3 | 36 | holgado |
-| S2 | semanas 6-7 | 33.7 | 36 | ajustado |
+| S1 | semanas 4-5 | 11.5 | 36 | holgado |
+| S2 | semanas 6-7 | 11.6 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
 | S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 

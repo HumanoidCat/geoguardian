@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 80 puntos · 144 horas · 14.3 h por semana en promedio
+**Total asignado:** 80 puntos · 143.5 horas · 14.3 h por semana en promedio
 
 ## Carga por sprint
 
