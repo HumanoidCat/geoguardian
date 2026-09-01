@@ -3591,3 +3591,120 @@ avisa y se le devuelve.
 ### Evidencia
 
 `docs/evidencias/gestion/D-33-atraso-y-reasignacion.md`
+
+---
+
+## D-34 · Los episodios se cuentan a nivel canton, y la sequia no es modelable
+
+**Fecha.** 2026-09-01 · **Decide.** Alejandro · **Estado.** Aceptada
+**Revisa.** D-32 · **Afecta.** H3.0 (CA-6), H3.3, H3.6 y el documento IEEE
+
+### Contexto
+
+CA-6 de H3.0 fija, **antes de mirar el dato**, cuando un evento no se modela:
+
+    menos de 30 ventanas positivas en total             -> no se modela
+    menos de 10 en cualquier particion de entrenamiento -> no se modela
+
+Al preparar H3.3 se fue a comprobar ese segundo umbral y aparecieron **dos
+defectos en como se estaba evaluando**, no en el criterio.
+
+### Defecto 1 · Se comparaba un promedio contra un minimo
+
+`generar_etiquetas.py` dividia los episodios totales entre cinco pliegues
+supuestos. El comentario decia por que -H3.2 no existia cuando se escribio- y
+**dejo de ser cierto el dia que H3.2 se cerro, sin que nada avisara**.
+
+CA-6 dice «en **cualquier** particion». Eso es un minimo. Con ventana expansiva
+el pliegue 1 entrena con la rebanada mas chica y el 5 con casi toda la serie, asi
+que promedio y minimo no son intercambiables.
+
+### Defecto 2 · Los episodios estaban inflados por distrito
+
+Se contaban rachas de dias ALTO **por distrito y se sumaban**. Una sequia que
+pega en los ocho distritos a la vez cuenta ocho veces.
+
+**No es un detalle: seis de las trece sequias del periodo pegan en los ocho.**
+
+    distritos afectados     episodios del canton
+      1 distrito                  2
+      3 distritos                 2
+      5 distritos                 1
+      6 distritos                 2
+      8 distritos                 6
+
+El proyecto **ya habia aplicado este razonamiento en otro lado**:
+`comparar_escalas_spi.py` declara que «los 7 registros son 1 fecha x 7 distritos,
+asi que n efectivo ~ 1» al contrastar el catalogo. Lo que faltaba era aplicarlo
+a CA-6.
+
+### Decision
+
+**Los episodios se cuentan a nivel canton.** Un episodio es una racha de dias en
+que **algun** distrito esta en ALTO. Y **CA-6 se evalua contra el minimo por
+pliegue de entrenamiento**, no contra el promedio.
+
+Con eso, **la sequia no es modelable** y se declara asi.
+
+### Medicion
+
+    evento           por distrito   canton real   inflacion
+    lluvia_intensa            496           163        3,0x
+    sequia                     78            13        6,0x
+    incendio                  106            67        1,6x
+
+Episodios independientes en el **entrenamiento** de cada pliegue:
+
+    lluvia_intensa    31 · 60 · 89 · 109 · 129    minimo 31   modelable
+    sequia             2 ·  3 ·  3 ·   6 ·   9    minimo  2   NO MODELABLE
+    incendio          16 · 21 · 28 ·  44 ·  55    minimo 16   modelable
+
+**La sequia no falla por poco: falla en los cinco pliegues.** El mas rico tiene
+9 y el umbral es 10.
+
+**La inflacion tampoco es pareja** -3,0x contra 6,0x contra 1,6x-, asi que el
+conteo por distrito ni siquiera sobreestimaba de forma consistente: distorsionaba
+la comparacion **entre** eventos.
+
+### Justificacion
+
+Contar por distrito supondria que ocho filas del mismo dia son ocho
+observaciones. Comparten el fenomeno meteorologico, y **los ocho distritos
+comparten ademas la misma celda de NASA POWER** -(-85,0 · 10,5), medido en
+H1.5-, asi que buena parte de sus variables son literalmente el mismo numero.
+
+Un modelo que las trate como independientes cree tener ocho veces mas evidencia
+de la que hay. Es el mismo error que D-32 ya habia declarado al medir el
+catalogo, y sostenerlo aca y no alla seria incoherente.
+
+### Consecuencias
+
+**El alcance del modelado baja de tres eventos a dos.** H3.3, H3.4 y H3.5
+comparan algoritmos sobre lluvia intensa e incendio. La sequia entra a la tabla
+de H3.6 **declarada no modelable con su medicion al lado**, no omitida.
+
+**Y esto es un resultado, no una perdida.** D-32 cambio la escala del SPI de 3 a
+6 porque el contraste contra el catalogo daba **0 de 7**; con SPI-6 da **7 de 7**.
+La misma decision que arreglo la validacion externa **redujo la muestra por debajo
+del umbral de modelado**: las rachas se volvieron mas largas y menos -de 66 filas
+por episodio a 100- y los episodios independientes cayeron.
+
+**Es un compromiso medido entre detectar y modelar**, con datos propios, y va a
+la seccion de resultados del documento IEEE.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no |
+|---|---|
+| Bajar el umbral de CA-6 | Se fijo antes de ver el dato justamente para esto. Y ya no seria de 10 a 9: seria de 10 a 2 |
+| Usar menos pliegues | Con 13 episodios totales, ni dos pliegues llegan a 10 |
+| Seguir contando por distrito | Es lo que produjo el problema, y el proyecto ya lo rechazo al medir el catalogo |
+| Volver a SPI-3 | Recupera muestra y **pierde la validacion externa**: 0 de 7 contra el catalogo. Cambiar un criterio para satisfacer otro, en la direccion que ya se midio como peor |
+| Omitir la sequia del documento | Un evento ausente sin explicacion es indistinguible de un olvido |
+
+### Como se revierte
+
+Si aparece mas serie -la ETL llega hasta 2024 por el limite de los focos- o si se
+amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
+decision depende del numero, no de una preferencia: **se rehace corriendo
+`generar_etiquetas.py`**.

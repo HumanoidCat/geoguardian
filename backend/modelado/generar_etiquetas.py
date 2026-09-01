@@ -159,14 +159,55 @@ def episodios_por_pliegue(
     except Exception:  # noqa: BLE001 - periodo insuficiente u otro motivo declarado
         return None
 
-    salida = []
-    for pliegue in pliegues:
-        desde, hasta = pliegue.entrenamiento
-        recortadas = {
-            codigo: [e for e in lista if desde <= e.fecha <= hasta]
-            for codigo, lista in por_distrito.items()
+    # Se cuenta a nivel CANTON, por D-34: un episodio que pega en los ocho
+    # distritos es uno, no ocho.
+    canton = rachas_del_canton(por_distrito, evento)
+    return [
+        sum(1 for i, f in canton if i >= desde and f <= hasta)
+        for desde, hasta in (p.entrenamiento for p in pliegues)
+    ]
+
+
+def rachas_del_canton(
+    por_distrito: dict[str, list[Etiqueta]], evento: TipoEvento
+) -> list[tuple[date, date]]:
+    """Episodios del **canton**: rachas de dias en que ALGUN distrito esta ALTO.
+
+    POR QUE NO SE SUMAN LOS DE CADA DISTRITO. **D-34.**
+
+    Una sequia que pega en los ocho distritos es UN fenomeno, no ocho. Sumando
+    por distrito contaba ocho veces, y **seis de las trece sequias del periodo
+    pegan en los ocho**.
+
+    Peor: los ocho distritos comparten la misma celda de NASA POWER -(-85,0 ·
+    10,5), medido en H1.5-, asi que buena parte de sus variables son literalmente
+    el mismo numero. Tratarlas como observaciones independientes le hace creer al
+    modelo que tiene ocho veces mas evidencia de la que hay.
+
+    Es el mismo razonamiento que `comparar_escalas_spi.py` ya aplicaba al
+    contrastar el catalogo -«los 7 registros son 1 fecha x 7 distritos, n
+    efectivo ~ 1»-. Lo que faltaba era traerlo a CA-6.
+    """
+    dias = sorted(
+        {
+            e.fecha
+            for lista in por_distrito.values()
+            for e in lista
+            if e.nivel(evento) is NivelRiesgo.ALTO
         }
-        salida.append(sum(episodios(lista, evento) for lista in recortadas.values()))
+    )
+    salida: list[tuple[date, date]] = []
+    inicio = anterior = None
+    for dia in dias:
+        if inicio is None:
+            inicio = anterior = dia
+        elif (dia - anterior).days == 1:
+            anterior = dia
+        else:
+            salida.append((inicio, anterior))
+            inicio = anterior = dia
+    if inicio is not None:
+        salida.append((inicio, anterior))
     return salida
 
 
@@ -205,7 +246,16 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         if sin_dato:
             print(f"    sobre el total         {100 * filas_alto / total:5.2f} %")
             print(f"    sobre las OBSERVADAS   {100 * filas_alto / observadas:5.2f} %   <- el real")
-        print(f"  EPISODIOS distintos      {positivas}   <- lo que decide CA-6")
+        # LAS DOS CUENTAS, Y CUAL DECIDE. D-34.
+        #
+        # Se imprimen las dos a proposito: la de por distrito es la que estuvo
+        # en uso hasta el 2026-09-01 y aparece en documentos anteriores, asi que
+        # esconderla haria imposible entender por que un numero cambio.
+        canton = len(rachas_del_canton(por_distrito, evento))
+        print(f"  episodios por distrito   {positivas}   (suma; un evento en 8 distritos cuenta 8)")
+        print(f"  EPISODIOS DEL CANTON     {canton}   <- lo que decide CA-6, por D-34")
+        if canton:
+            print(f"    inflacion del conteo   {positivas / canton:.1f}x")
         if positivas:
             print(f"  filas por episodio       {filas_alto / positivas:.1f}")
         if por_pliegue_real is None:
@@ -221,8 +271,10 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
             )
 
         razones = []
-        if positivas < MINIMO_POSITIVAS_TOTAL:
-            razones.append(f"{positivas} episodios en total, el minimo es {MINIMO_POSITIVAS_TOTAL}")
+        if canton < MINIMO_POSITIVAS_TOTAL:
+            razones.append(
+                f"{canton} episodios del canton en total, el minimo es {MINIMO_POSITIVAS_TOTAL}"
+            )
         if minimo is None:
             razones.append(
                 "no se pudo medir la distribucion por pliegue: sin eso CA-6 no se "
