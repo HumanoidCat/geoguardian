@@ -28,13 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 74 puntos · 87.6 horas · 8.8 h por semana en promedio
-
-> Estas cifras salen de `docs/backlog.csv` y **todavia no incluyen H5.6**, que
-> volvio aca el 2026-09-02 por la clausula de devolucion de D-33. La celda
-> `responsable` de esa fila sigue diciendo `alejandro` y es un archivo compartido:
-> cuando el PM la cambie, el total pasa a 77 puntos y 92.3 h, y el Sprint 2 a
-> 16.3 h. Se deja escrito en vez de corregir la tabla, porque el CSV es la fuente.
+**Total asignado:** 82 puntos · 97.1 horas · 8.8 h por semana en promedio
 
 ## Carga por sprint
 
@@ -42,7 +36,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 2.9 | 36 | holgado |
 | S1 | semanas 4-5 | 11.5 | 36 | holgado |
-| S2 | semanas 6-7 | 11.6 | 36 | holgado |
+| S2 | semanas 6-7 | 21.1 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
 | S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 
@@ -61,14 +55,26 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 16.3 h
+## Sprint 2 (semanas 6-7) — 21.1 h
 
 - [x] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control (2026-09-02)
   - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
   - horas: estimada 3.0 . real 0.7
-  - **Retomada el 2026-09-02** por la clausula de devolucion de **D-33**. Estaba
-    terminada y verificada antes del traspaso del 31 de agosto; lo que faltaba
-    era subirla, y eso es lo que se corrige aca.
+  - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. La tomo
+    Alejandro el 31 de agosto y Avril la pidio de vuelta con motivo: **ya estaba
+    hecha** en `feature/ame-h5.6-crtm05`, con 25 controles contra `pyproj` como
+    implementacion independiente. Empezarla de nuevo habria tirado ese trabajo.
+  - Se cerro **el mismo dia** con el PR #229, no el viernes 4 como se habia
+    comprometido. El seguimiento de las cuatro observaciones de esa revision
+    lleva el verificador **de 25 a 40 comprobaciones**.
+
+- [ ] **H10.3** · Manual de usuario con capturas paso a paso
+  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. Se
+    devuelve porque **desbloquea H10.9, que es CG-6 entera** -el unico criterio
+    que sostiene esa historia- y porque quien conoce el visor saca las capturas a
+    la primera.
+  - Compromiso: **martes 9 de septiembre**.
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3

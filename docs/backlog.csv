@@ -583,7 +583,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,alejandro",S2,alejandro,3,4.7
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,alejandro",S2,avril,3,4.7
 H5.7,H5.7 Selector de fecha que recarga el estado del mapa,"Epica E5 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: CG-4
@@ -919,7 +919,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,MVP,alejandro",S2,alejandro,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,MVP,alejandro",S2,avril,5,4.8
 H10.4,H10.4 Manual tecnico verificado por alguien ajeno al desarrollo,"Epica E10 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: MVP

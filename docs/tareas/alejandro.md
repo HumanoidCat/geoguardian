@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 184 puntos · 278.6 horas · 27.9 h por semana en promedio
+**Total asignado:** 176 puntos · 269.1 horas · 26.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -36,7 +36,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
-| S2 | semanas 6-7 | 113.1 | 36 | SOBRECARGA +77 h |
+| S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
@@ -136,7 +136,7 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 113.1 h
+## Sprint 2 (semanas 6-7) — 103.6 h
 
 
 - [x] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos (2026-09-01)
@@ -157,13 +157,43 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
+- [x] **H1.11** · Particionar mediciones por anio y medir efecto en consultas (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.11-particionado-medicion.md`
+  - Migracion `010_particionar_medicion.sql`, verificador
+    `basedatos/verificar_h1_11.py`: **14 de 14 criterios** contra PostgreSQL real.
+    99 296 filas migradas en 1.54 s, 37 particiones, la DEFAULT vacia.
+  - **El efecto se midio, no se supuso.** `basedatos/medir_particionado.py`
+    construye las dos formas de la tabla con las mismas filas y corre las mismas
+    consultas: el visor mejora **84 %**, el pliegue de H3.2 **35 %**, y el
+    agregado anual empeora **4 %**. Se adopta porque lo que mejora esta en el
+    camino del usuario y lo que empeora corre fuera de linea.
+  - **I-20**: el arreglo de I-18 solo habia tocado una de las tres tablas, y los
+    controles que se escribieron para atajarlo miraban una tabla cada uno. El
+    criterio 14 ahora recorre los cuatro esquemas enteros.
+  - El criterio 6 es el que mas vale: comprueba que el upsert idempotente de H1.1
+    sobrevive al particionado. Si fallara, la ingesta duplicaria en silencio.
+  - horas: estimada 4.8 . real 3.1
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
+- [x] **H1.12** · Indices espaciales y compuestos con planes antes y despues (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.12-indices.md`
+  - Migracion `011_indices.sql`, verificador `basedatos/verificar_h1_12.py`:
+    **11 criterios que miran el PLAN**, no el catalogo. Un indice que existe y el
+    planificador nunca elige es coste puro.
+  - **Se midieron cuatro candidatos y entraron tres.** `medicion_fecha_ix` se
+    descarto: la consulta iba 8 % mas rapida con el creado, pero el indice **no
+    aparece en el plan**. Ese 8 % era cache. Es el motivo por el que el banco
+    comprueba el plan y no solo el reloj.
+  - **El criterio de aceptacion estaba mal planteado y la medicion lo dijo.**
+    Empezo en «ahorra mas de 0,5 ms» y eso descartaba `riesgo_fecha_evento_ix`
+    por 0,05 ms. Midiendo a cuatro tamanos, el ahorro crece de 0,49 ms a 10,09 ms
+    -de 8,5x a 90,6x- mientras la consulta indexada se queda plana. La regla paso
+    a ser **que tipo de escaneo reemplaza**, no cuantos milisegundos ahorra hoy.
+  - El punto de partida era **un solo indice secundario en todo el proyecto**.
+  - horas: estimada 4.8 . real 2.8
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
@@ -199,19 +229,8 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-> **H5.6 volvio a Avril el 2026-09-02**, por la clausula de devolucion de D-33:
-> «quien retome algo suyo lo avisa y se le devuelve, sin pedir permiso». Estaba
-> terminada y verificada antes del traspaso y se cierra el mismo dia. La entrada
-> vive ahora en `docs/tareas/avril.md`.
-
 - [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.

@@ -550,11 +550,56 @@ def normalizar(valor: str) -> str:
     return str(NUMEROS_ESCRITOS.get(valor.lower(), valor))
 
 
+def el_ci_mira_el_backend_entero() -> str | None:
+    """Comprueba que el CI ejecute `pytest backend` y no un subdirectorio.
+
+    NO ES UNA CIFRA, Y POR ESO NO ESTA EN `AFIRMACIONES`.
+
+    Lo que hay que vigilar aqui **no es cuantas pruebas corren** -ese numero
+    cambia cada semana y un control que se rompe solo se termina ignorando- sino
+    **que la ruta no se angoste**. `backend` es invariante; 297 no.
+
+    POR QUE EXISTE, Y NO ES HIPOTETICO
+
+    Esta linea se revirtio de verdad. El PR #208 la arreglo el 30 de agosto y el
+    **#212 la devolvio** a `backend/tests` el 1 de septiembre, al reescribir la
+    seccion en vez de editarla. Durante dos dias el CI corrio 152 de 198 pruebas
+    **y estuvo verde**: las 46 que dejo de ejecutar pasan, asi que quitarlas no
+    pone nada en rojo — pone menos cosas en verde. Ver **I-21**.
+
+    Un control que solo puede fallar hacia menos no se vigila solo. Este es el
+    que faltaba.
+
+    Devuelve `None` si esta bien, o el problema descrito.
+    """
+    texto = (RAIZ / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    invocaciones = re.findall(r"pytest\s+(\S+)", texto)
+    if not invocaciones:
+        return ".github/workflows/ci.yml: no se encontro ninguna invocacion de pytest"
+
+    angostas = [r for r in invocaciones if r.startswith("backend/") or r.startswith("backend\\")]
+    if angostas:
+        return (
+            f".github/workflows/ci.yml: el CI corre `pytest {angostas[0]}` y no `pytest backend`. "
+            "Deja fuera las pruebas que viven junto al codigo, y el pipeline sigue en verde "
+            "porque esas pruebas pasan. Es I-21: se revirtio una vez y nadie lo noto en dos dias"
+        )
+    return None
+
+
 def main() -> int:
     print("\nVerificacion de cifras afirmadas en la documentacion\n")
 
     problemas: list[str] = []
     revisadas = 0
+
+    # El control estructural va primero: no compara una cifra contra la prosa,
+    # comprueba que un control del proyecto no se haya estrechado.
+    estrechado = el_ci_mira_el_backend_entero()
+    if estrechado:
+        problemas.append(estrechado)
+    else:
+        print("  el CI ejecuta las pruebas de `backend` entero: si")
 
     for afirmacion in AFIRMACIONES:
         esperado = str(afirmacion.real())
