@@ -1,0 +1,26 @@
+# El Service de la API. Historia H11.2.
+#
+# ClusterIP y no headless, al reves que el de PostGIS: aca la identidad del pod
+# NO importa y el balanceo entre replicas es lo que se quiere el dia que haya
+# mas de una.
+#
+# El nombre `api` es el que el visor usa en DESTINO_API. Cambiarlo obliga a
+# cambiar el despliegue del visor, y por eso el verificador comprueba que los
+# dos coincidan en vez de confiar en que alguien se acuerde.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http

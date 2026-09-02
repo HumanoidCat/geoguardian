@@ -162,6 +162,36 @@ jobs:
           fi
           echo "Sin marcas de conflicto."
 
+  # Los manifiestos de entrega continua. Historias H11.2 a H11.4.
+  #
+  # POR QUE ESTA COMPROBACION VIVE EN EL CI Y NO SOLO EN EL CD.
+  #
+  # `cd.yml` solo corre sobre `main`. Sin esto, un manifiesto roto se fusionaria
+  # a `dev`, de ahi a `main`, y recien alli se descubriria — con el despliegue
+  # como primer aviso.
+  #
+  # `--manifiestos` no necesita cluster: comprueba estructura e invariantes.
+  # Entre ellas la de SC-07, que una barra final en DESTINO_API produce
+  # `//distritos` sin fallar al arrancar y sin aparecer en ningun registro.
+  #
+  # **Este trabajo tiene que estar en la lista de verificaciones obligatorias de
+  # `dev`.** Si no lo esta, corre, sale en rojo y no impide fusionar: es I-25
+  # otra vez, y la observacion (c) del PR #229 ya cayo en eso una vez.
+  entrega-continua:
+    name: Manifiestos de despliegue
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install pyyaml
+      - name: Los manifiestos de infra/k8s cumplen sus invariantes
+        run: python infra/verificar_cd.py --manifiestos
+      - name: El guion de despliegue no tiene errores de sintaxis
+        run: bash -n infra/k8s/desplegar.sh
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest

@@ -1,0 +1,26 @@
+# El Service del visor. Historia H11.2.
+#
+# No se expone fuera del cluster con un Ingress ni un NodePort. Para verlo desde
+# la maquina se usa `kubectl port-forward`, igual que con PostGIS y por el mismo
+# motivo: un Ingress obliga a decidir nombres de host y certificados, y eso es
+# una historia con su propio criterio, no un detalle de esta.
+#
+# El guion `infra/k8s/desplegar.sh` imprime el comando de port-forward al
+# terminar, para que nadie tenga que buscarlo.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: visor
+  labels:
+    app.kubernetes.io/name: visor
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: visor
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
