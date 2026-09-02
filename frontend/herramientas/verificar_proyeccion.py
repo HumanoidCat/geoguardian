@@ -11,7 +11,11 @@ Las dos implementaciones quedan vivas: si alguien toca las formulas, esto falla.
   1. Los puntos de control ANALITICOS, que valen por definicion de la proyeccion
      y no dependen de pyproj.
   2. Los puntos de control REALES: los ocho distritos y los bordes del canton.
-  3. Que el punto representativo de cada distrito caiga DENTRO de su poligono.
+  2b. El FACTOR DE ESCALA del meridiano central: que el norte sea la distancia al
+     ecuador por k0, y no la distancia a secas.
+  3. Que el punto representativo de cada distrito caiga DENTRO de su poligono, y
+     que ninguna geometria traiga huecos, que el algoritmo no cubre.
+  4. Que el FORMATO de las coordenadas sea el mismo texto en cualquier entorno.
 
 Uso, desde la raiz del repositorio y con el entorno virtual activo:
 
