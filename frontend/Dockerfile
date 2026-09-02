@@ -72,11 +72,22 @@ COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 # despliegue que olvide la variable dejaria `proxy_pass` vacio.
 ENV DESTINO_API=http://api:8000
 
-# El guion que escribe la directiva `resolver` leyendola de /etc/resolv.conf.
 # La imagen de nginx ejecuta todo lo que haya en /docker-entrypoint.d/ antes de
-# arrancar, asi que no hace falta tocar el CMD.
+# arrancar, asi que no hace falta tocar el CMD. Van dos guiones y **el sufijo de
+# cada uno importa**:
+#
+#   *.envsh  el entrypoint le hace `source`, asi que lo que cambie del entorno
+#            sobrevive hasta que corre `20-envsubst-on-templates.sh`.
+#   *.sh     lo ejecuta en un subproceso: sirve para escribir archivos, no para
+#            cambiar variables.
+#
+# Por eso el que normaliza `DESTINO_API` es `.envsh` y el que escribe
+# `resolver.conf` es `.sh`. Escribir el primero como `.sh` compila, arranca y no
+# hace nada. Los dos necesitan permiso de ejecucion: el entrypoint salta los que
+# no lo tienen, en silencio.
+COPY docker-entrypoint.d/05-destino-api.envsh /docker-entrypoint.d/05-destino-api.envsh
 COPY docker-entrypoint.d/10-resolver.sh /docker-entrypoint.d/10-resolver.sh
-RUN chmod +x /docker-entrypoint.d/10-resolver.sh
+RUN chmod +x /docker-entrypoint.d/05-destino-api.envsh /docker-entrypoint.d/10-resolver.sh
 
 EXPOSE 80
 
