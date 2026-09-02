@@ -1522,3 +1522,65 @@ migraciones con una restriccion que impedia crecer.
 CURRENT_DATE` no rechaza dato historico. El costo cierto fue el bloqueo de H1.11
 -que no podia crear particiones utilizables- y el riesgo diferido de que la carga
 del proximo anio fallara en produccion sin causa visible.
+
+---
+
+## I-21 · El arreglo de I-17 se revirtio dos dias despues, y el CI siguio en verde
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Alejandro Rodriguez, comparando `ci.yml` entre `dev` y
+`main` al resolver los conflictos de la fusion semanal.
+
+**Que paso.** El PR **#208** (H10.2, de Luna) arreglo I-17 el 30 de agosto:
+cambio la ruta de `pytest backend/tests` a `pytest backend`, con lo que el CI
+paso a ejecutar las 198 pruebas del repositorio en vez de 152.
+
+El PR **#212** (H11.1, mio) la devolvio a `backend/tests` el 1 de septiembre.
+Junto con la linea se borro el bloque de catorce lineas de comentario que
+explicaba por que tenia que ser `backend`.
+
+**Durante dos dias el CI volvio a correr 152 de 198 pruebas, y estuvo verde todo
+el tiempo.**
+
+**Causa raiz.** Al agregar el trabajo de imagenes a `ci.yml`, la seccion de
+pruebas se **reescribio** en vez de editarse, partiendo de una copia del archivo
+anterior al arreglo. No fue una decision: fue un pegado.
+
+Lo que convierte el descuido en incidencia es lo otro: **ningun control podia
+detectarlo.**
+
+  * Las 46 pruebas que dejaron de correr **pasan**. Quitarlas no pone nada en
+    rojo: pone menos cosas en verde.
+  * `verificar_documentacion.py` comprueba que las cifras de la prosa coincidan
+    con el repositorio, pero **nadie escribio en ninguna parte «el CI corre 198
+    pruebas»**. No habia cifra que contrastar.
+  * El PR #212 se reviso y se fusiono con los checks en verde. La revision miro
+    lo que el PR agregaba, no lo que quitaba.
+
+**Es la forma mas dificil de I-06.** Un control que se apaga del todo se puede
+detectar; **uno que se estrecha, no**: sigue corriendo, sigue pasando, y solo
+cambia cuanto mira.
+
+**Y se encontro por casualidad.** Aparecio comparando dos ramas por otro motivo
+-los conflictos de la fusion a `main`- y porque `main` conservaba la version
+buena. Si el arreglo hubiera llegado a `main` despues de la reversion, no habria
+habido dos versiones que comparar y nadie lo habria visto.
+
+**Accion tomada.** Se restaura `pytest backend` y el bloque de comentarios, con
+una linea nueva que dice que **esto ya se revirtio una vez** y que quien toque el
+trabajo edite la linea en vez de reescribir el bloque.
+
+**Aprendizaje.** **Un control que solo puede fallar hacia menos no se vigila
+solo.** Para que el proyecto se entere del proximo, la cifra tiene que existir en
+algun sitio donde una maquina la pueda contrastar: si `docs/10-manual-tecnico.md`
+dijera «el CI ejecuta 198 pruebas», `verificar_documentacion.py` habria puesto
+rojo el mismo dia.
+
+Es la misma leccion que I-20 desde el otro lado. Alli el control era mas angosto
+que el defecto; aqui **el control se angosto solo y nada lo midio**.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa** — y nadie puede afirmar lo contrario, porque durante dos
+dias esas 46 pruebas no se ejecutaron en ningun PR. Se fusionaron cinco PR en esa
+ventana: #216, #217, #218, #219 y #220.
