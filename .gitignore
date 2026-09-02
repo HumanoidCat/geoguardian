@@ -7,8 +7,25 @@ __pycache__/
 .Python
 
 # Datos: nunca se versionan
-datos/crudos/*
-datos/procesados/*
+#
+# SE IGNORA LA CARPETA ENTERA, NO LAS DOS SUBCARPETAS.
+#
+# Hasta el 2026-09-01 esto decia `datos/crudos/*` y `datos/procesados/*`, o sea
+# **las subcarpetas y no la carpeta**. Un archivo en la raiz de `datos/` salia
+# como no seguido, a un `git add .` de entrar al repositorio. Lo encontro Cesar
+# revisando el PR #211, con un `geoguardian-dataset-v1.sql` de 28 MB ahi.
+#
+# Es el mismo defecto que Luna encontro el 2026-08-30 en
+# `infra/docker/respaldos/`, y lo que quedo escrito al arreglar aquel aplica
+# igual: se ignora la carpeta, no las extensiones ni las subcarpetas, porque
+# quien escribe ahi elige el nombre y el lugar.
+#
+# Y tenia una consecuencia mas cara que el riesgo de subir 28 MB:
+# `docs/07-propiedad-archivos.md` justificaba la **escritura libre** en `datos/`
+# diciendo que «todo su contenido esta en .gitignore y nunca se versiona». Con el
+# patron viejo esa frase era falsa, asi que la regla de propiedad se apoyaba en
+# algo que no se cumplia.
+datos/*
 !datos/**/.gitkeep
 
 # Los PNG de los diagramas se derivan del SVG y solo hacen falta para armar el
@@ -37,11 +54,44 @@ Thumbs.db
 .ipynb_checkpoints/
 
 # Respaldos de base de datos
+#
+# SE IGNORA LA CARPETA, NO LAS EXTENSIONES, Y ESO ES LO QUE FALLABA
+#
+# `*.dump` y `*.backup` cubren lo que produce `pg_dump` en sus formatos propios.
+# **El formato lo elige quien hace el respaldo**, y `pg_dump` tambien escribe
+# `.sql`, `.csv` y `.tar`. Filtrar por extension siempre va a ir un formato
+# atras del proximo que alguien use.
+#
+# Lo encontro Luna el 2026-08-30 al regenerar el volcado de
+# `crudo.medicion_diaria` para cerrar H1.5 y H2.2: **12 MB de datos en
+# `infra/docker/respaldos/mediciones.csv` que `git status` mostraba como no
+# seguido**, o sea a un `git add .` de entrar al repositorio. Sacarlos despues
+# obliga a reescribir el historial.
+#
+# La carpeta existe por H1.10 y va a producir mas respaldos, asi que el riesgo
+# crece. Se ignora entera y se conserva el `.gitkeep` para que la carpeta siga
+# existiendo en un clon limpio.
 *.dump
 *.backup
+infra/docker/respaldos/*
+!infra/docker/respaldos/.gitkeep
 
 # Volcado de `gh issue list` para verificar_issues.py. Es una foto del tablero
 # en un instante: se regenera cuando se necesita y no se versiona. Si entrara al
 # repositorio seria un quinto lugar declarando el avance, que es justo lo que
 # verificar_issues.py existe para evitar.
 issues.json
+
+# Medicion de cobertura. La produce `pytest --cov`, que es como el CI invoca la
+# suite, asi que la genera cualquiera que reproduzca ese comando en su maquina.
+#
+# `.coverage` es un SQLite binario y `coverage.xml` un reporte derivado: los dos
+# son salida de una corrida, no fuente. Versionarlos mete un artefacto binario
+# que cambia en cada ejecucion y que nadie puede revisar en un diff.
+#
+# Mismo caso que `infra/docker/respaldos/`: aparecia como no seguido, o sea a un
+# `git add .` de entrar. Detectado el 2026-08-30 al medir el alcance de H10.2.
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/

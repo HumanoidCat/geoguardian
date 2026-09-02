@@ -20,7 +20,7 @@ Comité Municipal de Emergencias.
 | Universidad | Invenio · III Trimestre 2026 |
 | Repositorio | `github.com/HumanoidCat/geoguardian` |
 | Visor publicado | GitHub Pages, desde el 20 de agosto |
-| Avance | **31 de 88 historias · 160 de 431 puntos · 37,1 %** |
+| Avance | **35 de 89 historias · 174 de 434 puntos · 40,1 %** |
 
 ---
 
@@ -54,9 +54,11 @@ simulados**, que declara en pantalla. Es la degradación prevista en D-23,
 funcionando como se diseñó, pero significa que el sitio público no muestra datos
 reales.
 
-**`analitico.riesgo` no tiene dueño.** Ninguna historia lo crea, y H1.13 lo
-necesita. Su dependencia declarada, H1.8, ya está satisfecha, así que la historia
-figura desbloqueada y en realidad es imposible.
+**`analitico.riesgo` no está creada, pero ya tiene dueño.** Ninguna historia la
+producía y H1.13 la necesita; su dependencia declarada, H1.8, estaba satisfecha,
+así que figuraba desbloqueada siendo imposible. Lo detectó César al intentarla y
+**el 27 de agosto se abrió H1.15** para crearla, con H1.13 dependiendo ahora de
+ella. La dependencia es real y medida, no inventada para desatascar el tablero.
 
 **La validación externa con personas no ha ocurrido.** H9.2a —SUS, entrevista y
 caso retrospectivo, comprometidos en D-12— sigue abierta. Lo que sí se hizo es la
@@ -196,9 +198,9 @@ aporta sobre la verdad de terreno.
 | Documento | Qué contiene | Estado |
 |---|---|---|
 | `02-contratos.md` | Interfaces congeladas y sus huecos | Vigente, v1.3.0 |
-| `03-bitacora-decisiones.md` | **30 decisiones** de arquitectura | Vigente |
+| `03-bitacora-decisiones.md` | **31 decisiones** de arquitectura | Vigente |
 | `04-bitacora-incidencias.md` | **14 incidencias** con causa raíz | Vigente |
-| `05-matriz-trazabilidad.md` | Requisito, módulo, prueba, evidencia | **Generada**, 52 filas |
+| `05-matriz-trazabilidad.md` | Requisito, módulo, prueba, evidencia | **Generada**, 53 filas |
 | `06-roadmap.md` | Épicas y sprints | Vigente |
 | `07-propiedad-archivos.md` | Quién puede tocar qué (D-16) | Vigente |
 | `08-backlog.md` | 88 historias con dependencias | Vigente |
@@ -316,21 +318,20 @@ contra 23,8 % y 20,7 % antes.
 | Persona | Rol | Historias | Puntos |
 |---|---|---|---|
 | Alejandro Josué Rodríguez Zamora | Lead PM, arquitectura, modelado | 11 de 23 | 59 |
+| César Andrés Ubau Calvo | Backend, ETL, base de datos | 9 de 28 | 38 |
 | Luis Alejandro Luna García | Investigación y calidad | 8 de 17 | 42 |
 | Avril Madrigal Elizondo | Frontend y visualización | 7 de 21 | 35 |
-| César Andrés Ubau Calvo | Backend, ETL, base de datos | 5 de 27 | 24 |
-
-**El dato de César está desactualizado en el tablero.** Tiene cuatro historias
-entregadas y mergeadas —H6.0, H6.2, H1.7 y H1.4— que solo esperan la marca de
-cierre. Su número real es **9 de 27**.
 
 | Sprint | Historias | Puntos |
 |---|---|---|
 | S0 | 11 de 11 | 54 de 54 |
-| S1 | 7 de 15 | 40 de 72 |
+| S1 | 11 de 16 | 54 de 75 |
 | S2 | 10 de 23 | 52 de 120 |
 | S3 | 3 de 18 | 14 de 93 |
 | S4 | 0 de 21 | 0 de 92 |
+
+El Sprint 1 pasó de 7 a **11 historias cerradas** el 27 de agosto, con el cierre
+de H6.0, H6.2, H1.7 y H1.4.
 
 ---
 
@@ -338,12 +339,22 @@ cierre. Su número real es **9 de 27**.
 
 | # | Riesgo | Impacto | Estado |
 |---|---|---|---|
-| 1 | **Sin modelo entrenado** | Bloquea VI-E, VII, IX del IEEE, y H3.7, H3.8, H4.1, H4.4 | H3.3–H3.5, de César |
-| 2 | **Base de datos no publicada** | El sitio público muestra simulados | Sin historia asignada |
-| 3 | **`analitico.riesgo` sin dueño** | H1.13 es imposible pese a figurar desbloqueada | Decisión pendiente |
-| 4 | **Cadena de despliegue en serie** | 25 h de H11.1–H11.4 detrás de una marca de cierre | Esperando a César |
-| 5 | **Validación con usuarios no iniciada** | D-12 comprometió SUS y entrevista | H9.2a abierta |
-| 6 | **H10.4 necesita persona externa** | El manual no está verificado | Sin candidato |
+| 1 | **Sin modelo entrenado** | Bloquea VI-E, VII, IX del IEEE, y H3.7, H3.8, H4.1, H4.4 | **Abierto.** H3.3–H3.5, de César |
+| 2 | **Base de datos no publicada** | El sitio público muestra simulados | **Abierto, y decidido no resolver esta semana.** Ver abajo |
+| 3 | **Validación con usuarios no iniciada** | D-12 comprometió SUS y entrevista | **Abierto.** El caso retrospectivo sí se hizo, sección 4.3 |
+| 4 | **H10.4 necesita persona externa** | El manual no está verificado | **Abierto.** Sin candidato |
+| ~~5~~ | ~~`analitico.riesgo` sin dueño~~ | ~~H1.13 imposible pese a figurar desbloqueada~~ | **Cerrado el 27/8.** Se abrió **H1.15** para crearla |
+| ~~6~~ | ~~Cadena de despliegue en serie~~ | ~~25 h de H11.1–H11.4 detenidas~~ | **Cerrado el 27/8.** H6.0 quedó cerrada |
+
+**Sobre el riesgo 2, y es una decisión, no una omisión.** Se evaluó poner la base
+en un proveedor alojado esta semana y **se decidió no hacerlo**. El ETL necesita
+cinco cambios —TLS, tiempos de espera, reintentos ante caídas de red y dos más—
+que son pocas horas, pero la pregunta de fondo no es técnica: es con qué
+compromiso de disponibilidad se le muestra el sistema al Comité Municipal. Una
+base alojada que nadie mantiene entre semana es peor que una local, porque
+parece un servicio.
+
+Se prefiere una limitación declarada a una promesa a medias.
 
 ---
 

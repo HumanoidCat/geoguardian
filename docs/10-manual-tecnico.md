@@ -33,7 +33,7 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | **Semáforo de riesgo** por distrito y evento, ordenado por urgencia (H7.1) | Funciona |
 | **Reporte de calidad de datos**: completitud, atípicos y sesgo espacial (H1.5) | Método y pruebas, sin cifras reales |
 | Tres entornos de Kubernetes en k3d | Funciona |
-| Integración continua, 6 trabajos por cada cambio | Funciona |
+| Integración continua, 7 trabajos por cada cambio | Funciona |
 | Publicación del visor como sitio estático en GitHub Pages (H11.5) | Escrito y verificado, **sin URL viva todavía** |
 | Procesamiento de señales: filtrado, espectro, SPI, percentiles y anomalías | Funciona, con 108 pruebas |
 | **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos | Funciona |
@@ -493,7 +493,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 30 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 34 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

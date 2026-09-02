@@ -1097,3 +1097,347 @@ un encuadre que nadie pidio, justo en la semana del Primer Avance. 515 lineas
 retiradas y restituidas. El entregable de H5.4 fuera de pantalla durante ese
 tiempo. Trabajo de Avril hecho dos veces por un pedido mal formulado: la primera
 implementacion no tenia ningun defecto.
+
+---
+
+## I-15 · El zip de la entrega se armo con los PDF viejos y nada lo advirtio
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al pegar la salida completa de los cinco
+comandos de reconstruccion en vez de solo el ultimo.
+
+**Que paso.** Despues de cambiar la escala del SPI por **D-32**, se corrio la
+secuencia que reconstruye los entregables:
+
+    generar_figuras.py              OK, tres figuras nuevas
+    contrastar_catalogo.py          OK
+    construir_entregable.py --ieee  FALLO: falta XeLaTeX
+    construir_entregable.py         FALLO: falta pandoc, con traza
+    armar_entrega.py                **armo el zip igual**
+
+El paquete salio con nombre correcto, fecha de hoy y 1,9 MB. Y con **los dos
+documentos anteriores al cambio de escala**: los que dicen que la sequia da 0 de
+7, que el SPI-3 es la escala del proyecto y que la ventana no final es del 23 %
+al 57 %.
+
+**Causa raiz.** `armar_entrega.py` comprobaba que cada pieza **existiera**. No
+comprobaba que estuviera **al dia**. Y su propio encabezado declaraba, desde que
+se escribio, que existia para evitar «un zip incompleto que parece correcto»: la
+intencion estaba bien y la comprobacion cubria la mitad del problema.
+
+Hay un segundo factor, de forma: en PowerShell, pegar cinco comandos seguidos
+**no detiene la secuencia cuando uno falla**. La traza de pandoc quedo sepultada
+entre la salida del comando anterior y la del siguiente, que informaba exito.
+
+**Por que es peor que un zip incompleto.** Un paquete al que le falta un archivo
+se nota al abrirlo. Uno que trae el archivo equivocado, con el nombre correcto y
+fecha reciente, **no se nota**: hay que leer el contenido y saber que buscar.
+
+Es I-06 -un paso que se salta en silencio se ve igual que uno que se cumplio-
+llegando hasta el artefacto que se entrega, que es el ultimo lugar donde deberia
+llegar y el unico donde nadie lo revisa despues.
+
+**Que se cambio.** `armar_entrega.py` compara ahora la fecha de cada pieza contra
+la de su fuente Markdown **y contra la de todas las figuras**, y se niega a armar
+el zip si alguna quedo atras. Con la ruta del archivo que la dejo obsoleta, que
+es lo que convierte el aviso en instruccion.
+
+Se compara por fecha y no por suma porque el PDF no contiene al Markdown: no hay
+suma que cruzar. Es un criterio mas debil, y **se prefiere errar hacia la
+molestia**: un falso positivo cuesta reconstruir; un falso negativo cuesta
+entregar el documento equivocado.
+
+Queda una salida, `--aunque-esten-viejos`, y **el zip lo declara adentro**. Una
+bandera que evita un control sin dejar rastro en el artefacto es peor que no
+tener el control: da permiso y borra la evidencia de haberlo usado.
+
+**Lo que NO se hizo, y conviene decirlo.** No se encadenaron los comandos con
+`&&` ni se escribio un guion que los envuelva. Eso arregla el sintoma en una
+maquina y no en la de al lado; el control vive en la herramienta, que es donde
+sirve corra quien corra.
+
+**Impacto.** Ninguno hacia afuera: el zip no se entrego. El costo real es la
+confianza que el paquete tenia sin merecerla desde que la herramienta existe,
+porque **este defecto no era nuevo, solo no se habia disparado antes**: hasta hoy
+nunca habia fallado la construccion de los PDF con figuras recien regeneradas al
+lado.
+
+---
+
+## I-16 · El documento decia citar 36 referencias y citaba 12, con el control en verde
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al auditar cuales de las fichas nuevas de la
+revision bibliografica habian entrado de verdad al cuerpo del documento. El
+control no lo podia detectar: la cifra que comprobaba era cierta.
+
+**Que paso.** El bloque de Referencias del documento IEEE decia:
+
+> «El texto cita 36 referencias, de las cuales 28 estan verificadas...»
+
+El cuerpo del documento citaba **12**. Las otras 24 estaban en la bibliografia y
+sostenian el documento de investigacion, las fichas y las bitacoras, pero **este
+texto no las citaba**.
+
+**Causa raiz.** La afirmacion `referencias citadas` de `verificar_documentacion.py`
+nunca conto citas. Cuenta los identificadores distintos de
+`docs/investigacion/referencias.md`, o sea **el tamano de la bibliografia**. El
+nombre decia una cosa, la funcion hacia otra, y el documento redacto la frase
+creyendo el nombre.
+
+El control comparaba **36 contra 36** y aprobaba. La cifra era correcta; la
+oracion que la contenia, falsa.
+
+**Por que este es el caso incomodo.** I-04, I-08 y I-15 son controles que no
+miraban. Este miraba, y aprobo. Un numero verificado dentro de una afirmacion que
+nadie verifico es peor que un numero sin control: el control le presta autoridad
+a la frase entera cuando solo respalda una palabra de ella.
+
+Y es exactamente lo que este mismo documento denuncia en su seccion de
+conclusiones —«un dato con forma valida y contenido falso, que ninguna validacion
+detecta porque nadie escribio la validacion»—. Estaba escrito arriba del defecto.
+
+**Que se cambio.**
+
+1. El documento dice ahora **«La bibliografia reune 36 referencias»** y, aparte,
+   **«Este documento cita 12 de forma directa»**. Son dos hechos distintos y se
+   afirman por separado.
+2. Se agrego `referencias_citadas_en_el_cuerpo()`, que cuenta los `[N]` del
+   documento IEEE cortando en `## Referencias`, con su propio control. Son 21
+   controles, no 20.
+3. La afirmacion vieja conservo su funcion y su nombre en el codigo lleva ahora
+   la advertencia de que **cuenta bibliografia, no citas**.
+
+**Lo que no se hizo.** No se forzaron citas de las 24 restantes para que el
+numero subiera. Citar una referencia que el texto no usa es peor que no citarla:
+convierte la bibliografia en decoracion. Cinco de las 36 -`[11]`, `[12]`, `[20]`,
+`[21]` y `[35]`- no se citan en ningun documento, y eso queda declarado en vez de
+disimulado; `[35]` ademas sigue sin autores transcritos y por eso no es citable.
+
+**Impacto.** El documento no se habia entregado con esa frase a un evaluador
+externo. El costo es de credibilidad interna: **la cifra mas visible del bloque
+de Referencias era la unica del documento que afirmaba algo que sus propias
+herramientas no comprobaban**, y llevaba semanas ahi.
+
+---
+
+## I-17 · El CI corre 152 de las 198 pruebas que hay en el repositorio
+
+**Fecha.** 2026-08-30
+
+**Quien lo detecto.** Alejandro, al medir el alcance real de H10.2 antes de
+contestar las tres consultas de Luna sobre esa historia.
+
+**Que paso.** El trabajo de pruebas del CI invoca:
+
+    python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+
+Dos archivos de prueba **no viven en `backend/tests`**:
+
+    backend/api/test_repositorio_postgres.py    438 lineas
+    backend/etl/test_imputacion.py              255 lineas
+
+Son **46 pruebas, todas verdes**, que el CI nunca ha ejecutado.
+
+| | Pruebas | Cobertura |
+|---|---|---|
+| Lo que corre el CI | 152 | 26 % |
+| Lo que hay en el repositorio | **198** | **34 %** |
+
+Con ellas, `repositorio_postgres.py` queda en **96 %** e `imputacion.py` en
+**98 %**. Sin ellas, el reporte de cobertura del CI muestra esos dos modulos casi
+vacios y las pruebas que los cubren, inexistentes.
+
+**Causa raiz.** `pyproject.toml` declara `testpaths = ["backend"]`, que recogeria
+los dos archivos. Pero `testpaths` **solo aplica cuando se invoca `pytest` sin
+ruta**, y el CI pasa la ruta explicita. La ruta explicita gana y la configuracion
+del proyecto queda sin efecto, sin aviso.
+
+**Nadie rompio nada, y eso es lo que lo hace dificil de ver.** La linea del CI
+existe desde el 2026-08-03, cuando `backend/tests` era el unico lugar donde
+habia pruebas: era **cierta cuando se escribio**. Los dos archivos llegaron el
+2026-08-27, en sus carpetas de modulo, que es donde `pytest` los recoge por
+convencion y donde tiene sentido ponerlos. Ninguno de los dos cambios estaba mal.
+
+Es una regla que fue correcta y dejo de serlo sin que ninguna de las dos partes
+hiciera nada incorrecto. No hay un commit al que senalar.
+
+**Por que el modo de fallo es el caro.** Quien corre `pytest` en su maquina
+—sin ruta, tomando `testpaths`— ve las 198 pasar y concluye que estan cubiertas.
+El CI reporta verde sobre 152. **Las dos observaciones son ciertas y solo una es
+la que protege el repositorio.** Nadie tiene motivo para sospechar de la otra,
+porque local y CI no se contradicen: dicen «verde» los dos.
+
+Es la familia de I-06 —un control apagado que se ve igual que uno encendido— pero
+con un agravante: aca el control **si corre**, y corre sobre menos de lo que
+declara. `--cov=backend` mide el paquete entero ejercitando un tercio de el, asi
+que el porcentaje no es una cobertura baja, **es una cobertura mal medida**.
+
+Y es la misma forma que I-16, dos dias antes: una cifra correcta dentro de una
+afirmacion que nadie comprobo.
+
+**Que se cambio, y donde.** El arreglo es `backend/tests` → `backend` en
+`.github/workflows/ci.yml`, y **no va en el cambio que registra esta
+incidencia**: va en el de **H10.2**. La historia existe para encontrar
+exactamente esto y el hallazgo se revisa mejor junto al resto de su trabajo.
+
+Se redacta asi a proposito, sin «todavia» ni «pendiente», porque los dos cambios
+son independientes y pueden entrar en cualquier orden. Una incidencia que
+describe el estado del repositorio en el instante en que se escribio deja de ser
+cierta apenas se fusiona algo; la que dice **donde vive el arreglo** sigue siendo
+cierta despues.
+
+`.github/workflows/ci.yml` es archivo de Alejandro; el permiso para esa linea
+quedo dado por escrito en `gestion/respuesta-luna-h10.2.md`. No hace falta tocar
+ningun archivo de Cesar: **las 46 pruebas estan bien escritas y no se toca
+ninguna.**
+
+La guarda que comprueba que `backend/tests` no este vacio se queda como esta:
+comprueba otra cosa y sigue siendo cierta.
+
+**Lo que NO se hizo.** No se quitaron los dos archivos de sus carpetas para
+moverlos a `backend/tests`. Estan donde `pytest` los busca por convencion y donde
+quedan al lado del codigo que prueban; el que tiene que ceder es el CI.
+
+Tampoco se puso `--cov-fail-under`. Un umbral medido sobre la mitad de la suite
+fija un piso falso, y con la otra mitad recien conectada todavia no se sabe cual
+es el piso real.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
+dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
+reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
+cifra con la que se decidia donde faltaban pruebas.
+
+---
+
+## I-18 · Un CHECK con CURRENT_DATE dejaba el respaldo en verde y la restauracion imposible
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, escribiendo el criterio 9 del
+verificador de H1.13.
+
+**Que paso.** La migracion 006 declaraba, sobre `analitico.riesgo`:
+
+    CHECK (fecha >= DATE '1981-01-01'
+           AND fecha <= CURRENT_DATE + INTERVAL '31 days')
+
+La restriccion se creo sin protestar y el verificador de H1.15 daba 15 de 15.
+Pero `CURRENT_DATE` **no es inmutable**, y PostgreSQL reevalua el CHECK **en
+cada insercion**, no solo cuando la fila entro por primera vez.
+
+Comprobado contra PostgreSQL 16.2 el mismo dia:
+
+    INSERT con fecha 2026-10-02 (hoy + 31)  -> ACEPTADA
+    INSERT con fecha 2026-10-03 (hoy + 32)  -> RECHAZADA
+
+Esa segunda fila era valida ayer.
+
+**Causa raiz.** `pg_dump` emite fechas literales y **restaurar es reinsertar**.
+Una fila estimada para dentro de 31 dias es valida el dia del volcado y deja de
+serlo al dia siguiente. El respaldo se toma en verde y se descubre inservible
+cuando hace falta, que es el unico momento en que a nadie le sirve descubrirlo.
+
+El error de fondo no es la fecha: es haber puesto **una regla de operacion**
+-«el horizonte del sistema son siete dias»- en el lugar donde viven las **reglas
+de integridad**. Una regla de integridad tiene que ser cierta para siempre; esta
+solo era cierta hoy.
+
+**Donde cae.** Sobre **H1.10**, que es «estrategia de respaldo probada». Esa
+prueba pasaria mientras se corra el mismo dia del volcado y empezaria a fallar
+sola despues, sin que nadie tocara nada. Es la forma mas incomoda de **I-06**: un
+control que hoy esta verde y **cambia de veredicto con el calendario**.
+
+**Accion tomada.** La migracion `007_riesgo_correcciones.sql` quita el limite
+superior y conserva el inferior:
+
+    CHECK (fecha >= DATE '1981-01-01')
+
+**No se fijo una fecha constante en su lugar.** Eso solo cambia el problema de
+sitio: alguien tendria que acordarse de moverla y, el dia que se pase, la base
+empieza a rechazar estimaciones legitimas.
+
+El horizonte de siete dias pasa a hacerse cumplir **donde se escribe**, y desde
+**H1.9** eso es literal: `analitico.registrar_riesgo` lo comprueba con un `RAISE`
+propio de codigo `P0001` y registra el rechazo en `control.fallo`. La regla no
+desaparecio: se movio al lugar donde puede cambiar sin romper un volcado.
+
+**Aprendizaje.** **En un CHECK solo entran expresiones inmutables.** `now()`,
+`CURRENT_DATE` y `CURRENT_TIMESTAMP` son correctos como `DEFAULT` -se evaluan una
+vez y el valor queda congelado- y son un defecto como `CHECK` -se reevaluan
+siempre-. La misma funcion, dos lugares, y en uno de ellos es una bomba de
+tiempo.
+
+PostgreSQL **no impide** crear el CHECK, asi que el compilador no ayuda: el
+control tiene que ser explicito. Quedo escrito como criterio en **dos**
+verificadores, el 9 de `verificar_h1_13.py` y el 14 de `verificar_h1_9.py`, que
+leen `pg_get_constraintdef` y exigen que no aparezca ninguna de esas funciones.
+Toda tabla nueva del esquema hereda la comprobacion.
+
+**Impacto.** Ninguna fila perdida: la tabla estaba recien creada y vacia. El
+costo real habria sido descubrirlo en H1.10 o, peor, en una restauracion de
+verdad. Se detecto por escribir un verificador que muta filas en vez de leer el
+DDL, que es la misma leccion de I-06 y de I-17.
+
+---
+
+## I-19 · Los esquemas no los crean las migraciones, y sin Docker ninguna aplica
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Cesar Ubau lo reporto durante la revision de H1.15.
+Reproducido y confirmado por Alejandro Rodriguez al verificar H1.9.
+
+**Que paso.** Aplicar las nueve migraciones de `basedatos/ddl/` sobre una base
+vacia falla en **las nueve**:
+
+    ERROR en 001_control_migracion.sql -> schema "control" does not exist
+    ERROR en 002_geo_territorio.sql    -> schema "geo" does not exist
+    ERROR en 003_seguridad_roles.sql   -> database "geoguardian" does not exist
+    ...
+    ERROR en 009_funciones_y_bitacora_fallos.sql -> schema "control" does not exist
+
+**Causa raiz.** Los cuatro esquemas -`geo`, `crudo`, `analitico`, `control`- los
+crea `infra/docker/init-db/01-extensiones.sql`, junto con las extensiones. Docker
+ejecuta esa carpeta **una sola vez, cuando el volumen esta vacio**.
+
+O sea que **el estado inicial de la base vive en dos sitios**: una parte en
+`init-db`, que corre una vez y no esta versionada como migracion, y otra en
+`ddl/`, que si. Las migraciones no son autosuficientes y **nada lo dice**.
+
+En el flujo de todos los dias no se nota, porque `docker compose up` hace las dos
+cosas en el orden correcto. Se nota al levantar PostgreSQL fuera de Docker, al
+restaurar sobre una base limpia, o al querer verificar una migracion de forma
+aislada -que es exactamente lo que hacia falta para H1.9-.
+
+**Donde cae.** Sobre **H1.10**, «estrategia de respaldo probada». Una
+restauracion que empiece por una base vacia y aplique las migraciones **no
+funciona hoy**, y esa historia existe para demostrar que si.
+
+Es la misma familia que **I-18**, y las dos apuntan al mismo lugar: el respaldo
+esta en verde y nadie ha intentado restaurarlo todavia.
+
+**Accion tomada.** Se registra y **no se arregla en H1.9**. La correccion
+-mover la creacion de esquemas a una migracion `000`, o hacer que
+`aplicar_migraciones.py` la garantice- cambia el arranque de la base para todo el
+equipo y merece revisarse junto con la prueba de restauracion que la justifica.
+**Va con H1.10.**
+
+Para verificar H1.9 se replico `init-db` en el entorno de pruebas, y eso quedo
+anotado en el documento de evidencia: es un andamio de verificacion, no una
+solucion.
+
+**Aprendizaje.** **Si el estado inicial vive en dos sitios, uno de los dos se va
+a olvidar.** El principio que el proyecto viene repitiendo -una fuente, vistas
+derivadas, y una maquina que comprueba que coinciden- aplica igual al arranque de
+la base que a la matriz de trazabilidad o al backlog.
+
+Y la forma de detectarlo fue la misma de siempre: **intentar hacerlo de verdad**,
+sobre una base vacia, en vez de asumir que el camino feliz es el unico camino.
+
+**Impacto.** Ninguna hora perdida en H1.9 mas alla de reproducirlo. El costo real
+esta diferido a H1.10, que ahora arranca sabiendo lo que tiene que arreglar en
+vez de descubrirlo.

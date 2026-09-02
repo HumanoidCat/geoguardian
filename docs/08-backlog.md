@@ -1,6 +1,6 @@
 # Backlog completo
 
-**88 historias · 431 puntos · 631.0 horas** (incluye 20 % de revision)
+**89 historias · 434 puntos · 633.9 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -51,11 +51,11 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 22.8 | 59.5** | 40.4** | 52.8** | 211.4 | 126 |
-| Cesar | 18.3 | 27.8 | 31.5 | 47.0** | 34.0 | 158.6 | 128 |
+| Alejandro | 35.9 | 36.4** | 113.1** | 40.4** | 52.8** | 278.6 | 184 |
+| Cesar | 18.3 | 24.9 | 0.0 | 47.0** | 34.0 | 124.2 | 96 |
 | Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
-| Avril | 2.9 | 19.3 | 30.8 | 25.0 | 36.6** | 114.6 | 94 |
-| **Equipo** | 83.0 | 104.2 | 155.7 | 132.7 | 155.4 | **631.0** | **431** |
+| Avril | 2.9 | 11.5 | 11.6 | 25.0 | 36.6** | 87.6 | 74 |
+| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 155.4 | **633.9** | **434** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -78,7 +78,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.1** Plan de pruebas con casos por modulo | luna | 5 | 4.8 | QA | contratos | — |
 | **H10.5a** Recopilar 15 referencias IEEE con ficha de contenido | luna | 8 | 21.1 | IEEE | - | H10.5b |
 
-## Sprint 1 · semanas 4-5 · 15 historias · 104.2 h
+## Sprint 1 · semanas 4-5 · 16 historias · 107.1 h
 
 **Foco.** Dataset consolidado, API y reporte de calidad  
 **Hito.** Entrega institucional (semana 4)
@@ -88,10 +88,11 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.4** Manual tecnico verificado por alguien ajeno al desarrollo | alejandro | 5 | 4.8 | MVP | H8.1 | — |
 | **H11.1** CI: construir imagen Docker y publicar artefactos en ghcr.io | alejandro | 5 | 4.8 | CICD | H6.0, H6.1 | H11.2 |
 | **H13.1** Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva | alejandro | 5 | 13.2 | Scrum | - | — |
-| **H1.6** Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% | avril | 5 | 7.8 | CG-3 | - | H5.5, H8.4 |
+| **H1.6** Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% | alejandro | 5 | 7.8 | CG-3 | - | H5.5, H8.4 |
 | **H5.2** Cuatro o mas capas conmutables con control de opacidad | avril | 5 | 4.8 | CG-4 | H5.1 | — |
 | **H5.3** Coropletas de riesgo por evento con rampa de color y leyenda | avril | 7 | 6.7 | CG-1 | H5.1 | H5.4, H5.7, H7.1 |
-| **H1.13** Trigger de auditoria sobre predicciones, con prueba | cesar | 3 | 2.9 | BD-2 | H1.8 | — |
+| **H1.13** Trigger de auditoria sobre predicciones, con prueba | alejandro | 3 | 2.9 | BD-2 | H1.8, H1.15 | — |
+| **H1.15** Crear analitico.riesgo con sus restricciones | alejandro | 3 | 2.9 | BD-2 | H1.3, H1.8 | H1.13 |
 | **H1.4** Declarar los criterios de imputacion y probarlos contra huecos inyectados | cesar | 3 | 4.7 | BD-1 | H1.1 | H1.7 |
 | **H1.7** Versionar el dataset consolidado para reproducibilidad | cesar | 3 | 2.9 | OE1 | H1.4 | — |
 | **H1.8** Crear esquemas, roles y usuarios con minimo privilegio | cesar | 5 | 4.8 | BD-2 | H1.3 | H1.13, H1.9, H10.7 |
@@ -115,18 +116,18 @@ Las celdas con `**` estan por encima del compromiso.
 | **H3.0** Implementar el etiquetado de los tres eventos y su distribucion de clases | alejandro | 8 | 12.5 | OE2 | H2.3, H2.7, H1.2 | H3.1, H3.2 |
 | **H3.1** Construir la linea base climatologica por distrito, mes y tipo de evento | alejandro | 6 | 9.4 | OE2 | H3.0 | — |
 | **H3.2** Definir y documentar la validacion por ventana expansiva | alejandro | 8 | 12.5 | OE2 | H3.0 | H3.3, H3.4, H3.5 |
-| **H10.3** Manual de usuario con capturas paso a paso | avril | 5 | 4.8 | MVP | H7.1 | H10.9 |
-| **H10.7** Diagramas de casos de uso y entidad-relacion | avril | 5 | 7.8 | Arq | H1.8 | — |
-| **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | avril | 3 | 4.7 | CG-1 | H5.1 | — |
+| **H10.3** Manual de usuario con capturas paso a paso | alejandro | 5 | 4.8 | MVP | H7.1 | H10.9 |
+| **H10.7** Diagramas de casos de uso y entidad-relacion | alejandro | 5 | 7.8 | Arq | H1.8 | — |
+| **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | alejandro | 3 | 4.7 | CG-1 | H5.1 | — |
 | **H5.7** Selector de fecha que recarga el estado del mapa | avril | 3 | 2.9 | CG-4 | H5.3 | — |
 | **H5.8** Encuadre del mapa en el canton y marca de seleccion accesible | avril | 3 | 2.9 | CG-1 | H5.1 | — |
 | **H7.1** Semaforo de riesgo por distrito y evento con umbrales documentados | avril | 6 | 5.8 | CG-2 | H5.3 | H10.3 |
-| **H7.2** Graficas interactivas de series con seleccion de rango | avril | 5 | 4.8 | CG-2 | H6.1 | — |
-| **H1.11** Particionar mediciones por anio y medir efecto en consultas | cesar | 5 | 4.8 | BD-1 | H1.3 | H1.12 |
-| **H1.12** Indices espaciales y compuestos con planes antes y despues | cesar | 5 | 4.8 | BD-1 | H1.11 | — |
-| **H1.9** Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos | cesar | 8 | 7.7 | BD-3 | H1.8 | H1.10, H12.1 |
-| **H2.5** Generar lags, acumulados y medias moviles reproducibles | cesar | 5 | 4.8 | OE2 | H2.3 | H2.6 |
-| **H3.3** Entrenar y evaluar Regresion Logistica | cesar | 6 | 9.4 | OE2 | H3.2 | — |
+| **H7.2** Graficas interactivas de series con seleccion de rango | alejandro | 5 | 4.8 | CG-2 | H6.1 | — |
+| **H1.11** Particionar mediciones por anio y medir efecto en consultas | alejandro | 5 | 4.8 | BD-1 | H1.3 | H1.12 |
+| **H1.12** Indices espaciales y compuestos con planes antes y despues | alejandro | 5 | 4.8 | BD-1 | H1.11 | — |
+| **H1.9** Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos | alejandro | 8 | 7.7 | BD-3 | H1.8 | H1.10, H12.1 |
+| **H2.5** Generar lags, acumulados y medias moviles reproducibles | alejandro | 5 | 4.8 | OE2 | H2.3 | H2.6 |
+| **H3.3** Entrenar y evaluar Regresion Logistica | alejandro | 6 | 9.4 | OE2 | H3.2 | — |
 | **H1.5** Reporte formal de calidad de datos: faltantes, atipicos, sesgos | luna | 8 | 12.5 | OE1 | H1.1 | — |
 | **H2.1** Filtrar ruido de las series con justificacion del filtro | luna | 3 | 2.9 | Senales | H1.4 | H2.2, H2.3, H2.4, H2.7 |
 | **H2.3** SPI de 1 y 3 meses por convolucion de ventana movil | luna | 5 | 7.8 | Senales | H2.1 | H2.5, H3.0 |

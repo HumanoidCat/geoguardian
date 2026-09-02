@@ -97,7 +97,7 @@ Tilaran entre 1968 y 2017**. El unico incendio del catalogo es el de abril de
 `EventoHistorico.severidad` admite `None`, y aqui se usa a proposito.
 
 Los umbrales de severidad del proyecto estan definidos en `contratos/enums.py`
-sobre magnitudes fisicas: SPI-3 para sequia, percentiles P95/P99 de
+sobre magnitudes fisicas: SPI-6 para sequia (D-32), percentiles P95/P99 de
 precipitacion acumulada para lluvia intensa, conteo de focos FIRMS para
 incendio. **Ninguna ficha de DesInventar reporta esas magnitudes.** Reportan
 danos: viviendas, metros de via, perdidas en colones.

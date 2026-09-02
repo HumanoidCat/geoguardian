@@ -53,30 +53,34 @@ Buscar la etiqueta **del dia del evento** seria el error facil, y daria una
 cobertura mucho mas baja por una razon que no tiene nada que ver con la calidad
 del etiquetado.
 
-**Y LA SEQUIA NECESITA OTRA VENTANA. Esto se descubrio midiendo.**
+**LA SEQUIA NECESITA OTRA VENTANA, Y ESA HISTORIA TERMINO EN UN CAMBIO DE ESCALA**
 
-Con la ventana de siete dias, la sequia dio **0 de 7**. Parecia un fracaso
-completo del etiquetado, y no lo era: los siete registros del catalogo llevan la
-misma fecha, **2014-09-30**, y el etiquetado marco sequia en esos distritos
-**desde enero hasta agosto de 2014**, ocho meses seguidos. La marca mas cercana
-esta a **37 dias antes** de la fecha del catalogo, en los ocho distritos.
-
-La explicacion es que **son dos relojes distintos**:
+Con SPI-3 y ventana de siete dias, la sequia daba **0 de 7**. Se leyo entonces
+como un desajuste de relojes y no como un fallo del indice:
 
     el catalogo   registra la fecha de la DECLARATORIA administrativa, que se
                   emite despues de evaluar los danos
-    el etiquetado marca el mes en que el SPI-3 cae bajo el umbral
+    el etiquetado marca el mes en que el SPI cae bajo el umbral
 
 Una declaratoria de emergencia por sequia llega **al final** del episodio, no
-durante. Y el SPI-3 integra tres meses por construccion, asi que ni siquiera es
-un indicador diario.
+durante, asi que se agrego una ventana ampliada del tamano del periodo de
+integracion del indice, y con ella el SPI-3 recuperaba los siete.
 
-Contrastar una declaratoria contra una ventana de siete dias **compara dos cosas
-que no son comparables**. Por eso la sequia se contrasta ademas con una ventana
-de 90 dias, que es el propio periodo de integracion del indice.
+**Esa lectura era incompleta, y `comparar_escalas_spi.py` lo mostro.** Medidas
+las tres escalas contra el mismo catalogo, **SPI-6 y SPI-12 detectan los siete
+con la ventana estricta de siete dias**, sin ampliar nada. El problema no era
+que la pregunta fuera incontestable a siete dias: era que **el SPI-3 sale de
+sequia antes de que el dano se declare**. La marca mas cercana quedaba a -37
+dias, identica en los ocho distritos, que es la firma de un desajuste
+estructural y no de una coincidencia.
+
+**D-32 cambio la escala a SPI-6** por eso, y `VENTANA_AMPLIA` sigue existiendo
+porque la ampliada mide otra cosa que igual interesa -cuanto margen tiene el
+aviso-, pero **ya no es la que rescata el resultado**.
 
 **Se reportan las dos.** La de siete dias porque es la unica comparable entre
-eventos; la ampliada porque es la que responde la pregunta para la sequia.
+eventos, y ahora ademas porque es la que la sequia aprueba; la ampliada como
+diagnostico.
 
 Uso:
     python -m backend.modelado.contrastar_catalogo
@@ -96,8 +100,13 @@ RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
-from backend.modelado.etiquetado import HORIZONTE_DIAS  # noqa: E402
+from backend.modelado.etiquetado import HORIZONTE_DIAS, VENTANA_SPI_MESES  # noqa: E402
 from backend.modelado.evaluar_linea_base import COLUMNA, leer  # noqa: E402
+from backend.modelado.intervalos import (  # noqa: E402
+    Intervalo,
+    realce_con_intervalo,
+    wilson,
+)
 from backend.modelado.linea_base import DISTRITOS_CON_INCENDIO  # noqa: E402
 from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 
@@ -109,11 +118,15 @@ MARCA = (NivelRiesgo.MEDIO, NivelRiesgo.ALTO)
 
 #: Dias hacia atras desde la fecha del catalogo. Por evento, y con razon.
 #:
-#: El SPI-3 integra **tres meses**: no es un indicador diario y una declaratoria
-#: administrativa se emite al terminar el episodio, no durante. Los 90 dias son
-#: el periodo de integracion del propio indice, no un numero elegido para que el
-#: resultado quedara mejor. Ver el encabezado.
-VENTANA_AMPLIA = {TipoEvento.SEQUIA: 90}
+#: Se deriva de la escala del SPI en vez de escribirse a mano. Cuando D-32 la
+#: cambio de 3 a 6, un 90 escrito literal habria quedado apuntando a una escala
+#: que ya no existe, **sin que nada fallara**: la herramienta habria seguido
+#: dando un numero, y el numero habria dejado de ser el periodo de integracion
+#: del indice para pasar a ser un valor arbitrario que alguien escribio una vez.
+#:
+#: Es el mismo criterio que `verificar_h30.py` aplica a los umbrales: leerlos de
+#: donde se declaran, no repetirlos.
+VENTANA_AMPLIA = {TipoEvento.SEQUIA: VENTANA_SPI_MESES * 30}
 
 
 @dataclass
@@ -136,6 +149,11 @@ class Resultado:
     fallos: list[tuple[Registro, int | None]]
     tasa_base: float
 
+    #: Denominador de la tasa base, para poder darle intervalo. Sin el, la tasa
+    #: base es un float sin `n` y no se puede saber cuanta confianza merece.
+    dias_totales: int = 0
+    dias_marcados: int = 0
+
     @property
     def cobertura(self) -> float:
         return self.detectados / self.contrastables if self.contrastables else 0.0
@@ -149,14 +167,42 @@ class Resultado:
         """
         return self.cobertura / self.tasa_base if self.tasa_base else 0.0
 
+    # ----------------------------------------------------------------------- #
+    # Las mismas cifras, con su incertidumbre. Agregado por D-32.
+    #
+    # **Por que hacia falta.** El documento reportaba «64,7 % de cobertura» y
+    # «13,7 % de tasa base» como dos puntos, y esos dos numeros salen de
+    # muestras de tamano radicalmente distinto: 34 eventos contra 100 000 filas.
+    # Sin intervalo, se leen como si tuvieran la misma solidez y no la tienen.
+    # ----------------------------------------------------------------------- #
+    @property
+    def cobertura_ic(self) -> Intervalo | None:
+        return wilson(self.detectados, self.contrastables) if self.contrastables else None
+
+    @property
+    def tasa_base_ic(self) -> Intervalo | None:
+        return wilson(self.dias_marcados, self.dias_totales) if self.dias_totales else None
+
+    @property
+    def realce_rango(self) -> tuple[float, float, float] | None:
+        """Realce con su rango. **Si el 1,0 cae dentro, el etiquetado no distingue.**"""
+        cobertura, base = self.cobertura_ic, self.tasa_base_ic
+        if cobertura is None or base is None or base.punto <= 0:
+            return None
+        return realce_con_intervalo(cobertura, base)
+
 
 def _distancia_mas_cercana(marcadas: list[date], objetivo: date) -> int | None:
     """Dias con signo hasta la marca mas cercana. Negativo si es anterior.
 
-    Es lo que convierte un fallo en un diagnostico. La sequia de 2014 dio 0 de 7
-    con la ventana de siete dias, y lo que explica ese cero es que la marca mas
-    cercana estaba a **-37 dias** en los ocho distritos: no faltaba la marca,
-    faltaba mirar donde estaba.
+    Es lo que convierte un fallo en un diagnostico, y en este proyecto ya
+    decidio un cambio de escala.
+
+    Con SPI-3, la sequia de 2014 daba 0 de 7 a siete dias. El numero solo dice
+    que fallo; **la distancia dice por que**: -37 dias, y el mismo -37 en los
+    ocho distritos. Una coincidencia se dispersa entre distritos. Un valor
+    identico en los ocho es la firma de algo estructural, y lo era: el indice
+    salia de sequia antes de que la declaratoria se emitiera. De ahi D-32.
     """
     if not marcadas:
         return None
@@ -253,6 +299,8 @@ def contrastar(
         fuera_de_cobertura=fuera,
         fallos=fallos,
         tasa_base=tasa_base,
+        dias_totales=total_dias,
+        dias_marcados=total_marcados,
     )
 
 
@@ -278,22 +326,38 @@ def main() -> int:
     def tabla(titulo: str, resultados: list[Resultado]) -> None:
         print(titulo)
         print(
-            f"  {'evento':16}{'ventana':>8}{'catalogo':>9}{'contrast.':>10}{'detecta':>9}"
-            f"{'cobertura':>11}{'tasa base':>11}{'realce':>9}"
+            f"  {'evento':16}{'vent.':>6}{'cat.':>6}{'contr.':>7}{'det.':>6}   "
+            f"{'cobertura (IC 95 %)':<26}{'tasa base':<12}{'realce (rango)':<22}"
         )
         for r in resultados:
             if not r.contrastables:
                 print(
-                    f"  {r.evento:16}{r.ventana:>7}d{r.en_catalogo:>9}{0:>10}{'—':>9}"
-                    f"{'—':>11}{r.tasa_base:>10.1%}{'—':>9}"
+                    f"  {r.evento:16}{r.ventana:>5}d{r.en_catalogo:>6}{0:>7}{'—':>6}   "
+                    f"{'sin eventos contrastables':<26}{r.tasa_base:<11.1%} {'—':<22}"
                 )
                 continue
+            rango = r.realce_rango
+            # El rango del realce **se declara ausente en vez de rellenarse**: si
+            # no hay tasa base no hay realce, y un guion es informacion, un cero
+            # seria una mentira con formato de dato.
+            texto_realce = f"{rango[0]:.2f}x [{rango[1]:.2f}, {rango[2]:.2f}]" if rango else "—"
             print(
-                f"  {r.evento:16}{r.ventana:>7}d{r.en_catalogo:>9}{r.contrastables:>10}"
-                f"{r.detectados:>9}{r.cobertura:>10.1%}{r.tasa_base:>11.1%}"
-                f"{r.realce:>8.2f}x"
+                f"  {r.evento:16}{r.ventana:>5}d{r.en_catalogo:>6}{r.contrastables:>7}"
+                f"{r.detectados:>6}   {str(r.cobertura_ic):<26}{r.tasa_base:<11.1%} "
+                f"{texto_realce:<22}"
             )
         print()
+        # La lectura del rango, junto a la tabla y no en una nota al pie, porque
+        # es la unica forma de leerla bien.
+        for r in resultados:
+            rango = r.realce_rango
+            if rango and rango[1] <= 1.0:
+                print(
+                    f"  ATENCION · {r.evento}: el 1,0 cae dentro del rango de su realce.\n"
+                    "  Ante un evento real marca con una frecuencia compatible con la de\n"
+                    "  un dia cualquiera: con esta muestra, NO se puede afirmar que\n"
+                    "  distingue.\n"
+                )
 
     estrictos = [contrastar(e, registros, filas, HORIZONTE_DIAS) for e in TipoEvento]
     tabla(
@@ -308,8 +372,8 @@ def main() -> int:
     ]
     if ampliados:
         tabla(
-            "VENTANA AMPLIADA. El SPI-3 integra tres meses y una declaratoria se\n"
-            "emite al terminar el episodio, no durante:",
+            f"VENTANA AMPLIADA. El SPI-{VENTANA_SPI_MESES} integra {VENTANA_SPI_MESES} meses y una\n"
+            "declaratoria se emite al terminar el episodio, no durante:",
             ampliados,
         )
 

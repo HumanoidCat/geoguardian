@@ -325,6 +325,18 @@ jobs:
       # etiquetas sinteticas deterministas y lo declara en su primera linea.
       - name: Los criterios de H3.6 se cumplen
         run: python -m backend.modelado.verificar_h36
+      # La comparacion de escalas del SPI. Corre con `--sintetico` porque la
+      # precipitacion vive en la base y aqui no hay base; la bandera lo declara
+      # en su primera linea de salida y el propio modulo advierte que con datos
+      # sinteticos **no concluye nada** sobre las escalas.
+      #
+      # Entonces, ¿que protege este paso? Que el camino de calculo corra entero:
+      # firmas, importaciones, el ajuste gamma por mes en las tres escalas, y el
+      # contraste contra el catalogo, que **si** es el catalogo real y esta
+      # versionado. La primera version usaba codigos de distrito inventados y
+      # daba «cero eventos contrastables»: verde, sin medir nada. Es I-06 otra vez.
+      - name: La comparacion de escalas del SPI corre entera
+        run: python -m backend.modelado.comparar_escalas_spi --sintetico
       # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
       # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
       # historias y quedaron colgando. Un verificador que solo se ejecuta cuando
@@ -429,3 +441,134 @@ jobs:
       - name: Desplegar
         id: despliegue
         uses: actions/deploy-pages@v4
+
+  # =========================================================================== #
+  # H11.1 · Construir las imagenes y publicarlas en ghcr.io
+  # =========================================================================== #
+  #
+  # QUE PUBLICA Y CUANDO
+  #
+  # En **todo** PR y en toda rama las imagenes se **construyen**, porque un
+  # Dockerfile que no compila tiene que salir en rojo antes de fusionarse. Pero
+  # solo se **publican** desde `main` y `dev`: un registro con una imagen por
+  # rama de trabajo es un registro que nadie puede leer.
+  #
+  # LAS ETIQUETAS INCLUYEN EL SHA, Y NO ES ADORNO
+  #
+  # Con solo `latest` no hay forma de responder «que version esta desplegada»,
+  # que es exactamente la pregunta que aparece cuando algo se rompe en
+  # produccion. Cada imagen se etiqueta con el SHA del commit **y** con el
+  # nombre de la rama; `latest` se agrega solo desde `main`.
+  #
+  # H11.2, H11.3 y H11.4 despliegan **por SHA**, no por `latest`. Desplegar una
+  # etiqueta movil significa que dos despliegues del mismo nombre pueden ser
+  # cosas distintas, y entonces el rollback deja de estar definido.
+  #
+  # NO HACE FALTA NINGUN SECRETO
+  #
+  # `GITHUB_TOKEN` alcanza para publicar en ghcr.io del mismo repositorio, con
+  # el permiso `packages: write` declarado abajo. Un secreto manual seria una
+  # cosa mas que rota y que alguien tiene que renovar.
+  imagenes:
+    name: Imagenes Docker (H11.1)
+    needs: [contratos, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      # `fail-fast: false` a proposito: si la API no compila, igual interesa
+      # saber si el visor si. Con el corte por omision, el segundo fallo queda
+      # sin diagnosticar.
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: api
+            contexto: .
+            dockerfile: infra/docker/api.Dockerfile
+          - nombre: visor
+            contexto: ./frontend
+            dockerfile: frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      # El nombre del paquete va en minusculas: ghcr.io las exige y el usuario
+      # de este repositorio tiene mayusculas. Sin esto el push falla con un
+      # error que no menciona las mayusculas en ningun lado.
+      - name: Nombre del paquete en minusculas
+        id: destino
+        run: echo "ruta=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.nombre }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ steps.destino.outputs.ruta }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # El login va condicionado igual que el push: en un PR desde una bifurcacion
+      # el token no tiene permiso de escritura, y un login que falla ahi seria un
+      # rojo que no dice nada sobre el codigo.
+      - name: Entrar a ghcr.io
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # PRIMERO SE CONSTRUYE Y SE CARGA EN EL DEMONIO LOCAL. NO SE PUBLICA.
+      #
+      # `load: true` es obligatorio y su ausencia fue el defecto de la primera
+      # corrida: sin el, `build-push-action` deja la imagen en la cache de
+      # buildx y **no** en el demonio, asi que el paso siguiente no la encuentra
+      # y el trabajo se cae con «No esta geoguardian-api».
+      #
+      # La etiqueta es la local, la misma que usa `docker compose`, y no la de
+      # ghcr. Fue el otro defecto: el verificador busca `geoguardian-<nombre>` y
+      # el build etiquetaba `ghcr.io/humanoidcat/geoguardian/<nombre>:sha-...`.
+      # Dos nombres para la misma imagen y nada que los cruzara.
+      - name: Construir ${{ matrix.nombre }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
+          load: true
+          push: false
+          tags: geoguardian-${{ matrix.nombre }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # La cache de GitHub Actions evita reconstruir las capas de
+          # dependencias en cada corrida. Sin esto, `npm ci` y `pip install`
+          # vuelven a bajar todo cada vez.
+          cache-from: type=gha,scope=${{ matrix.nombre }}
+          cache-to: type=gha,scope=${{ matrix.nombre }},mode=max
+
+      # **Se comprueba la imagen construida, no el Dockerfile.** Que el build
+      # termine no dice que la imagen arranque: puede faltar un archivo que el
+      # .dockerignore excluyo, y eso solo se ve ejecutandola.
+      - name: La imagen arranca y responde
+        run: python docs/herramientas/verificar_h111.py --imagen ${{ matrix.nombre }}
+
+      # Y SOLO DESPUES SE PUBLICA.
+      #
+      # El orden importa y en la primera version estaba al reves: se publicaba y
+      # despues se comprobaba. Una imagen que no arranca no tiene por que llegar
+      # al registro, y menos con la etiqueta `latest`: quien la baje se lleva un
+      # contenedor muerto y el rojo del CI no se lo impide.
+      #
+      # Se etiqueta y se empuja con el CLI en vez de reconstruir: la imagen ya
+      # esta en el demonio y verificada. Reconstruirla con `push: true` seria
+      # publicar un artefacto **distinto** del que se verifico, aunque el
+      # contenido coincida.
+      - name: Publicar ${{ matrix.nombre }} en ghcr.io
+        if: github.event_name == 'push'
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" | while read -r etiqueta; do
+            [ -z "$etiqueta" ] && continue
+            docker tag geoguardian-${{ matrix.nombre }} "$etiqueta"
+            docker push "$etiqueta"
+          done

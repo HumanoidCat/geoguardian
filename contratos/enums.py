@@ -32,7 +32,7 @@ class NivelRiesgo(str, Enum):
                         criterio de percentiles extremos del ETCCDI, que es otra
                         cosa que ser uno de sus indices.
 
-      Sequia         -> SPI-3: bajo si SPI > -1.0; medio si -1.5 < SPI <= -1.0;
+      Sequia         -> SPI-6 (D-32): bajo si SPI > -1.0; medio si -1.5 < SPI <= -1.0;
                         alto si SPI <= -1.5. McKee et al. (1993), adoptado por la OMM.
 
       Incendio       -> focos FIRMS en ventana de 7 dias por distrito:

@@ -28,16 +28,16 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 125 puntos · 154 horas · 15.4 h por semana en promedio
+**Total asignado:** 96 puntos · 124.2 horas · 12.4 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 18.3 | 36 | holgado |
-| S1 | semanas 4-5 | 30.9 | 36 | ajustado |
-| S2 | semanas 6-7 | 31.5 | 36 | ajustado |
-| S3 | semanas 8-9 | 39.2 | 36 | SOBRECARGA +3 h |
+| S1 | semanas 4-5 | 24.9 | 36 | holgado |
+| S2 | semanas 6-7 | 0.0 | 36 | holgado |
+| S3 | semanas 8-9 | 47.0 | 36 | SOBRECARGA +11 h |
 | S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
@@ -60,57 +60,46 @@
   - Evidencia: `docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md`
 
 
-## Sprint 1 (semanas 4-5) — 30.9 h
+## Sprint 1 (semanas 4-5) — 24.9 h
 
-- [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
-  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8
-
-- [ ] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados
+- [x] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados (2026-08-27)
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7**
   - Reducida por **D-22** el 2026-08-20: las series de H1.1 no tienen un solo
     faltante en 12 784 dias, asi que la historia pierde *aplicar* y conserva
     *declarar la regla y probarla contra huecos inyectados*.
   - **La dependencia de H2.1 quedo obsoleta**, porque H2.1 se cerro sin ella.
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.4-criterios-imputacion.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 0.5
 
-- [ ] **H1.7** · Versionar el dataset consolidado para reproducibilidad
+- [x] **H1.7** · Versionar el dataset consolidado para reproducibilidad (2026-08-27)
   - `E1` · 3 pts · 2.9 h · rubrica: OE1 · depende de: H1.4
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.7-manifiesto-dataset.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 0.5
 
 - [x] **H1.8** · Crear esquemas, roles y usuarios con minimo privilegio (2026-08-19)
   - `E1` · 5 pts · 4.8 h · rubrica: BD-2 · depende de: H1.3 · **bloquea a: H1.13, H1.9, H10.7**
   - Evidencia: `docs/evidencias/bases-de-datos/H1.8-roles-minimo-privilegio.md`
 
-- [ ] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente
+- [x] **H6.0** · Dockerfile de la API y del visor con imagen construida localmente (2026-08-27)
   - `E6` · 3 pts · 2.9 h · rubrica: CICD · depende de: H6.1 · **bloquea a: H11.1**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.0-imagenes-docker.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 2.5
 
 - [x] **H6.1** · API REST con OpenAPI y esquemas Pydantic en todos los endpoints (2026-08-19)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: contratos · **bloquea a: H11.1, H6.0, H6.2, H6.5, H7.2, H8.3**
   - Evidencia: `docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md`
 
-- [ ] **H6.2** · Patron Repository con pruebas unitarias sin base de datos
+- [x] **H6.2** · Patron Repository con pruebas unitarias sin base de datos (2026-08-27)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1 · **bloquea a: H10.2, H6.3**
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.2-repositorio-postgres.md`
+  - horas: estimada n/d (no hubo estimacion propia previa) . real 3.0
 
 
-## Sprint 2 (semanas 6-7) — 31.5 h
-
-- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
-  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
-
-- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
-  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
-
-- [ ] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos
-  - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
-
-- [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
-  - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
-
-- [ ] **H3.3** · Entrenar y evaluar Regresion Logistica
-  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
-
+## Sprint 2 (semanas 6-7) — 0.0 h
 
 ## Sprint 3 (semanas 8-9) — 47.0 h
 
-- [ ] **H1.14** · Ingesta periodica de las tres fuentes, con la cadencia que su latencia permite
+- [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
   - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
     **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
@@ -125,6 +114,16 @@
     que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
   - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
     Kubernetes son locales. La programacion queda declarada y sin destino.
+  - **RENOMBRADA el 2026-08-27**, de «Ingesta periodica de las tres fuentes». Lo
+    planteo Cesar y el PM lo acepto: *una ingesta programada contra una base que
+    solo existe cuando alguien levanta `docker compose` no es periodica, es un
+    guion con un `cron` escrito al lado.* La historia se cierra con lo que si
+    demuestra -cadencia, producto declarado, idempotencia- y **donde corre sale a
+    la historia de alojamiento**, todavia sin abrir.
+  - **Y por D-31, esta historia NO regenera el manifiesto de H1.7.** Emite su
+    recibo de carga en la base y termina. El manifiesto es una version que se
+    corta a mano; perseguir con el a un dataset que se mueve destruiria la
+    propiedad que lo hace util.
 
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
