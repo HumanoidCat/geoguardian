@@ -137,6 +137,29 @@ export function aCRTM05(longitud, latitud) {
 }
 
 /**
+ * Agrupa de a tres con un espacio normal, sin depender del entorno.
+ *
+ * La primera version usaba `toLocaleString('es-CR')`, y eso hacia que el
+ * separador de miles dependiera de la version de ICU del navegador: puede salir
+ * espacio, espacio fino de no separacion (U+202F) o punto. Para una cifra cuyo
+ * proposito declarado es **decirse por radio y copiarse a mano**, el separador
+ * no es presentacion, es parte del entregable: un U+202F se ve igual que un
+ * espacio, se copia distinto y no se puede volver a teclear.
+ *
+ * Se usa el espacio normal U+0020 a proposito. Es el que recomienda el SI para
+ * agrupar digitos, no se confunde con el punto decimal, y sobrevive a copiar y
+ * pegar en cualquier parte.
+ */
+function agruparMiles(valor) {
+  const digitos = String(Math.abs(Math.round(valor)))
+  const grupos = []
+  for (let i = digitos.length; i > 0; i -= 3) {
+    grupos.unshift(digitos.slice(Math.max(0, i - 3), i))
+  }
+  return (valor < 0 ? '-' : '') + grupos.join(' ')
+}
+
+/**
  * Formato para leer en voz alta o anotar.
  *
  * Metros enteros y con separador de miles. El centimetro no aporta nada a quien
@@ -145,8 +168,7 @@ export function aCRTM05(longitud, latitud) {
  * distrital, no de un GPS.
  */
 export function formatearCRTM05({ este, norte }) {
-  const entero = (valor) => Math.round(valor).toLocaleString('es-CR')
-  return `E ${entero(este)} · N ${entero(norte)}`
+  return `E ${agruparMiles(este)} · N ${agruparMiles(norte)}`
 }
 
 /** Grados decimales con cinco cifras, poco mas de un metro a esta latitud. */

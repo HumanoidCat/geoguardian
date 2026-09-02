@@ -228,6 +228,19 @@ jobs:
       - name: La capa de calor se recorta contra los poligonos
         if: steps.existe.outputs.si == 'true'
         run: node frontend/herramientas/verificar_recorte_calor.mjs
+      # Cuarenta comprobaciones de la transformacion a CRTM05, sin vigilancia
+      # hasta hoy: entro con H5.6 y quedo corriendo solo cuando alguien se
+      # acordaba, que es exactamente lo que I-10 dejo escrito que no sirve.
+      #
+      # Corre Node por dentro para importar el modulo real del visor, asi que
+      # necesita las dos cosas -node y pyproj- y las dos ya estan en el runner.
+      #
+      # Sin `--if-present`: si desaparece, esto sale en rojo.
+      - name: La transformacion a CRTM05 coincide con pyproj
+        if: steps.existe.outputs.si == 'true'
+        run: |
+          python -m pip install --quiet pyproj
+          python frontend/herramientas/verificar_proyeccion.py
 
   pruebas:
     name: Pruebas contra PostgreSQL
