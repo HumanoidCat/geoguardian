@@ -85,7 +85,16 @@ def historias_cerradas() -> set[str]:
 
 def leer_issues(ruta: Path) -> tuple[dict[str, list[dict]], list[dict]]:
     """Identificador -> issues, y las que no declaran ninguno."""
-    datos = json.loads(ruta.read_text(encoding="utf-8"))
+    # `utf-8-sig` y no `utf-8`: en PowerShell, redirigir la salida de `gh` a un
+    # archivo escribe una marca BOM al principio, y `json.loads` revienta con
+    # `Unexpected UTF-8 BOM`. En Linux no aparece, asi que el CI pasaba en verde
+    # y este control no corria en ninguna maquina del equipo. `utf-8-sig` lee
+    # bien los dos casos: si no hay BOM, se comporta igual que `utf-8`.
+    #
+    # Reportado por Avril el 2026-09-02. Es el mismo defecto que ya tenia
+    # backlog.csv veinte lineas mas arriba, y la cuarta vez que aparece en el
+    # proyecto: ver la incidencia sobre controles que solo corren en el CI.
+    datos = json.loads(ruta.read_text(encoding="utf-8-sig"))
     por_historia: dict[str, list[dict]] = {}
     sin_historia: list[dict] = []
 
