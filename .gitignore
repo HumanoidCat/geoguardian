@@ -11,6 +11,12 @@ datos/crudos/*
 datos/procesados/*
 !datos/**/.gitkeep
 
+# Los PNG de los diagramas se derivan del SVG y solo hacen falta para armar el
+# documento de Word. Versionar el SVG alcanza: es texto, se revisa en un Pull
+# Request y GitHub lo renderiza. Se regeneran con:
+#     python docs/herramientas/generar_diagramas.py --png
+docs/diagramas/*.png
+
 # Artefactos de modelos
 *.pkl
 *.joblib

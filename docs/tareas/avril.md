@@ -80,6 +80,15 @@
     2026-08-24. Ver `docs/evidencias/computacion-grafica/`.
   - **No reabre H5.1 ni H5.3**, que estan cerradas y con evidencia. Es trabajo
     nuevo con criterios escritos antes de empezar.
+  - **Revertida en parte el 2026-08-27, por I-14.** La mitad del encuadre -darle
+    al contenedor la forma del canton- salio de leer una **captura** del profesor
+    como si fuera una especificacion. El nunca pidio que el mapa mostrara solo el
+    canton, y sin la region alrededor se pierde la referencia que ubica a
+    Tilaran. **El pedido estaba mal, no el trabajo.**
+  - **Lo que se conserva, y es la mayor parte:** la marca de seleccion accesible
+    -linea clara mas halo, que era el defecto que el profesor si señalo-, el
+    `zoomSnap` a 0,1 y el `bringToFront` del distrito seleccionado. La historia
+    sigue cerrada con sus 3 puntos y sus 2,4 horas.
 
 - [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
@@ -93,18 +102,26 @@
 
 - [x] **H5.4** · Mapa de calor por interpolacion IDW (2026-08-18)
   - `E5` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3
-  - **Su entregable se retira del visor por D-28**, el 2026-08-24. La historia
-    **queda cerrada**: se hizo, se evaluo y sus horas son reales. Lo hecho no se
-    borra.
-  - El motivo no es la implementacion: el riesgo se estima **por distrito**, y
-    interpolar entre los centroides de ocho poligonos produce valores donde no
-    hay ninguna medicion. Es el mismo criterio por el que **I-05** y **D-15**
-    descartaron a NASA POWER.
-  - El codigo queda en el historial. Si el proyecto llegara a estimar a
-    resolucion menor que el distrito, la interpolacion vuelve a tener sentido.
-  - **Retirado del visor el 2026-08-26.** Evidencia del retiro y de que no se
-    rompio nada mas en
+  - **Su entregable se restituye por D-30**, el 2026-08-27. La historia sigue
+    cerrada y ahora vuelve a tener algo en pantalla.
+  - Lo que paso, en orden: **D-28** retiro la capa el 24 de agosto sobre un
+    argumento que el profesor **nunca hizo**. El reporto un defecto de recorte
+    -la capa se salia del canton y dejaba distritos sin marcar-, y eso se
+    convirtio, al redactar la decision, en una objecion a interpolar. **La
+    implementacion de esta historia no tenia el defecto conceptual que se le
+    atribuyo.** Ver **I-14**.
+  - El defecto real eran dos lineas: el encuadre salia de los **centroides** y
+    la superficie no se recortaba. Medido: 23,8 % de lo pintado caia fuera del
+    canton y el 20,7 % del canton quedaba sin pintar. Corregido a 0 % y 0 %.
+  - Lo que arreglo Alejandro con permiso escrito de Avril: encuadre desde los
+    poligonos y recorte contra su union. **La opacidad, la rampa y los puntos de
+    origen quedaron intactos** — eso no tenia nada malo.
+  - Ahora lo vigila una maquina:
+    `node frontend/herramientas/verificar_recorte_calor.mjs`, en el CI.
+  - Evidencia del retiro, que se conserva:
     `docs/evidencias/computacion-grafica/D-28-retiro-mapa-calor.md`.
+    De la restitucion:
+    `docs/evidencias/computacion-grafica/D-30-restitucion-mapa-calor.md`.
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6

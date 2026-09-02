@@ -243,28 +243,22 @@ body {
   min-height: 28rem;
 }
 
-/* La forma del mapa la fija `--mapa-aspecto`, que AjustarEncuadre calcula desde
-   el recuadro proyectado de las geometrias. Aca solo esta el valor de reserva,
-   por si el mapa se dibuja antes de que la coleccion llegue.
+/* El mapa llena su contenedor, sin relacion de aspecto impuesta.
 
-   Por que importa: `fitBounds` deja el sobrante en la dimension que no aprieta.
-   Con un contenedor ancho y bajo, y un canton mas alto que ancho, ese sobrante
-   era el 74 % del mapa y estaba lleno de cantones vecinos.
+   Entre el 24 y el 26 de agosto este bloque le daba al mapa la forma del canton
+   -relacion 0,83- para que `fitBounds` no dejara sobrante. En pantalla ancha eso
+   dejaba una columna angosta de mapa entre dos bandas vacias.
 
-   El tope de alto esta atado a la ventana: antes de esto el mapa se salia de la
-   pantalla y habia que desplazarse para verlo entero. El ancho maximo se deriva
-   del tope de alto por la misma relacion, para que al llegar al tope el mapa se
-   angoste en vez de deformarse. */
+   Se revirtio por I-14: la forma del canton salio de leer una captura del
+   profesor como si fuera una especificacion. El sobrante que se queria eliminar
+   son los cantones vecinos y el lago, o sea el contexto que ubica a Tilaran.
+
+   El alto lo pone `.contenedor-mapa` con su `min-height`, y la rejilla de la
+   pagina lo estira. */
 .mapa {
-  --mapa-aspecto: 0.83;
-  --mapa-alto-tope: min(68vh, 42rem);
-
   width: 100%;
-  max-width: calc(var(--mapa-alto-tope) * var(--mapa-aspecto));
-  height: auto;
-  aspect-ratio: var(--mapa-aspecto);
-  max-height: var(--mapa-alto-tope);
-  margin-inline: auto;
+  height: 100%;
+  min-height: 28rem;
   z-index: var(--z-mapa);
 }
 
@@ -807,12 +801,60 @@ body {
   display: inline-block;
 }
 
-/* Los estilos del mapa de calor —.superficie-calor, .punto-origen,
-   .barra-gradiente, .barra-extremos y .leyenda-nota— salieron con la capa por
-   D-28. Se comprobo que ningun otro componente los usaba antes de quitarlos.
+/* -------------------------------------------------------------------------- *
+ * Mapa de calor
+ * -------------------------------------------------------------------------- */
 
-   .control-nota queda tambien sin uso: la unica nota de control que existia era
-   la del exponente de la interpolacion. */
+/* La superficie interpolada. La opacidad se aplica al dibujar el canvas, no
+   aca, para que quede escrita junto al calculo y no repartida en dos lugares.
+
+   El recorte contra los poligonos tambien se hace en el canvas y no con
+   `clip-path`: la mascara tiene que aplicarse a la imagen antes de que Leaflet
+   la coloque, porque `clip-path` sobre el elemento ya colocado se expresaria en
+   pixeles de pantalla y habria que recalcularlo en cada zoom. Ver I-14. */
+.superficie-calor {
+  pointer-events: none;
+}
+
+/* Los puntos de origen de la interpolacion. Se dibujan encima de la superficie
+   a proposito: con ocho puntos, la superficie parece un analisis fino y no lo
+   es. Ver de donde salio cada valor es lo que impide leerla como una medicion
+   continua del terreno. */
+.punto-origen {
+  fill: var(--superficie);
+  fill-opacity: 1;
+  stroke: var(--texto);
+  stroke-width: 2;
+}
+
+.barra-gradiente {
+  height: 0.75rem;
+  border-radius: var(--radio);
+  border: 1px solid var(--borde);
+  margin-bottom: var(--espacio-1);
+}
+
+.barra-extremos {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.leyenda-nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  line-height: 1.35;
+}
+
+.control-nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-xs);
+  color: var(--texto-tenue);
+  line-height: 1.35;
+}
 
 /* -------------------------------------------------------------------------- *
  * Semaforo de riesgo

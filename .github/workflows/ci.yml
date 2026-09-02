@@ -35,6 +35,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # Graphviz hace falta para regenerar el entidad-relacion y contrastarlo
+      # contra el que esta versionado. Es la unica dependencia de sistema que
+      # este trabajo necesita.
+      - name: Instalar Graphviz
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq graphviz
       # Estos cuatro verificadores existen por errores que ya ocurrieron:
       #   backlog    -> tres dependencias apuntaban a sprints posteriores (semana 4)
       #   adr        -> la rubrica exige seis registros y hay que probar que estan
@@ -58,6 +63,16 @@ jobs:
         run: pip install pydantic==2.10.4
       - name: Las cifras de la documentacion siguen siendo ciertas
         run: python docs/herramientas/verificar_documentacion.py
+      # El mismo criterio, aplicado a los dibujos: el entidad-relacion se deriva
+      # de basedatos/ddl/*.sql, asi que si alguien agrega una tabla y no
+      # regenera, el diagrama del documento pasa a mentir. Un diagrama
+      # desactualizado es peor que ninguno porque se ve autorizado.
+      #
+      # No compara bytes: Graphviz no garantiza la misma salida entre versiones
+      # y eso pondria el CI en rojo sin que ningun diagrama estuviera mal.
+      # Compara el contenido. Ver el encabezado del verificador.
+      - name: Los diagramas describen el repositorio de hoy
+        run: python docs/herramientas/verificar_diagramas.py
       # El tablero de GitHub era el unico lugar que declara el avance sin una
       # maquina que lo cruzara contra el repositorio. `como-llenar-el-pr.md` ya
       # advertia el modo de fallo -"Cierra H10.1" no cierra nada, GitHub solo
@@ -198,6 +213,21 @@ jobs:
       - name: La escala de riesgo cumple los criterios de accesibilidad
         if: steps.existe.outputs.si == 'true'
         run: python frontend/herramientas/verificar_escala.py
+      # El mapa de calor se pintaba sobre el rectangulo que encierra al canton:
+      # 23,8 % de la superficie caia sobre los cantones vecinos y el 20,7 % del
+      # canton quedaba sin pintar. Vivio cuatro dias en el sitio publico porque
+      # solo se veia mirando la pantalla, que es la misma clase de defecto que
+      # I-06 e I-10.
+      #
+      # Esta herramienta corre dibujarSuperficie() de verdad sobre un canvas
+      # simulado y contrasta lo pintado contra una implementacion independiente
+      # de punto-en-poligono. Ver I-14 y D-30.
+      #
+      # Sin `--if-present` ni `continue-on-error`: si desaparece, esto sale en
+      # rojo. Un control que se salta solo se ve igual que uno que pasa.
+      - name: La capa de calor se recorta contra los poligonos
+        if: steps.existe.outputs.si == 'true'
+        run: node frontend/herramientas/verificar_recorte_calor.mjs
 
   pruebas:
     name: Pruebas contra PostgreSQL
@@ -283,21 +313,34 @@ jobs:
         run: python -m backend.modelado.verificar_h32
       - name: Los criterios de H3.1 se cumplen
         run: python -m backend.modelado.verificar_h31
-      # PENDIENTE, y a proposito fuera de este Pull Request.
+      # H3.6 fija COMO se comparan los estimadores, y su CA-7 es el unico control
+      # que cruza dos caminos independientes hasta la misma cifra: `comparar.py`
+      # a traves del contrato `Estimador`, y `evaluar_linea_base.py` llamando a
+      # las lineas base directo. Si el adaptador introdujera cualquier diferencia
+      # de trato, las dos rutas divergirian y esto sale rojo.
       #
-      # `verificar_h62` y `verificar_h14` existen y **no los corre nadie**: Cesar
-      # no puede tocar `.github/workflows/`, que es de Alejandro, asi que los
-      # escribio y quedaron colgando. Un verificador que solo se ejecuta cuando
+      # Corre siempre. `datos/procesados/etiquetas.csv` no esta versionado, asi
+      # que en el CI **nunca** esta: un paso condicionado a su existencia habria
+      # quedado verde sin ejecutar nada. Cuando falta, el verificador construye
+      # etiquetas sinteticas deterministas y lo declara en su primera linea.
+      - name: Los criterios de H3.6 se cumplen
+        run: python -m backend.modelado.verificar_h36
+      # Escritos por Cesar y **sin correr por nadie** hasta hoy: no puede tocar
+      # `.github/workflows/`, que es de Alejandro, asi que los escribio con sus
+      # historias y quedaron colgando. Un verificador que solo se ejecuta cuando
       # alguien se acuerda no protege de nada: es I-06 y es I-10.
       #
-      # Entran en cuanto sus historias esten fusionadas. **No se agregan antes**:
-      # este Pull Request no trae esos archivos, y un paso que invoca un modulo
-      # inexistente pone el CI en rojo sin que haya nada roto. Paso al primer
-      # intento de este PR.
+      # Entran ahora y no antes: en el PR #189 se intentaron agregar con sus
+      # historias todavia sin fusionar, y un paso que invoca un modulo inexistente
+      # pone el CI en rojo sin que haya nada roto. **El orden importa: primero el
+      # archivo, despues el paso que lo llama.**
       #
-      # Y no se usa `--if-present` ni ninguna condicion de existencia: un control
-      # que se salta solo se ve igual que uno que pasa. Es I-06 otra vez.
-      #
+      # No se usa `--if-present` ni ninguna condicion de existencia: un control
+      # que se salta solo se ve igual que uno que pasa.
+      - name: Los criterios de H6.2 se cumplen
+        run: python -m backend.api.verificar_h62
+      - name: Los criterios de H1.4 se cumplen
+        run: python -m backend.etl.verificar_h14
       # H6.0 y H1.7 necesitan Docker y la base cargada respectivamente, asi que
       # no corren aca. Se declaran para que se vea que la omision es deliberada:
       #   verificar_h60  construye imagenes; pide un demonio Docker

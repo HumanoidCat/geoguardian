@@ -26,7 +26,17 @@ SECCIONES = (
     "### Medicion",
 )
 
-ESTADOS = ("Aceptada", "Propuesta", "Revisada", "Sustituida por")
+# "Revertida por" se agrega el 2026-08-27, con D-30, y no es sinonimo de las
+# otras dos formas de dejar atras una decision. La diferencia importa:
+#
+#   Revisada        el razonamiento sigue en pie, cambia una parte
+#   Sustituida por  el problema sigue existiendo y se resuelve de otra manera
+#   Revertida por   la decision partia de un hecho falso y se deshace
+#
+# D-28 no se sustituyo por una forma mejor de retirar el mapa de calor: se
+# deshizo, porque el profesor nunca hizo la objecion que se le atribuyo. Llamarle
+# "sustituida" ocultaria exactamente lo que I-14 quiere dejar visible.
+ESTADOS = ("Aceptada", "Propuesta", "Revisada", "Sustituida por", "Revertida por")
 
 
 def registros(texto: str) -> list[tuple[str, str]]:

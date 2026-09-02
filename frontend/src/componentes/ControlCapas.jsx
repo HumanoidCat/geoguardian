@@ -1,4 +1,9 @@
-import { CAPAS_BASE, CAPAS_SUPERPUESTAS } from '../datos/capasBase'
+import {
+  CAPAS_BASE,
+  CAPAS_SUPERPUESTAS,
+  EXPONENTE_IDW_MAXIMO,
+  EXPONENTE_IDW_MINIMO,
+} from '../datos/capasBase'
 
 // Por debajo de este valor la rampa deja de leerse sobre la capa base. Se
 // determino mirando la pantalla con relieve al 30 %: "bajo" se confundia con el
@@ -27,6 +32,8 @@ export default function ControlCapas({
   alAlternarSuperpuesta,
   opacidad,
   alCambiarOpacidad,
+  exponente,
+  alCambiarExponente,
 }) {
   return (
     <section className="control-capas" aria-label="Capas del mapa">
@@ -100,6 +107,33 @@ export default function ControlCapas({
               </div>
             )}
 
+            {/* Exponente de la interpolacion. Se expone porque cambia la lectura
+                del mapa: con 1 la superficie queda casi plana y con 4 aparecen
+                islas con bordes marcados que sugieren una frontera que el dato
+                no tiene. Esconder ese parametro seria presentar una decision
+                como si fuera un hecho. */}
+            {capa.conExponente && superpuestas[capa.id] && (
+              <div className="control-opacidad">
+                <label htmlFor="exponente-idw" className="control-opacidad-etiqueta">
+                  Exponente de distancia
+                  <span className="control-opacidad-valor">{exponente}</span>
+                </label>
+                <input
+                  id="exponente-idw"
+                  type="range"
+                  min={EXPONENTE_IDW_MINIMO}
+                  max={EXPONENTE_IDW_MAXIMO}
+                  step="0.5"
+                  value={exponente}
+                  onChange={(evento) => alCambiarExponente(Number(evento.target.value))}
+                />
+                <p className="control-nota">
+                  Cuanto pesa la cercania. Mas alto, cada distrito domina su
+                  entorno; mas bajo, la superficie se aplana. El valor
+                  convencional es 2.
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -1,4 +1,17 @@
+---
+author:
+  - name: "Alejandro Josué Rodríguez Zamora"
+  - name: "César Andrés Ubau Calvo"
+  - name: "Luis Alejandro Luna García"
+  - name: "Avril Madrigal Elizondo"
+institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
+date: "27 de agosto de 2026"
+lang: es
+---
+
 # Estimación de riesgo climático por distrito con datos abiertos: el caso del cantón de Tilarán, Costa Rica
+
+::: no-entregable
 
 **Historia:** H10.5c · **Rúbrica:** IEEE · **Responsable:** Alejandro
 **Depende de:** H10.5b (cerrada) · **Bloquea a:** H10.6, el cartel académico
@@ -18,10 +31,10 @@
 > | III. Metodología | Redactada. **Ampliada el 26 de agosto** con el etiquetado, la partición y las dos líneas base |
 > | IV. Arquitectura | Redactada |
 > | V. Hallazgos sobre disponibilidad de datos | **Redactada. Es el aporte que ya existe.** Siete subsecciones desde el 26 de agosto |
-> | VI. Resultados | **Vacía. Necesita H3.6** |
-> | VII. Discusión | **Vacía. Necesita la sección VI** |
+> | VI. Resultados | **Parcial desde el 27 de agosto.** Seis subsecciones con lo medido; VI-E declara lo que falta y VI-F trae la validación externa contra 46 eventos reales |
+> | VII. Discusión | **Vacía. Necesita los tres algoritmos (H3.3 a H3.5)** |
 > | VIII. Limitaciones | Redactada, se amplía con resultados |
-> | IX. Conclusiones | **Vacía. Necesita las secciones VI y VII** |
+> | IX. Conclusiones | **Vacía. Necesita la sección VII** |
 >
 > **Qué cambió el 26 de agosto.** Cerraron el etiquetado de la variable objetivo,
 > la partición temporal y las dos líneas base. La sección III describía un
@@ -42,6 +55,8 @@
 > **Ninguna cifra de este documento está escrita de memoria.** Todas salen de una
 > herramienta del repositorio o de una fuente citada, y la sección de verificación
 > al final dice de cuál.
+
+:::
 
 ---
 
@@ -531,30 +546,222 @@ focos nunca fue observado, que es la misma confusión en la otra dirección.
 
 ## VI. Resultados
 
-> **VACÍA. No hay resultados porque no hay modelo entrenado.**
+> **PARCIAL, desde el 27 de agosto de 2026.** Se reporta lo que está medido —el
+> piso contra el que se comparará todo— y se declara lo que falta.
 >
-> **Qué va a contener:**
+> **Lo que hay:** el etiquetado (H3.0), la partición temporal (H3.2), las dos
+> líneas base (H3.1) y el arnés comparativo (H3.6).
 >
-> 1. Tabla comparativa de los tres algoritmos contra la línea base climatológica,
->    por evento, con F1-macro, precisión y exhaustividad.
-> 2. Matrices de confusión por evento y distribución de clases.
-> 3. Curvas de desempeño bajo validación por ventana expansiva.
-> 4. Importancia de variables del mejor modelo y explicaciones locales con SHAP.
+> **Lo que falta:** los tres entrenamientos de D-09 (H3.3, H3.4 y H3.5) y, con
+> ellos, las matrices de confusión y la importancia de variables. Es la
+> subsección VI-E.
 >
-> **Qué hace falta para escribirla:** las series climáticas reales (H1.1), el
-> histórico de focos (H1.2), el etiquetado (H3.0), la línea base (H3.1), la
-> validación (H3.2), los tres entrenamientos (H3.3 a H3.5) y la comparativa
-> (H3.6).
->
-> **Advertencia metodológica que ya está fijada.** Ninguna cifra de esta sección
-> puede provenir de los simulados. El sistema opera hoy contra datos simulados y lo
-> declara en pantalla; esos valores existen para construir y verificar la
-> representación visual, y **no pueden aparecer en este documento bajo ninguna
-> circunstancia**.
+> **Ninguna cifra de esta sección proviene de los simulados.** El sistema opera
+> hoy contra datos simulados y lo declara en pantalla; esos valores existen para
+> construir la representación visual y no aparecen aquí. Todo lo que sigue sale
+> de `datos/procesados/etiquetas.csv`, derivado de las series reales de H1.1 y
+> H1.2.
+
+### A. El dato sobre el que se mide
+
+El etiquetado de H3.0 produce **99 296 filas** —ocho distritos × días, de 1991 a
+2025— con tres etiquetas por fila, una por evento.
+
+La distribución de clases es fuertemente desbalanceada, y esa es la primera
+condición que gobierna todo lo demás:
+
+| Evento | Clase positiva | Cobertura temporal |
+|---|---|---|
+| Lluvia intensa | percentil 95 y 99 del acumulado de 72 h | 1991–2025 |
+| Sequía | SPI-3 ≤ −1,0 (medio) y ≤ −1,5 (alto), por mes calendario | 1991–2025 |
+| Incendio | binario, ≥ 1 foco en la ventana de 7 días | **2001–2024** |
+
+La ventana del incendio no arranca en 1991 porque el archivo FIRMS de MODIS
+C6.1 empieza en 2001. Etiquetar como «bajo» los diez años anteriores habría
+producido **29 216 filas falsamente negativas, el 29,4 % del conjunto**; se
+registró como incidencia I-11 y las filas fuera de cobertura devuelven ausencia,
+no cero, conforme a **D-07**.
+
+El incendio se estima además solo en **Santa Rosa, Líbano y Tierras Morenas**,
+por **D-25**: en los demás distritos la señal es demasiado escasa para sostener
+una estimación.
+
+### B. La partición temporal, y un resultado que no se esperaba
+
+La validación es por ventana expansiva (**D-04**, Bergmeir y Benítez, 2012), con
+**cinco pliegues** y cortes en frontera de mes.
+
+El embargo entre entrenamiento y prueba **no se fijó como constante: se calcula**
+a partir de hasta dónde mira la etiqueta de la última fila de entrenamiento. Los
+criterios de aceptación, escritos antes de implementar, estimaron tres valores
+distintos; la medición dio uno solo:
+
+| Evento | Embargo estimado | Embargo calculado |
+|---|---|---|
+| Incendio | 7 días | 7 días |
+| Lluvia intensa | 9 días | **7 días** |
+| Sequía | 38 días | **7 días** |
+
+Las dos correcciones tienen la misma causa —se supuso el alcance en vez de
+calcularlo— pero la de la sequía es la interesante. La etiqueta de sequía sí
+alcanza el fin del mes que contiene a *t+7*; lo que ocurre es que **el corte en
+frontera de mes absorbe ese alcance**: con el corte ahí, exigir que la etiqueta
+no mire dentro de la prueba equivale a exigir que *t+7* caiga en un mes anterior.
+
+Los dos criterios se escribieron por separado y juntos resultan más baratos que
+cada uno por su lado. No estaba previsto.
+
+### C. Las dos líneas base
+
+El contraste de **D-10** se hace contra dos referencias, y las dos se reportan:
+
+- **Trivial:** siempre la clase mayoritaria del entrenamiento.
+- **Climatológica:** la clase de mayor **realce** en ese distrito y ese mes
+  calendario, donde realce(clase) = tasa en la celda ÷ tasa en todo el
+  entrenamiento.
+
+La climatológica se definió por realce y no por clase modal tras medir que la
+segunda **degenera en la trivial**: con clases positivas entre el 1 % y el 7 %,
+«bajo» es la clase modal en las noventa y seis celdas distrito-mes, y las dos
+líneas base daban F1-macro idéntico hasta el tercer decimal en los cinco
+pliegues. Una línea base indistinguible del piso absoluto no sirve como piso
+informado.
+
+Ambas miran **solo el calendario**: distrito y fecha. Ninguna variable
+meteorológica entra. En cuanto una línea base usa precipitación deja de ser línea
+base y el contraste compara dos modelos en vez de comparar un modelo contra el
+almanaque.
+
+### D. Qué informa el mes, por evento
+
+Medido con el arnés de H3.6 sobre los cinco pliegues, con F1-macro (**D-10**):
+
+| Evento | Trivial | Climatológica | Diferencia | Veredicto |
+|---|---|---|---|---|
+| **Lluvia intensa** | 0,309 ± 0,005 | **0,346 ± 0,010** | **+0,036** | la climatológica gana |
+| **Sequía** | 0,333 ± 0,084 | 0,263 ± 0,063 | −0,070 | empate técnico |
+| **Incendio** | 0,494 ± 0,003 | 0,500 ± 0,049 | +0,006 | empate técnico |
+
+**El criterio de decisión se fijó antes de mirar los datos:** si la ventaja de un
+estimador sobre el siguiente es menor que lo que ese mismo estimador se mueve
+entre pliegues, no se declara ganador. Con cinco pliegues correlacionados esa es
+toda la resolución disponible.
+
+**Lluvia intensa.** El mes informa. La ventaja (+0,036) supera el rango entre
+pliegues de la climatológica (0,027). Es el único de los tres eventos donde el
+calendario, por sí solo, aporta capacidad predictiva medible.
+
+**Sequía.** El mes no informa, **y eso es la confirmación de que D-19
+funciona.** El SPI-3 se ajusta por mes calendario precisamente para remover la
+estacionalidad; si la climatológica predijera bien la sequía, sería el defecto
+que D-19 vino a corregir, reaparecido un nivel más arriba. La línea base
+climatológica queda **0,070 por debajo** del piso trivial.
+
+**Incendio.** Es el resultado que exige más cuidado al enunciar. Los criterios
+previos esperaban que el mes informara —la estación seca del Pacífico Norte está
+bien delimitada— y la diferencia medida fue de +0,006. Pero la afirmación
+defendible no es «el mes no informa sobre el incendio», sino esta:
+
+> **La dispersión de la línea base climatológica entre pliegues (0,138) es
+> veintitrés veces su ventaja sobre la trivial (+0,006). La medición no tiene
+> resolución para distinguir las dos hipótesis.**
+
+Con tres distritos, una clase positiva del 1,23 % y veinticuatro años de
+cobertura, el diseño experimental no alcanza. Es un límite del dato disponible,
+no un hallazgo sobre el clima.
+
+### E. Lo que falta, y por qué no se rellena
+
+**Los tres algoritmos de D-09 —Regresión Logística, Random Forest y XGBoost— no
+están entrenados** (H3.3, H3.4, H3.5). Sin ellos no hay matrices de confusión, ni
+curvas de desempeño, ni importancia de variables, ni explicaciones locales con
+SHAP.
+
+Lo que sí está decidido y verificado es **cómo se van a comparar**. El arnés de
+H3.6 fija, para los cinco estimadores por igual: la partición de H3.2, la métrica
+de D-10 y el tratamiento de las predicciones ausentes —una fila sin predicción no
+se evalúa y se cuenta aparte, para no castigar a un estimador por declarar que no
+sabe—. Los tres pendientes están declarados en el propio registro del código, con
+su historia, de modo que la tabla no pueda leerse como completa.
+
+**Una advertencia metodológica que queda fijada para cuando se llene.** Los
+resultados de esta sección se reportarán **sin prueba de significancia**. Cinco
+pliegues de una serie temporal no son cinco muestras independientes: la ventana
+es expansiva, los conjuntos de entrenamiento se solapan por construcción y las
+métricas están correlacionadas. Una prueba que suponga independencia produciría
+un valor *p* que suena riguroso y no lo es. Se reportarán la media, la desviación
+y los cinco valores individuales.
+
+### F. Validación externa del etiquetado contra eventos reales
+
+Antes de que exista un modelo hay una pregunta previa que casi nunca se plantea:
+**¿la verdad de terreno reconoce los eventos que de verdad ocurrieron?** Si las
+etiquetas no los reconocen, ningún modelo entrenado sobre ellas podrá hacerlo.
+
+Se contrastó el etiquetado contra el catálogo de **46 eventos históricos de
+Tilarán** extraídos de DesInventar Costa Rica. Un evento del día *E* se considera
+anunciado si alguna etiqueta en la ventana previa marcaba riesgo medio o alto.
+
+| Evento | Registros | Contrastables | Detecta | Cobertura | Tasa base | **Realce** |
+|---|---|---|---|---|---|---|
+| Lluvia intensa | 38 | 34 | 22 | 64,7 % | 13,7 % | **4,74×** |
+| Sequía · ventana de 7 d | 7 | 7 | 0 | 0,0 % | 15,6 % | 0,00× |
+| Sequía · ventana de 90 d | 7 | 7 | 7 | 100,0 % | 15,6 % | **6,42×** |
+| Incendio | 1 | 0 | — | — | 2,7 % | — |
+
+**La métrica que importa es el realce, no la cobertura.** Una cobertura alta se
+consigue marcando siempre; el realce —cuántas veces más frecuente es la marca
+ante un evento real que en un día cualquiera— no.
+
+**No se reporta precisión, y la omisión es deliberada.** El catálogo registra
+daños reportados, no fenómenos, y está incompleto por construcción: una marca sin
+registro no es un falso positivo, puede ser un evento real que nadie reportó.
+Calcular precisión contra un catálogo incompleto produce un número que aparenta
+rigor y está mal por definición.
+
+#### El cero de la sequía son dos relojes distintos
+
+Con la ventana de siete días la sequía dio 0 de 7. La causa no es el etiquetado:
+los siete registros llevan **la misma fecha, 2014-09-30**, y el etiquetado marcó
+sequía en esos distritos **de enero a agosto de 2014**. La marca más cercana está
+a **−37 días** en los ocho distritos.
+
+El catálogo registra la fecha de la **declaratoria administrativa**, que se emite
+después de evaluar los daños; el etiquetado marca el mes en que el SPI-3 cae bajo
+el umbral. Una declaratoria por sequía llega al final del episodio, y el SPI-3
+integra tres meses por construcción: no es un indicador diario. La ventana de 90
+días es el propio período de integración del índice, no un valor ajustado a
+posteriori.
+
+#### Los fallos de lluvia intensa apuntan a un desfase, no a una omisión
+
+De los 12 eventos no detectados, **9 tenían una marca a 14 días o menos, y en 9
+de los 12 la marca llegó *después* del evento**. El patrón admite tres
+explicaciones que este contraste no puede separar: imprecisión de fecha en la
+fuente —DesInventar suele registrar la fecha del reporte—, que el máximo del
+acumulado de 72 h caiga uno o dos días después del daño, o daño sin extremo
+meteorológico sobre una cuenca ya saturada.
+
+Distinguirlas requeriría la serie horaria y las fichas completas. Queda anotado
+como línea abierta.
+
+#### Lo que esto establece, y lo que no
+
+Establece un **piso para los modelos**: el etiquetado alcanza realce 4,74× en
+lluvia intensa sobre eventos reales verificados por una fuente externa. Un modelo
+que no lo supere no está aportando sobre la verdad de terreno.
+
+No establece nada sobre incendio —el único registro del catálogo es de 2026,
+posterior a la serie— lo que confirma la limitación anticipada en V-E antes de
+medir.
 
 ## VII. Discusión
 
-> **VACÍA. Depende de la sección VI.**
+> **VACÍA. Depende de los tres entrenamientos, H3.3 a H3.5.**
+>
+> La sección VI ya reporta el piso —qué informa el calendario, por evento— pero
+> la discusión compara **modelos** contra ese piso, y los modelos no existen.
+> Escribirla ahora sería discutir un contraste que no se hizo.
 >
 > **Qué va a contener:**
 >
@@ -784,3 +991,28 @@ validación.
 | 27 referencias, 19 con ficha | `docs/investigacion/referencias.md` |
 | 47 comprobaciones, 6 trabajos de CI, 20 controles | `verificar_documentacion.py` |
 | Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |
+| 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
+| F1-macro de las dos líneas base, sección VI-D | `python -m backend.modelado.comparar` |
+| 23 veces la ventaja, incendio | La misma corrida: rango 0,138 ÷ ventaja 0,006 |
+| Cobertura, tasa base y realce de VI-F; los −37 días | `python -m backend.modelado.contrastar_catalogo` |
+| 46 registros del catálogo | `docs/investigacion/catalogo-eventos.csv`, H4.3 |
+
+**Tres cifras de la sección VI no las puede recalcular la integración continua**,
+y conviene decir cuáles y por qué:
+
+| Cifra | Por qué no |
+|---|---|
+| 99 296 filas etiquetadas | `datos/procesados/etiquetas.csv` es un artefacto derivado de la base y no está versionado (`.gitignore`, línea 11) |
+| 29 216 filas, 29,4 % — incidencia I-11 | La misma razón |
+| Los F1-macro de la tabla VI-D | La misma razón |
+
+**Lo que sí comprueba la máquina en cada ejecución** es que el arnés que las
+produce sigue siendo correcto: `verificar_h36.py` corre con etiquetas sintéticas
+deterministas cuando el artefacto real no está, y verifica que todos los
+estimadores vean los mismos pliegues, que la métrica sea una sola y que dos
+corridas den lo mismo. La reproducibilidad de las cifras está garantizada; su
+recálculo automático requiere la base levantada.
+
+La trazabilidad de esas tres queda por **D-29**: el manifiesto del dataset
+registra con SHA-256 las fuentes de las que `etiquetas.csv` se deriva, de modo
+que cualquiera pueda reconstruir el mismo archivo y obtener los mismos números.
