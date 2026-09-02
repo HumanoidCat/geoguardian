@@ -23,11 +23,17 @@ set -eu
 
 DESTINO=/etc/nginx/conf.d/resolver.conf
 
-# Los `nameserver` de resolv.conf, en una linea. Se toman todos: si el primero no
-# responde, nginx pasa al siguiente.
+# Los `nameserver` de resolv.conf, en una linea. **Se toman todos, IPv4 e IPv6,
+# sin filtrar ninguno**: nginx acepta las dos familias, y si el primer servidor no
+# responde pasa al siguiente.
 #
-# Se ignoran las direcciones IPv6 entre corchetes solo si aparecieran mal
-# formadas; nginx acepta IPv6 y no hay razon para descartarlas.
+# El comentario anterior decia que se ignoraban las direcciones IPv6 mal formadas.
+# El `awk` de abajo no filtra nada, asi que esa frase describia una comprobacion
+# que no existia. Corregido por la revision de SC-07: un comentario que describe
+# un comportamiento es una afirmacion, y las afirmaciones se sostienen o se
+# borran.
+#
+# El `printf` termina en espacio a proposito. Ver el `echo` del final.
 SERVIDORES=$(awk '/^nameserver/ { printf "%s ", $2 }' /etc/resolv.conf)
 
 if [ -z "$SERVIDORES" ]; then
@@ -44,6 +50,15 @@ fi
 # `valid=10s` para que un cambio de IP del servicio se note en diez segundos y no
 # quede cacheado hasta que el contenedor se reinicie. En Kubernetes las IP de los
 # pods cambian con cada despliegue.
+#
+# **NO hay espacio entre `${SERVIDORES}` y `valid`, y es correcto.** El espacio lo
+# pone el `printf "%s "` del `awk` de arriba, que deja uno al final de cada
+# direccion. Sin el, la linea saldria `resolver 127.0.0.11valid=10s;` y nginx no
+# levanta.
+#
+# Se dice aca porque el espacio que hace funcionar esta linea esta escrito veinte
+# lineas mas arriba y es invisible. Quien "limpie" aquel `printf` rompe esto, y el
+# motivo no estaria a la vista. Lo señalo la revision de SC-07.
 echo "resolver ${SERVIDORES}valid=10s;" > "$DESTINO"
 
 echo "10-resolver.sh: resolver -> ${SERVIDORES}"
