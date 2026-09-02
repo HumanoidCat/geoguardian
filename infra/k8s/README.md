@@ -198,8 +198,8 @@ Todo lo de arriba deja la infraestructura en pie. Para poner una versión
 concreta a correr:
 
 ```powershell
-bash infra/k8s/desplegar.sh desarrollo
-bash infra/k8s/desplegar.sh desarrollo (git rev-parse HEAD)
+python infra/k8s/desplegar.py desarrollo
+python infra/k8s/desplegar.py desarrollo (git rev-parse HEAD)
 ```
 
 Sin segundo argumento usa `latest`. Con un SHA de 40 caracteres lo convierte a
@@ -209,6 +209,11 @@ lo que sale de `git rev-parse HEAD`.
 **Es el mismo guion que corre el flujo de CD**, y eso es deliberado: si el CI y
 tu máquina desplegaran por caminos distintos, un CI en verde no diría nada sobre
 lo que pasa acá. Ver **D-36**.
+
+Está en Python y no en bash a propósito: winget instala `kubectl` como alias de
+`WindowsApps`, y **Git Bash no puede ejecutarlo** aunque PowerShell y Python sí.
+Un guion de despliegue que no corre en ninguna máquina del equipo es I-24 otra
+vez.
 
 El guion espera a que los tres objetos converjan con `kubectl rollout status`.
 Sin esa espera, `kubectl apply` devuelve éxito en cuanto la API acepta el objeto

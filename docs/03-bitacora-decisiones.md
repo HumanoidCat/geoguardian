@@ -3861,7 +3861,7 @@ seria no elegirlo y escribir un flujo de trabajo que parezca desplegar.
 manifiestos del entorno que corresponde, comprueba que converja, y lo destruye.**
 
 **Y el cluster local persistente se actualiza con un guion de un comando**,
-`infra/k8s/desplegar.sh`, que aplica exactamente los mismos manifiestos.
+`infra/k8s/desplegar.py`, que aplica exactamente los mismos manifiestos.
 
 Los dos caminos usan **el mismo kustomize y las mismas imagenes de ghcr.io**. No
 hay dos definiciones del despliegue: hay una, aplicada en dos sitios.

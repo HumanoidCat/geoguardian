@@ -190,7 +190,7 @@ jobs:
       - name: Los manifiestos de infra/k8s cumplen sus invariantes
         run: python infra/verificar_cd.py --manifiestos
       - name: El guion de despliegue no tiene errores de sintaxis
-        run: bash -n infra/k8s/desplegar.sh
+        run: python -m py_compile infra/k8s/desplegar.py
 
   frontend:
     name: Frontend

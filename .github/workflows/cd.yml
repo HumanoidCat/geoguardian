@@ -14,7 +14,7 @@
 # La decision, con sus alternativas descartadas y lo que se pierde, esta en
 # **D-36**. Lo que se pierde, dicho aca tambien para que nadie lo lea solo alli:
 # **al terminar no queda nada corriendo.** El cluster persistente se actualiza
-# con `infra/k8s/desplegar.sh`, que aplica exactamente estos manifiestos.
+# con `infra/k8s/desplegar.py`, que aplica exactamente estos manifiestos.
 #
 # =============================================================================
 # LOS TRES ENTORNOS, Y QUE HISTORIA CIERRA CADA UNO
@@ -83,7 +83,7 @@ jobs:
           actor: ${{ github.actor }}
 
       - name: Desplegar
-        run: bash infra/k8s/desplegar.sh desarrollo "${{ github.sha }}"
+        run: python infra/k8s/desplegar.py desarrollo "${{ github.sha }}"
 
       - name: Comprobar lo que el despliegue promete
         run: python infra/verificar_cd.py --entorno desarrollo --sha "${{ github.sha }}"
@@ -121,7 +121,7 @@ jobs:
           actor: ${{ github.actor }}
 
       - name: Desplegar
-        run: bash infra/k8s/desplegar.sh pruebas "${{ github.sha }}"
+        run: python infra/k8s/desplegar.py pruebas "${{ github.sha }}"
 
       - name: Comprobar lo que el despliegue promete
         run: python infra/verificar_cd.py --entorno pruebas --sha "${{ github.sha }}"
@@ -172,7 +172,7 @@ jobs:
 
       # Revision 1: el estado bueno conocido, al que se vuelve si el nuevo falla.
       - name: Establecer la revision anterior
-        run: bash infra/k8s/desplegar.sh produccion latest
+        run: python infra/k8s/desplegar.py produccion latest
 
       - name: Desplegar la version nueva
         id: nueva
@@ -180,9 +180,9 @@ jobs:
         run: |
           if [ "${{ inputs.probar_reversion }}" = "true" ]; then
             echo "::warning::Prueba de reversion: se despliega una etiqueta inexistente a proposito."
-            bash infra/k8s/desplegar.sh produccion sha-0000000000000000000000000000000000000000
+            python infra/k8s/desplegar.py produccion sha-0000000000000000000000000000000000000000
           else
-            bash infra/k8s/desplegar.sh produccion "${{ github.sha }}"
+            python infra/k8s/desplegar.py produccion "${{ github.sha }}"
           fi
 
       - name: Revertir si no convergio

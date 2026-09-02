@@ -56,10 +56,42 @@ def exigir(condicion: bool, descripcion: str, detalle: str = "") -> None:
         fallos.append(descripcion)
 
 
+class SinKubectl(Exception):
+    """No hay `kubectl` en el PATH, o no responde."""
+
+
 def kubectl(*argumentos: str) -> str:
-    return subprocess.run(
-        ["kubectl", *argumentos], capture_output=True, text=True, check=True
-    ).stdout
+    """Corre kubectl y devuelve su salida.
+
+    NO DEJA QUE UNA EXCEPCION SE ESCAPE COMO TRAZA DE PYTHON.
+
+    La primera version llamaba con `check=True` y nada mas. Al correrlo en una
+    maquina sin `kubectl` en el PATH, el guion moria con veinte lineas de
+    `CalledProcessError` que no mencionan `kubectl` hasta el final.
+
+    **Un verificador que revienta es peor que uno que falla**: el que falla dice
+    que criterio no se cumple; el que revienta obliga a leer una traza para
+    averiguar si el defecto es del sistema o de la herramienta. Lo encontro
+    Alejandro corriendo esto en Windows el 2026-09-02, y es de la familia de
+    I-24: el control funcionaba solo donde ya estaba todo instalado.
+    """
+    try:
+        terminado = subprocess.run(
+            ["kubectl", *argumentos], capture_output=True, text=True, check=True
+        )
+    except FileNotFoundError:
+        raise SinKubectl(
+            "no hay `kubectl` en el PATH.\n"
+            "      Instalarlo:  winget install -e --id Kubernetes.kubectl\n"
+            "      Y abrir una consola nueva para que el PATH se actualice."
+        ) from None
+    except subprocess.CalledProcessError as error:
+        detalle = (error.stderr or error.stdout or "").strip().splitlines()
+        raise SinKubectl(
+            f"`kubectl {' '.join(argumentos[:3])}` fallo: "
+            f"{detalle[0] if detalle else 'sin mensaje'}"
+        ) from None
+    return terminado.stdout
 
 
 def leer(ruta: Path) -> dict:
@@ -89,11 +121,19 @@ def comprobar_manifiestos() -> None:
         f"declara {sorted(declaradas)}",
     )
 
-    guion = (K8S / "desplegar.sh").read_text(encoding="utf-8")
+    guion = (K8S / "desplegar.py").read_text(encoding="utf-8")
     exigir("newTag" in guion, "el guion de despliegue sabe reemplazar la etiqueta")
     exigir(
-        "rollout status" in guion,
+        '"rollout", "status"' in guion,
         "el guion espera a que converja: sin esto, `apply` siempre dice exito",
+    )
+    # El guion estuvo escrito en bash y no corria en ninguna maquina del equipo:
+    # winget instala kubectl como alias de WindowsApps y Git Bash no lo ejecuta.
+    # Era el quinto caso de I-24. Que nadie lo devuelva a bash sin darse cuenta.
+    exigir(
+        not (K8S / "desplegar.sh").exists(),
+        "el guion de despliegue no volvio a bash",
+        "en Windows, Git Bash no puede ejecutar el kubectl que instala winget",
     )
 
     api = leer(K8S / "base" / "api-deployment.yaml")
@@ -209,25 +249,32 @@ def comprobar_entorno(entorno: str, sha: str | None, tras_reversion: bool) -> No
     #
     # Es la leccion de I-10 aplicada aca: las sondas comprueban lo que se les
     # pidio comprobar. Esto pregunta de verdad, desde dentro del cluster.
-    salud = kubectl(
-        "-n",
-        namespace,
-        "run",
-        "prueba-salud",
-        "--rm",
-        "-i",
-        "--restart=Never",
-        "--image=curlimages/curl:8.10.1",
-        "--quiet",
-        "--",
-        "curl",
-        "-sf",
-        "-o",
-        "/dev/null",
-        "-w",
-        "%{http_code}",
-        "http://api:8000/salud",
-    ).strip()
+    #
+    # El fallo se convierte en un criterio en rojo y no en una excepcion: que la
+    # API no responda es justamente uno de los resultados que este verificador
+    # existe para reportar.
+    try:
+        salud = kubectl(
+            "-n",
+            namespace,
+            "run",
+            "prueba-salud",
+            "--rm",
+            "-i",
+            "--restart=Never",
+            "--image=curlimages/curl:8.10.1",
+            "--quiet",
+            "--",
+            "curl",
+            "-sf",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            "http://api:8000/salud",
+        ).strip()
+    except SinKubectl as error:
+        salud = f"no se pudo preguntar: {error}"
     exigir(salud.endswith("200"), "la API responde 200 en /salud desde el cluster", salud)
 
 
@@ -280,7 +327,13 @@ def main() -> int:
     if args.manifiestos:
         comprobar_manifiestos()
     if args.entorno:
-        comprobar_entorno(args.entorno, args.sha, args.tras_reversion)
+        # Un problema de herramienta se distingue de un criterio incumplido.
+        # Confundirlos hace perder tiempo buscando el defecto donde no esta.
+        try:
+            comprobar_entorno(args.entorno, args.sha, args.tras_reversion)
+        except SinKubectl as error:
+            print(f"\n  No se pudo hablar con el cluster: {error}\n")
+            return 2
     if args.comprobar_aprobacion:
         comprobar_aprobacion(args.comprobar_aprobacion)
 
