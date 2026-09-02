@@ -199,11 +199,10 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
-  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+> **H5.6 volvio a Avril el 2026-09-02**, por la clausula de devolucion de D-33:
+> «quien retome algo suyo lo avisa y se le devuelve, sin pedir permiso». Estaba
+> terminada y verificada antes del traspaso y se cierra el mismo dia. La entrada
+> vive ahora en `docs/tareas/avril.md`.
 
 - [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1

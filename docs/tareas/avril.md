@@ -30,6 +30,12 @@
 
 **Total asignado:** 74 puntos · 87.6 horas · 8.8 h por semana en promedio
 
+> Estas cifras salen de `docs/backlog.csv` y **todavia no incluyen H5.6**, que
+> volvio aca el 2026-09-02 por la clausula de devolucion de D-33. La celda
+> `responsable` de esa fila sigue diciendo `alejandro` y es un archivo compartido:
+> cuando el PM la cambie, el total pasa a 77 puntos y 92.3 h, y el Sprint 2 a
+> 16.3 h. Se deja escrito en vez de corregir la tabla, porque el CSV es la fuente.
+
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
@@ -55,7 +61,14 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 11.6 h
+## Sprint 2 (semanas 6-7) — 16.3 h
+
+- [x] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control (2026-09-02)
+  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
+  - horas: estimada 3.0 . real 0.7
+  - **Retomada el 2026-09-02** por la clausula de devolucion de **D-33**. Estaba
+    terminada y verificada antes del traspaso del 31 de agosto; lo que faltaba
+    era subirla, y eso es lo que se corrige aca.
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
