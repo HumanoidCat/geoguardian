@@ -1441,3 +1441,84 @@ sobre una base vacia, en vez de asumir que el camino feliz es el unico camino.
 **Impacto.** Ninguna hora perdida en H1.9 mas alla de reproducirlo. El costo real
 esta diferido a H1.10, que ahora arranca sabiendo lo que tiene que arreglar en
 vez de descubrirlo.
+
+---
+
+## I-20 · El arreglo de I-18 solo toco una de las tres tablas, y el control tampoco miraba las otras
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, al leer `crudo.medicion_diaria` para
+particionarla en H1.11.
+
+**Que paso.** La migracion **007** quito `CURRENT_DATE` del `CHECK` de
+`analitico.riesgo` el mismo dia en que se registro **I-18**. Nadie reviso el resto
+del esquema. Dos tablas seguian con el mismo defecto:
+
+    crudo.medicion_diaria   CHECK (fecha >= '1981-01-01' AND fecha <= CURRENT_DATE)
+    crudo.foco_calor        CHECK (fecha >= '2000-01-01' AND fecha <= CURRENT_DATE)
+
+`crudo.medicion_diaria` es **la tabla que guarda todo el dato crudo del
+proyecto**: 99 296 filas, las que alimentan el etiquetado, las senales y el
+modelo.
+
+**Causa raiz.** Dos, y la segunda es peor que la primera.
+
+**La primera:** se arreglo el sintoma donde se vio, y no se busco el patron.
+I-18 se descubrio escribiendo el verificador de H1.13, que mira `analitico.riesgo`,
+asi que la busqueda se detuvo en esa tabla. Nadie corrio la consulta obvia
+-«dame todos los CHECK del esquema que mencionen CURRENT_DATE»- que habria
+devuelto las tres de una vez.
+
+**La segunda:** los controles que se escribieron para que no se repitiera
+**nacieron con menos alcance que el defecto**. El criterio 9 de
+`verificar_h1_13.py` filtra por `conrelid = 'analitico.riesgo_auditoria'::regclass`
+y el criterio 14 de `verificar_h1_9.py` por `control.fallo`. Los dos pasan en
+verde con las dos tablas rotas al lado.
+
+**Un control con menos alcance que el defecto da la misma tranquilidad y ninguna
+proteccion.** Es peor que no tenerlo, porque cierra la busqueda.
+
+**Donde hacia dano, y no era donde se pensaba.** En `analitico.riesgo` el CHECK
+rompia la restauracion porque el limite era `CURRENT_DATE + 31 dias` y una fila
+futura dejaba de ser valida al dia siguiente. En `crudo.medicion_diaria` el limite
+es `<= CURRENT_DATE` y las fechas historicas nunca dejan de cumplirlo, asi que
+**la restauracion no se rompe**. El dano es otro:
+
+    CREATE TABLE m_2027 PARTITION OF m FOR VALUES FROM ('2027-01-01') ...
+      -> creada, sin una sola advertencia
+    INSERT INTO m VALUES ('50801', '2027-03-10', 1.0)
+      -> ERROR: new row violates check constraint
+
+**No se puede particionar hacia adelante.** La particion existe, se ve sana en el
+catalogo y no acepta una sola fila. Comprobado contra PostgreSQL 16 antes de
+escribir la migracion.
+
+Conviene anotar que **el mismo defecto tuvo dos consecuencias distintas en dos
+tablas distintas**. Buscar «el sintoma de I-18» en vez de «la construccion de
+I-18» fue justamente lo que hizo que no se encontrara.
+
+**Accion tomada.** La migracion `010_particionar_medicion.sql` quita el limite
+superior de las dos tablas y conserva el inferior, que es constante y atrapa el
+error real -una fecha de 1900 por un parseo malo-.
+
+Y el control se ensancho. El **criterio 14 de `verificar_h1_11.py`** ya no filtra
+por tabla: recorre `pg_constraint` en los cuatro esquemas y exige que **ninguna**
+restriccion `CHECK` contenga `CURRENT_DATE`, `now()`, `CURRENT_TIMESTAMP` ni
+`localtime`. Toda tabla nueva hereda la comprobacion sin que nadie tenga que
+acordarse de agregarla.
+
+**Aprendizaje.** **Cuando se arregla un defecto, el control que lo atrapa se
+escribe sobre la clase, no sobre el caso.** La pregunta al cerrar una incidencia
+no es «¿arregle esto?» sino «¿cuantos sitios mas tienen esta forma, y como me
+entero del proximo?».
+
+La consulta que lo habria encontrado el 2026-09-01 por la manana cabe en cinco
+lineas y ahora es un criterio permanente. Escribirla el dia de I-18 habria costado
+diez minutos; no escribirla costo que el dato crudo del proyecto quedara tres
+migraciones con una restriccion que impedia crecer.
+
+**Impacto.** Ninguna fila perdida y ninguna carga fallida: el limite `<=
+CURRENT_DATE` no rechaza dato historico. El costo cierto fue el bloqueo de H1.11
+-que no podia crear particiones utilizables- y el riesgo diferido de que la carga
+del proximo anio fallara en produccion sin causa visible.
