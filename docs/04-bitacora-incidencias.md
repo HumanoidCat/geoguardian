@@ -1754,6 +1754,29 @@ llevan escritos, sin forma de saber cuantas veces alguien renuncio a correr uno 
 mando el PR a ciegas. Las horas de diagnostico las absorbio Avril, que ademas
 identifico el patron.
 
+**Actualizacion del mismo dia: apareció el quinto, y lo produjo esta incidencia.**
+
+El guion de despliegue de H11.2 se escribio en bash y **no corria en ninguna
+maquina del equipo**. El motivo es nuevo y vale anotarlo: winget instala
+`kubectl` como **alias de linea de comandos**, uno de los reparse points de
+`WindowsApps`. PowerShell lo ejecuta, Python lo ejecuta, **Git Bash no**, ni
+siquiera lo encuentra con `command -v`.
+
+El sintoma fue el peor posible: el guion decia «falta kubectl» mientras el
+verificador de al lado, en Python, hablaba con el cluster sin problema.
+
+Dos cosas se aprendieron que no estaban arriba:
+
+  * **`command -v` pregunta si existe un archivo. La pregunta era si se puede
+    ejecutar.** Las dos respuestas difieren justo en el caso que importaba.
+  * Se podia arreglar pidiendole a cada uno que bajara el binario real. Eso es
+    **resolver el sintoma en cuatro maquinas en vez de la causa en un archivo**,
+    y deja la trampa puesta para el proximo que clone el repositorio.
+
+El guion se reescribio en Python, que ya es requisito del proyecto y resuelve
+los ejecutables como los resuelve el sistema operativo. `verificar_cd.py`
+comprueba que no vuelva a bash, con el motivo escrito al lado.
+
 ---
 
 ## I-25 · Dos verificaciones del CI corrian sin impedir ninguna fusion

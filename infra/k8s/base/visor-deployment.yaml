@@ -1,0 +1,84 @@
+# El visor dentro de Kubernetes. Historia H11.2.
+#
+# ---------------------------------------------------------------------------
+# ESTE DESPLIEGUE ES EL MOTIVO DE SC-07
+# ---------------------------------------------------------------------------
+#
+# La solicitud SC-07 saco la configuracion de nginx del `printf` del Dockerfile
+# y la puso en `nginx.conf.template`, con `DESTINO_API` como variable de
+# entorno. El argumento escrito entonces era: **que H11.2 y H11.3 puedan apuntar
+# el visor a otra API sin reconstruir la imagen**.
+#
+# Esto es ese uso. La misma imagen del registro sirve para los tres entornos, y
+# lo unico que cambia es esta variable.
+#
+# Y por eso importa la barra final. `proxy_pass $destino_api;` concatena el
+# valor tal cual con el URI reescrito: `http://api:8000/` produciria
+# `//distritos` en cada peticion, sin fallar al arrancar y sin aparecer en
+# ningun registro. El guion `05-destino-api.envsh` la recorta, y el verificador
+# de esta historia comprueba que el valor de aca no la traiga.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visor
+  labels:
+    app.kubernetes.io/name: visor
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: visor
+  # Aca si RollingUpdate: el visor no tiene estado y servir la version vieja
+  # unos segundos de mas no rompe nada.
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: visor
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: geoguardian
+    spec:
+      containers:
+        - name: visor
+          image: ghcr.io/humanoidcat/geoguardian/visor:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            # Sin barra final. Ver el comentario de arriba.
+            #
+            # El nombre `api` es el del Service, no un nombre de maquina: dentro
+            # del namespace resuelve solo. En otro namespace habria que escribir
+            # api.<namespace>.svc.cluster.local, y eso es lo que haria falta el
+            # dia que un entorno consuma la API de otro.
+            - name: DESTINO_API
+              value: http://api:8000
+          # nginx sirve archivos estaticos: si el proceso esta vivo, responde.
+          # La sonda va a `/` y no a un endpoint de salud propio porque el visor
+          # no tiene backend que consultar; inventarle uno seria comprobar la
+          # sonda y no el servicio.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
