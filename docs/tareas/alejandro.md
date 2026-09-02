@@ -157,13 +157,43 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
+- [x] **H1.11** · Particionar mediciones por anio y medir efecto en consultas (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.11-particionado-medicion.md`
+  - Migracion `010_particionar_medicion.sql`, verificador
+    `basedatos/verificar_h1_11.py`: **14 de 14 criterios** contra PostgreSQL real.
+    99 296 filas migradas en 1.54 s, 37 particiones, la DEFAULT vacia.
+  - **El efecto se midio, no se supuso.** `basedatos/medir_particionado.py`
+    construye las dos formas de la tabla con las mismas filas y corre las mismas
+    consultas: el visor mejora **84 %**, el pliegue de H3.2 **35 %**, y el
+    agregado anual empeora **4 %**. Se adopta porque lo que mejora esta en el
+    camino del usuario y lo que empeora corre fuera de linea.
+  - **I-20**: el arreglo de I-18 solo habia tocado una de las tres tablas, y los
+    controles que se escribieron para atajarlo miraban una tabla cada uno. El
+    criterio 14 ahora recorre los cuatro esquemas enteros.
+  - El criterio 6 es el que mas vale: comprueba que el upsert idempotente de H1.1
+    sobrevive al particionado. Si fallara, la ingesta duplicaria en silencio.
+  - horas: estimada 4.8 . real 3.1
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
+- [x] **H1.12** · Indices espaciales y compuestos con planes antes y despues (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.12-indices.md`
+  - Migracion `011_indices.sql`, verificador `basedatos/verificar_h1_12.py`:
+    **11 criterios que miran el PLAN**, no el catalogo. Un indice que existe y el
+    planificador nunca elige es coste puro.
+  - **Se midieron cuatro candidatos y entraron tres.** `medicion_fecha_ix` se
+    descarto: la consulta iba 8 % mas rapida con el creado, pero el indice **no
+    aparece en el plan**. Ese 8 % era cache. Es el motivo por el que el banco
+    comprueba el plan y no solo el reloj.
+  - **El criterio de aceptacion estaba mal planteado y la medicion lo dijo.**
+    Empezo en «ahorra mas de 0,5 ms» y eso descartaba `riesgo_fecha_evento_ix`
+    por 0,05 ms. Midiendo a cuatro tamanos, el ahorro crece de 0,49 ms a 10,09 ms
+    -de 8,5x a 90,6x- mientras la consulta indexada se queda plana. La regla paso
+    a ser **que tipo de escaneo reemplaza**, no cuantos milisegundos ahorra hoy.
+  - El punto de partida era **un solo indice secundario en todo el proyecto**.
+  - horas: estimada 4.8 . real 2.8
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
