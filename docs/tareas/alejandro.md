@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 184 puntos · 278.6 horas · 27.9 h por semana en promedio
+**Total asignado:** 176 puntos · 269.1 horas · 26.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -36,7 +36,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
-| S2 | semanas 6-7 | 113.1 | 36 | SOBRECARGA +77 h |
+| S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
@@ -136,7 +136,7 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 113.1 h
+## Sprint 2 (semanas 6-7) — 103.6 h
 
 
 - [x] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos (2026-09-01)
@@ -229,20 +229,8 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
-  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-
 - [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
