@@ -28,16 +28,16 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 125 puntos · 154 horas · 15.4 h por semana en promedio
+**Total asignado:** 96 puntos · 124.2 horas · 12.4 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 18.3 | 36 | holgado |
-| S1 | semanas 4-5 | 30.9 | 36 | ajustado |
-| S2 | semanas 6-7 | 31.5 | 36 | ajustado |
-| S3 | semanas 8-9 | 39.2 | 36 | SOBRECARGA +3 h |
+| S1 | semanas 4-5 | 24.9 | 36 | holgado |
+| S2 | semanas 6-7 | 0.0 | 36 | holgado |
+| S3 | semanas 8-9 | 47.0 | 36 | SOBRECARGA +11 h |
 | S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
@@ -60,30 +60,7 @@
   - Evidencia: `docs/evidencias/bases-de-datos/H1.3-ddl-geometrias.md`
 
 
-## Sprint 1 (semanas 4-5) — 30.9 h
-
-- [ ] **H1.15** · Crear `analitico.riesgo` con sus restricciones
-  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.3, H1.8 · **bloquea a: H1.13**
-  - **Abierta el 2026-08-27** por decision del PM, despues de que la detectaras
-    al intentar H1.13. La tabla no existia y ninguna historia la creaba.
-  - **No se metio dentro de H1.13** a proposito: esa historia es el disparador de
-    auditoria, y juntar el esquema con el disparador hace que discutir uno
-    arrastre al otro.
-  - Se puede construir y probar **contra una tabla vacia**, asi que no espera al
-    modelo de E3.
-  - Dos cosas que el DDL tiene que cumplir, y no son negociables:
-    - `probabilidad` es **P(nivel = alto)**, por **D-21**. Que el `COMMENT` de la
-      columna lo diga, no solo el contrato.
-    - **La ausencia es `NULL`, nunca `0`.** Un distrito sin estimacion tiene que
-      poder distinguirse de uno con riesgo bajo. Es **D-07**, y es lo que el
-      etiquetado y el visor ya hacen.
-
-- [ ] **H1.13** · Trigger de auditoria sobre predicciones, con prueba
-  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8, H1.15
-  - **Desbloqueada el 2026-08-27.** Estuvo detenida porque `analitico.riesgo` no
-    existia y ninguna historia la creaba, con H1.8 -su dependencia declarada- ya
-    cerrada. Ahora depende tambien de **H1.15**, que si la crea.
-  - La dependencia es real y medida, no inventada para desatascar el tablero.
+## Sprint 1 (semanas 4-5) — 24.9 h
 
 - [x] **H1.4** · Declarar los criterios de imputacion y probarlos contra huecos inyectados (2026-08-27)
   - `E1` · 3 pts · 4.7 h · rubrica: BD-1 · depende de: H1.1 · **bloquea a: H1.7**
@@ -118,23 +95,7 @@
   - horas: estimada n/d (no hubo estimacion propia previa) . real 3.0
 
 
-## Sprint 2 (semanas 6-7) — 31.5 h
-
-- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
-  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
-
-- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
-  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
-
-- [ ] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos
-  - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
-
-- [ ] **H2.5** · Generar lags, acumulados y medias moviles reproducibles
-  - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
-
-- [ ] **H3.3** · Entrenar y evaluar Regresion Logistica
-  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
-
+## Sprint 2 (semanas 6-7) — 0.0 h
 
 ## Sprint 3 (semanas 8-9) — 47.0 h
 

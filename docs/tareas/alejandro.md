@@ -28,16 +28,16 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 123 puntos · 206.8 horas · 20.7 h por semana en promedio
+**Total asignado:** 176 puntos · 269.1 horas · 26.9 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
-| S1 | semanas 4-5 | 22.8 | 36 | holgado |
-| S2 | semanas 6-7 | 59.5 | 36 | SOBRECARGA +23.5 h |
-| S3 | semanas 8-9 | 35.7 | 36 | ajustado |
+| S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
+| S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
+| S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
@@ -75,20 +75,171 @@
   - `E8` · 8 pts · 12.5 h · rubrica: Arq · depende de: H8.1
 
 
-## Sprint 1 (semanas 4-5) — 22.8 h
+## Sprint 1 (semanas 4-5) — 36.4 h
 
+
+- [x] **H1.15** · Crear `analitico.riesgo` con sus restricciones (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.15-analitico-riesgo.md`
+  - Migracion `006_analitico_riesgo.sql`, verificador `basedatos/verificar_h1_15.py`:
+    **15 de 15 criterios** contra PostgreSQL 16.2. Cada restriccion se
+    ejercita intentando violarla.
+  - horas: estimada 2.9 . real 2.0
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.3, H1.8 · **bloquea a: H1.13**
+  - **Abierta el 2026-08-27** por decision del PM, despues de que la detectaras
+    al intentar H1.13. La tabla no existia y ninguna historia la creaba.
+  - **No se metio dentro de H1.13** a proposito: esa historia es el disparador de
+    auditoria, y juntar el esquema con el disparador hace que discutir uno
+    arrastre al otro.
+  - Se puede construir y probar **contra una tabla vacia**, asi que no espera al
+    modelo de E3.
+  - Dos cosas que el DDL tiene que cumplir, y no son negociables:
+    - `probabilidad` es **P(nivel = alto)**, por **D-21**. Que el `COMMENT` de la
+      columna lo diga, no solo el contrato.
+    - **La ausencia es `NULL`, nunca `0`.** Un distrito sin estimacion tiene que
+      poder distinguirse de uno con riesgo bajo. Es **D-07**, y es lo que el
+      etiquetado y el visor ya hacen.
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [x] **H1.13** · Trigger de auditoria sobre predicciones, con prueba (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.13-auditoria-riesgo.md`
+  - Migracion `008_auditoria_riesgo.sql`, verificador `basedatos/verificar_h1_13.py`:
+    **12 de 12 criterios** contra PostgreSQL real. Cada uno cambia una fila y
+    mira si aparecio el registro.
+  - horas: estimada 2.9 . real 1.5
+  - `E1` · 3 pts · 2.9 h · rubrica: BD-2 · depende de: H1.8, H1.15
+  - **Desbloqueada el 2026-08-27.** Estuvo detenida porque `analitico.riesgo` no
+    existia y ninguna historia la creaba, con H1.8 -su dependencia declarada- ya
+    cerrada. Ahora depende tambien de **H1.15**, que si la crea.
+  - La dependencia es real y medida, no inventada para desatascar el tablero.
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 - [ ] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
 
-- [ ] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io
+- [x] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io (2026-09-01)
   - `E11` · 5 pts · 4.8 h · rubrica: CICD · depende de: H6.0, H6.1 · **bloquea a: H11.2**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.1-imagenes-ghcr.md`
+  - El verificador corre las imagenes y **encontro que el visor no arrancaba
+    fuera de docker compose**. Arreglado por SC-07. api 6 de 6, visor 8 de 8.
+  - horas: estimada 4.8 . real 5.5
 
 - [x] **H13.1** · Actas de las ceremonias Scrum: planning, dailies, review y retrospectiva (2026-08-16)
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 59.5 h
+## Sprint 2 (semanas 6-7) — 103.6 h
 
+
+- [x] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.9-funciones-y-bitacora.md`
+  - Migracion `009_funciones_y_bitacora_fallos.sql`, verificador
+    `basedatos/verificar_h1_9.py`: **22 de 22 criterios** contra PostgreSQL real.
+    Cada uno provoca el error y mira si la funcion siguio y si dejo registro.
+  - `control.fallo` mas `analitico.registrar_riesgo` y `registrar_riesgo_lote`.
+    La regla del modulo es **se puede continuar, nunca callar**.
+  - Tres defectos aparecieron solo al ejecutar: `numeric(5,4)` desborda antes de
+    que corra el CHECK, `'ayer'::date` da 22007 y no 22P02, y las conversiones
+    del lote ocurrian **fuera** del bloque que las atrapaba.
+  - De paso quedaron registradas **I-18** -que se referenciaba en cuatro sitios y
+    nunca se habia escrito- e **I-19**, el hallazgo de Cesar sobre los esquemas.
+  - horas: estimada 7.7 . real 3.4
+  - `E1` · 8 pts · 7.7 h · rubrica: BD-3 · depende de: H1.8 · **bloquea a: H1.10, H12.1**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [x] **H1.11** · Particionar mediciones por anio y medir efecto en consultas (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.11-particionado-medicion.md`
+  - Migracion `010_particionar_medicion.sql`, verificador
+    `basedatos/verificar_h1_11.py`: **14 de 14 criterios** contra PostgreSQL real.
+    99 296 filas migradas en 1.54 s, 37 particiones, la DEFAULT vacia.
+  - **El efecto se midio, no se supuso.** `basedatos/medir_particionado.py`
+    construye las dos formas de la tabla con las mismas filas y corre las mismas
+    consultas: el visor mejora **84 %**, el pliegue de H3.2 **35 %**, y el
+    agregado anual empeora **4 %**. Se adopta porque lo que mejora esta en el
+    camino del usuario y lo que empeora corre fuera de linea.
+  - **I-20**: el arreglo de I-18 solo habia tocado una de las tres tablas, y los
+    controles que se escribieron para atajarlo miraban una tabla cada uno. El
+    criterio 14 ahora recorre los cuatro esquemas enteros.
+  - El criterio 6 es el que mas vale: comprueba que el upsert idempotente de H1.1
+    sobrevive al particionado. Si fallara, la ingesta duplicaria en silencio.
+  - horas: estimada 4.8 . real 3.1
+  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [x] **H1.12** · Indices espaciales y compuestos con planes antes y despues (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.12-indices.md`
+  - Migracion `011_indices.sql`, verificador `basedatos/verificar_h1_12.py`:
+    **11 criterios que miran el PLAN**, no el catalogo. Un indice que existe y el
+    planificador nunca elige es coste puro.
+  - **Se midieron cuatro candidatos y entraron tres.** `medicion_fecha_ix` se
+    descarto: la consulta iba 8 % mas rapida con el creado, pero el indice **no
+    aparece en el plan**. Ese 8 % era cache. Es el motivo por el que el banco
+    comprueba el plan y no solo el reloj.
+  - **El criterio de aceptacion estaba mal planteado y la medicion lo dijo.**
+    Empezo en «ahorra mas de 0,5 ms» y eso descartaba `riesgo_fecha_evento_ix`
+    por 0,05 ms. Midiendo a cuatro tamanos, el ahorro crece de 0,49 ms a 10,09 ms
+    -de 8,5x a 90,6x- mientras la consulta indexada se queda plana. La regla paso
+    a ser **que tipo de escaneo reemplaza**, no cuantos milisegundos ahorra hoy.
+  - El punto de partida era **un solo indice secundario en todo el proyecto**.
+  - horas: estimada 4.8 . real 2.8
+  - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [x] **H2.5** · Generar lags, acumulados y medias moviles reproducibles (2026-09-01)
+  - Evidencia: `docs/evidencias/senales-y-sistemas/H2.5-caracteristicas.md`
+  - `backend/senales/caracteristicas.py`, 16 pruebas. La que importa es la de
+    fuga al futuro, **comprobada contra una fuga real de un solo dia**.
+  - horas: estimada 4.8 . real 3.0
+  - `E2` · 5 pts · 4.8 h · rubrica: OE2 · depende de: H2.3 · **bloquea a: H2.6**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [x] **H3.3** · Entrenar y evaluar Regresion Logistica (2026-09-01)
+  - Evidencia: `docs/evidencias/objetivos/H3.3-regresion-logistica.md`
+  - `generar_caracteristicas.py` arma la matriz desde `crudo.medicion_diaria` con
+    las transformaciones de H2.5; `comparar()` la consume y el estimador entra en
+    la tabla de H3.6. **17 criterios** en `verificar_h33.py` y **11 pruebas** en
+    `test_generar_caracteristicas.py`.
+  - Tres defectos aparecieron midiendo la matriz: un umbral absoluto que la
+    ventana de 3 dias no puede cumplir nunca -0 % de rendimiento-, acumulados
+    colineales con sus medias en las variables que no se suman, y columnas
+    constantes que `StandardScaler` no denuncia. De 44 columnas a 27.
+  - **D-34 pasa del ADR al codigo**: la sequia queda declarada no modelable, con
+    sus 9 episodios contra los 30 que pide CA-6 de H3.0.
+  - El estimador ya estaba escrito y probado desde el PR #217; esta entrega es la
+    matriz y el cableado.
+  - horas: estimada 9.4 . real 4.2
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.4, H3.5**
+  - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+
+- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
+  - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
+  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
@@ -153,7 +304,7 @@
   - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
-## Sprint 3 (semanas 8-9) — 35.7 h
+## Sprint 3 (semanas 8-9) — 40.4 h
 
 - [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**

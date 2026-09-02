@@ -51,10 +51,32 @@ from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 MINIMO_POSITIVAS_TOTAL = 30
 MINIMO_POSITIVAS_POR_PARTICION = 10
 
-# H3.2 todavia no existe. Para poder decir algo hoy sobre "por particion", se
-# supone la forma mas comun de ventana expansiva: cinco pliegues. Si H3.2 elige
-# otra, esta cuenta se rehace, y por eso se declara en la salida.
-PLIEGUES_SUPUESTOS = 5
+# ANTES SE SUPONIAN CINCO PLIEGUES Y SE DIVIDIA. AHORA SE MIDEN.
+#
+# Este modulo decia:
+#
+#     # H3.2 todavia no existe. Para poder decir algo hoy sobre "por particion",
+#     # se supone la forma mas comun de ventana expansiva: cinco pliegues.
+#     PLIEGUES_SUPUESTOS = 5
+#
+# y evaluaba CA-6 contra `episodios_totales / 5`. Era honesto cuando se escribio
+# -H3.2 no existia- y **dejo de serlo el dia que H3.2 se cerro**, sin que nada
+# avisara.
+#
+# EL PROBLEMA NO ES LA APROXIMACION: ES QUE MIDE OTRA COSA
+#
+# CA-6 dice «menos de 10 en **cualquier** particion de entrenamiento -> no se
+# modela». Eso es un **minimo**, y una division da un **promedio**.
+#
+# Con ventana expansiva no son intercambiables: el pliegue 1 entrena con la
+# rebanada mas chica y el 5 con casi toda la serie. El promedio puede quedar
+# comodo mientras el primero no llega. **Un evento podria declararse modelable
+# violando el criterio que dice serlo.**
+#
+# Se detecto el 2026-09-01, al revisar por que la sequia bajo de 110 a 78
+# episodios con D-32 (ver I-18). 78/5 = 15,6 pasa el umbral de 10; lo que nadie
+# habia medido es cuantos tiene el pliegue 1.
+from backend.modelado.particion import particionar  # noqa: E402
 
 
 def leer_precipitacion(cursor) -> dict[str, dict[date, float | None]]:
@@ -119,6 +141,76 @@ def episodios(etiquetas: list[Etiqueta], evento: TipoEvento) -> int:
     return cuenta
 
 
+def episodios_por_pliegue(
+    por_distrito: dict[str, list[Etiqueta]], evento: TipoEvento
+) -> list[int] | None:
+    """Episodios en el **entrenamiento** de cada pliegue de H3.2.
+
+    Devuelve `None` si la particion no se puede calcular -por ejemplo porque el
+    periodo observado del evento no alcanza para los bloques pedidos-. `None` es
+    «no se pudo medir», que no es lo mismo que cero y no se debe tratar igual.
+
+    Se cuenta sobre el ENTRENAMIENTO y no sobre el pliegue entero porque CA-6
+    habla de «particion de entrenamiento»: lo que hace falta para aprender una
+    clase es haberla visto al ajustar, no al evaluar.
+    """
+    try:
+        pliegues = particionar(evento)
+    except Exception:  # noqa: BLE001 - periodo insuficiente u otro motivo declarado
+        return None
+
+    # Se cuenta a nivel CANTON, por D-34: un episodio que pega en los ocho
+    # distritos es uno, no ocho.
+    canton = rachas_del_canton(por_distrito, evento)
+    return [
+        sum(1 for i, f in canton if i >= desde and f <= hasta)
+        for desde, hasta in (p.entrenamiento for p in pliegues)
+    ]
+
+
+def rachas_del_canton(
+    por_distrito: dict[str, list[Etiqueta]], evento: TipoEvento
+) -> list[tuple[date, date]]:
+    """Episodios del **canton**: rachas de dias en que ALGUN distrito esta ALTO.
+
+    POR QUE NO SE SUMAN LOS DE CADA DISTRITO. **D-34.**
+
+    Una sequia que pega en los ocho distritos es UN fenomeno, no ocho. Sumando
+    por distrito contaba ocho veces, y **seis de las trece sequias del periodo
+    pegan en los ocho**.
+
+    Peor: los ocho distritos comparten la misma celda de NASA POWER -(-85,0 ·
+    10,5), medido en H1.5-, asi que buena parte de sus variables son literalmente
+    el mismo numero. Tratarlas como observaciones independientes le hace creer al
+    modelo que tiene ocho veces mas evidencia de la que hay.
+
+    Es el mismo razonamiento que `comparar_escalas_spi.py` ya aplicaba al
+    contrastar el catalogo -«los 7 registros son 1 fecha x 7 distritos, n
+    efectivo ~ 1»-. Lo que faltaba era traerlo a CA-6.
+    """
+    dias = sorted(
+        {
+            e.fecha
+            for lista in por_distrito.values()
+            for e in lista
+            if e.nivel(evento) is NivelRiesgo.ALTO
+        }
+    )
+    salida: list[tuple[date, date]] = []
+    inicio = anterior = None
+    for dia in dias:
+        if inicio is None:
+            inicio = anterior = dia
+        elif (dia - anterior).days == 1:
+            anterior = dia
+        else:
+            salida.append((inicio, anterior))
+            inicio = anterior = dia
+    if inicio is not None:
+        salida.append((inicio, anterior))
+    return salida
+
+
 def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> list[str]:
     """Imprime la distribucion y devuelve los eventos que NO son modelables."""
     no_modelables: list[str] = []
@@ -144,7 +236,7 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         # las siete son la misma deteccion. Ver `episodios()`.
         filas_alto = cuenta.get(NivelRiesgo.ALTO, 0)
         positivas = sum(episodios(lista, evento) for lista in por_distrito.values())
-        por_pliegue = positivas / PLIEGUES_SUPUESTOS
+        por_pliegue_real = episodios_por_pliegue(por_distrito, evento)
 
         # El porcentaje sobre el total mezcla filas observadas con filas que
         # nadie miro, y para incendio esa mezcla son 29 224 filas anteriores al
@@ -154,17 +246,44 @@ def informar(todas: list[Etiqueta], por_distrito: dict[str, list[Etiqueta]]) -> 
         if sin_dato:
             print(f"    sobre el total         {100 * filas_alto / total:5.2f} %")
             print(f"    sobre las OBSERVADAS   {100 * filas_alto / observadas:5.2f} %   <- el real")
-        print(f"  EPISODIOS distintos      {positivas}   <- lo que decide CA-6")
+        # LAS DOS CUENTAS, Y CUAL DECIDE. D-34.
+        #
+        # Se imprimen las dos a proposito: la de por distrito es la que estuvo
+        # en uso hasta el 2026-09-01 y aparece en documentos anteriores, asi que
+        # esconderla haria imposible entender por que un numero cambio.
+        canton = len(rachas_del_canton(por_distrito, evento))
+        print(f"  episodios por distrito   {positivas}   (suma; un evento en 8 distritos cuenta 8)")
+        print(f"  EPISODIOS DEL CANTON     {canton}   <- lo que decide CA-6, por D-34")
+        if canton:
+            print(f"    inflacion del conteo   {positivas / canton:.1f}x")
         if positivas:
             print(f"  filas por episodio       {filas_alto / positivas:.1f}")
-        print(f"  episodios por pliegue    {por_pliegue:.1f}   (con {PLIEGUES_SUPUESTOS} pliegues)")
+        if por_pliegue_real is None:
+            print("  episodios por pliegue    NO SE PUDO MEDIR: la particion de H3.2 no se calcula")
+            minimo = None
+        else:
+            minimo = min(por_pliegue_real)
+            detalle = ", ".join(str(n) for n in por_pliegue_real)
+            print(f"  episodios por pliegue    {detalle}   (entrenamiento de cada uno)")
+            print(f"    el MINIMO es           {minimo}   <- lo que evalua CA-6")
+            print(
+                f"    el promedio seria      {positivas / len(por_pliegue_real):.1f}   (no es el criterio)"
+            )
 
         razones = []
-        if positivas < MINIMO_POSITIVAS_TOTAL:
-            razones.append(f"{positivas} episodios en total, el minimo es {MINIMO_POSITIVAS_TOTAL}")
-        if por_pliegue < MINIMO_POSITIVAS_POR_PARTICION:
+        if canton < MINIMO_POSITIVAS_TOTAL:
             razones.append(
-                f"{por_pliegue:.1f} por pliegue, el minimo es {MINIMO_POSITIVAS_POR_PARTICION}"
+                f"{canton} episodios del canton en total, el minimo es {MINIMO_POSITIVAS_TOTAL}"
+            )
+        if minimo is None:
+            razones.append(
+                "no se pudo medir la distribucion por pliegue: sin eso CA-6 no se "
+                "puede afirmar, y no afirmarlo es lo conservador"
+            )
+        elif minimo < MINIMO_POSITIVAS_POR_PARTICION:
+            razones.append(
+                f"el pliegue mas pobre tiene {minimo} episodios de entrenamiento, "
+                f"y el minimo es {MINIMO_POSITIVAS_POR_PARTICION}"
             )
 
         if razones:

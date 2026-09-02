@@ -1310,3 +1310,277 @@ esta via **que se sepa**: nadie puede afirmar lo contrario, porque durante tres
 dias esas 46 pruebas no se ejecutaron en ningun PR. El costo cierto es el
 reporte de cobertura, que subestima en ocho puntos y llevaba tres dias siendo la
 cifra con la que se decidia donde faltaban pruebas.
+
+---
+
+## I-18 · Un CHECK con CURRENT_DATE dejaba el respaldo en verde y la restauracion imposible
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, escribiendo el criterio 9 del
+verificador de H1.13.
+
+**Que paso.** La migracion 006 declaraba, sobre `analitico.riesgo`:
+
+    CHECK (fecha >= DATE '1981-01-01'
+           AND fecha <= CURRENT_DATE + INTERVAL '31 days')
+
+La restriccion se creo sin protestar y el verificador de H1.15 daba 15 de 15.
+Pero `CURRENT_DATE` **no es inmutable**, y PostgreSQL reevalua el CHECK **en
+cada insercion**, no solo cuando la fila entro por primera vez.
+
+Comprobado contra PostgreSQL 16.2 el mismo dia:
+
+    INSERT con fecha 2026-10-02 (hoy + 31)  -> ACEPTADA
+    INSERT con fecha 2026-10-03 (hoy + 32)  -> RECHAZADA
+
+Esa segunda fila era valida ayer.
+
+**Causa raiz.** `pg_dump` emite fechas literales y **restaurar es reinsertar**.
+Una fila estimada para dentro de 31 dias es valida el dia del volcado y deja de
+serlo al dia siguiente. El respaldo se toma en verde y se descubre inservible
+cuando hace falta, que es el unico momento en que a nadie le sirve descubrirlo.
+
+El error de fondo no es la fecha: es haber puesto **una regla de operacion**
+-«el horizonte del sistema son siete dias»- en el lugar donde viven las **reglas
+de integridad**. Una regla de integridad tiene que ser cierta para siempre; esta
+solo era cierta hoy.
+
+**Donde cae.** Sobre **H1.10**, que es «estrategia de respaldo probada». Esa
+prueba pasaria mientras se corra el mismo dia del volcado y empezaria a fallar
+sola despues, sin que nadie tocara nada. Es la forma mas incomoda de **I-06**: un
+control que hoy esta verde y **cambia de veredicto con el calendario**.
+
+**Accion tomada.** La migracion `007_riesgo_correcciones.sql` quita el limite
+superior y conserva el inferior:
+
+    CHECK (fecha >= DATE '1981-01-01')
+
+**No se fijo una fecha constante en su lugar.** Eso solo cambia el problema de
+sitio: alguien tendria que acordarse de moverla y, el dia que se pase, la base
+empieza a rechazar estimaciones legitimas.
+
+El horizonte de siete dias pasa a hacerse cumplir **donde se escribe**, y desde
+**H1.9** eso es literal: `analitico.registrar_riesgo` lo comprueba con un `RAISE`
+propio de codigo `P0001` y registra el rechazo en `control.fallo`. La regla no
+desaparecio: se movio al lugar donde puede cambiar sin romper un volcado.
+
+**Aprendizaje.** **En un CHECK solo entran expresiones inmutables.** `now()`,
+`CURRENT_DATE` y `CURRENT_TIMESTAMP` son correctos como `DEFAULT` -se evaluan una
+vez y el valor queda congelado- y son un defecto como `CHECK` -se reevaluan
+siempre-. La misma funcion, dos lugares, y en uno de ellos es una bomba de
+tiempo.
+
+PostgreSQL **no impide** crear el CHECK, asi que el compilador no ayuda: el
+control tiene que ser explicito. Quedo escrito como criterio en **dos**
+verificadores, el 9 de `verificar_h1_13.py` y el 14 de `verificar_h1_9.py`, que
+leen `pg_get_constraintdef` y exigen que no aparezca ninguna de esas funciones.
+Toda tabla nueva del esquema hereda la comprobacion.
+
+**Impacto.** Ninguna fila perdida: la tabla estaba recien creada y vacia. El
+costo real habria sido descubrirlo en H1.10 o, peor, en una restauracion de
+verdad. Se detecto por escribir un verificador que muta filas en vez de leer el
+DDL, que es la misma leccion de I-06 y de I-17.
+
+---
+
+## I-19 · Los esquemas no los crean las migraciones, y sin Docker ninguna aplica
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Cesar Ubau lo reporto durante la revision de H1.15.
+Reproducido y confirmado por Alejandro Rodriguez al verificar H1.9.
+
+**Que paso.** Aplicar las nueve migraciones de `basedatos/ddl/` sobre una base
+vacia falla en **las nueve**:
+
+    ERROR en 001_control_migracion.sql -> schema "control" does not exist
+    ERROR en 002_geo_territorio.sql    -> schema "geo" does not exist
+    ERROR en 003_seguridad_roles.sql   -> database "geoguardian" does not exist
+    ...
+    ERROR en 009_funciones_y_bitacora_fallos.sql -> schema "control" does not exist
+
+**Causa raiz.** Los cuatro esquemas -`geo`, `crudo`, `analitico`, `control`- los
+crea `infra/docker/init-db/01-extensiones.sql`, junto con las extensiones. Docker
+ejecuta esa carpeta **una sola vez, cuando el volumen esta vacio**.
+
+O sea que **el estado inicial de la base vive en dos sitios**: una parte en
+`init-db`, que corre una vez y no esta versionada como migracion, y otra en
+`ddl/`, que si. Las migraciones no son autosuficientes y **nada lo dice**.
+
+En el flujo de todos los dias no se nota, porque `docker compose up` hace las dos
+cosas en el orden correcto. Se nota al levantar PostgreSQL fuera de Docker, al
+restaurar sobre una base limpia, o al querer verificar una migracion de forma
+aislada -que es exactamente lo que hacia falta para H1.9-.
+
+**Donde cae.** Sobre **H1.10**, «estrategia de respaldo probada». Una
+restauracion que empiece por una base vacia y aplique las migraciones **no
+funciona hoy**, y esa historia existe para demostrar que si.
+
+Es la misma familia que **I-18**, y las dos apuntan al mismo lugar: el respaldo
+esta en verde y nadie ha intentado restaurarlo todavia.
+
+**Accion tomada.** Se registra y **no se arregla en H1.9**. La correccion
+-mover la creacion de esquemas a una migracion `000`, o hacer que
+`aplicar_migraciones.py` la garantice- cambia el arranque de la base para todo el
+equipo y merece revisarse junto con la prueba de restauracion que la justifica.
+**Va con H1.10.**
+
+Para verificar H1.9 se replico `init-db` en el entorno de pruebas, y eso quedo
+anotado en el documento de evidencia: es un andamio de verificacion, no una
+solucion.
+
+**Aprendizaje.** **Si el estado inicial vive en dos sitios, uno de los dos se va
+a olvidar.** El principio que el proyecto viene repitiendo -una fuente, vistas
+derivadas, y una maquina que comprueba que coinciden- aplica igual al arranque de
+la base que a la matriz de trazabilidad o al backlog.
+
+Y la forma de detectarlo fue la misma de siempre: **intentar hacerlo de verdad**,
+sobre una base vacia, en vez de asumir que el camino feliz es el unico camino.
+
+**Impacto.** Ninguna hora perdida en H1.9 mas alla de reproducirlo. El costo real
+esta diferido a H1.10, que ahora arranca sabiendo lo que tiene que arreglar en
+vez de descubrirlo.
+
+---
+
+## I-20 · El arreglo de I-18 solo toco una de las tres tablas, y el control tampoco miraba las otras
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, al leer `crudo.medicion_diaria` para
+particionarla en H1.11.
+
+**Que paso.** La migracion **007** quito `CURRENT_DATE` del `CHECK` de
+`analitico.riesgo` el mismo dia en que se registro **I-18**. Nadie reviso el resto
+del esquema. Dos tablas seguian con el mismo defecto:
+
+    crudo.medicion_diaria   CHECK (fecha >= '1981-01-01' AND fecha <= CURRENT_DATE)
+    crudo.foco_calor        CHECK (fecha >= '2000-01-01' AND fecha <= CURRENT_DATE)
+
+`crudo.medicion_diaria` es **la tabla que guarda todo el dato crudo del
+proyecto**: 99 296 filas, las que alimentan el etiquetado, las senales y el
+modelo.
+
+**Causa raiz.** Dos, y la segunda es peor que la primera.
+
+**La primera:** se arreglo el sintoma donde se vio, y no se busco el patron.
+I-18 se descubrio escribiendo el verificador de H1.13, que mira `analitico.riesgo`,
+asi que la busqueda se detuvo en esa tabla. Nadie corrio la consulta obvia
+-«dame todos los CHECK del esquema que mencionen CURRENT_DATE»- que habria
+devuelto las tres de una vez.
+
+**La segunda:** los controles que se escribieron para que no se repitiera
+**nacieron con menos alcance que el defecto**. El criterio 9 de
+`verificar_h1_13.py` filtra por `conrelid = 'analitico.riesgo_auditoria'::regclass`
+y el criterio 14 de `verificar_h1_9.py` por `control.fallo`. Los dos pasan en
+verde con las dos tablas rotas al lado.
+
+**Un control con menos alcance que el defecto da la misma tranquilidad y ninguna
+proteccion.** Es peor que no tenerlo, porque cierra la busqueda.
+
+**Donde hacia dano, y no era donde se pensaba.** En `analitico.riesgo` el CHECK
+rompia la restauracion porque el limite era `CURRENT_DATE + 31 dias` y una fila
+futura dejaba de ser valida al dia siguiente. En `crudo.medicion_diaria` el limite
+es `<= CURRENT_DATE` y las fechas historicas nunca dejan de cumplirlo, asi que
+**la restauracion no se rompe**. El dano es otro:
+
+    CREATE TABLE m_2027 PARTITION OF m FOR VALUES FROM ('2027-01-01') ...
+      -> creada, sin una sola advertencia
+    INSERT INTO m VALUES ('50801', '2027-03-10', 1.0)
+      -> ERROR: new row violates check constraint
+
+**No se puede particionar hacia adelante.** La particion existe, se ve sana en el
+catalogo y no acepta una sola fila. Comprobado contra PostgreSQL 16 antes de
+escribir la migracion.
+
+Conviene anotar que **el mismo defecto tuvo dos consecuencias distintas en dos
+tablas distintas**. Buscar «el sintoma de I-18» en vez de «la construccion de
+I-18» fue justamente lo que hizo que no se encontrara.
+
+**Accion tomada.** La migracion `010_particionar_medicion.sql` quita el limite
+superior de las dos tablas y conserva el inferior, que es constante y atrapa el
+error real -una fecha de 1900 por un parseo malo-.
+
+Y el control se ensancho. El **criterio 14 de `verificar_h1_11.py`** ya no filtra
+por tabla: recorre `pg_constraint` en los cuatro esquemas y exige que **ninguna**
+restriccion `CHECK` contenga `CURRENT_DATE`, `now()`, `CURRENT_TIMESTAMP` ni
+`localtime`. Toda tabla nueva hereda la comprobacion sin que nadie tenga que
+acordarse de agregarla.
+
+**Aprendizaje.** **Cuando se arregla un defecto, el control que lo atrapa se
+escribe sobre la clase, no sobre el caso.** La pregunta al cerrar una incidencia
+no es «¿arregle esto?» sino «¿cuantos sitios mas tienen esta forma, y como me
+entero del proximo?».
+
+La consulta que lo habria encontrado el 2026-09-01 por la manana cabe en cinco
+lineas y ahora es un criterio permanente. Escribirla el dia de I-18 habria costado
+diez minutos; no escribirla costo que el dato crudo del proyecto quedara tres
+migraciones con una restriccion que impedia crecer.
+
+**Impacto.** Ninguna fila perdida y ninguna carga fallida: el limite `<=
+CURRENT_DATE` no rechaza dato historico. El costo cierto fue el bloqueo de H1.11
+-que no podia crear particiones utilizables- y el riesgo diferido de que la carga
+del proximo anio fallara en produccion sin causa visible.
+
+---
+
+## I-21 · El arreglo de I-17 se revirtio dos dias despues, y el CI siguio en verde
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Alejandro Rodriguez, comparando `ci.yml` entre `dev` y
+`main` al resolver los conflictos de la fusion semanal.
+
+**Que paso.** El PR **#208** (H10.2, de Luna) arreglo I-17 el 30 de agosto:
+cambio la ruta de `pytest backend/tests` a `pytest backend`, con lo que el CI
+paso a ejecutar las 198 pruebas del repositorio en vez de 152.
+
+El PR **#212** (H11.1, mio) la devolvio a `backend/tests` el 1 de septiembre.
+Junto con la linea se borro el bloque de catorce lineas de comentario que
+explicaba por que tenia que ser `backend`.
+
+**Durante dos dias el CI volvio a correr 152 de 198 pruebas, y estuvo verde todo
+el tiempo.**
+
+**Causa raiz.** Al agregar el trabajo de imagenes a `ci.yml`, la seccion de
+pruebas se **reescribio** en vez de editarse, partiendo de una copia del archivo
+anterior al arreglo. No fue una decision: fue un pegado.
+
+Lo que convierte el descuido en incidencia es lo otro: **ningun control podia
+detectarlo.**
+
+  * Las 46 pruebas que dejaron de correr **pasan**. Quitarlas no pone nada en
+    rojo: pone menos cosas en verde.
+  * `verificar_documentacion.py` comprueba que las cifras de la prosa coincidan
+    con el repositorio, pero **nadie escribio en ninguna parte «el CI corre 198
+    pruebas»**. No habia cifra que contrastar.
+  * El PR #212 se reviso y se fusiono con los checks en verde. La revision miro
+    lo que el PR agregaba, no lo que quitaba.
+
+**Es la forma mas dificil de I-06.** Un control que se apaga del todo se puede
+detectar; **uno que se estrecha, no**: sigue corriendo, sigue pasando, y solo
+cambia cuanto mira.
+
+**Y se encontro por casualidad.** Aparecio comparando dos ramas por otro motivo
+-los conflictos de la fusion a `main`- y porque `main` conservaba la version
+buena. Si el arreglo hubiera llegado a `main` despues de la reversion, no habria
+habido dos versiones que comparar y nadie lo habria visto.
+
+**Accion tomada.** Se restaura `pytest backend` y el bloque de comentarios, con
+una linea nueva que dice que **esto ya se revirtio una vez** y que quien toque el
+trabajo edite la linea en vez de reescribir el bloque.
+
+**Aprendizaje.** **Un control que solo puede fallar hacia menos no se vigila
+solo.** Para que el proyecto se entere del proximo, la cifra tiene que existir en
+algun sitio donde una maquina la pueda contrastar: si `docs/10-manual-tecnico.md`
+dijera «el CI ejecuta 198 pruebas», `verificar_documentacion.py` habria puesto
+rojo el mismo dia.
+
+Es la misma leccion que I-20 desde el otro lado. Alli el control era mas angosto
+que el defecto; aqui **el control se angosto solo y nada lo midio**.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa** — y nadie puede afirmar lo contrario, porque durante dos
+dias esas 46 pruebas no se ejecutaron en ningun PR. Se fusionaron cinco PR en esa
+ventana: #216, #217, #218, #219 y #220.

@@ -3478,3 +3478,354 @@ certeza absoluta donde menos informacion hay.
 **Criterio de revision.** Se vuelve sobre esto cuando el catalogo crezca. Con
 siete registros de una sola fecha, cualquier veredicto es fragil, y la propia
 `[15]` muestra el camino para ampliarlo: integrar IMN y prensa a DesInventar.
+
+---
+
+## D-33 · Las historias abiertas de Cesar y Avril en S1 y S2 pasan al PM
+
+**Fecha.** 2026-08-31 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+
+### Contexto
+
+Semana 9 de 12. **El Sprint 1 vencio en la semana 5 y sigue abierto**: 11 de 16
+historias. El Sprint 2 vencio en la semana 7 y va en 11 de 23. El Sprint 4, que
+arranca en la semana 10, no tiene ninguna historia empezada.
+
+Estado por persona al momento de decidir, calculado con `verificar_estado.py`:
+
+| | Cerradas | Puntos | Ultimo commit en `dev` |
+|---|---|---|---|
+| Luna | 12/17 · 71 % | 65/80 · 81 % | 2026-08-30 |
+| Alejandro | 11/23 · 48 % | 59/126 · 47 % | 2026-08-28 |
+| Cesar | 9/28 · 32 % | 38/131 · 29 % | **2026-08-27** |
+| Avril | 7/21 · 33 % | 35/97 · 36 % | **2026-08-26** |
+
+Cesar y Avril llevan **cinco y seis dias sin subir nada**, y no respondieron a
+las consultas enviadas por escrito el 2026-08-28 y el 2026-08-30.
+
+### Decision
+
+**Las 12 historias abiertas de Cesar y Avril en S1 y S2 quedan a nombre del PM**:
+58 puntos, 67.2 horas.
+
+    S1  H1.15  H1.13  (Cesar)     H1.6  (Avril)
+    S2  H1.9  H1.11  H1.12  H2.5  H3.3  (Cesar)
+        H5.6  H7.2  H10.3  H10.7  (Avril)
+
+El contenido de cada historia se traspasa **sin modificar**. No es una
+reduccion de alcance ni una correccion del trabajo previo.
+
+### Justificacion
+
+Esperar ya se probo. Entre el 2026-08-26 y el 2026-08-31 no hubo un solo
+commit de ninguno de los dos, con dos consultas escritas sin responder. Una
+quinta semana de espera es la misma apuesta que ya fallo cuatro veces, y el
+Sprint 4 arranca en la semana 10.
+
+### Consecuencias, declaradas aqui y no descubiertas despues
+
+La carga del PM queda asi:
+
+| Sprint | Horas | Compromiso | Exceso |
+|---|---|---|---|
+| S1 | 36.4 | 36 | +0.4 |
+| **S2** | **113.1** | 36 | **+77.1** |
+| S3 | 40.4 | 36 | +4.4 |
+| S4 | 52.8 | 36 | +16.8 |
+
+**Total pendiente del PM: 185.6 horas. Quedan unas tres semanas. Son 62 h por
+semana contra un compromiso de 18.**
+
+**Esta decision no cabe en el calendario y se toma sabiendolo.** Se registra el
+numero para que quede claro que no se decidio por desconocerlo: se decidio
+porque la alternativa -esperar- ya se probo durante cinco semanas y produjo un
+Sprint 1 abierto en la semana 9.
+
+Lo que sigue de aqui es una de dos, y conviene decirlo ahora:
+
+1. **Se cierra menos de lo asignado.** El incumplimiento pasa a ser del PM
+   aunque el origen sea ajeno, porque el tablero dira que las historias eran
+   suyas.
+2. **Se recortan alcances o se pide ayuda.** Luna se ofrecio por escrito el
+   2026-08-30 y tiene 32 h pendientes, la carga mas baja del equipo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Repartir entre el PM y Luna | La preferencia del PM fue no cargar a quien si viene cumpliendo. Es la unica alternativa que cabia en el calendario |
+| Reasignar solo lo que bloquea a otros | Deja el Sprint 1 abierto, que es lo que la decision busca cerrar |
+| Esperar y escalar al docente | Se mantiene disponible, no excluye lo anterior |
+
+### Lo que esta decision NO hace
+
+**No cierra las historias de S3 y S4 de Cesar y Avril**, que siguen a su nombre:
+81 h de Cesar y 61.6 h de Avril. Reasignar todo seria declarar que ya no se
+espera nada de ellos, y eso no se ha decidido.
+
+**No borra el registro.** Las historias traspasadas llevan la nota en
+`docs/tareas/alejandro.md` con la fecha y el origen. El historial de git
+conserva a quien estuvieron asignadas y desde cuando.
+
+**Y no es una evaluacion del trabajo hecho.** Lo que Cesar y Avril cerraron esta
+en la matriz de trazabilidad con su evidencia, y varias de esas historias son
+dependencias de las que siguen abiertas.
+
+### Medicion
+
+Se da por buena si el **Sprint 1 queda cerrado -16 de 16- antes del cierre de
+la semana 10**, que es el unico resultado que justifica haberla tomado.
+
+Se revisa si al cierre de la semana 10 el PM cerro **menos de 40 de las 67.2
+horas** traspasadas. Ese umbral no es una meta: es el punto en que insistir
+cuesta mas que recortar alcance o aceptar la ayuda de Luna.
+
+Las dos cifras salen de `verificar_estado.py`, no de una apreciacion.
+
+### Como se revierte
+
+Si Cesar o Avril retoman, se devuelve la historia con el mismo procedimiento y
+un registro nuevo. **No hay que preguntar**: quien quiera retomar algo suyo lo
+avisa y se le devuelve.
+
+### Evidencia
+
+`docs/evidencias/gestion/D-33-atraso-y-reasignacion.md`
+
+---
+
+## D-34 · Los episodios se cuentan a nivel canton, y la sequia no es modelable
+
+**Fecha.** 2026-09-01 · **Decide.** Alejandro · **Estado.** Aceptada
+**Revisa.** D-32 · **Afecta.** H3.0 (CA-6), H3.3, H3.6 y el documento IEEE
+
+### Contexto
+
+CA-6 de H3.0 fija, **antes de mirar el dato**, cuando un evento no se modela:
+
+    menos de 30 ventanas positivas en total             -> no se modela
+    menos de 10 en cualquier particion de entrenamiento -> no se modela
+
+Al preparar H3.3 se fue a comprobar ese segundo umbral y aparecieron **dos
+defectos en como se estaba evaluando**, no en el criterio.
+
+### Defecto 1 · Se comparaba un promedio contra un minimo
+
+`generar_etiquetas.py` dividia los episodios totales entre cinco pliegues
+supuestos. El comentario decia por que -H3.2 no existia cuando se escribio- y
+**dejo de ser cierto el dia que H3.2 se cerro, sin que nada avisara**.
+
+CA-6 dice «en **cualquier** particion». Eso es un minimo. Con ventana expansiva
+el pliegue 1 entrena con la rebanada mas chica y el 5 con casi toda la serie, asi
+que promedio y minimo no son intercambiables.
+
+### Defecto 2 · Los episodios estaban inflados por distrito
+
+Se contaban rachas de dias ALTO **por distrito y se sumaban**. Una sequia que
+pega en los ocho distritos a la vez cuenta ocho veces.
+
+**No es un detalle: seis de las trece sequias del periodo pegan en los ocho.**
+
+    distritos afectados     episodios del canton
+      1 distrito                  2
+      3 distritos                 2
+      5 distritos                 1
+      6 distritos                 2
+      8 distritos                 6
+
+El proyecto **ya habia aplicado este razonamiento en otro lado**:
+`comparar_escalas_spi.py` declara que «los 7 registros son 1 fecha x 7 distritos,
+asi que n efectivo ~ 1» al contrastar el catalogo. Lo que faltaba era aplicarlo
+a CA-6.
+
+### Decision
+
+**Los episodios se cuentan a nivel canton.** Un episodio es una racha de dias en
+que **algun** distrito esta en ALTO. Y **CA-6 se evalua contra el minimo por
+pliegue de entrenamiento**, no contra el promedio.
+
+Con eso, **la sequia no es modelable** y se declara asi.
+
+### Medicion
+
+    evento           por distrito   canton real   inflacion
+    lluvia_intensa            496           163        3,0x
+    sequia                     78            13        6,0x
+    incendio                  106            67        1,6x
+
+Episodios independientes en el **entrenamiento** de cada pliegue:
+
+    lluvia_intensa    31 · 60 · 89 · 109 · 129    minimo 31   modelable
+    sequia             2 ·  3 ·  3 ·   6 ·   9    minimo  2   NO MODELABLE
+    incendio          16 · 21 · 28 ·  44 ·  55    minimo 16   modelable
+
+**La sequia no falla por poco: falla en los cinco pliegues.** El mas rico tiene
+9 y el umbral es 10.
+
+**La inflacion tampoco es pareja** -3,0x contra 6,0x contra 1,6x-, asi que el
+conteo por distrito ni siquiera sobreestimaba de forma consistente: distorsionaba
+la comparacion **entre** eventos.
+
+### Justificacion
+
+Contar por distrito supondria que ocho filas del mismo dia son ocho
+observaciones. Comparten el fenomeno meteorologico, y **los ocho distritos
+comparten ademas la misma celda de NASA POWER** -(-85,0 · 10,5), medido en
+H1.5-, asi que buena parte de sus variables son literalmente el mismo numero.
+
+Un modelo que las trate como independientes cree tener ocho veces mas evidencia
+de la que hay. Es el mismo error que D-32 ya habia declarado al medir el
+catalogo, y sostenerlo aca y no alla seria incoherente.
+
+### Consecuencias
+
+**El alcance del modelado baja de tres eventos a dos.** H3.3, H3.4 y H3.5
+comparan algoritmos sobre lluvia intensa e incendio. La sequia entra a la tabla
+de H3.6 **declarada no modelable con su medicion al lado**, no omitida.
+
+**Y esto es un resultado, no una perdida.** D-32 cambio la escala del SPI de 3 a
+6 porque el contraste contra el catalogo daba **0 de 7**; con SPI-6 da **7 de 7**.
+La misma decision que arreglo la validacion externa **redujo la muestra por debajo
+del umbral de modelado**: las rachas se volvieron mas largas y menos -de 66 filas
+por episodio a 100- y los episodios independientes cayeron.
+
+**Es un compromiso medido entre detectar y modelar**, con datos propios, y va a
+la seccion de resultados del documento IEEE.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no |
+|---|---|
+| Bajar el umbral de CA-6 | Se fijo antes de ver el dato justamente para esto. Y ya no seria de 10 a 9: seria de 10 a 2 |
+| Usar menos pliegues | Con 13 episodios totales, ni dos pliegues llegan a 10 |
+| Seguir contando por distrito | Es lo que produjo el problema, y el proyecto ya lo rechazo al medir el catalogo |
+| Volver a SPI-3 | Recupera muestra y **pierde la validacion externa**: 0 de 7 contra el catalogo. Cambiar un criterio para satisfacer otro, en la direccion que ya se midio como peor |
+| Omitir la sequia del documento | Un evento ausente sin explicacion es indistinguible de un olvido |
+
+### Como se revierte
+
+Si aparece mas serie -la ETL llega hasta 2024 por el limite de los focos- o si se
+amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
+decision depende del numero, no de una preferencia: **se rehace corriendo
+`generar_etiquetas.py`**.
+
+---
+
+## D-35 · La clausula de reversion de D-33 se ejerce, y devuelve dos de las doce historias
+
+**Fecha.** 2026-09-02 · **Decide.** Alejandro, a peticion de Avril · **Estado.** Aceptada
+**Revisa.** D-33 · **Afecta.** H5.6, H10.3, H10.7, H1.6
+
+### Contexto
+
+**D-33** traspaso al PM las doce historias abiertas de S1 y S2 que estaban a
+nombre de Cesar y Avril, y dejo escrita la salida: *«quien quiera retomar algo
+suyo lo avisa y se le devuelve, sin discutir y sin pedir permiso»*.
+
+Esa clausula no se habia usado nunca. Al pedirle al equipo respuesta por historia
+antes del jueves, Avril respondio por las trece que tenia abiertas y pidio dos de
+vuelta. Es la primera vez que la reversion se ejerce, asi que conviene dejar
+escrito **como se resolvio**, porque el criterio va a hacer falta otra vez.
+
+### Decision
+
+**Se devuelven H5.6 y H10.3. Se quedan con el PM H1.6 y H10.7.**
+
+| Historia | Vuelve a | Por que |
+|---|---|---|
+| **H5.6** | Avril | **Ya estaba hecha.** El trabajo existe en `feature/ame-h5.6-crtm05` con 25 controles contra `pyproj`. Empezarla de nuevo habria tirado ese trabajo y producido dos implementaciones de la misma transformacion |
+| **H10.3** | Avril | Desbloquea **H10.9, que es CG-6 entera**. Quien conoce el visor saca las capturas a la primera |
+| **H1.6** | se queda | Es Sprint 1, vencido hace cuatro semanas. La cuenta de Copernicus ya esta resuelta, asi que el PM la entrega **esta semana** contra el sabado 13 de la peticion. Ademas **destraba H5.5, de Avril, once dias antes** |
+| **H10.7** | se queda | Avril la retiro ella misma: es Arq, y ese criterio ya lo cubre H6.5. Son 7,8 h que no sacan ningun criterio del cero |
+
+### Medicion
+
+Las fechas comprometidas de cada opcion, que son el dato que decidio:
+
+| Historia | Si la hace Avril | Si la hace el PM | Diferencia |
+|---|---|---|---|
+| **H5.6** | viernes 4 · **ya hecha** | ~viernes 4, reescribiendola | mismo dia, y el doble de trabajo |
+| **H10.3** | martes 9 | ~viernes 4 | 3 dias peor, y desbloquea CG-6 |
+| **H1.6** | sabado 13 | **esta semana** | **hasta 12 dias mejor** |
+| **H10.7** | jueves 11 | esta semana | 7 dias mejor, y no saca ningun criterio del cero |
+
+Efecto en el cierre de los sprints:
+
+| | Antes de D-35 | Despues |
+|---|---|---|
+| Sprint 1 cierra | sabado 13 (por H1.6) | **esta semana**, a falta de H10.4 |
+| Sprint 2 depende de | solo el PM | PM + Avril, en paralelo |
+| Carga del PM | 184 pts · 278,6 h | **176 pts · 269,1 h** |
+| Carga de Avril | 74 pts · 87,6 h | **82 pts · 97,1 h** |
+
+Avril estimo su plan completo en **74,3 h en tres semanas -24,8 por semana-**
+contra las 18 que firmo. Con este reparto baja a **57,7 h**, sin perder ninguna de
+las historias que sostienen un criterio en cero.
+
+### Justificacion
+
+**El criterio de desempate es la fecha, no la propiedad.** Con tiempo por delante,
+que cada quien haga lo suyo produce mejor codigo y mejor aprendizaje. A tres
+semanas del final y con el Sprint 1 vencido hace cuatro, lo que decide es que
+opcion entrega antes — y eso se puede comprobar contra una fecha comprometida, no
+discutir.
+
+Aplicarlo asi mantiene D-33 en pie: la reversion sigue siendo un derecho, y
+ejercerla obliga a poner una fecha. **Una regla que se puede invocar sin coste
+tampoco informa nada.**
+
+Y hay un motivo que no es de calendario: **H5.6 ya estaba escrita**. Ninguna
+consideracion de reparto justifica producir dos veces la misma transformacion de
+coordenadas.
+
+### Por que no se aplico la regla al pie de la letra
+
+D-33 dice «sin discutir». Aplicado literalmente, las cuatro volvian.
+
+**Pero D-33 existia para destrabar**, y una devolucion que empuja el cierre del
+Sprint 1 de esta semana al **sabado 13** trabaja contra su propio motivo. Asi que
+en vez de negarse -que habria invalidado la regla para todos- o de aceptar en
+silencio -que habria costado doce dias-, se devolvio una, se argumento la otra
+**con la fecha como criterio**, y se dejo la decision en manos de quien la pidio.
+
+Avril acepto el argumento y lo dijo con estas palabras: *«no la voy a discutir, y
+no porque sea la regla sino porque tu argumento es mejor que el mio»*.
+
+**El criterio que queda, y es el que hay que reusar: en una reversion no decide de
+quien es la historia, decide que fecha entrega antes.** La propiedad importa
+cuando hay tiempo; a tres semanas del final importa la fecha.
+
+### Lo que salio de ejercerla, y no se esperaba
+
+**El trabajo de H5.6 llevaba dias hecho y sin subir.** No aparecio en ningun
+tablero, en ningun PR y en ninguna de las cifras de avance del proyecto: para
+`verificar_estado.py` la historia estaba abierta, porque **un commit local no es
+trabajo entregado**.
+
+Se descubrio de pura suerte, porque el PM aviso que arrancaba y ella contesto a
+tiempo. Un dia mas y se escriben dos veces la misma transformacion.
+
+Es la misma forma que los cinco dias de la firma de SC-07: **trabajo terminado
+detenido por un paso de comunicacion, invisible para todos los controles del
+proyecto**. Los verificadores miden el repositorio, y lo que no esta en el
+repositorio no existe para ellos.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no |
+|---|---|
+| Devolver las cuatro | Empujaba el cierre del Sprint 1 al sabado 13, contra el motivo de D-33 |
+| No devolver ninguna | La regla la escribio el PM. Aplicarla solo cuando conviene la anula para todos, y el rastro queda en el ADR |
+| Decidirlo el PM sin consultar | H5.6 se habria reescrito desde cero con el trabajo hecho al lado |
+| Cambiar D-33 para agregar condiciones | La regla simple funciono: forzo a argumentar en vez de imponer. Lo que faltaba era el criterio de desempate, y eso es lo que registra esta decision |
+
+### Consecuencias
+
+- Alejandro baja de 184 a **176 puntos** y de 278,6 a **269,1 h**.
+- Avril sube de 74 a **82 puntos** y de 87,6 a **97,1 h** — con su propia
+  estimacion, 57,7 h en tres semanas, mas cerca de las 18 semanales que firmo.
+- El **Sprint 2 ya no depende solo del PM**: H5.6 el viernes 4 y H10.3 el martes 9
+  son de Avril.
+- Quedan dos compromisos del PM hacia ella, y los dos sostienen criterios en cero:
+  **H10.5c a mas tardar el lunes 14** para que H10.6 salga el viernes 19, y
+  **H11.4 a mas tardar el miercoles 16** para H13.2 el domingo 21.

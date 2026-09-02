@@ -30,9 +30,19 @@ escriben tres personas.
 
 | Carpeta | Regla | Por que |
 |---|---|---|
-| `datos/` | **Escritura libre**, como `docs/evidencias/` | Todo su contenido esta en `.gitignore` y nunca se versiona. Lo que se escribe ahi no puede colisionar entre ramas, asi que pedir permiso no controla nada |
+| `datos/` | **Escritura libre**, como `docs/evidencias/` | La carpeta entera esta en `.gitignore` y nada de lo que hay dentro se versiona. Lo que se escribe ahi no puede colisionar entre ramas, asi que pedir permiso no controla nada |
 | `notebooks/` | **Escritura libre**, con una regla | Cada quien crea los suyos con su prefijo: `avril-`, `cesar-`, `luna-`, `arz-`. Nadie edita el de otro |
 | `contratos/` | **Archivo compartido**, no carpeta con dueno | Ya estaba en la lista de archivos compartidos de mas abajo. Se anota aca para que no haya que buscarlo en dos sitios |
+
+> **Esa justificacion fue falsa hasta el 2026-09-01.** `.gitignore` filtraba
+> `datos/crudos/*` y `datos/procesados/*` -las dos subcarpetas, no la carpeta-,
+> asi que un archivo en la raiz de `datos/` salia como no seguido. Lo encontro
+> Cesar con un volcado de 28 MB ahi.
+>
+> Se anota porque el defecto no era del `.gitignore` sino de esta tabla: **la
+> regla de escritura libre se apoyaba en una propiedad que el repositorio no
+> cumplia.** Una regla de propiedad justificada con algo falso no protege nada,
+> y se lee igual que una que si.
 
 **Sobre `datos/`, una advertencia que vale mas que la regla.** Que sea de escritura
 libre no significa que lo que hay dentro sea compartido: **cada quien tiene su
@@ -69,9 +79,15 @@ seis veces.
 
 | Quien | Donde | Para que historias |
 |---|---|---|
-| Cesar | `backend/senales` | H2.5, H2.6 |
-| Cesar | `backend/modelado` | H3.3, H3.4, H3.5, H3.7 |
-| Alejandro | `backend/senales` | lo que necesiten sus historias de modelado |
+| Cesar | `backend/senales` | H2.6 |
+| Cesar | `backend/modelado` | H3.4, H3.5, H3.7 |
+| Alejandro | `backend/senales` | lo que necesiten sus historias de modelado, **y H2.5** |
+| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3** |
+
+> **Actualizada el 2026-09-01 por D-33.** H2.5 y H3.3 pasaron de Cesar a
+> Alejandro, y la excepcion se movio con ellas **sin abrir una solicitud de
+> cambio**: es lo que dice la regla de abajo. Si Cesar las retoma, la fila vuelve
+> a su nombre por el mismo camino y sin pedir permiso.
 
 **Por que se corrigio.** `backend/senales` figuraba como carpeta de Alejandro, pero
 las cinco historias de senales son de Luna y dos de Cesar: ninguno de los dos podia

@@ -1446,7 +1446,7 @@ validación.
 | 39,90 / 54,86 / 63,40 / 87,70 mm; 8,5× | `medir_percentiles.py` |
 | 98 fichas, 46 registros, 29 eventos | Catálogo de eventos históricos compilado para este trabajo `[26]` |
 | 36 referencias, 28 con ficha | Fichero bibliográfico del proyecto |
-| 47 comprobaciones, 6 trabajos de CI, 21 controles | `verificar_documentacion.py` |
+| 47 comprobaciones, 7 trabajos de CI, 21 controles | `verificar_documentacion.py` |
 | Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |
 | 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
 | F1-macro de las dos líneas base, sección VI-D | `comparar.py` |

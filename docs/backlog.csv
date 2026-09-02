@@ -83,7 +83,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,CG-3,avril",S1,avril,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,CG-3,alejandro",S1,alejandro,5,7.8
 H1.7,H1.7 Versionar el dataset consolidado para reproducibilidad,"Epica E1 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: OE1
@@ -119,7 +119,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-3,cesar",S2,cesar,8,7.7
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-3,alejandro",S2,alejandro,8,7.7
 H1.10,H1.10 Estrategia de respaldo definida y restauracion probada,"Epica E1 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: BD-4
@@ -143,7 +143,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,cesar",S2,cesar,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,alejandro",S2,alejandro,5,4.8
 H1.12,H1.12 Indices espaciales y compuestos con planes antes y despues,"Epica E1 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: BD-1
@@ -155,7 +155,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,cesar",S2,cesar,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S2,BD-1,alejandro",S2,alejandro,5,4.8
 H1.13,"H1.13 Trigger de auditoria sobre predicciones, con prueba","Epica E1 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: BD-2
@@ -180,7 +180,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,alejandro",S1,alejandro,3,2.9
 H1.14,H1.14 Ingesta reejecutable con cadencia declarada por evento y producto declarado,"Epica E1 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: BD-1
@@ -271,7 +271,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,cesar",S1,cesar,3,2.9
+- [ ] Funciona desde docker compose up en maquina limpia","E1,S1,BD-2,alejandro",S1,alejandro,3,2.9
 H2.1,H2.1 Filtrar ruido de las series con justificacion del filtro,"Epica E2 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: Senales
@@ -331,7 +331,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,OE2,cesar",S2,cesar,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E2,S2,OE2,alejandro",S2,alejandro,5,4.8
 H2.6,H2.6 Documentar seleccion de variables y descartar redundantes,"Epica E2 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: OE2
@@ -391,7 +391,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,cesar",S2,cesar,6,9.4
+- [ ] Funciona desde docker compose up en maquina limpia","E3,S2,OE2,alejandro",S2,alejandro,6,9.4
 H3.4,H3.4 Entrenar y evaluar Random Forest,"Epica E3 | 6 puntos | 9.4 h estimadas
 
 Rubrica o objetivo: OE2
@@ -583,7 +583,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,avril",S2,avril,3,4.7
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S2,CG-1,alejandro",S2,avril,3,4.7
 H5.7,H5.7 Selector de fecha que recarga el estado del mapa,"Epica E5 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: CG-4
@@ -698,7 +698,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E7,S2,CG-2,avril",S2,avril,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S2,CG-2,alejandro",S2,alejandro,5,4.8
 H7.3,H7.3 Historial de eventos filtrable y exportable,"Epica E7 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: CG-2
@@ -919,7 +919,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,MVP,avril",S2,avril,5,4.8
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,MVP,alejandro",S2,avril,5,4.8
 H10.4,H10.4 Manual tecnico verificado por alguien ajeno al desarrollo,"Epica E10 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: MVP
@@ -991,7 +991,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,Arq,avril",S2,avril,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S2,Arq,alejandro",S2,alejandro,5,7.8
 H10.8,H10.8 Carpeta de evidencias organizada por materia con indice,"Epica E10 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: SO-4

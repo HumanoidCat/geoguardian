@@ -28,15 +28,15 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 97 puntos · 117.5 horas · 11.8 h por semana en promedio
+**Total asignado:** 82 puntos · 97.1 horas · 8.8 h por semana en promedio
 
 ## Carga por sprint
 
 | Sprint | Semanas | Horas | Capacidad | Estado |
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 2.9 | 36 | holgado |
-| S1 | semanas 4-5 | 19.3 | 36 | holgado |
-| S2 | semanas 6-7 | 33.7 | 36 | ajustado |
+| S1 | semanas 4-5 | 11.5 | 36 | holgado |
+| S2 | semanas 6-7 | 21.1 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
 | S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 
@@ -46,10 +46,7 @@
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: contratos · **bloquea a: H5.2, H5.3, H5.6**
 
 
-## Sprint 1 (semanas 4-5) — 19.3 h
-
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
-  - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+## Sprint 1 (semanas 4-5) — 11.5 h
 
 - [x] **H5.2** · Cuatro o mas capas conmutables con control de opacidad (2026-08-17)
   - `E5` · 5 pts · 4.8 h · rubrica: CG-4 · depende de: H5.1
@@ -58,16 +55,23 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 33.7 h
-
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
-
-- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
-  - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
+## Sprint 2 (semanas 6-7) — 21.1 h
 
 - [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
   - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
+  - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. La tomo
+    Alejandro el 31 de agosto y Avril la pidio de vuelta con motivo: **ya estaba
+    hecha** en `feature/ame-h5.6-crtm05`, con 25 controles contra `pyproj` como
+    implementacion independiente. Empezarla de nuevo habria tirado ese trabajo.
+  - Compromiso: **PR el viernes 4 de septiembre**.
+
+- [ ] **H10.3** · Manual de usuario con capturas paso a paso
+  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. Se
+    devuelve porque **desbloquea H10.9, que es CG-6 entera** -el unico criterio
+    que sostiene esa historia- y porque quien conoce el visor saca las capturas a
+    la primera.
+  - Compromiso: **martes 9 de septiembre**.
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
@@ -93,10 +97,6 @@
 - [x] **H7.1** · Semaforo de riesgo por distrito y evento con umbrales documentados (2026-08-20)
   - `E7` · 6 pts · 5.8 h · rubrica: CG-2 · depende de: H5.3 · **bloquea a: H10.3**
   - horas: estimada 4.0 . real 2.0
-
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
-  - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
-
 
 ## Sprint 3 (semanas 8-9) — 25.0 h
 
