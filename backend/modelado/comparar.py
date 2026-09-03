@@ -10,8 +10,8 @@ comparan** y deja el hueco declarado, no escondido.
 
 Arranco con las dos lineas base de **H3.1**. La regresion entro con H3.3 el
 2026-09-01 y el bosque con H3.4 el 2026-09-03, cada uno agregandose al registro
-`CON_CARACTERISTICAS` sin tocar nada mas; falta XGBoost, que sigue en
-`PENDIENTES` hasta H3.5.
+`CON_CARACTERISTICAS` sin tocar nada mas, y XGBoost con H3.5 el mismo dia.
+`PENDIENTES` queda vacio: los tres de D-09 estan en la tabla.
 
 ===========================================================================
 POR QUE EL CONTRATO VA ANTES QUE LOS MODELOS
@@ -194,6 +194,14 @@ def _random_forest():
     return BosqueAleatorio()
 
 
+def _xgboost():
+    """Diferida, y ademas porque `xgboost` es una libreria aparte que no hace
+    falta para leer el contrato ni para correr las lineas base."""
+    from .xgboost_ import XGBoostEstimador
+
+    return XGBoostEstimador()
+
+
 #: Las lineas base de H3.1. **No necesitan caracteristicas** -es CA-1 de esa
 #: historia- asi que estan siempre.
 DISPONIBLES: dict[str, callable] = {
@@ -212,6 +220,7 @@ DISPONIBLES: dict[str, callable] = {
 CON_CARACTERISTICAS: dict[str, callable] = {
     "regresion logistica": _regresion_logistica,
     "random forest": _random_forest,
+    "xgboost": _xgboost,
 }
 
 
@@ -230,7 +239,7 @@ def pendientes(hay_caracteristicas: bool) -> dict[str, str]:
         # el dia que entre otro (H3.5) tiene que aparecer aca sin que nadie se
         # acuerde de agregarlo. Un pendiente que falta en esta lista es
         # indistinguible de uno que ya esta hecho.
-        historias = {"regresion logistica": "H3.3", "random forest": "H3.4"}
+        historias = {"regresion logistica": "H3.3", "random forest": "H3.4", "xgboost": "H3.5"}
         for nombre in CON_CARACTERISTICAS:
             faltan[nombre] = (
                 f"{historias.get(nombre, '?')}, escrita y probada; necesita "
@@ -281,9 +290,7 @@ NO_MODELABLES: dict[TipoEvento, str] = {
 #
 # `regresion logistica` ya no vive aca: desde H3.3 esta escrita, probada y
 # **conectada**, y `pendientes()` la vuelve a listar solo si falta la matriz.
-PENDIENTES: dict[str, str] = {
-    "xgboost": "H3.5",
-}
+PENDIENTES: dict[str, str] = {}
 
 
 #: La referencia contra la que se mide todo. **D-10** compara contra la linea
