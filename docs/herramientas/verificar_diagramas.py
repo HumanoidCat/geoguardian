@@ -11,9 +11,11 @@ QUE COMPRUEBA
 
     CA-1  cada tabla del DDL aparece en el entidad-relacion
     CA-2  cada clave foranea del DDL aparece como relacion
-    CA-3  los seis diagramas existen y no estan vacios
+    CA-3  los diagramas existen y no estan vacios
     CA-4  el generador sigue produciendo lo que hay versionado
     CA-5  el control distingue: una tabla que no esta, se detecta
+    CA-6  cada ruta de la API aparece en el diagrama de casos de uso  (H10.7)
+    CA-7  el control distingue: una ruta inventada no aparece
 
 POR QUE **NO** SE COMPARAN LOS BYTES
 
@@ -48,11 +50,13 @@ RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "docs" / "herramientas"))
 
 from generar_diagramas import (  # noqa: E402
+    CASOS_DE_CONSULTA,
     DECLARADOS,
     SALIDA,
     Tabla,
     dot_entidad_relacion,
     leer_ddl,
+    leer_rutas,
     renderizar,
 )
 
@@ -88,7 +92,7 @@ def main() -> int:
         return 1
 
     # ------------------------------------------------------------------ CA-3 - #
-    print("CA-3, los seis diagramas existen:")
+    print(f"CA-3, los {len(ESPERADOS)} diagramas existen:")
 
     svgs: dict[str, str] = {}
     for nombre in ESPERADOS:
@@ -172,6 +176,55 @@ def main() -> int:
         inventada.nombre not in contenido,
         "si aparece, esta comprobacion no esta mirando lo que cree",
     )
+
+    # ------------------------------------------------------------ CA-6 y CA-7 - #
+    #
+    # H10.7. El entidad-relacion se comprueba contra el DDL; el de casos de uso
+    # se comprueba contra `backend/api/rutas.py`, que es la parte del diagrama
+    # que **si** esta escrita en el codigo: lo que alguien puede pedirle al
+    # sistema son sus rutas.
+    #
+    # Sin esto, Cesar agrega un endpoint, nadie regenera, y el diagrama afirma
+    # que el sistema ofrece menos de lo que ofrece. Es I-04 con otro disfraz.
+    if "casos-de-uso" in svgs:
+        print("\nCA-6, cada ruta de la API esta en el diagrama de casos de uso:")
+
+        casos = texto_de(svgs["casos-de-uso"])
+        rutas = leer_rutas()
+        comprobar("la API declara al menos una ruta", len(rutas) > 0)
+
+        for ruta in rutas:
+            comprobar(
+                f"{ruta.metodo} {ruta.camino}",
+                ruta.camino in casos,
+                "existe en backend/api/rutas.py y no en el diagrama. Hay que regenerar",
+            )
+
+        # LA COMPROBACION INVERSA SE HACE CONTRA `CASOS_DE_CONSULTA`, NO CONTRA
+        # EL SVG.
+        #
+        # La primera version buscaba el marcador «(?)» en el dibujo versionado.
+        # Se probo sabotearla renombrando una ruta y **no fallo**: ese marcador
+        # solo se escribe al regenerar, asi que el SVG en disco seguia limpio.
+        # Era un control que no podia decir que no -la forma de I-25- y se
+        # descubrio por intentar romperlo, no por leerlo.
+        #
+        # Comparar la tabla declarada contra `rutas.py` no depende de que nadie
+        # regenere: las dos fuentes se miran entre si.
+        declaradas = {camino for _, _, caminos in CASOS_DE_CONSULTA for camino in caminos}
+        huerfanas = sorted(declaradas - {r.camino for r in rutas})
+        comprobar(
+            "ningun caso de uso declara una ruta que la API ya no tiene",
+            not huerfanas,
+            f"CASOS_DE_CONSULTA nombra rutas inexistentes: {huerfanas}",
+        )
+
+        print("\nCA-7, el control distingue una ruta que no esta:")
+        comprobar(
+            "una ruta inventada NO aparece en el diagrama",
+            "/zzz-ruta-que-no-existe" not in casos,
+            "si aparece, esta comprobacion no esta mirando lo que cree",
+        )
 
     if fallos:
         print(f"\n{len(fallos)} comprobaciones fallaron:\n")
