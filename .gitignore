@@ -75,6 +75,11 @@ Thumbs.db
 *.backup
 infra/docker/respaldos/*
 !infra/docker/respaldos/.gitkeep
+# `basedatos/respaldos/` es donde escribe `basedatos/respaldar.py` (H1.10), y
+# estaba protegida solo por la extension: el mismo antipatron que este bloque
+# condena. Lo pidio Cesar el 2026-09-03 al entregar H1.10.
+basedatos/respaldos/*
+!basedatos/respaldos/.gitkeep
 
 # Volcado de `gh issue list` para verificar_issues.py. Es una foto del tablero
 # en un instante: se regenera cuando se necesita y no se versiona. Si entrara al

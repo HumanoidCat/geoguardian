@@ -2012,4 +2012,55 @@ final de cada corrida (D-36). H11.4 sigue cerrada: la aprobacion, el despliegue
 al SHA exacto y la respuesta de `/salud` se cumplieron; lo que fallo fue una
 pregunta mal hecha del verificador. Se corrige en `dev` y se promueve a `main`
 para que la siguiente corrida lo demuestre.
+## I-29 · El registro de migraciones es local a cada maquina, y una fusion puede cambiar una migracion aplicada sin que nadie la edite
 
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** Cesar, al correr `aplicar_migraciones` despues de traer
+`dev` para H1.10. Lo reporto por escrito en su respuesta a D-37 y lo dejo
+contado en la evidencia de H1.10.
+
+**Que paso.** El control dijo:
+
+    006 006_analitico_riesgo.sql: el contenido cambio despues de aplicarse
+    Una migracion aplicada no se edita. Reverti el cambio y crea un archivo nuevo.
+
+Nadie habia editado nada. **H1.15 se hizo dos veces**: la de Cesar quedo en un
+PR cerrado y la del PM -que la tomo por D-33- fue la que se fusiono. Cesar
+tenia aplicada en su base la migracion 006 de su propia rama; al traer `dev`,
+el archivo 006 paso a ser el de la rama que gano, con otro contenido, y el
+registro local -que guarda el contenido aplicado- lo vio como una edicion.
+
+**Causa raiz.** El registro de migraciones vive en la base de cada maquina, y
+compara **contenido aplicado contra contenido en disco**. Esa comparacion es
+correcta para lo que se diseño -que nadie edite una migracion ya aplicada-,
+pero **no distingue «alguien edito» de «gano otra rama»**, y el mensaje manda a
+revertir un cambio que no existe. Cualquiera que tenga aplicada una migracion
+de una rama que no gano se va a topar con lo mismo, y va a recibir una
+instruccion equivocada.
+
+Es la familia de I-28 vista desde otro lado: **un control que dice la verdad
+sobre lo que mide y miente sobre lo que significa.** La diferencia de
+contenido es real; la causa que el mensaje afirma, no.
+
+**Accion tomada.** Por ahora, registrarlo: el archivo es
+`basedatos/aplicar_migraciones.py`, de Cesar, y la correccion es suya. Lo que
+se le pide, por historia y sin urgencia porque no bloquea a nadie:
+
+  1. Que el mensaje **distinga los dos casos**, o al menos nombre los dos: «el
+     contenido cambio despues de aplicarse: o alguien lo edito, o tenes aplicada
+     la version de otra rama». Un control que no puede saber cual de las dos
+     paso no debe afirmar una.
+  2. Que la evidencia de H1.10 -donde ya esta contado como se realineo sin
+     perder datos- sea la referencia del procedimiento, hasta que haya uno
+     escrito en `docs/10-manual-tecnico.md`.
+
+**Aprendizaje.** Cuando dos personas hacen la misma historia en dos ramas, el
+costo no termina al cerrar el PR perdedor: **todo lo que esa rama dejo
+aplicado en una maquina sigue ahi**, y los controles que comparan estado local
+contra repositorio lo van a encontrar. D-33 movio doce historias entre
+personas; conviene esperar mas de estos.
+
+**Impacto.** Ninguno en datos: Cesar realineo su base sin perder nada. Un
+mensaje de error que manda a hacer lo incorrecto, pendiente de corregir en
+`basedatos/`.
