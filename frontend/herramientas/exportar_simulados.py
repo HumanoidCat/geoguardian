@@ -32,7 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -188,6 +188,109 @@ def construir_salud() -> dict:
     return json.loads(salud_simulada().model_dump_json())
 
 
+# --------------------------------------------------------------------------- #
+# Mediciones diarias, para H7.2                                                 #
+# --------------------------------------------------------------------------- #
+#
+# POR QUE EL RESPALDO NECESITA LA SERIE
+#
+# La grafica de H7.2 vive en la ficha del distrito. Sin este archivo existiria
+# solo contra la API, y **el visor publicado por H11.5 no tiene API**: es el
+# unico sitio donde alguien puede abrir el proyecto sin levantar nada, y ahi la
+# grafica estaria vacia.
+#
+# POR QUE UNA VENTANA FIJA Y NO "TODO"
+#
+# La API acepta cualquier rango; un archivo estatico no puede. Se exporta una
+# ventana declarada y **el archivo dice cual es**, para que el visor pueda
+# limitar el selector en vez de dibujar vacio fuera de rango. Un rango que se
+# ofrece y no tiene datos se lee como «no llovio», no como «no hay dato».
+#
+# POR QUE LAS CLAVES SON CORTAS
+#
+# `tx` en vez de `temp_max_c`, y demas. Con nombres completos el archivo pasa de
+# 238 KB a mas de 600 KB para lo mismo, y esto se descarga entero en el visor
+# publicado. El diccionario esta abajo, en `CAMPOS`.
+
+DIAS_DE_SERIE = 365
+
+#: clave corta -> atributo del contrato `MedicionDiaria`
+CAMPOS = {
+    "tx": "temp_max_c",
+    "tn": "temp_min_c",
+    "tm": "temp_media_c",
+    "p": "precipitacion_mm",
+    "h": "humedad_relativa_pct",
+    "v": "viento_ms",
+    "r": "radiacion_mj_m2",
+}
+
+ADVERTENCIA_MEDICIONES = (
+    "SERIES SIMULADAS. Las sortea contratos/simulados/datos.py de forma "
+    "determinista por distrito y fecha; no son observaciones reales. Los huecos "
+    "-una de cada veinte fechas- son deliberados: existen para que la grafica "
+    "tenga que demostrar que distingue un dia sin dato de un dia con valor cero."
+)
+
+
+def construir_mediciones(repositorio: RepositorioSimulado) -> dict:
+    """La serie diaria de los ocho distritos, en la ventana declarada."""
+    hasta = FECHA_REFERENCIA
+    desde = hasta - timedelta(days=DIAS_DE_SERIE - 1)
+
+    series: dict[str, list[dict]] = {}
+    for distrito in repositorio.listar_distritos():
+        filas = []
+        for medicion in repositorio.obtener_mediciones(distrito.codigo, desde, hasta):
+            fila = {"f": medicion.fecha.isoformat()}
+            # `None` se conserva como `null`. NO se omite la clave ni se rellena
+            # con cero: las dos cosas convertirian un dia sin medir en un dia
+            # medido, que es justo lo que la grafica tiene que poder distinguir.
+            fila.update({corto: getattr(medicion, largo) for corto, largo in CAMPOS.items()})
+            filas.append(fila)
+        series[distrito.codigo] = filas
+
+    return {
+        "desde": desde.isoformat(),
+        "hasta": hasta.isoformat(),
+        "campos": CAMPOS,
+        "simulado": True,
+        "advertencia": ADVERTENCIA_MEDICIONES,
+        "series": series,
+    }
+
+
+def verificar_mediciones(paquete: dict) -> None:
+    """Los mismos ocho distritos, la ventana completa, y huecos de verdad."""
+    codigos = set(paquete["series"])
+    if codigos != CODIGOS_ESPERADOS:
+        faltan = CODIGOS_ESPERADOS - codigos
+        sobran = codigos - CODIGOS_ESPERADOS
+        raise SystemExit(f"ERROR en mediciones: faltan {faltan}, sobran {sobran}")
+
+    for codigo, filas in paquete["series"].items():
+        if len(filas) != DIAS_DE_SERIE:
+            raise SystemExit(
+                f"ERROR en mediciones de {codigo}: se esperaban {DIAS_DE_SERIE} dias "
+                f"y llegaron {len(filas)}. Un dia faltante corre la serie y la "
+                f"grafica dibujaria fechas equivocadas sin fallar."
+            )
+
+    # QUE HAYA HUECOS SE COMPRUEBA, NO SE SUPONE.
+    #
+    # El simulado promete una de cada veinte fechas sin dato. Si algun dia dejara
+    # de cumplirlo, el criterio de aceptacion de H7.2 -que la linea se corte-
+    # pasaria en verde sin haber dibujado un solo hueco: un control que no puede
+    # fallar. Es la forma de I-06.
+    con_hueco = sum(1 for filas in paquete["series"].values() for f in filas if f["tx"] is None)
+    if con_hueco == 0:
+        raise SystemExit(
+            "ERROR: la serie exportada no tiene ningun hueco. El simulado promete "
+            "uno de cada veinte dias; sin huecos, H7.2 no puede demostrar que los "
+            "distingue de un valor cero."
+        )
+
+
 def verificar_geojson(geojson: dict) -> None:
     """
     Falla ruidosamente si el resultado no es el esperado.
@@ -228,6 +331,24 @@ def verificar_riesgos(paquete: dict) -> None:
 def escribir(ruta: Path, contenido: dict) -> None:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     ruta.write_text(json.dumps(contenido, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def escribir_compacto(ruta: Path, contenido: dict) -> None:
+    """Sin sangria. Solo para `mediciones.json`, y por un motivo concreto.
+
+    Los demas archivos se sangran porque **se leen**: son cortos y su diferencia
+    en un Pull Request tiene que poder revisarse a ojo.
+
+    La serie diaria no. Son 2920 filas que nadie va a leer, y sangrarla la lleva
+    de 238 KB a 519 KB. **Ese archivo se descarga entero cada vez que alguien
+    abre el visor publicado**, que es donde el respaldo es el unico origen que
+    hay. Duplicar el peso de la unica descarga grande, para una sangria que nadie
+    va a mirar, no se paga.
+    """
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    ruta.write_text(
+        json.dumps(contenido, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
 
 
 def leer_argumentos() -> argparse.Namespace:
@@ -278,6 +399,10 @@ def main() -> None:
     salud = construir_salud()
     escribir(SALIDA / "salud.json", salud)
 
+    mediciones = construir_mediciones(repositorio)
+    verificar_mediciones(mediciones)
+    escribir_compacto(SALIDA / "mediciones.json", mediciones)
+
     print(f"Distritos exportados: {len(geojson['features'])}")
     for rasgo in geojson["features"]:
         propiedades = rasgo["properties"]
@@ -313,9 +438,18 @@ def main() -> None:
 
     print(f"\nModo de la API: {salud['modo']}")
     print(f"Version de contratos: {salud['version_contratos']}")
+    huecos = sum(1 for filas in mediciones["series"].values() for f in filas if f["tx"] is None)
+    total = sum(len(filas) for filas in mediciones["series"].values())
+    print(
+        f"\nSeries diarias: {mediciones['desde']} a {mediciones['hasta']}, "
+        f"{DIAS_DE_SERIE} dias por distrito"
+    )
+    print(f"  {total} filas, {huecos} sin dato ({huecos / total:.1%}), deliberados")
+
     print(f"\nEscritos en {SALIDA.relative_to(RAIZ)}:")
     print("  distritos.geojson")
     print("  salud.json")
+    print("  mediciones.json")
     for evento in TipoEvento:
         print(f"  riesgos-{evento.value}.json")
     print("\nGeometrias reales del SNIT. Niveles de riesgo sorteados por el")

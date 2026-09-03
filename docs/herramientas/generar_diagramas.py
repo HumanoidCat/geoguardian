@@ -16,10 +16,21 @@ Aca se aplica igual, y con una diferencia que importa:
                         Si alguien agrega una tabla y no regenera, el
                         verificador lo detecta.
 
-    los otros cinco     **declarados aca**. No se pueden derivar del codigo con
-                        honestidad -un diagrama de despliegue no esta escrito en
-                        ningun lado- asi que este archivo ES su fuente. No hay
-                        copia que se desactualice porque no hay dos lugares.
+    los otros cinco     **declarados aca**. Este archivo ES su fuente, asi que no
+                        hay copia que se desactualice porque no hay dos lugares.
+
+**Pero declarado no quiere decir que no se pueda comprobar nada, y hasta H6.5
+aqui decia que si.** La frase era «no se pueden derivar del codigo con
+honestidad», y era demasiado ancha. Lo que no se deriva son **las capas, las
+flechas y la degradacion de D-23**: eso es criterio de quien dibuja.
+
+Los **nombres** si se derivan. Un componente es un archivo, y una ruta de la API
+esta escrita en `rutas.py`. Mientras esa distincion no estuvo hecha, los dos
+diagramas decian `GET /riesgo` -en singular- contra una API que expone
+`/riesgos`, y nadie lo detecto: el dibujo se ve autorizado y no falla.
+
+Por eso `COMPONENTES` declara la ruta real de cada componente y `RUTA_RIESGOS`
+se escribe una sola vez. `verificar_diagramas.py` lo comprueba en CA-6 y CA-7.
 
 **Los SVG que quedan en docs/diagramas/ son artefactos.** Se versionan porque
 GitHub los renderiza y porque hacen falta para el documento, pero nadie los edita
@@ -60,6 +71,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 DDL = RAIZ / "basedatos" / "ddl"
+API = RAIZ / "backend" / "api" / "rutas.py"
 SALIDA = RAIZ / "docs" / "diagramas"
 
 # Paleta. Sobria a proposito: los diagramas van a un documento academico
@@ -349,6 +361,85 @@ def dot_flujo_datos() -> str:
 }}"""
 
 
+# --------------------------------------------------------------------------- #
+# Lo que el diagrama de componentes AFIRMA, y que se puede comprobar             #
+# --------------------------------------------------------------------------- #
+#
+# Cada componente dibujado, con el archivo o la carpeta que representa.
+#
+# LA RUTA NO ES DECORATIVA. `verificar_diagramas.py` comprueba que exista, y en
+# las dos direcciones: que ningun componente dibujado apunte a algo que ya no
+# esta, y que ningun nombre aparezca en el SVG sin estar declarado aca.
+#
+# POR QUE SE AGREGO, EN H6.5
+#
+# El README de esta carpeta decia que estos cinco diagramas no se pueden derivar
+# del codigo «con honestidad», y por eso no tenian ninguna comprobacion de
+# contenido. La afirmacion era demasiado ancha: lo que no se puede derivar son
+# **las capas, las flechas y la degradacion de D-23**, que son criterio. Los
+# **nombres** si: un componente es un archivo y una ruta de la API esta en
+# `rutas.py`.
+#
+# Se descubrio porque el diagrama decia `GET /riesgo` y la API expone `/riesgos`.
+# Quien leyera ese diagrama y probara la ruta se comia un 404, y el dibujo se ve
+# autorizado. Es el mismo modo de fallo que I-04 y que las cifras del anexo del
+# documento IEEE: una copia que se desactualiza sin que nadie se entere.
+#
+# La capa de presentacion, ademas, se habia quedado en agosto: mostraba solo el
+# mapa, sin el semaforo de H7.1 ni la ficha con coordenadas de H5.6.
+COMPONENTES: dict[str, tuple[str, str, str]] = {
+    # id          capa            etiqueta                                                    ruta real
+    "visor": ("pres", "«componente»\\nVisor React", "frontend/src/App.jsx"),
+    "mapa": (
+        "pres",
+        "«componente»\\nMapaCanton\\nLeaflet",
+        "frontend/src/componentes/MapaCanton.jsx",
+    ),
+    "semaforo": (
+        "pres",
+        "«componente»\\nTableroSemaforo\\ntres eventos  ·  H7.1",
+        "frontend/src/componentes/TableroSemaforo.jsx",
+    ),
+    "ficha": (
+        "pres",
+        "«componente»\\nPanelDistrito\\ncoordenadas  ·  H5.6",
+        "frontend/src/componentes/PanelDistrito.jsx",
+    ),
+    "cliente": (
+        "pres",
+        "«componente»\\nCliente de datos\\nnegocia origen  ·  D-23",
+        "frontend/src/datos/cliente.js",
+    ),
+    "api": ("serv", "«componente»\\nAPI FastAPI\\nOpenAPI  ·  H6.1", "backend/api/rutas.py"),
+    "repositorio": (
+        "serv",
+        "«componente»\\nRepositorio\\npatron Repository  ·  H6.2",
+        "contratos/repositorio.py",
+    ),
+    "contratos": ("dom", "«componente»\\nContratos\\nProtocol congelados  ·  D-06", "contratos"),
+    "modelado": (
+        "dom",
+        "«componente»\\nModelado\\netiquetado, particion,\\ncomparacion",
+        "backend/modelado",
+    ),
+    "etl": ("datos", "«componente»\\nETL", "backend/etl"),
+}
+
+# La ruta de la API que los dos diagramas nombran. Se escribe una sola vez para
+# que no puedan discrepar entre ellos: antes de H6.5 los dos decian `/riesgo`, en
+# singular, y ninguno de los dos existia.
+RUTA_RIESGOS = "/riesgos"
+
+
+def _nodos_de_capa(capa: str) -> str:
+    """Los nodos de una capa, tal como los escribe Graphviz."""
+    return "\n".join(
+        f'    {ident} [label="{etiqueta}", fillcolor="white"];'
+        for ident, (suya, etiqueta, _) in COMPONENTES.items()
+        if suya == capa
+    )
+
+
 def dot_componentes() -> str:
     return f"""digraph componentes {{
   graph [rankdir=TB, splines=ortho, nodesep=0.5, ranksep=0.8, bgcolor="white",
@@ -361,47 +452,52 @@ def dot_componentes() -> str:
   subgraph cluster_pres {{
     label="Presentacion"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["acento"]}";
-    visor    [label="«componente»\\nVisor React", fillcolor="white"];
-    mapa     [label="«componente»\\nMapaCanton\\nLeaflet", fillcolor="white"];
-    cliente  [label="«componente»\\nCliente de datos\\nnegocia origen  ·  D-23",
-              fillcolor="white"];
+{_nodos_de_capa("pres")}
   }}
 
   subgraph cluster_serv {{
     label="Servicio"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["crudo"]}";
-    api        [label="«componente»\\nAPI FastAPI\\nOpenAPI  ·  H6.1", fillcolor="white"];
-    repositorio [label="«componente»\\nRepositorio\\npatron Repository  ·  H6.2",
-                 fillcolor="white"];
+{_nodos_de_capa("serv")}
   }}
 
   subgraph cluster_dom {{
     label="Dominio"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["control"]}";
-    contratos [label="«componente»\\nContratos\\nProtocol congelados  ·  D-06",
-               fillcolor="white"];
-    modelado  [label="«componente»\\nModelado\\netiquetado, particion,\\ncomparacion",
-               fillcolor="white"];
+{_nodos_de_capa("dom")}
   }}
 
   subgraph cluster_datos {{
     label="Datos"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["geo"]}";
-    etl  [label="«componente»\\nETL", fillcolor="white"];
+{_nodos_de_capa("datos")}
     base [label="«base de datos»\\nPostgreSQL + PostGIS", shape=cylinder,
           fillcolor="white"];
   }}
 
   visor -> mapa     [arrowhead=none];
+  visor -> semaforo [arrowhead=none];
+  visor -> ficha    [arrowhead=none];
   visor -> cliente  [arrowhead=none];
-  cliente -> api    [label="HTTP  ·  /riesgo", style=dashed];
+  cliente -> api    [label="HTTP  ·  {RUTA_RIESGOS}", style=dashed];
   api -> repositorio;
-  api -> contratos  [label="usa", style=dashed];
   repositorio -> base;
-  modelado -> contratos [label="usa", style=dashed];
   modelado -> base;
   etl -> base;
-  etl -> contratos  [label="usa", style=dashed];
+
+  // Dependencias de uso. **Sin la etiqueta «usa», y no es un olvido.**
+  //
+  // Con `splines=ortho`, Graphviz coloca mal las etiquetas de las aristas que
+  // cruzan un cluster: dos de las tres quedaban flotando en el borde derecho del
+  // lienzo, sin ninguna linea que las uniera a nada. Se ve en el diagrama
+  // publicado hasta H6.5.
+  //
+  // La flecha punteada **ya significa dependencia** en UML, asi que la palabra
+  // no aportaba nada y el defecto se lleva por delante. La alternativa era sacar
+  // `ortho`, que reordena el diagrama entero por una palabra redundante.
+  api -> contratos      [style=dashed];
+  modelado -> contratos [style=dashed];
+  etl -> contratos      [style=dashed];
 }}"""
 
 
@@ -516,7 +612,7 @@ def svg_secuencia() -> str:
     mensajes = [
         (0, 1, "selecciona evento y fecha", False),
         (1, 2, "obtenerRiesgos(evento, fecha)", False),
-        (2, 3, "GET /riesgo?evento=&fecha=", False),
+        (2, 3, f"GET {RUTA_RIESGOS}?evento=&fecha=", False),
         (3, 4, "SELECT por distrito", False),
         (4, 3, "filas", True),
         (3, 2, "200  ·  JSON del contrato", True),
@@ -615,6 +711,152 @@ def svg_secuencia() -> str:
 
 
 # =========================================================================== #
+# 7 · Casos de uso, DERIVADO de las rutas de la API. Historia H10.7            #
+# =========================================================================== #
+#
+# POR QUE ESTE TAMBIEN SE DERIVA
+#
+# Un diagrama de casos de uso es normalmente lo mas dibujado a mano que tiene un
+# proyecto, y por eso es lo primero que miente. Aca hay una parte que **si** esta
+# escrita en el codigo: **que puede pedirle alguien al sistema** son las rutas de
+# `backend/api/rutas.py`.
+#
+# Asi que los casos de uso de consulta declaran su ruta, y el verificador
+# comprueba que **las seis rutas de la API aparezcan en el dibujo**. Si Cesar
+# agrega un endpoint y nadie regenera, el control lo dice. Es exactamente lo que
+# hace CA-1 con las tablas del DDL.
+#
+# Lo que NO se deriva son los actores y los casos de operacion: no estan escritos
+# en ningun lado, asi que este archivo es su fuente y no hay copia que se
+# desactualice. Es la misma division que ya usaban los otros cinco diagramas.
+
+
+@dataclass(frozen=True)
+class Ruta:
+    metodo: str
+    camino: str
+    resumen: str
+
+
+def leer_rutas(archivo: Path = API) -> list[Ruta]:
+    """Saca las rutas de los decoradores de FastAPI, con su `summary`.
+
+    SE ANCLA EN EL `def`, NO EN EL PARENTESIS DE CIERRE.
+
+    La primera version exigia que el `)` estuviera al principio de una linea, o
+    sea daba por sentado el estilo multilinea que usa `rutas.py` hoy. **Una ruta
+    declarada en una sola linea** -`@router.get("/alertas", summary="...")`- no
+    se encontraba, y entonces CA-8 no la comprobaba: el control salia verde
+    justo con el defecto que existe para detectar.
+
+    Se descubrio sabotenado, y solo porque el sabotaje se escribio en el otro
+    estilo. **La primera prueba habia usado la misma forma que el codigo, o sea
+    probaba lo que ya se sabia que funcionaba.**
+
+    Anclar en el `def` que sigue al decorador cubre los dos estilos: el `.*?`
+    perezoso se estira por encima de los parentesis internos -los de
+    `description=(...)`- porque solo se detiene ante un `)` seguido de `def`.
+    """
+    if not archivo.exists():
+        return []
+    texto = archivo.read_text(encoding="utf-8")
+    rutas: list[Ruta] = []
+    patron = re.compile(
+        r"@router\.(get|post|put|patch|delete)\((.*?)\)\s*\n\s*(?:async\s+)?def\s",
+        re.DOTALL,
+    )
+    for metodo, argumentos in patron.findall(texto):
+        camino = re.search(r"\"([^\"]+)\"", argumentos)
+        if not camino:
+            continue
+        resumen = re.search(r"summary=\"([^\"]+)\"", argumentos)
+        rutas.append(Ruta(metodo.upper(), camino.group(1), resumen.group(1) if resumen else ""))
+    return rutas
+
+
+#: Cada caso de uso de consulta y las rutas que lo sostienen. La izquierda es
+#: decision de diseno; la derecha tiene que existir en `rutas.py`.
+CASOS_DE_CONSULTA: list[tuple[str, str, list[str]]] = [
+    ("uc_mapa", "Ver el riesgo del canton\\nen una fecha", ["/riesgos"]),
+    ("uc_ficha", "Consultar la ficha\\nde un distrito", ["/distritos/{codigo}/riesgo"]),
+    ("uc_serie", "Ver la serie climatica\\nde un distrito", ["/distritos/{codigo}/mediciones"]),
+    ("uc_distritos", "Ubicar los distritos\\nen el mapa", ["/distritos", "/distritos/{codigo}"]),
+    ("uc_modo", "Saber si los datos\\nson reales o simulados", ["/salud"]),
+]
+
+
+def dot_casos_de_uso(rutas: list[Ruta] | None = None) -> str:
+    conocidas = {r.camino for r in (rutas if rutas is not None else leer_rutas())}
+
+    nodos = []
+    for identificador, titulo, caminos in CASOS_DE_CONSULTA:
+        # Una ruta que este en la tabla y ya no exista en la API se marca en el
+        # dibujo en vez de desaparecer en silencio: un diagrama que se corrige
+        # solo escondiendo lo que sobra vuelve a ser un diagrama que miente.
+        etiquetas = [c if c in conocidas else f"{c}  (?)" for c in caminos]
+        pie = "\\n".join(etiquetas)
+        nodos.append(f'    {identificador} [label="{titulo}\\n{pie}"];')
+    consultas = "\n".join(nodos)
+
+    return f"""digraph casos_de_uso {{
+  graph [rankdir=LR, splines=spline, nodesep=0.28, ranksep=0.9, bgcolor="white",
+         fontname="{FUENTE}", pad=0.3, newrank=true];
+  node  [shape=ellipse, style="filled", fillcolor="white", fontname="{FUENTE}",
+         fontsize=9, color="{LINEA}", fontcolor="{TINTA}", margin="0.11,0.05"];
+  edge  [color="{SUAVE}", arrowsize=0.6, fontname="{FUENTE}", fontsize=8,
+         fontcolor="{SUAVE}"];
+
+  usuaria [shape=box, style="rounded,filled", fillcolor="{FONDOS["acento"]}",
+           fontsize=10, label="«actor»\\nPersona usuaria\\nvecina, funcionaria\\nmunicipal"];
+  equipo  [shape=box, style="rounded,filled", fillcolor="{FONDOS["control"]}",
+           fontsize=10, label="«actor»\\nEquipo de datos\\nGeoGuardian"];
+  fuentes [shape=box, style="rounded,filled", fillcolor="{FONDOS["externo"]}",
+           fontsize=10, label="«actor de sistema»\\nFuentes externas\\nCHIRPS  ·  FIRMS\\nPOWER  ·  Sentinel-2"];
+
+  subgraph cluster_sistema {{
+    label="GeoGuardian"; labeljust="l"; labelloc="t"; fontsize=12;
+    color="{LINEA}"; style="rounded"; bgcolor="{FONDOS["crudo"]}"; margin=18;
+
+{consultas}
+
+    uc_capas  [label="Encender y apagar\\ncapas del mapa"];
+    uc_filtro [label="Elegir evento y fecha"];
+
+    uc_ingesta [label="Ingerir datos\\nde las fuentes", fillcolor="{FONDOS["geo"]}"];
+    uc_modelo  [label="Entrenar y evaluar\\nel modelo", fillcolor="{FONDOS["geo"]}"];
+    uc_desplegar [label="Desplegar el sistema\\nH11.2 a H11.4", fillcolor="{FONDOS["geo"]}"];
+
+    // Las dos columnas se fijan a mano. Sin esto, `dot` estira el dibujo hasta
+    // una proporcion que no entra en una pagina del documento.
+    {{ rank=same; uc_mapa; uc_ficha; uc_capas; uc_ingesta; uc_desplegar; }}
+    {{ rank=same; uc_filtro; uc_distritos; uc_modo; uc_serie; uc_modelo; }}
+  }}
+
+  usuaria -> uc_mapa   [arrowhead=none];
+  usuaria -> uc_ficha  [arrowhead=none];
+  usuaria -> uc_capas  [arrowhead=none];
+
+  // Sentido UML: «include» va del caso base al incluido; «extend» va del que
+  // extiende hacia el que es extendido. No es decorativo: invertido, el dibujo
+  // afirma lo contrario de lo que pasa.
+  uc_mapa  -> uc_filtro    [label="«include»", style=dashed];
+  uc_mapa  -> uc_distritos [label="«include»", style=dashed];
+  uc_mapa  -> uc_modo      [label="«include»", style=dashed];
+  // `constraint=false` y no `dir=back`: las dos ordenan igual, pero `dir=back`
+  // invierte la punta y entonces el dibujo afirma lo contrario. Se vio al mirar
+  // el PNG, no al leer el DOT.
+  uc_serie -> uc_ficha     [label="«extend»", style=dashed, constraint=false];
+
+  equipo -> uc_ingesta   [arrowhead=none];
+  equipo -> uc_desplegar [arrowhead=none];
+  equipo -> uc_modelo    [arrowhead=none];
+
+  uc_modelo  -> uc_ingesta [label="«include»", style=dashed, constraint=false];
+  uc_ingesta -> fuentes    [label="descarga", constraint=false];
+}}"""
+
+
+# =========================================================================== #
 # Emision                                                                      #
 # =========================================================================== #
 
@@ -623,6 +865,7 @@ DECLARADOS = {
     "componentes": dot_componentes,
     "despliegue": dot_despliegue,
     "flujo-modelado": dot_flujo_modelado,
+    "casos-de-uso": dot_casos_de_uso,
 }
 
 
@@ -670,10 +913,23 @@ def main() -> int:
         )
     print()
 
+    def mostrar(ruta: Path) -> str:
+        """Relativa al repositorio si esta dentro; absoluta si no.
+
+        `--salida` acepta cualquier carpeta -se usa para comparar contra lo
+        versionado sin ensuciar el arbol-, y `relative_to` lanza ValueError
+        cuando el destino queda fuera de RAIZ. El generador moria al imprimir,
+        despues de haber escrito bien los archivos.
+        """
+        try:
+            return str(ruta.relative_to(RAIZ))
+        except ValueError:
+            return str(ruta)
+
     for nombre, contenido in generar().items():
         destino = args.salida / f"{nombre}.svg"
         destino.write_text(contenido, encoding="utf-8")
-        print(f"  {destino.relative_to(RAIZ)}")
+        print(f"  {mostrar(destino)}")
 
         if args.png:
             try:
@@ -686,7 +942,7 @@ def main() -> int:
                 write_to=str(args.salida / f"{nombre}.png"),
                 scale=2,
             )
-            print(f"  {(args.salida / f'{nombre}.png').relative_to(RAIZ)}")
+            print(f"  {mostrar(args.salida / f'{nombre}.png')}")
 
     print()
     return 0

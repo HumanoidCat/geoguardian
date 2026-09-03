@@ -117,8 +117,23 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+- [x] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+  - Evidencia: `docs/evidencias/computacion-grafica/H1.6-sentinel2-estacion-seca.md`
+  - **Seis escenas** en la estacion seca 2024-25 con nubosidad bajo 20 %, todas en
+    el mosaico T16PGS. Comprobado contra el catalogo, no supuesto.
+  - **Se bajan 4 bandas de 20 m y no el producto entero**: 49,6 MB por escena en
+    vez de 555 a 929 MB. 4,4 GB no caben con comodidad en la maquina de nadie del
+    equipo, asi que la diferencia es entre una historia que corre y una que no.
+  - **A 20 m el infrarrojo cercano es `B8A`, no `B08`.** Encontrado listando el
+    producto; copiar la formula del NDVI sin mirar habria pedido un archivo que no
+    esta ahi.
+  - La busqueda **no necesita credenciales** y la descarga si, asi que el
+    verificador corre en el CI sin poner un secreto ahi.
+  - Al correrlo aparecio un defecto propio: **dos formas de leer el `.env`**, una
+    en el comprobador y otra en el extractor, y solo una funcionaba. Es I-27
+    otra vez. Queda `load_dotenv()`, que es lo que el proyecto ya usaba.
+  - horas: estimada 7.8 . real 4.0
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
@@ -234,17 +249,40 @@
 > terminada y verificada antes del traspaso y se cierra el mismo dia. La entrada
 > vive ahora en `docs/tareas/avril.md`.
 
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+- [x] **H7.2** · Graficas interactivas de series con seleccion de rango (2026-09-03)
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.2-graficas-de-serie.md`
+  - Excepcion de propiedad declarada **antes** de tocar `frontend/`, en
+    `docs/07-propiedad-archivos.md`.
+  - **Los huecos cortan la linea.** El simulado trae un dia sin dato de cada
+    veinte y viajan como `null` hasta el dibujo: unir la linea por encima
+    afirmaria una medicion que nadie tomo. El exportador se planta si la serie
+    sale sin ningun hueco, porque entonces el criterio no podria fallar.
+  - **El respaldo estatico tambien tiene serie** (`mediciones.json`, 239 KB): sin
+    eso la grafica no existiria en el visor publicado por H11.5, que es el unico
+    que alguien puede abrir sin levantar nada.
+  - **Medido, no supuesto:** `recharts` llevaba el paquete inicial de 325 a
+    710 kB. Con carga perezosa queda en 332 kB y los 379 kB del dibujo se piden
+    al abrir una ficha. Salio de construir las dos versiones.
+  - horas: estimada 4.8 . real 3.5
 
-- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
+- [x] **H10.7** · Diagramas de casos de uso y entidad-relacion (2026-09-02)
   - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/arquitectura-software/H10.7-diagramas-casos-de-uso.md`
+  - **El entidad-relacion ya existia desde H6.5** y nadie lo habia anotado: la
+    historia figuraba entera cuando le faltaba una mitad. Solo se entrego el de
+    casos de uso.
+  - Se derivo de `backend/api/rutas.py` en vez de dibujarlo. **CA-6** comprueba
+    que las 6 rutas aparezcan y que el diagrama no declare ninguna que ya no
+    exista. Su primera version **no distinguia** -leia el SVG generado, que solo
+    cambia al regenerar-; se descubrio intentando romperla.
+  - horas: estimada 7.8 . real 2.5
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
@@ -262,14 +300,36 @@
   - Queda pendiente de Avril, por solicitud: pintar `origen` y `motivo_respaldo`
     en `AvisoModoSimulado.jsx`. El cliente ya los devuelve.
 
-- [ ] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main
+- [x] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main (2026-09-03)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1 · **bloquea a: H11.3, H12.3**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - Corrida `CD #4`, commit `8bb6849`. **8 de 8 comprobaciones** contra el cluster
+    efimero, incluido un `GET /salud` desde dentro.
+  - Encadenado al CI con `workflow_run`: en `push` simple corria a la vez que la
+    construccion de la imagen y moria con `manifest unknown`. Es **I-26**.
+  - horas: estimada 7.8 . real 9.0
 
-- [ ] **H11.3** · CD: despliegue a staging en namespace propio, con aprobacion manual
+- [x] **H11.3** · CD: despliegue a staging en namespace propio, con aprobacion manual (2026-09-03)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H11.2 · **bloquea a: H11.4**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - **8 de 8** contra el cluster y **2 de 2** de aprobacion. La aprobacion quedo
+    registrada en la corrida a las 03:27.
+  - `--comprobar-aprobacion` consulta la API de GitHub: un flujo puede declarar
+    `environment: pruebas` y salir verde aunque ese entorno no tenga revisores.
+  - horas: estimada 4.7 . real 3.0
 
-- [ ] **H11.4** · CD: despliegue a produccion con aprobacion explicita y rollback automatico
+- [x] **H11.4** · CD: despliegue a produccion con aprobacion explicita y rollback automatico (2026-09-03)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.3 · **bloquea a: H13.2**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - **La reversion se provoco, no se declaro.** Disparo manual con
+    `probar_reversion=true`: se desplego una etiqueta inexistente, el rollout no
+    convergio en cuatro minutos, entro `rollout undo` y `--tras-reversion` dio
+    **8 de 8**, con `api volvio a la revision anterior` y `200 en /salud`.
+  - Mirando los nombres de los pods se vio que **la corrida demuestra dos cosas
+    distintas**: con `Recreate` la API estuvo caida de verdad y la reversion la
+    devolvio; con `RollingUpdate` el pod del visor nunca se fue, asi que su
+    reversion fue preventiva. Anotado en la evidencia, no previsto.
+  - horas: estimada 7.8 . real 11.0
 
 - [x] **H3.0** · Implementar el etiquetado de los tres eventos y su distribucion de clases (2026-08-25)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H2.3, H2.7, H1.2 · **bloquea a: H3.1, H3.2**
