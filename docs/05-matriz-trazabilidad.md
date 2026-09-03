@@ -42,7 +42,7 @@ Estados: Pendiente · En progreso · Implementado · Verificado · Con evidencia
 | H3.0 | Etiquetado de la variable objetivo | backend/modelado | test_etiquetado | docs/evidencias/ | OE2 | Alejandro | **Con evidencia** |
 | H3.1 | Linea base climatologica | backend/modelado | test_linea_base | docs/evidencias/ | OE2 | Alejandro | **Con evidencia** |
 | H3.6 | Tabla comparativa de estimadores contra la linea base por evento | backend/modelado/comparar.py | backend/modelado/verificar_h36.py, 31 comprobaciones sin base de datos | docs/evidencias/objetivos/H3.6-tabla-comparativa.md | OE2 | Alejandro | arnes y contrato entregados; la tabla espera los tres algoritmos de H3.3, H3.4 y H3.5 |
-| H4.2 | Explicabilidad con SHAP | backend/modelado | test_shap | docs/evidencias/ | OE3 | Alejandro | Pendiente |
+| H4.2 | Explicabilidad con SHAP | backend/modelado | test_shap | docs/evidencias/ | OE3 | Luna | Pendiente |
 | H5.1 | Mapa del canton con poligonos distritales, zoom y desplazamiento | frontend | frontend/herramientas/verificar_escala.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.1-mapa-distritos.md<br>docs/evidencias/computacion-grafica/H5.1-sistema-diseno.md | CG-4 | Avril | **Con evidencia** |
 | H5.3 | Coropletas de riesgo por evento con rampa de color y leyenda | frontend | frontend/herramientas/exportar_simulados.py, npm run lint, npm run build, verificacion visual documentada | docs/evidencias/computacion-grafica/H5.3-coropletas.md | CG-1 | Avril | **Con evidencia** |
 | H5.6 | Transformacion de coordenadas | frontend | test_proyeccion | docs/evidencias/computacion-grafica/H5.6-proyeccion-crtm05.md | CG-1 | Avril | **Con evidencia** |

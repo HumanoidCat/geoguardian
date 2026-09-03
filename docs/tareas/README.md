@@ -37,6 +37,21 @@ redistribuyo:
 
 El detalle esta en `gestion/auditoria-dependencias-backlog.md`.
 
+## Reparto revisado el 2026-09-03, por D-37
+
+Semana 9, la ultima del Sprint 3, que iba 7 de 18 y las tres historias que bloqueaban a otras
+personas estaban a nombre de Cesar. Se movieron:
+
+- **H3.4** y **H3.5** (Random Forest, XGBoost) pasan a **Alejandro**, que ya
+  entreno la regresion logistica de H3.3 con el mismo arnes. Desbloquean H3.6.
+- **H12.1** (logs en `control.bitacora_etl`) pasa a **Luna**. Desbloquea su
+  propia H12.4 y la H12.2 de Avril.
+- **H4.1** y **H4.2** (importancia de variables, SHAP) pasan de Alejandro a
+  **Luna**, para repartir la carga del Sprint 3.
+
+Lo que queda a nombre de Cesar —H1.10, H1.14, H8.2 y su Sprint 4— no bloquea a
+nadie. El detalle y las cifras estan en **D-37**.
+
 ## Lo que sigue sin cuadrar, y hay que decirlo
 
 Alejandro queda en 206.7 h contra una capacidad de 180, con el Sprint 2 en 59.5 h y

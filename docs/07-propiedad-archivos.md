@@ -88,10 +88,15 @@ seis veces.
 | Quien | Donde | Para que historias |
 |---|---|---|
 | Cesar | `backend/senales` | H2.6 |
-| Cesar | `backend/modelado` | H3.4, H3.5, H3.7 |
+| Cesar | `backend/modelado` | H3.7 |
+| Luna | `backend/modelado` | H4.1 y H4.2, **desde D-37** |
 | Alejandro | `backend/senales` | lo que necesiten sus historias de modelado, **y H2.5** |
-| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3** |
+| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3; desde D-37, H3.4 y H3.5** |
 
+> **Actualizada el 2026-09-03 por D-37.** H3.4 y H3.5 pasaron de Cesar a
+> Alejandro, y H4.1 y H4.2 de Alejandro a Luna, por el mismo camino que D-33:
+> la fila se mueve con la historia y no hay solicitud de cambio.
+>
 > **Actualizada el 2026-09-01 por D-33.** H2.5 y H3.3 pasaron de Cesar a
 > Alejandro, y la excepcion se movio con ellas **sin abrir una solicitud de
 > cambio**: es lo que dice la regla de abajo. Si Cesar las retoma, la fila vuelve
@@ -473,3 +478,38 @@ Queda autorizado **`frontend/nginx.conf`, para H6.0 y para su mantenimiento
 posterior**, con Avril revisando el Pull Request igual que en el resto de la
 excepción. No hace falta rehacer lo ya fusionado: se mueve la próxima vez que
 alguien lo toque.
+
+## Excepcion: `backend/api/repositorio_postgres.py`, para H3.6
+
+**Declarada el 2026-09-03 por D-37, antes de tocar el archivo.**
+
+El archivo es de Cesar. Diez de sus metodos levantan `_pendiente(...)`, y el
+encabezado del propio archivo asigna cinco de ellos a **H3.6**, que es historia
+de Alejandro: `guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`,
+`guardar_metricas` y `listar_metricas`. Nadie ha escrito nunca una fila en
+`analitico.riesgo`, y por eso el visor sigue en `GEOGUARDIAN_REPOSITORIO: simulado`.
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los cinco metodos que el encabezado asigna a H3.6, y el guion que corre el modelo y escribe `analitico.riesgo` |
+
+Lo que **no** cubre: el resto del archivo (`guardar_indices`, `obtener_indices`,
+`listar_eventos`, los reportes de calidad), el contrato `contratos/`, ni
+`docker-compose.yml`. Cambiar la variable de entorno del despliegue es
+`infra/`, que ya es de Alejandro.
+
+Es la misma regla de siempre: **la propiedad sigue al trabajo asignado.** Los
+metodos llevan el nombre de H3.6 escrito en el archivo desde que se creo.
+
+## Excepcion: H12.1, para Luna
+
+**Declarada el 2026-09-03 por D-37.** H12.1 —centralizar los logs de pipeline y
+aplicacion en `control.bitacora_etl`— paso de Cesar a Luna. Toca carpetas de
+Cesar, asi que la excepcion se escribe aqui, estrecha:
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Luna | `backend/etl`, `backend/api`, `basedatos` | **solo** lo que H12.1 necesite para escribir en `control.bitacora_etl`; una historia, y se cierra con ella |
+
+Si Cesar retoma H12.1, la fila vuelve a su nombre por la clausula de D-33, sin
+pedir permiso.

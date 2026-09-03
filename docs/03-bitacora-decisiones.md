@@ -3966,3 +3966,127 @@ reales, y son las que se declaran en limitaciones.
 El costo se mide tambien en tiempo de tuberia: crear y destruir un k3d en el
 runner agrega alrededor de un minuto por entorno. Se acepta porque corre solo
 sobre `main`, no en cada PR.
+
+---
+
+## D-37 · Las historias de Cesar que bloquean a otros salen de su nombre, y Luna toma carga
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Continua.** D-33 · **Afecta.** H3.4, H3.5, H12.1, H4.1, H4.2, H3.6
+
+### Contexto
+
+Semana 9 de 12, la ultima del Sprint 3. `verificar_estado.py` al momento de decidir:
+
+    historias: 56 de 89 · puntos: 276 de 434 (63.6 %)
+    S1 15 de 16 · S2 23 de 23 · S3 7 de 18 · S4 0 de 21
+
+**D-33** paso al PM las doce historias abiertas de Cesar y Avril en S1 y S2 y
+dejo escrito que las de S3 y S4 «siguen a su nombre» porque reasignarlas «seria
+declarar que ya no se espera nada de ellos, y eso no se ha decidido». Tambien
+dejo escrita la salida: *recortar alcance o aceptar la ayuda de Luna*, que se
+ofrecio por escrito el 2026-08-30.
+
+Desde entonces pasaron dos cosas distintas. **Avril retomo**: pidio de vuelta
+H5.6 y H10.3 por la clausula de D-33 (D-35) y las cerro el 2026-09-02, y cerro
+H6.5 el 2026-09-03. **De Cesar no entro ninguna historia**: sigue en 9 cerradas,
+las mismas que en D-33.
+
+Lo que queda del Sprint 3 a nombre de Cesar son seis historias, 47 h, y tres de
+ellas bloquean a otras personas: **H3.5 bloquea H3.6** (10 pts del PM, que a su
+vez bloquea H3.7, H3.8, H4.1 y H4.4); **H3.4** es uno de los «tres algoritmos»
+sin los que H3.6 no se puede cerrar; **H12.1 bloquea H12.2** de Avril **y
+H12.4** de Luna. Luna no tiene ninguna historia abierta en S1, S2 ni S3.
+
+Ademas, el visor sigue mostrando riesgo simulado porque nadie ha escrito una
+fila en `analitico.riesgo`: los cinco metodos que lo harian estan en
+`backend/api/repositorio_postgres.py`, archivo de Cesar, y el encabezado del
+propio archivo los asigna a H3.6.
+
+### Decision
+
+**Las tres historias de Cesar que bloquean a otros salen de su nombre. Luna
+toma carga por primera vez. El PM toma la tuberia modelo → API.**
+
+| Historia | De | A | Por que esta persona |
+|---|---|---|---|
+| **H3.4** Random Forest | Cesar | Alejandro | H3.3 dejo el arnes de caracteristicas y evaluacion en `backend/modelado`; cambia el estimador |
+| **H3.5** XGBoost | Cesar | Alejandro | Igual que H3.4. Es la que bloquea H3.6 |
+| **H12.1** logs en `control.bitacora_etl` | Cesar | Luna | Desbloquea su propia H12.4 y la H12.2 de Avril |
+| **H4.1** importancia de variables | Alejandro | Luna | Reparte la carga del S3; va junto con H4.2 |
+| **H4.2** SHAP | Alejandro | Luna | Analisis, no infraestructura; Luna hace la investigacion del proyecto |
+
+Y una excepcion de propiedad, escrita en `docs/07-propiedad-archivos.md` antes de
+tocar nada: **Alejandro escribe los cinco metodos de H3.6 en
+`repositorio_postgres.py`** y el guion que corre el modelo y escribe las filas.
+Solo esos metodos, no el archivo.
+
+El contenido de cada historia se traspasa **sin modificar**, con la nota de
+origen y fecha en `docs/tareas/`, igual que en D-33. El documento IEEE (H10.5c)
+**se queda con el PM** y se hace al final, con resultados.
+
+### Justificacion
+
+La regla de D-33 era no cargar a quien viene cumpliendo. Se sostuvo una semana
+mas y el resultado es el que dice el contexto: el PM cerro lo de S1 y S2, y el
+Sprint 3 sigue detenido en las tres historias que solo Cesar podia mover. Lo
+que cambia hoy no es el criterio sobre Cesar —sus historias que no bloquean a
+nadie siguen a su nombre— sino que **ninguna historia que bloquee a otra persona
+puede quedar en manos de quien no entrega**.
+
+Luna tiene la carga mas baja del equipo y cero historias abiertas hasta S4. Es
+la unica holgura real, y el mismo D-33 la nombro como salida.
+
+La tuberia va al PM porque es la cadena mas corta hacia numeros reales en el
+visor —tres metodos, un guion, una variable de entorno— y porque los metodos
+llevan el nombre de su historia, H3.6, en el archivo desde que se creo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Esperar otra semana a Cesar | Es la apuesta de D-33, ya medida: una semana mas y cero historias de el |
+| Pasar todo lo de Cesar al PM | El PM ya carga 272 h contra 180 de capacidad. Repetir D-33 completo no cabe, y D-33 lo dijo |
+| Pasar la tuberia a Luna | Es `backend/api`, base de datos y despliegue: la carpeta y el contexto son del PM, no de calidad |
+| Dar el documento IEEE a Luna | Se planteo y el PM lo retuvo: necesita los resultados de H3.6 y H4.4 que hoy no existen; se hace al final |
+| Reasignar tambien H1.10, H1.14 y H8.2 | No bloquean a nadie. Moverlas seria declarar que no se espera nada de Cesar, y eso sigue sin decidirse |
+
+### Consecuencias
+
+Carga por sprint despues del cambio, en horas del backlog:
+
+| | S3 antes | S3 despues | Total |
+|---|---|---|---|
+| Alejandro | 40.4 | **43.8** | 272.5 h · 177 pts |
+| Luna | 20.3 | **40.5** | 163.7 h · 96 pts |
+| Cesar | 47.0 | 23.4 | 100.6 h · 79 pts |
+
+Se gana: H3.6 deja de depender de alguien que no entrega; H12.2 y H12.4 quedan
+desbloqueadas por alguien que si; el visor tiene por primera vez una ruta
+asignada hacia riesgo real. Se pierde: el PM suma 3.4 h netas a un sprint ya
+excedido, y Luna pasa de holgado a +4.5 h sobre el compromiso. **La cadena H3.4 →
+H3.5 → H3.6 → H4.1 → H4.2 sigue siendo secuencial** y ninguna cantidad de gente
+la acorta: lo que esta decision hace es que cada eslabon tenga a alguien que
+lo esta moviendo.
+
+Lo que queda a nombre de Cesar no bloquea a nadie: si no entrega, el proyecto
+no se detiene. Esa es la propiedad que esta decision compra.
+
+Como en D-33, si Cesar retoma cualquiera de sus historias, se le devuelve por
+la misma clausula y sin pedir permiso.
+
+### Medicion
+
+Se da por buena si al cierre de la semana 9 estan cerradas **H3.4, H3.5 y H3.6**
+—los tres algoritmos contra la linea base— y el visor corre con
+`GEOGUARDIAN_REPOSITORIO` distinto de `simulado`. El plan detras de esa fecha:
+**Sprint 3 cerrado en la semana 9, lo esencial del Sprint 4 listo en la semana
+10, y la semana 11 reservada para pruebas y lo que falte.** Es lo que deja
+margen para la entrega de la semana 12.
+
+Se revisa si al cierre de la semana 9 Luna no cerro **H12.1**: seria la senal
+de que la carga se movio de un cuello a otro.
+
+Las cifras salen de `verificar_estado.py` y `verificar_backlog.py`, que fallan
+si backlog, archivos de tareas y matriz discrepan. Se corrieron despues del
+cambio y coinciden.
