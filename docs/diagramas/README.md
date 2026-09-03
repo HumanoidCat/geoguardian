@@ -20,8 +20,8 @@ para el repositorio y para GitHub.
 |---|---|---|
 | `entidad-relacion` | Las 8 tablas de `geo`, `crudo` y `control`, con claves y cardinalidad | **Derivado** de `basedatos/ddl/*.sql` |
 | `flujo-datos` | De la fuente abierta a la pantalla | Declarado en el generador |
-| `componentes` | UML de componentes, por capa | Declarado en el generador |
-| `secuencia-consulta-riesgo` | UML de secuencia, con la degradación de D-23 | Declarado en el generador |
+| `componentes` | UML de componentes, por capa | Declarado, **con los nombres comprobados** (CA-6, CA-7) |
+| `secuencia-consulta-riesgo` | UML de secuencia, con la degradación de D-23 | Declarado, **con las rutas comprobadas** (CA-6) |
 | `despliegue` | Contenedores, CI/CD y qué está publicado | Declarado en el generador |
 | `flujo-modelado` | La épica E3: etiquetado, partición, estimadores, tabla | Declarado en el generador |
 
@@ -39,10 +39,23 @@ El **entidad-relación es derivado**: sale de parsear el DDL. Si alguien agrega
 una tabla y no regenera, `verificar_diagramas.py` lo detecta y el CI sale en
 rojo.
 
-Los otros cinco están **declarados en el generador**, porque no se pueden derivar
-del código con honestidad —un diagrama de despliegue no está escrito en ningún
-lado—. Ese archivo **es** su fuente. No hay copia que se desactualice porque no
-hay dos lugares donde vivan.
+Los otros cinco están **declarados en el generador**. Ese archivo **es** su
+fuente: no hay copia que se desactualice porque no hay dos lugares donde vivan.
+
+**Que estén declarados no quiere decir que no se pueda comprobar nada de ellos, y
+hasta H6.5 acá decía que sí.** La frase era «no se pueden derivar del código con
+honestidad», y era demasiado ancha. Lo que no se deriva son **las capas, las
+flechas y la degradación de D-23**: eso es criterio de quien dibuja.
+
+Los **nombres** sí. Un componente es un archivo y una ruta de la API está escrita
+en `rutas.py`. Mientras esa distinción no estuvo hecha, el diagrama de componentes
+y el de secuencia decían `GET /riesgo` —en singular— contra una API que expone
+`/riesgos`. Quien probara esa ruta se comía un 404, con un dibujo que se ve
+autorizado.
+
+Desde H6.5, `verificar_diagramas.py` comprueba en **CA-6** que cada ruta nombrada
+en un diagrama exista en la API, y en **CA-7** que cada componente dibujado
+corresponda a un archivo que existe —y que ninguno declarado falte del dibujo—.
 
 ## Por qué Graphviz y no Mermaid
 

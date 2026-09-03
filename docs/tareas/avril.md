@@ -137,6 +137,22 @@
 
 - [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.1
+  - **Entregada el 2026-09-02, sin cerrar todavia**: falta su fila en
+    `docs/trazabilidad.csv`, que es archivo compartido y requiere aprobacion del
+    PM. La fila propuesta esta en la evidencia. Al aprobarse se marca `[x]` con
+    `estimada n/d (no se estimo al arrancar) . real 0.6`.
+  - **Sobre la estimacion.** No hubo: la historia arranco sin estimar y el numero
+    se habria puesto despues. Se deja en `n/d` a proposito, porque una estimacion
+    escrita con la historia terminada siempre acierta y contaminaria lo que
+    **D-24** mide. Para la retrospectiva: **a posteriori se habria estimado en
+    2 h**, o sea el triple de lo que costo.
+  - Las 0,6 h son **tiempo de reloj**, reconstruido de las marcas de los archivos:
+    del commit de H10.3 a las 19:58 al cierre de la evidencia a las 20:11, mas
+    unos veinte minutos previos de investigar los diagramas.
+  - **La historia cambio de forma antes de empezar.** Pedia «hacer los
+    diagramas», y los diagramas ya existian desde el 27 de agosto. Lo que hacia
+    falta era que dejaran de mentir: los dos nombraban `GET /riesgo` contra una
+    API que expone `/riesgos`. Alcance acordado con el PM antes de tocar nada.
 
 
 ## Sprint 4 (semanas 10-11) — 36.6 h

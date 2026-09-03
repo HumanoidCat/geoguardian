@@ -16,10 +16,21 @@ Aca se aplica igual, y con una diferencia que importa:
                         Si alguien agrega una tabla y no regenera, el
                         verificador lo detecta.
 
-    los otros cinco     **declarados aca**. No se pueden derivar del codigo con
-                        honestidad -un diagrama de despliegue no esta escrito en
-                        ningun lado- asi que este archivo ES su fuente. No hay
-                        copia que se desactualice porque no hay dos lugares.
+    los otros cinco     **declarados aca**. Este archivo ES su fuente, asi que no
+                        hay copia que se desactualice porque no hay dos lugares.
+
+**Pero declarado no quiere decir que no se pueda comprobar nada, y hasta H6.5
+aqui decia que si.** La frase era «no se pueden derivar del codigo con
+honestidad», y era demasiado ancha. Lo que no se deriva son **las capas, las
+flechas y la degradacion de D-23**: eso es criterio de quien dibuja.
+
+Los **nombres** si se derivan. Un componente es un archivo, y una ruta de la API
+esta escrita en `rutas.py`. Mientras esa distincion no estuvo hecha, los dos
+diagramas decian `GET /riesgo` -en singular- contra una API que expone
+`/riesgos`, y nadie lo detecto: el dibujo se ve autorizado y no falla.
+
+Por eso `COMPONENTES` declara la ruta real de cada componente y `RUTA_RIESGOS`
+se escribe una sola vez. `verificar_diagramas.py` lo comprueba en CA-6 y CA-7.
 
 **Los SVG que quedan en docs/diagramas/ son artefactos.** Se versionan porque
 GitHub los renderiza y porque hacen falta para el documento, pero nadie los edita
@@ -349,6 +360,61 @@ def dot_flujo_datos() -> str:
 }}"""
 
 
+# --------------------------------------------------------------------------- #
+# Lo que el diagrama de componentes AFIRMA, y que se puede comprobar             #
+# --------------------------------------------------------------------------- #
+#
+# Cada componente dibujado, con el archivo o la carpeta que representa.
+#
+# LA RUTA NO ES DECORATIVA. `verificar_diagramas.py` comprueba que exista, y en
+# las dos direcciones: que ningun componente dibujado apunte a algo que ya no
+# esta, y que ningun nombre aparezca en el SVG sin estar declarado aca.
+#
+# POR QUE SE AGREGO, EN H6.5
+#
+# El README de esta carpeta decia que estos cinco diagramas no se pueden derivar
+# del codigo «con honestidad», y por eso no tenian ninguna comprobacion de
+# contenido. La afirmacion era demasiado ancha: lo que no se puede derivar son
+# **las capas, las flechas y la degradacion de D-23**, que son criterio. Los
+# **nombres** si: un componente es un archivo y una ruta de la API esta en
+# `rutas.py`.
+#
+# Se descubrio porque el diagrama decia `GET /riesgo` y la API expone `/riesgos`.
+# Quien leyera ese diagrama y probara la ruta se comia un 404, y el dibujo se ve
+# autorizado. Es el mismo modo de fallo que I-04 y que las cifras del anexo del
+# documento IEEE: una copia que se desactualiza sin que nadie se entere.
+#
+# La capa de presentacion, ademas, se habia quedado en agosto: mostraba solo el
+# mapa, sin el semaforo de H7.1 ni la ficha con coordenadas de H5.6.
+COMPONENTES: dict[str, tuple[str, str, str]] = {
+    # id          capa            etiqueta                                                    ruta real
+    "visor": ("pres", "«componente»\\nVisor React", "frontend/src/App.jsx"),
+    "mapa": ("pres", "«componente»\\nMapaCanton\\nLeaflet", "frontend/src/componentes/MapaCanton.jsx"),
+    "semaforo": ("pres", "«componente»\\nTableroSemaforo\\ntres eventos  ·  H7.1", "frontend/src/componentes/TableroSemaforo.jsx"),
+    "ficha": ("pres", "«componente»\\nPanelDistrito\\ncoordenadas  ·  H5.6", "frontend/src/componentes/PanelDistrito.jsx"),
+    "cliente": ("pres", "«componente»\\nCliente de datos\\nnegocia origen  ·  D-23", "frontend/src/datos/cliente.js"),
+    "api": ("serv", "«componente»\\nAPI FastAPI\\nOpenAPI  ·  H6.1", "backend/api/rutas.py"),
+    "repositorio": ("serv", "«componente»\\nRepositorio\\npatron Repository  ·  H6.2", "contratos/repositorio.py"),
+    "contratos": ("dom", "«componente»\\nContratos\\nProtocol congelados  ·  D-06", "contratos"),
+    "modelado": ("dom", "«componente»\\nModelado\\netiquetado, particion,\\ncomparacion", "backend/modelado"),
+    "etl": ("datos", "«componente»\\nETL", "backend/etl"),
+}
+
+# La ruta de la API que los dos diagramas nombran. Se escribe una sola vez para
+# que no puedan discrepar entre ellos: antes de H6.5 los dos decian `/riesgo`, en
+# singular, y ninguno de los dos existia.
+RUTA_RIESGOS = "/riesgos"
+
+
+def _nodos_de_capa(capa: str) -> str:
+    """Los nodos de una capa, tal como los escribe Graphviz."""
+    return "\n".join(
+        f'    {ident} [label="{etiqueta}", fillcolor="white"];'
+        for ident, (suya, etiqueta, _) in COMPONENTES.items()
+        if suya == capa
+    )
+
+
 def dot_componentes() -> str:
     return f"""digraph componentes {{
   graph [rankdir=TB, splines=ortho, nodesep=0.5, ranksep=0.8, bgcolor="white",
@@ -361,47 +427,52 @@ def dot_componentes() -> str:
   subgraph cluster_pres {{
     label="Presentacion"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["acento"]}";
-    visor    [label="«componente»\\nVisor React", fillcolor="white"];
-    mapa     [label="«componente»\\nMapaCanton\\nLeaflet", fillcolor="white"];
-    cliente  [label="«componente»\\nCliente de datos\\nnegocia origen  ·  D-23",
-              fillcolor="white"];
+{_nodos_de_capa("pres")}
   }}
 
   subgraph cluster_serv {{
     label="Servicio"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["crudo"]}";
-    api        [label="«componente»\\nAPI FastAPI\\nOpenAPI  ·  H6.1", fillcolor="white"];
-    repositorio [label="«componente»\\nRepositorio\\npatron Repository  ·  H6.2",
-                 fillcolor="white"];
+{_nodos_de_capa("serv")}
   }}
 
   subgraph cluster_dom {{
     label="Dominio"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["control"]}";
-    contratos [label="«componente»\\nContratos\\nProtocol congelados  ·  D-06",
-               fillcolor="white"];
-    modelado  [label="«componente»\\nModelado\\netiquetado, particion,\\ncomparacion",
-               fillcolor="white"];
+{_nodos_de_capa("dom")}
   }}
 
   subgraph cluster_datos {{
     label="Datos"; labeljust="l"; fontsize=11; color="{LINEA}";
     style="rounded"; bgcolor="{FONDOS["geo"]}";
-    etl  [label="«componente»\\nETL", fillcolor="white"];
+{_nodos_de_capa("datos")}
     base [label="«base de datos»\\nPostgreSQL + PostGIS", shape=cylinder,
           fillcolor="white"];
   }}
 
   visor -> mapa     [arrowhead=none];
+  visor -> semaforo [arrowhead=none];
+  visor -> ficha    [arrowhead=none];
   visor -> cliente  [arrowhead=none];
-  cliente -> api    [label="HTTP  ·  /riesgo", style=dashed];
+  cliente -> api    [label="HTTP  ·  {RUTA_RIESGOS}", style=dashed];
   api -> repositorio;
-  api -> contratos  [label="usa", style=dashed];
   repositorio -> base;
-  modelado -> contratos [label="usa", style=dashed];
   modelado -> base;
   etl -> base;
-  etl -> contratos  [label="usa", style=dashed];
+
+  // Dependencias de uso. **Sin la etiqueta «usa», y no es un olvido.**
+  //
+  // Con `splines=ortho`, Graphviz coloca mal las etiquetas de las aristas que
+  // cruzan un cluster: dos de las tres quedaban flotando en el borde derecho del
+  // lienzo, sin ninguna linea que las uniera a nada. Se ve en el diagrama
+  // publicado hasta H6.5.
+  //
+  // La flecha punteada **ya significa dependencia** en UML, asi que la palabra
+  // no aportaba nada y el defecto se lleva por delante. La alternativa era sacar
+  // `ortho`, que reordena el diagrama entero por una palabra redundante.
+  api -> contratos      [style=dashed];
+  modelado -> contratos [style=dashed];
+  etl -> contratos      [style=dashed];
 }}"""
 
 
@@ -516,7 +587,7 @@ def svg_secuencia() -> str:
     mensajes = [
         (0, 1, "selecciona evento y fecha", False),
         (1, 2, "obtenerRiesgos(evento, fecha)", False),
-        (2, 3, "GET /riesgo?evento=&fecha=", False),
+        (2, 3, f"GET {RUTA_RIESGOS}?evento=&fecha=", False),
         (3, 4, "SELECT por distrito", False),
         (4, 3, "filas", True),
         (3, 2, "200  ·  JSON del contrato", True),
