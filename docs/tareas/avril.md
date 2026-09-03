@@ -74,13 +74,15 @@
     era subirla, y eso es lo que se corrige aca. Se cierra el mismo dia con el
     PR #229.
 
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
+- [x] **H10.3** · Manual de usuario con capturas paso a paso (2026-09-02)
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - horas: estimada n/d (no se pidio al arrancar) . real 1.2
   - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. Se
     devuelve porque **desbloquea H10.9, que es CG-6 entera** -el unico criterio
     que sostiene esa historia- y porque quien conoce el visor saca las capturas a
     la primera.
-  - Compromiso: **martes 9 de septiembre**.
+  - Comprometida para el **martes 9** y entregada el **2026-09-02**, siete dias
+    antes. **Cierra el criterio MVP, que estaba en cero.**
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3

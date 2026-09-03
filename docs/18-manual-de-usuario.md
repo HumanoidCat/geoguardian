@@ -52,8 +52,12 @@ adivinar por que un distrito esta en rojo.
 Se abre en el navegador, como cualquier pagina. No hay que instalar nada ni
 crear una cuenta.
 
-La direccion depende de donde este publicado; si lo estas corriendo en tu propia
-maquina, es `http://localhost:5173`.
+**La direccion te la da quien administre el sistema.** Todavia no hay una
+publicada de forma permanente: eso llega con las historias de despliegue H11.2 a
+H11.4.
+
+Si sos vos quien lo esta levantando en su propia maquina, las instrucciones estan
+en `docs/10-manual-tecnico.md`, que es el manual de quien lo instala. Este no.
 
 ---
 
@@ -241,8 +245,11 @@ los mismos: lo que cambia es el mapa de abajo.
 
 > **Sobre el mapa de calor.** En la version actual, al encenderlo **no se ve
 > ninguna superficie**: se dibuja por debajo de la capa de riesgo y esta la tapa.
-> Es un defecto conocido, reportado, y esta pendiente de correccion. Lo unico que
-> aparece son los ocho puntos de origen.
+> Lo unico que aparece son los ocho puntos de origen.
+>
+> El defecto esta **medido y documentado** en
+> `docs/evidencias/computacion-grafica/H5.6-proyeccion-crtm05.md`, seccion «Fuera
+> de alcance», con la captura que lo muestra. Esta pendiente de correccion.
 >
 > Y cuando se corrija, hay que leerla con cuidado: **la superficie es una ayuda
 > visual, no una medicion del terreno.** Se calcula interpolando entre ocho puntos,
@@ -276,3 +283,6 @@ uno quisiera tener, y no la que la persona tiene delante, hace perder mas tiempo
 del que ahorra.
 
 Cuando ese defecto se corrija, la seccion 9 se actualiza y la advertencia se cae.
+**La advertencia cita donde esta medido el defecto**, y no solo que existe, para
+que quien lea esto dentro de un mes pueda comprobar si sigue vigente sin
+preguntarle a nadie. Cuando el defecto tenga numero de incidencia, va aca tambien.
