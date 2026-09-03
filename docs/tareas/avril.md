@@ -137,8 +137,30 @@
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
 
-- [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
+- [x] **H6.5** · Diagrama de componentes y de secuencia del flujo principal (2026-09-03)
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.1
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.5-diagramas-componentes-y-secuencia.md`
+  - horas: estimada n/d (no se estimo al arrancar) . real 0.6
+  - **Entregada el 2026-09-02 y cerrada el 2026-09-03.** Quedo abierta un dia por
+    su fila en `docs/trazabilidad.csv`, que es archivo compartido y requiere
+    aprobacion del PM. La fila se agrego tal como Avril la propuso en la
+    evidencia, sin cambiarle una coma.
+  - **La marca la puso el PM, no Avril**, siguiendo la instruccion literal que
+    ella dejo escrita aca: «al aprobarse se marca `[x]` con `estimada n/d . real
+    0.6`». Es el mismo criterio de **`15-cerrar-una-historia.md` §5b**: ejecutar
+    una decision ya tomada no es tomarla. Si Avril prefiere otra cosa, se cambia.
+  - **Sobre la estimacion.** No hubo: la historia arranco sin estimar y el numero
+    se habria puesto despues. Se deja en `n/d` a proposito, porque una estimacion
+    escrita con la historia terminada siempre acierta y contaminaria lo que
+    **D-24** mide. Para la retrospectiva: **a posteriori se habria estimado en
+    2 h**, o sea el triple de lo que costo.
+  - Las 0,6 h son **tiempo de reloj**, reconstruido de las marcas de los archivos:
+    del commit de H10.3 a las 19:58 al cierre de la evidencia a las 20:11, mas
+    unos veinte minutos previos de investigar los diagramas.
+  - **La historia cambio de forma antes de empezar.** Pedia «hacer los
+    diagramas», y los diagramas ya existian desde el 27 de agosto. Lo que hacia
+    falta era que dejaran de mentir: los dos nombraban `GET /riesgo` contra una
+    API que expone `/riesgos`. Alcance acordado con el PM antes de tocar nada.
 
 
 ## Sprint 4 (semanas 10-11) — 36.6 h
