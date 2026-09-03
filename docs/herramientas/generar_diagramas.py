@@ -60,6 +60,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 DDL = RAIZ / "basedatos" / "ddl"
+API = RAIZ / "backend" / "api" / "rutas.py"
 SALIDA = RAIZ / "docs" / "diagramas"
 
 # Paleta. Sobria a proposito: los diagramas van a un documento academico
@@ -615,6 +616,132 @@ def svg_secuencia() -> str:
 
 
 # =========================================================================== #
+# 7 · Casos de uso, DERIVADO de las rutas de la API. Historia H10.7            #
+# =========================================================================== #
+#
+# POR QUE ESTE TAMBIEN SE DERIVA
+#
+# Un diagrama de casos de uso es normalmente lo mas dibujado a mano que tiene un
+# proyecto, y por eso es lo primero que miente. Aca hay una parte que **si** esta
+# escrita en el codigo: **que puede pedirle alguien al sistema** son las rutas de
+# `backend/api/rutas.py`.
+#
+# Asi que los casos de uso de consulta declaran su ruta, y el verificador
+# comprueba que **las seis rutas de la API aparezcan en el dibujo**. Si Cesar
+# agrega un endpoint y nadie regenera, el control lo dice. Es exactamente lo que
+# hace CA-1 con las tablas del DDL.
+#
+# Lo que NO se deriva son los actores y los casos de operacion: no estan escritos
+# en ningun lado, asi que este archivo es su fuente y no hay copia que se
+# desactualice. Es la misma division que ya usaban los otros cinco diagramas.
+
+
+@dataclass(frozen=True)
+class Ruta:
+    metodo: str
+    camino: str
+    resumen: str
+
+
+def leer_rutas(archivo: Path = API) -> list[Ruta]:
+    """Saca las rutas de los decoradores de FastAPI, con su `summary`."""
+    if not archivo.exists():
+        return []
+    texto = archivo.read_text(encoding="utf-8")
+    rutas: list[Ruta] = []
+    patron = re.compile(
+        r"@router\.(get|post|put|patch|delete)\(\s*\n?\s*\"([^\"]+)\"(.*?)^\)",
+        re.DOTALL | re.MULTILINE,
+    )
+    for metodo, camino, cuerpo in patron.findall(texto):
+        resumen = re.search(r"summary=\"([^\"]+)\"", cuerpo)
+        rutas.append(Ruta(metodo.upper(), camino, resumen.group(1) if resumen else ""))
+    return rutas
+
+
+#: Cada caso de uso de consulta y las rutas que lo sostienen. La izquierda es
+#: decision de diseno; la derecha tiene que existir en `rutas.py`.
+CASOS_DE_CONSULTA: list[tuple[str, str, list[str]]] = [
+    ("uc_mapa", "Ver el riesgo del canton\\nen una fecha", ["/riesgos"]),
+    ("uc_ficha", "Consultar la ficha\\nde un distrito", ["/distritos/{codigo}/riesgo"]),
+    ("uc_serie", "Ver la serie climatica\\nde un distrito", ["/distritos/{codigo}/mediciones"]),
+    ("uc_distritos", "Ubicar los distritos\\nen el mapa", ["/distritos", "/distritos/{codigo}"]),
+    ("uc_modo", "Saber si los datos\\nson reales o simulados", ["/salud"]),
+]
+
+
+def dot_casos_de_uso(rutas: list[Ruta] | None = None) -> str:
+    conocidas = {r.camino for r in (rutas if rutas is not None else leer_rutas())}
+
+    nodos = []
+    for identificador, titulo, caminos in CASOS_DE_CONSULTA:
+        # Una ruta que este en la tabla y ya no exista en la API se marca en el
+        # dibujo en vez de desaparecer en silencio: un diagrama que se corrige
+        # solo escondiendo lo que sobra vuelve a ser un diagrama que miente.
+        etiquetas = [c if c in conocidas else f"{c}  (?)" for c in caminos]
+        pie = "\\n".join(etiquetas)
+        nodos.append(f'    {identificador} [label="{titulo}\\n{pie}"];')
+    consultas = "\n".join(nodos)
+
+    return f"""digraph casos_de_uso {{
+  graph [rankdir=LR, splines=spline, nodesep=0.28, ranksep=0.9, bgcolor="white",
+         fontname="{FUENTE}", pad=0.3, newrank=true];
+  node  [shape=ellipse, style="filled", fillcolor="white", fontname="{FUENTE}",
+         fontsize=9, color="{LINEA}", fontcolor="{TINTA}", margin="0.11,0.05"];
+  edge  [color="{SUAVE}", arrowsize=0.6, fontname="{FUENTE}", fontsize=8,
+         fontcolor="{SUAVE}"];
+
+  usuaria [shape=box, style="rounded,filled", fillcolor="{FONDOS["acento"]}",
+           fontsize=10, label="«actor»\\nPersona usuaria\\nvecina, funcionaria\\nmunicipal"];
+  equipo  [shape=box, style="rounded,filled", fillcolor="{FONDOS["control"]}",
+           fontsize=10, label="«actor»\\nEquipo de datos\\nGeoGuardian"];
+  fuentes [shape=box, style="rounded,filled", fillcolor="{FONDOS["externo"]}",
+           fontsize=10, label="«actor de sistema»\\nFuentes externas\\nCHIRPS  ·  FIRMS\\nPOWER  ·  Sentinel-2"];
+
+  subgraph cluster_sistema {{
+    label="GeoGuardian"; labeljust="l"; labelloc="t"; fontsize=12;
+    color="{LINEA}"; style="rounded"; bgcolor="{FONDOS["crudo"]}"; margin=18;
+
+{consultas}
+
+    uc_capas  [label="Encender y apagar\\ncapas del mapa"];
+    uc_filtro [label="Elegir evento y fecha"];
+
+    uc_ingesta [label="Ingerir datos\\nde las fuentes", fillcolor="{FONDOS["geo"]}"];
+    uc_modelo  [label="Entrenar y evaluar\\nel modelo", fillcolor="{FONDOS["geo"]}"];
+    uc_desplegar [label="Desplegar el sistema\\nH11.2 a H11.4", fillcolor="{FONDOS["geo"]}"];
+
+    // Las dos columnas se fijan a mano. Sin esto, `dot` estira el dibujo hasta
+    // una proporcion que no entra en una pagina del documento.
+    {{ rank=same; uc_mapa; uc_ficha; uc_capas; uc_ingesta; uc_desplegar; }}
+    {{ rank=same; uc_filtro; uc_distritos; uc_modo; uc_serie; uc_modelo; }}
+  }}
+
+  usuaria -> uc_mapa   [arrowhead=none];
+  usuaria -> uc_ficha  [arrowhead=none];
+  usuaria -> uc_capas  [arrowhead=none];
+
+  // Sentido UML: «include» va del caso base al incluido; «extend» va del que
+  // extiende hacia el que es extendido. No es decorativo: invertido, el dibujo
+  // afirma lo contrario de lo que pasa.
+  uc_mapa  -> uc_filtro    [label="«include»", style=dashed];
+  uc_mapa  -> uc_distritos [label="«include»", style=dashed];
+  uc_mapa  -> uc_modo      [label="«include»", style=dashed];
+  // `constraint=false` y no `dir=back`: las dos ordenan igual, pero `dir=back`
+  // invierte la punta y entonces el dibujo afirma lo contrario. Se vio al mirar
+  // el PNG, no al leer el DOT.
+  uc_serie -> uc_ficha     [label="«extend»", style=dashed, constraint=false];
+
+  equipo -> uc_ingesta   [arrowhead=none];
+  equipo -> uc_desplegar [arrowhead=none];
+  equipo -> uc_modelo    [arrowhead=none];
+
+  uc_modelo  -> uc_ingesta [label="«include»", style=dashed, constraint=false];
+  uc_ingesta -> fuentes    [label="descarga", constraint=false];
+}}"""
+
+
+# =========================================================================== #
 # Emision                                                                      #
 # =========================================================================== #
 
@@ -623,6 +750,7 @@ DECLARADOS = {
     "componentes": dot_componentes,
     "despliegue": dot_despliegue,
     "flujo-modelado": dot_flujo_modelado,
+    "casos-de-uso": dot_casos_de_uso,
 }
 
 
@@ -670,10 +798,23 @@ def main() -> int:
         )
     print()
 
+    def mostrar(ruta: Path) -> str:
+        """Relativa al repositorio si esta dentro; absoluta si no.
+
+        `--salida` acepta cualquier carpeta -se usa para comparar contra lo
+        versionado sin ensuciar el arbol-, y `relative_to` lanza ValueError
+        cuando el destino queda fuera de RAIZ. El generador moria al imprimir,
+        despues de haber escrito bien los archivos.
+        """
+        try:
+            return str(ruta.relative_to(RAIZ))
+        except ValueError:
+            return str(ruta)
+
     for nombre, contenido in generar().items():
         destino = args.salida / f"{nombre}.svg"
         destino.write_text(contenido, encoding="utf-8")
-        print(f"  {destino.relative_to(RAIZ)}")
+        print(f"  {mostrar(destino)}")
 
         if args.png:
             try:
@@ -686,7 +827,7 @@ def main() -> int:
                 write_to=str(args.salida / f"{nombre}.png"),
                 scale=2,
             )
-            print(f"  {(args.salida / f'{nombre}.png').relative_to(RAIZ)}")
+            print(f"  {mostrar(args.salida / f'{nombre}.png')}")
 
     print()
     return 0

@@ -240,11 +240,20 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
+- [x] **H10.7** · Diagramas de casos de uso y entidad-relacion (2026-09-02)
   - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/arquitectura-software/H10.7-diagramas-casos-de-uso.md`
+  - **El entidad-relacion ya existia desde H6.5** y nadie lo habia anotado: la
+    historia figuraba entera cuando le faltaba una mitad. Solo se entrego el de
+    casos de uso.
+  - Se derivo de `backend/api/rutas.py` en vez de dibujarlo. **CA-6** comprueba
+    que las 6 rutas aparezcan y que el diagrama no declare ninguna que ya no
+    exista. Su primera version **no distinguia** -leia el SVG generado, que solo
+    cambia al regenerar-; se descubrio intentando romperla.
+  - horas: estimada 7.8 . real 2.5
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0

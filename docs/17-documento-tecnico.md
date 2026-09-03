@@ -427,7 +427,7 @@ Ejemplos:
 | Artefacto | Se deriva de |
 |---|---|
 | Matriz de trazabilidad | `docs/trazabilidad.csv` y los archivos de tareas |
-| Los seis diagramas | El DDL y el generador |
+| Los siete diagramas | El DDL, las rutas de la API y el generador |
 | Cifras de la documentación | El repositorio, recalculadas en cada ejecución |
 | Especificación OpenAPI | Los esquemas Pydantic |
 
