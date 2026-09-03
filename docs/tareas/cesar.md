@@ -104,8 +104,10 @@
 > H8.2 salieron por D-38: Cesar las declino por escrito y el PM las tomo. Queda
 > H1.10, entregada en el PR #250.
 
-- [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
+- [x] **H1.10** · Estrategia de respaldo definida y restauracion probada (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9
+  - horas: estimada 7.8 . real 8.0
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.10-criterios-aceptacion.md`, `docs/evidencias/bases-de-datos/H1.10-respaldo-restauracion.md`. PR #250.
 
 ## Sprint 4 (semanas 10-11) — 34.0 h
 
