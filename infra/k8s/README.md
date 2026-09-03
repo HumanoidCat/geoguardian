@@ -17,12 +17,16 @@ espacios de nombres distintos. La decisión está registrada en `D-05`.
 
 ## Qué contiene hoy
 
-Solo la base de datos: `StatefulSet` de PostGIS, `Service` headless y el
-`ConfigMap` con el SQL de extensiones y esquemas.
+**La base de datos, la API y el visor.** Desde H11.2 los tres:
 
-La API y el visor entran cuando existan sus Dockerfile e imágenes publicadas —
-historias H6.1, H5.1 y H11.1. Igual que en `docker-compose.yml`, no se declara
-un `Deployment` de algo que todavía no se puede construir.
+| | Objeto | Imagen |
+|---|---|---|
+| PostGIS | `StatefulSet` + `Service` headless + `ConfigMap` | `postgis/postgis:16-3.4` |
+| API | `Deployment` + `Service` | `ghcr.io/humanoidcat/geoguardian/api` |
+| Visor | `Deployment` + `Service` | `ghcr.io/humanoidcat/geoguardian/visor` |
+
+Las imágenes **no se construyen al desplegar**: se consumen las que H11.1
+publica en ghcr.io. Reconstruirlas daría un binario distinto del que se probó.
 
 ## Requisitos
 
@@ -187,3 +191,49 @@ consistentes**. Hay una duplicación conocida: el SQL de extensiones y esquemas
 vive en `infra/docker/init-db/01-extensiones.sql` y también, copiado, en
 `base/postgis-configmap-init.yaml`. Si se cambia uno, hay que cambiar el otro.
 Está anotado en la cabecera del ConfigMap.
+
+## 5. Desplegar la aplicación
+
+Todo lo de arriba deja la infraestructura en pie. Para poner una versión
+concreta a correr:
+
+```powershell
+python infra/k8s/desplegar.py desarrollo
+python infra/k8s/desplegar.py desarrollo (git rev-parse HEAD)
+```
+
+Sin segundo argumento usa `latest`. Con un SHA de 40 caracteres lo convierte a
+`sha-<sha>`, que es como los etiqueta H11.1 — se acepta el SHA pelado porque es
+lo que sale de `git rev-parse HEAD`.
+
+**Es el mismo guion que corre el flujo de CD**, y eso es deliberado: si el CI y
+tu máquina desplegaran por caminos distintos, un CI en verde no diría nada sobre
+lo que pasa acá. Ver **D-36**.
+
+Está en Python y no en bash a propósito: winget instala `kubectl` como alias de
+`WindowsApps`, y **Git Bash no puede ejecutarlo** aunque PowerShell y Python sí.
+Un guion de despliegue que no corre en ninguna máquina del equipo es I-24 otra
+vez.
+
+El guion espera a que los tres objetos converjan con `kubectl rollout status`.
+Sin esa espera, `kubectl apply` devuelve éxito en cuanto la API acepta el objeto
+—o sea siempre— y el despliegue diría que funcionó aunque ningún pod arranque.
+
+Después comprobalo:
+
+```powershell
+python infra/verificar_cd.py --entorno desarrollo --sha (git rev-parse HEAD)
+kubectl -n geoguardian-desarrollo port-forward svc/visor 8080:80
+```
+
+### Lo que el CD no hace, y hay que saberlo
+
+**GitHub Actions no despliega a este clúster.** No puede alcanzarlo: corre en la
+nube y esto vive detrás de un router doméstico.
+
+El flujo `cd.yml` crea su propio k3d dentro del runner, aplica estos mismos
+manifiestos, comprueba que converjan y lo destruye. Demuestra que el despliegue
+funciona; **no deja nada corriendo**.
+
+Este clúster se actualiza cuando una persona corre el guion de arriba. La
+decisión, con sus alternativas descartadas y lo que se pierde, está en **D-36**.

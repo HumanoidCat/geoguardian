@@ -1,9 +1,20 @@
 # Base comun a los tres entornos.
 #
-# Hoy solo la base de datos. La API y el visor entran cuando existan sus
-# Dockerfile e imagenes publicadas: historias H6.1 (API) y H5.1 (frontend), mas
-# H11.1 que publica los artefactos en ghcr.io. Igual que en docker-compose.yml,
-# no se declara un Deployment de algo que todavia no se puede construir.
+# Desde H11.2 incluye la API y el visor, ademas de la base de datos. La nota
+# anterior decia que entraban «cuando existan sus Dockerfile e imagenes
+# publicadas»: las dos cosas existen desde H11.1.
+#
+# LAS ETIQUETAS DE IMAGEN
+#
+# El bloque `images:` de abajo declara `latest` para que los manifiestos se
+# puedan aplicar a mano sin herramientas. El flujo de despliegue lo reemplaza
+# por el SHA exacto del commit:
+#
+#     kustomize edit set image ghcr.io/humanoidcat/geoguardian/api=...:sha-abc123
+#
+# y `infra/verificar_cd.py` comprueba que lo aplicado no diga `latest`. Un
+# despliegue automatico contra `latest` no permite saber que esta corriendo:
+# dos corridas del mismo manifiesto dan resultados distintos.
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -12,3 +23,13 @@ resources:
   - postgis-configmap-init.yaml
   - postgis-service.yaml
   - postgis-statefulset.yaml
+  - api-deployment.yaml
+  - api-service.yaml
+  - visor-deployment.yaml
+  - visor-service.yaml
+
+images:
+  - name: ghcr.io/humanoidcat/geoguardian/api
+    newTag: latest
+  - name: ghcr.io/humanoidcat/geoguardian/visor
+    newTag: latest

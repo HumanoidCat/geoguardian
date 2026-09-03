@@ -1,0 +1,129 @@
+# La API dentro de Kubernetes. Historia H11.2.
+#
+# ---------------------------------------------------------------------------
+# POR QUE ENTRA RECIEN AHORA
+# ---------------------------------------------------------------------------
+#
+# El kustomization de la base decia: «la API y el visor entran cuando existan
+# sus Dockerfile e imagenes publicadas». Las dos cosas existen desde H11.1, que
+# publica `ghcr.io/humanoidcat/geoguardian/api` en cada fusion.
+#
+# La imagen NO se construye aqui: se consume la que H11.1 publico. Construirla
+# otra vez al desplegar produciria un binario distinto del que se probo, y el
+# despliegue dejaria de decir algo sobre lo que se verifico.
+#
+# ---------------------------------------------------------------------------
+# LA ETIQUETA DE LA IMAGEN LA FIJA EL DESPLIEGUE, NO ESTE ARCHIVO
+# ---------------------------------------------------------------------------
+#
+# Aca dice `latest` porque un manifiesto tiene que ser aplicable a mano. Pero el
+# flujo de despliegue la reemplaza por el SHA exacto del commit, con
+# `kustomize edit set image`, y el verificador comprueba que **el manifiesto
+# aplicado no diga `latest`**.
+#
+# `latest` en un despliegue automatico es la forma mas comun de no saber que
+# esta corriendo: dos despliegues del mismo manifiesto dan resultados distintos
+# y nada lo registra.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: geoguardian
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+  # `Recreate` y no `RollingUpdate`, con una sola replica y una base con estado:
+  # un rolling update dejaria dos procesos escribiendo a la vez durante la
+  # transicion. Con mas replicas esto cambia, y seria otra historia.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: geoguardian
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/humanoidcat/geoguardian/api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: POSTGRES_DB
+              value: geoguardian
+            # Las credenciales salen del mismo Secret que usa el StatefulSet.
+            # No se versiona: un Secret de Kubernetes esta en base64, no
+            # cifrado. Como crearlo esta en infra/k8s/README.md.
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: geoguardian-db
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: geoguardian-db
+                  key: POSTGRES_PASSWORD
+            # OJO CON EL NOMBRE, y es el mismo aviso que esta en
+            # docker-compose.yml: `basedatos/conexion.py` lee SOLO
+            # `POSTGRES_HOST_LOCAL`. `POSTGRES_HOST` se declara por coherencia
+            # con el resto del proyecto y hoy no lo lee nadie.
+            #
+            # El valor es el nombre del Service headless. Con una sola replica
+            # resuelve al unico pod; si algun dia hay mas, hay que apuntar a
+            # postgis-0.postgis explicitamente.
+            - name: POSTGRES_HOST
+              value: postgis
+            - name: POSTGRES_HOST_LOCAL
+              value: postgis
+            - name: POSTGRES_PORT
+              value: "5432"
+            # SIMULADO, Y ESTO NO ES UN DESCUIDO.
+            #
+            # `analitico.riesgo` existe y las funciones de escritura tambien,
+            # pero **ningun modelo ha escrito una fila todavia**: faltan H3.4,
+            # H3.5 y H3.6, que deciden que modelo escribe. Poner `postgres` hoy
+            # desplegaria un mapa vacio con aspecto de sistema funcionando, que
+            # es peor que un simulado que se anuncia como tal.
+            #
+            # El visor ya declara en pantalla que los datos son de
+            # demostracion, y esa franja no se puede ocultar.
+            - name: GEOGUARDIAN_REPOSITORIO
+              value: simulado
+          # Las dos sondas apuntan al mismo endpoint y hacen cosas distintas:
+          #
+          #   readiness  decide si el Service le manda trafico
+          #   liveness   decide si el contenedor se reinicia
+          #
+          # Sin readiness, el visor recibiria 502 durante los segundos que la
+          # API tarda en levantar, y `rollout status` daria por bueno un pod que
+          # todavia no responde. Es justo lo que el despliegue tiene que medir.
+          readinessProbe:
+            httpGet:
+              path: /salud
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /salud
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
