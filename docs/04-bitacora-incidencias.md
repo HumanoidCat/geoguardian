@@ -1886,3 +1886,60 @@ haber terminado antes de que esto empiece, y quien lo garantiza?»**.
 primera corrida, en el paso de preparacion, sin llegar a desplegar nada. Es el
 mejor momento posible para encontrarlo, y es el argumento de por que las
 historias H11.2 a H11.4 **no se marcaron `[x]` al escribirlas**.
+
+---
+
+## I-27 · Dos caminos en el guion de despliegue, y solo uno se recorria
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** La segunda corrida del CD sobre `main`.
+
+**Que paso.** El despliegue murio con
+`Error: Missing kustomization file 'kustomization.yaml'`.
+
+`fijar_etiqueta()` llamaba a `kustomize edit set image` **sin situarse en el
+directorio del overlay**. En la version en bash el comando iba dentro de un
+`( cd "$TEMPORAL/local/$ENTORNO" && ... )`; al portar el guion a Python por I-24,
+ese `cd` se perdio, y `subprocess` hereda el directorio actual —la raiz del
+repositorio, donde no hay ningun `kustomization.yaml`—.
+
+**Causa raiz.** El descuido del `cd` es la mitad. La otra es la que importa:
+
+**el guion tenia dos caminos y solo uno se ejecutaba nunca.** Usaba `kustomize`
+si el binario existia, y una sustitucion de texto si no. **En las maquinas del
+equipo no hay `kustomize` instalado**, asi que todas las pruebas locales tomaban
+el segundo camino. El runner si lo tiene, y tomo el primero, que no se habia
+ejecutado ni una vez.
+
+Es I-24 vista desde el otro lado. Alli el control corria en un entorno que no era
+el nuestro; aca **el codigo que se probaba no era el que iba a correr**.
+
+**Y el verificador no podia atraparlo.** `verificar_cd.py --manifiestos`
+comprobaba que la cadena `newTag` **apareciera en el archivo del guion**. Eso
+pasa en verde mientras la funcion revienta: buscar un texto no dice si el codigo
+corre. Es la forma de **I-10** aplicada a un verificador estatico.
+
+**Accion tomada.** Tres cambios, en orden de importancia:
+
+  1. **Queda un solo camino.** Se elimina el de `kustomize`. La sustitucion de
+     texto es la que se ejecuta en las dos partes y esta comprobada.
+  2. **El verificador ejecuta la funcion** en vez de buscar una cadena: copia el
+     arbol a un temporal, llama a `fijar_etiqueta()` y comprueba el resultado.
+     Se introdujo el defecto a proposito y **el criterio lo detecta**.
+  3. Ese criterio nuevo, en su primera version, **tampoco distinguia**: atrapaba
+     `Exception` y `fijar_etiqueta` se planta con `SystemExit`, que hereda de
+     `BaseException`. El verificador moria a mitad y se saltaba los trece
+     criterios restantes. Corregido a `except (Exception, SystemExit)`.
+
+**Aprendizaje.** **Una rama condicional que depende de que una herramienta este
+instalada crea dos programas, y se prueba uno.** Si las dos ramas no se ejercitan
+en el mismo sitio, la que no se ejercita es codigo sin escribir.
+
+Y la de los controles, que ya va tercera esta semana: **un verificador que busca
+texto comprueba la forma del codigo, no su comportamiento.** Ejecutar la funcion
+cuesta cinco lineas mas y es la diferencia entre un control y un adorno.
+
+**Impacto.** Dos corridas fallidas del CD, ninguna con consecuencia: las dos
+murieron antes de desplegar. Las historias H11.2 a H11.4 siguen sin marcarse, que
+es exactamente para lo que se dejo esa condicion.

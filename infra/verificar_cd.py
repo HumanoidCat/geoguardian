@@ -122,7 +122,42 @@ def comprobar_manifiestos() -> None:
     )
 
     guion = (K8S / "desplegar.py").read_text(encoding="utf-8")
-    exigir("newTag" in guion, "el guion de despliegue sabe reemplazar la etiqueta")
+
+    # SE EJECUTA LA FUNCION, NO SE BUSCA UN TEXTO.
+    #
+    # La version anterior comprobaba que la cadena "newTag" apareciera en el
+    # guion. Eso pasaba en verde mientras `fijar_etiqueta` fallaba en el runner
+    # con `Missing kustomization file`: buscar un texto no dice si el codigo
+    # corre.
+    #
+    # Es la leccion de I-10 aplicada a un verificador estatico. Ahora se copia el
+    # arbol a un temporal, se llama a la funcion de verdad, y se comprueba el
+    # resultado.
+    import importlib.util
+    import shutil
+    import tempfile
+
+    especificacion = importlib.util.spec_from_file_location("desplegar", K8S / "desplegar.py")
+    desplegar = importlib.util.module_from_spec(especificacion)
+    especificacion.loader.exec_module(desplegar)
+
+    with tempfile.TemporaryDirectory() as carpeta:
+        arbol = Path(carpeta) / "k8s"
+        shutil.copytree(K8S, arbol)
+        try:
+            desplegar.fijar_etiqueta(arbol, "desarrollo", "sha-" + "a" * 40)
+            resultado = (arbol / "base" / "kustomization.yaml").read_text(encoding="utf-8")
+            fijo = f"newTag: sha-{'a' * 40}" in resultado and "newTag: latest" not in resultado
+            detalle = ""
+        # `SystemExit` va explicito: hereda de BaseException, no de Exception, y
+        # `fijar_etiqueta` la usa para plantarse. Sin nombrarla, el verificador
+        # moria a mitad y se saltaba los trece criterios restantes en vez de
+        # reportar uno en rojo.
+        except (Exception, SystemExit) as error:  # noqa: BLE001
+            fijo, detalle = False, f"{type(error).__name__}: {str(error).splitlines()[0]}"
+
+    exigir(fijo, "fijar_etiqueta() corre y deja la etiqueta puesta", detalle)
+
     exigir(
         '"rollout", "status"' in guion,
         "el guion espera a que converja: sin esto, `apply` siempre dice exito",
