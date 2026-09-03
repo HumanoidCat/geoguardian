@@ -14,11 +14,12 @@ para el repositorio y para GitHub.
 
 ---
 
-## Los seis
+## Los siete
 
 | Archivo | Qué muestra | Fuente |
 |---|---|---|
 | `entidad-relacion` | Las 8 tablas de `geo`, `crudo` y `control`, con claves y cardinalidad | **Derivado** de `basedatos/ddl/*.sql` |
+| `casos-de-uso` | UML de casos de uso: quién le pide qué al sistema (H10.7) | **Derivado en parte** de `backend/api/rutas.py` |
 | `flujo-datos` | De la fuente abierta a la pantalla | Declarado en el generador |
 | `componentes` | UML de componentes, por capa | Declarado, **con los nombres comprobados** (CA-6, CA-7) |
 | `secuencia-consulta-riesgo` | UML de secuencia, con la degradación de D-23 | Declarado, **con las rutas comprobadas** (CA-6) |
@@ -39,8 +40,8 @@ El **entidad-relación es derivado**: sale de parsear el DDL. Si alguien agrega
 una tabla y no regenera, `verificar_diagramas.py` lo detecta y el CI sale en
 rojo.
 
-Los otros cinco están **declarados en el generador**. Ese archivo **es** su
-fuente: no hay copia que se desactualice porque no hay dos lugares donde vivan.
+Los otros están **declarados en el generador**. Ese archivo **es** su fuente: no
+hay copia que se desactualice porque no hay dos lugares donde vivan.
 
 **Que estén declarados no quiere decir que no se pueda comprobar nada de ellos, y
 hasta H6.5 acá decía que sí.** La frase era «no se pueden derivar del código con
@@ -56,6 +57,16 @@ autorizado.
 Desde H6.5, `verificar_diagramas.py` comprueba en **CA-6** que cada ruta nombrada
 en un diagrama exista en la API, y en **CA-7** que cada componente dibujado
 corresponda a un archivo que existe —y que ninguno declarado falte del dibujo—.
+
+El de **casos de uso**, agregado en H10.7, aplica esa misma distinción desde el
+principio: los casos de consulta declaran su ruta, y los actores y los casos de
+operación quedan declarados porque no están escritos en ningún lado.
+
+**Y hacen falta las dos direcciones.** CA-6 va del dibujo al código: lo que un
+diagrama nombra tiene que existir. **CA-8** va del código al dibujo: lo que la API
+expone tiene que estar dibujado, para que un endpoint nuevo no deje el diagrama
+corto en silencio. Cualquiera de las dos sola pasa en verde con el defecto que
+busca la otra.
 
 ## Por qué Graphviz y no Mermaid
 
@@ -85,9 +96,36 @@ diagrama de secuencia sin respetar su semántica.
 |---|---|
 | CA-1 | Cada tabla y cada una de las 55 columnas del DDL aparecen en el entidad-relación |
 | CA-2 | Cada clave foránea del DDL aparece como relación, con su columna |
-| CA-3 | Los seis diagramas existen y no están vacíos |
+| CA-3 | Los siete diagramas existen y no están vacíos |
 | CA-4 | Lo que el generador produce hoy está en el SVG versionado |
 | CA-5 | El control distingue: una tabla que no está, se detecta |
+| CA-6 | Cada ruta **nombrada** en un diagrama existe en la API (H6.5) |
+| CA-7 | Cada componente dibujado corresponde a un archivo que existe, y ninguno declarado falta del dibujo (H6.5) |
+| CA-7b | El control distingue: un componente inventado ni existe ni aparece |
+| CA-8 | Cada ruta que la API **expone** aparece en el de casos de uso, y ese diagrama no declara ninguna que ya no exista (H10.7) |
+| CA-9 | El control distingue: una ruta inventada no aparece |
+
+**CA-6 y CA-8 miran el mismo archivo en direcciones opuestas, y las dos hacen
+falta.** CA-6 va del dibujo al código —lo que un diagrama nombra tiene que
+existir— y nació de que `componentes` decía `GET /riesgo` contra una API que
+expone `/riesgos`. CA-8 va del código al dibujo —lo que la API expone tiene que
+estar dibujado— y evita que un endpoint nuevo deje el diagrama corto. Cualquiera
+de las dos sola pasa en verde con el defecto que busca la otra.
+
+**La mitad inversa de CA-8 costó dos intentos.** La primera versión buscaba una
+marca en el SVG versionado; al intentar romperla renombrando una ruta, **no
+falló**, porque esa marca solo se escribe al regenerar. Era un control incapaz de
+decir que no —la forma de I-25—. Ahora compara la tabla declarada contra
+`rutas.py` directamente. Se descubrió por intentar romperlo, no por leerlo.
+
+> **Sobre la numeración.** CA-6/CA-7 y CA-8/CA-9 se escribieron el mismo día en
+> dos ramas distintas, y las dos parejas eligieron los mismos números. Se detectó
+> al integrar. La de H6.5 es anterior y conservó los suyos.
+>
+> No es anecdótico: pasó porque quien escribió los segundos **no miró los Pull
+> Requests abiertos** antes de numerar. Es la misma forma de I-20 —concluir desde
+> la mitad del estado— y el remedio es igual de barato: `gh pr list` antes de
+> tocar un archivo compartido.
 
 **No compara bytes.** Graphviz no garantiza la misma salida entre versiones, y
 como el desarrollo es en Windows y el CI en Ubuntu, un cambio de versión del

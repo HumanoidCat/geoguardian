@@ -11,9 +11,23 @@ QUE COMPRUEBA
 
     CA-1  cada tabla del DDL aparece en el entidad-relacion
     CA-2  cada clave foranea del DDL aparece como relacion
-    CA-3  los seis diagramas existen y no estan vacios
+    CA-3  los diagramas existen y no estan vacios
     CA-4  el generador sigue produciendo lo que hay versionado
     CA-5  el control distingue: una tabla que no esta, se detecta
+    CA-6  las rutas que NOMBRAN componentes y secuencia existen en la API  (H6.5)
+    CA-7  cada componente dibujado existe en el repositorio  (H6.5)
+    CA-7b el control distingue: un componente inventado no existe ni aparece
+    CA-8  cada ruta de la API aparece en el de casos de uso  (H10.7)
+    CA-9  el control distingue: una ruta inventada no aparece
+
+**CA-6 y CA-8 no son la misma comprobacion, aunque las dos miren `rutas.py`.**
+CA-6 va del dibujo al codigo -lo que el diagrama nombra tiene que existir- y
+nacio de que `componentes` decia `GET /riesgo` contra una API que expone
+`/riesgos`. CA-8 va del codigo al dibujo -lo que la API expone tiene que estar
+dibujado- y evita que un endpoint nuevo deje el diagrama corto.
+
+Las dos direcciones hacen falta: cualquiera de las dos sola pasa en verde con el
+defecto que la otra busca.
 
 POR QUE **NO** SE COMPARAN LOS BYTES
 
@@ -48,12 +62,14 @@ RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "docs" / "herramientas"))
 
 from generar_diagramas import (  # noqa: E402
+    CASOS_DE_CONSULTA,
     COMPONENTES,
     DECLARADOS,
     SALIDA,
     Tabla,
     dot_entidad_relacion,
     leer_ddl,
+    leer_rutas,
     renderizar,
 )
 
@@ -89,7 +105,7 @@ def main() -> int:
         return 1
 
     # ------------------------------------------------------------------ CA-3 - #
-    print("CA-3, los seis diagramas existen:")
+    print(f"CA-3, los {len(ESPERADOS)} diagramas existen:")
 
     svgs: dict[str, str] = {}
     for nombre in ESPERADOS:
@@ -205,10 +221,23 @@ def main() -> int:
 
     # Se leen del SVG y no del generador: lo que importa es lo que alguien lee en
     # el dibujo, no lo que el generador pretendia escribir.
-    for nombre in ("componentes", "secuencia-consulta-riesgo"):
+    #
+    # `casos-de-uso` se agrego a esta lista al integrar H10.7: ese diagrama tambien
+    # nombra rutas, y una mal escrita ahi enganiaria igual que la de `componentes`.
+    for nombre in ("componentes", "secuencia-consulta-riesgo", "casos-de-uso"):
         if nombre not in svgs:
             continue
-        nombradas = set(re.findall(r"(/[a-z][a-z0-9_/-]*)", texto_de(svgs[nombre])))
+        # LAS LLAVES VAN DENTRO DEL PATRON, Y NO ES UN DETALLE.
+        #
+        # Sin `{}`, `/distritos/{codigo}/mediciones` se parte en tres trozos y los
+        # dos ultimos -`/mediciones`, `/riesgo`- se buscan como si fueran rutas de
+        # primer nivel, que no existen. El criterio fallaba sobre un diagrama
+        # correcto.
+        #
+        # No se vio en H6.5 porque `componentes` y `secuencia` solo nombran
+        # `/riesgos`, sin parametros. Aparecio al sumar `casos-de-uso`, que es el
+        # primer diagrama que dibuja rutas parametrizadas.
+        nombradas = set(re.findall(r"(/[a-z][a-z0-9_/{}-]*)", texto_de(svgs[nombre])))
         # Se ignoran las que no pretenden ser rutas de la API.
         nombradas = {r for r in nombradas if not r.startswith(("/api", "/etc", "/usr", "/docker"))}
         for ruta in sorted(nombradas):
@@ -260,6 +289,60 @@ def main() -> int:
         "ComponenteQueNoExisteZzz" not in contenido_comp,
         "si aparece, esta comprobacion no esta mirando lo que cree",
     )
+
+    # ------------------------------------------------------------ CA-8 y CA-9 - #
+    #
+    # H10.7. Numerados 8 y 9 y no 6 y 7: se escribieron a la vez que los de H6.5,
+    # en dos ramas distintas, y las dos parejas eligieron los mismos numeros. La
+    # de H6.5 es anterior, asi que conserva los suyos.
+    #
+    # **CA-8 no repite a CA-6, la completa.** CA-6 va del dibujo al codigo: lo que
+    # un diagrama nombra tiene que existir en la API. CA-8 va del codigo al
+    # dibujo: lo que la API expone tiene que estar dibujado.
+    #
+    # Cualquiera de las dos sola pasa en verde con el defecto que busca la otra.
+    # CA-6 nacio de `GET /riesgo` contra una API que expone `/riesgos`; CA-8 evita
+    # que Cesar agregue un endpoint y el diagrama quede corto sin que nada falle.
+    # Es I-04 con dos disfraces distintos.
+    if "casos-de-uso" in svgs:
+        print("\nCA-8, cada ruta de la API esta en el diagrama de casos de uso:")
+
+        casos = texto_de(svgs["casos-de-uso"])
+        rutas = leer_rutas()
+        comprobar("la API declara al menos una ruta", len(rutas) > 0)
+
+        for ruta in rutas:
+            comprobar(
+                f"{ruta.metodo} {ruta.camino}",
+                ruta.camino in casos,
+                "existe en backend/api/rutas.py y no en el diagrama. Hay que regenerar",
+            )
+
+        # LA COMPROBACION INVERSA SE HACE CONTRA `CASOS_DE_CONSULTA`, NO CONTRA
+        # EL SVG.
+        #
+        # La primera version buscaba el marcador «(?)» en el dibujo versionado.
+        # Se probo sabotearla renombrando una ruta y **no fallo**: ese marcador
+        # solo se escribe al regenerar, asi que el SVG en disco seguia limpio.
+        # Era un control que no podia decir que no -la forma de I-25- y se
+        # descubrio por intentar romperlo, no por leerlo.
+        #
+        # Comparar la tabla declarada contra `rutas.py` no depende de que nadie
+        # regenere: las dos fuentes se miran entre si.
+        declaradas = {camino for _, _, caminos in CASOS_DE_CONSULTA for camino in caminos}
+        huerfanas = sorted(declaradas - {r.camino for r in rutas})
+        comprobar(
+            "ningun caso de uso declara una ruta que la API ya no tiene",
+            not huerfanas,
+            f"CASOS_DE_CONSULTA nombra rutas inexistentes: {huerfanas}",
+        )
+
+        print("\nCA-9, el control distingue una ruta que no esta:")
+        comprobar(
+            "una ruta inventada NO aparece en el diagrama",
+            "/zzz-ruta-que-no-existe" not in casos,
+            "si aparece, esta comprobacion no esta mirando lo que cree",
+        )
 
     if fallos:
         print(f"\n{len(fallos)} comprobaciones fallaron:\n")

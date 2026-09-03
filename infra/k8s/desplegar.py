@@ -100,26 +100,28 @@ def normalizar_etiqueta(etiqueta: str) -> str:
 def fijar_etiqueta(arbol: Path, entorno: str, etiqueta: str) -> None:
     """Reescribe el bloque `images:` de la base, en una COPIA del arbol.
 
-    `kustomize edit set image` reescribe el kustomization.yaml en disco.
-    Corrido sobre el arbol de trabajo dejaria el repositorio sucio despues de
-    cada despliegue, y tarde o temprano alguien commitea la etiqueta de una
-    corrida. Por eso se copia primero.
+    POR QUE SE COPIA EL ARBOL PRIMERO
 
-    Con `kustomize` si esta instalado; con una sustitucion de texto si no.
-    `kubectl` NO trae el subcomando `edit` -`kubectl kustomize` solo construye-,
-    asi que llamarlo seria un camino muerto que nunca se recorre.
+    Reescribir el kustomization del arbol de trabajo dejaria el repositorio
+    sucio despues de cada despliegue, y tarde o temprano alguien commitea la
+    etiqueta de una corrida.
+
+    POR QUE UN SOLO CAMINO, Y NO `kustomize` CUANDO ESTA DISPONIBLE
+
+    La primera version usaba `kustomize edit set image` si el binario existia, y
+    una sustitucion de texto si no. **Fallo en la primera corrida del CD** con
+    `Missing kustomization file`: al portar el guion de bash a Python se perdio
+    el `cd` al directorio del overlay, y `subprocess` hereda el directorio
+    actual, que es la raiz del repositorio.
+
+    Lo que convierte el descuido en algo peor: **en las maquinas del equipo no
+    hay `kustomize` instalado, asi que el camino que se probaba era el otro.**
+    En el runner si esta, y tomo el que nunca se habia ejecutado.
+
+    Dos caminos de los que solo uno se recorre son un defecto esperando. Queda
+    **uno solo**: la sustitucion de texto, que es la que se ejecuta en las dos
+    partes y esta comprobada abajo.
     """
-    if shutil.which("kustomize"):
-        correr(
-            "kustomize",
-            "edit",
-            "set",
-            "image",
-            f"{BASE}/api={BASE}/api:{etiqueta}",
-            f"{BASE}/visor={BASE}/visor:{etiqueta}",
-        )
-        return
-
     kustomization = arbol / "base" / "kustomization.yaml"
     texto = kustomization.read_text(encoding="utf-8")
     nuevo = re.sub(r"newTag: .*", f"newTag: {etiqueta}", texto)

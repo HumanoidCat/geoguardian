@@ -74,13 +74,15 @@
     era subirla, y eso es lo que se corrige aca. Se cierra el mismo dia con el
     PR #229.
 
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
+- [x] **H10.3** · Manual de usuario con capturas paso a paso (2026-09-02)
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - horas: estimada n/d (no se pidio al arrancar) . real 1.2
   - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. Se
     devuelve porque **desbloquea H10.9, que es CG-6 entera** -el unico criterio
     que sostiene esa historia- y porque quien conoce el visor saca las capturas a
     la primera.
-  - Compromiso: **martes 9 de septiembre**.
+  - Comprometida para el **martes 9** y entregada el **2026-09-02**, siete dias
+    antes. **Cierra el criterio MVP, que estaba en cero.**
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
@@ -135,12 +137,18 @@
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
 
-- [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
+- [x] **H6.5** · Diagrama de componentes y de secuencia del flujo principal (2026-09-03)
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.1
-  - **Entregada el 2026-09-02, sin cerrar todavia**: falta su fila en
-    `docs/trazabilidad.csv`, que es archivo compartido y requiere aprobacion del
-    PM. La fila propuesta esta en la evidencia. Al aprobarse se marca `[x]` con
-    `estimada n/d (no se estimo al arrancar) . real 0.6`.
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.5-diagramas-componentes-y-secuencia.md`
+  - horas: estimada n/d (no se estimo al arrancar) . real 0.6
+  - **Entregada el 2026-09-02 y cerrada el 2026-09-03.** Quedo abierta un dia por
+    su fila en `docs/trazabilidad.csv`, que es archivo compartido y requiere
+    aprobacion del PM. La fila se agrego tal como Avril la propuso en la
+    evidencia, sin cambiarle una coma.
+  - **La marca la puso el PM, no Avril**, siguiendo la instruccion literal que
+    ella dejo escrita aca: «al aprobarse se marca `[x]` con `estimada n/d . real
+    0.6`». Es el mismo criterio de **`15-cerrar-una-historia.md` §5b**: ejecutar
+    una decision ya tomada no es tomarla. Si Avril prefiere otra cosa, se cambia.
   - **Sobre la estimacion.** No hubo: la historia arranco sin estimar y el numero
     se habria puesto despues. Se deja en `n/d` a proposito, porque una estimacion
     escrita con la historia terminada siempre acierta y contaminaria lo que
