@@ -131,6 +131,40 @@ hiciera falta tocar un componente, se pide.
 Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
 asignado, y se declara por historia y no en general.
 
+## Excepcion: las graficas de serie, para H7.2
+
+`frontend/` es de Avril. La historia **H7.2** —graficas interactivas de series con
+seleccion de rango— **paso a Alejandro el 2026-08-31 por D-33**, y la excepcion se
+mueve con ella: es la misma regla que ya se aplico a H2.5 y H3.3 en `backend/`,
+declarada arriba. **La propiedad sigue al trabajo asignado.**
+
+Si Avril retoma H7.2, la fila vuelve a su nombre por el mismo camino y sin pedir
+permiso.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/src/componentes/GraficaSerie.jsx` **archivo nuevo** | H7.2, y nada mas |
+| Alejandro | `frontend/src/datos/cliente.js` | H7.2, **ademas de** H6.6 |
+| Alejandro | `frontend/src/componentes/PanelDistrito.jsx` | H7.2, **solo el punto de insercion** |
+| Alejandro | `frontend/herramientas/exportar_simulados.py` | H7.2, **solo la exportacion de mediciones** |
+| Alejandro | `frontend/herramientas/verificar_h72.mjs` **archivo nuevo** | H7.2, y nada mas |
+
+**«Solo el punto de insercion» es literal.** En `PanelDistrito.jsx` se agrega el
+import y una linea que monta el componente. No se toca ningun bloque existente, ni
+`Dato`, ni `BloqueUbicacion`, ni `BloqueRiesgo`, ni un estilo. Si hiciera falta
+cambiar algo de eso, se pide.
+
+**Por que `cliente.js` otra vez y no una llamada suelta desde el componente.** Ese
+archivo es «el unico modulo que sabe de donde vienen los datos», y la serie diaria
+tiene exactamente el mismo problema que los riesgos: **dos origenes**, la API y el
+respaldo estatico. Pedirla desde el componente pondria la negociacion de origen en
+dos lugares, que es el defecto que `cliente.js` existe para evitar. Ver D-23.
+
+**Por que se toca el exportador.** El respaldo estatico **no tenia mediciones**, y
+sin ellas la grafica no existiria en el visor publicado por H11.5 —que es el unico
+que alguien puede abrir sin levantar nada—. Se agrega `mediciones.json` a lo que ya
+genera; **no se modifica nada de lo existente en ese guion.**
+
 ## Excepcion: el arreglo de la geometria publicada, por I-10
 
 `frontend/` es de Avril. El **24 de agosto** el sitio publicado mostraba el
