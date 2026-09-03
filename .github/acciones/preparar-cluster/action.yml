@@ -76,7 +76,19 @@ runs:
       run: |
         base=ghcr.io/humanoidcat/geoguardian
         for nombre in api visor; do
-          docker pull "$base/$nombre:sha-${{ inputs.sha }}"
+          # EL FALLO MAS PROBABLE ACA ES `manifest unknown`, Y NO DICE SU CAUSA.
+          #
+          # Paso en la primera corrida: el flujo se disparaba con el push a
+          # `main`, igual que el CI, asi que salia a buscar una imagen que el CI
+          # todavia no habia publicado. Se arreglo encadenando con
+          # `workflow_run`, pero el mensaje queda por si vuelve a pasar -por
+          # ejemplo si el trabajo de imagenes de H11.1 falla y este igual corre-.
+          if ! docker pull "$base/$nombre:sha-${{ inputs.sha }}"; then
+            echo "::error::No existe $base/$nombre:sha-${{ inputs.sha }} en ghcr.io."
+            echo "::error::Eso significa que H11.1 no publico la imagen de este commit."
+            echo "::error::Mira el trabajo 'Imagenes Docker (H11.1)' del CI de ${{ inputs.sha }}."
+            exit 1
+          fi
           docker pull "$base/$nombre:latest" || echo "sin latest para $nombre, se sigue"
           k3d image import -c geoguardian-ci "$base/$nombre:sha-${{ inputs.sha }}"
           k3d image import -c geoguardian-ci "$base/$nombre:latest" || true
