@@ -1,36 +1,38 @@
-"""Criterios de aceptacion de H3.4: el Random Forest dentro de la tabla.
+"""Criterios de aceptacion de H3.5: XGBoost dentro de la tabla, y la tabla completa.
 
 QUE COMPRUEBA, Y QUE NO
 
-`backend/modelado/test_random_forest.py` cubre el estimador por dentro. Este
-guion cubre el **cableado con el arnes de H3.6** y la **comparabilidad con la
-regresion de H3.3**: que entre en la tabla cuando debe, que no entre cuando no
-debe, que vea lo mismo que los demas y que trate los nulos igual.
+`backend/modelado/test_xgboost.py` cubre el estimador por dentro. Este guion
+cubre el **cableado con el arnes de H3.6** y la **comparabilidad con H3.3 y
+H3.4**: que entre en la tabla cuando debe, que no entre cuando no debe, que vea
+lo mismo que los demas, que trate los nulos igual **aunque la libreria sepa
+tratarlos distinto**, y que con el la tabla quede completa.
 
-Corre sobre series construidas a mano, las mismas de `verificar_h33`. No
+Corre sobre series construidas a mano, las mismas de `verificar_h33` y `verificar_h34`. No
 necesita la base ni el CSV real: un criterio que solo se puede comprobar con
 los datos de una maquina no es un criterio, es una anecdota. Los numeros reales
 salen de `python -m backend.modelado.comparar` y van en la evidencia.
 
-Los criterios son los de `docs/evidencias/objetivos/H3.4-criterios-aceptacion.md`,
+Los criterios son los de `docs/evidencias/objetivos/H3.5-criterios-aceptacion.md`,
 escritos antes del codigo:
 
-  1. Sin matriz, el bosque NO entra y sigue listado con el motivo real.
-  2. Con matriz, entra en la tabla y sale de PENDIENTES.
-  3. Ve exactamente los mismos pliegues que la regresion y las lineas base.
+  1. Sin matriz, XGBoost NO entra y sigue listado con el motivo real.
+  2. Con matriz entra, y PENDIENTES queda vacio: los tres de D-09 estan.
+  3. Ve exactamente los mismos pliegues que los otros dos y las lineas base.
   4. Encuentra la senal que se le puso.
   5. No corre sobre la sequia (D-34); las lineas base si.
   6. Un pliegue de una sola clase se salta con motivo, no tumba la tabla.
-  7. No imputa: una observacion incompleta sale None y se cuenta.
+  7. No imputa ni usa la rama de ausentes: la fila incompleta sale None.
   8. Invariante a escala: no hay ningun ajuste global escondido.
-  9. Reproducible.
+  9. Reproducible bit a bit, en probabilidades y con ruido.
  10. Las importancias se leen por nombre y suman 1.
  11. Las probabilidades respetan D-21 y coinciden con predecir().
- 12. Trata los nulos exactamente igual que la regresion.
- 13. La tabla sigue sin declarar ganador dentro del ruido.
+ 12. Trata los nulos exactamente igual que la regresion y el bosque.
+ 13. El peso por fila actua: con y sin pesos predicen distinto, en la direccion declarada.
+ 14. Con cinco filas, la tabla sigue sin declarar ganador dentro del ruido.
 
 Uso:
-    python -m backend.modelado.verificar_h34
+    python -m backend.modelado.verificar_h35
 
 Sale con codigo 1 si algun criterio no se cumple.
 """
@@ -57,28 +59,29 @@ from backend.modelado.comparar import (  # noqa: E402
 from backend.modelado.random_forest import BosqueAleatorio  # noqa: E402
 from backend.modelado.regresion_logistica import RegresionLogistica  # noqa: E402
 from backend.modelado.verificar_h33 import Resultado, datos_sinteticos  # noqa: E402
+from backend.modelado.xgboost_ import XGBoostEstimador  # noqa: E402
 from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 
-NOMBRE = "random forest"
+NOMBRE = "xgboost"
 
 
 def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
     r = Resultado()
-    print("\nCriterios de aceptacion de H3.4\n")
+    print("\nCriterios de aceptacion de H3.5\n")
 
     filas, caracteristicas = datos_sinteticos(TipoEvento.LLUVIA_INTENSA)
 
     # ------------------------------------------------------------------ 1
     sin = estimadores_disponibles(False)
     r.comprobar(
-        "1. sin matriz, el bosque NO entra en la tabla",
+        "1. sin matriz, xgboost NO entra en la tabla",
         NOMBRE not in sin and set(sin) == set(DISPONIBLES),
         f"quedo {sorted(sin)}",
     )
     motivo = pendientes(False).get(NOMBRE, "")
     r.comprobar(
         "   y sigue listado con el motivo real, no solo el numero de historia",
-        "H3.4" in motivo
+        "H3.5" in motivo
         and "caracteristicas.csv" in motivo
         and "generar_caracteristicas" in motivo,
         f"decia: {motivo!r}",
@@ -87,28 +90,31 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
     # ------------------------------------------------------------------ 2
     con = estimadores_disponibles(True)
     r.comprobar(
-        "2. con matriz, el bosque entra en la tabla",
-        NOMBRE in con and isinstance(con[NOMBRE](), BosqueAleatorio),
+        "2. con matriz, xgboost entra en la tabla",
+        NOMBRE in con and isinstance(con[NOMBRE](), XGBoostEstimador),
         f"quedo {sorted(con)}",
     )
     r.comprobar(
-        "   y ya no esta en PENDIENTES ni aparece como pendiente",
-        NOMBRE not in PENDIENTES and NOMBRE not in pendientes(True),
+        "   y PENDIENTES queda vacio: los tres de D-09 estan en la tabla",
+        not PENDIENTES
+        and not pendientes(True)
+        and {"regresion logistica", "random forest", "xgboost"} <= set(con),
+        f"PENDIENTES={PENDIENTES}, pendientes(True)={pendientes(True)}",
     )
 
     # ------------------------------------------------------------------ 3 y 4
     resultados = comparar(TipoEvento.LLUVIA_INTENSA, filas, con, caracteristicas)
     largos = {x.nombre: len(x.por_pliegue) for x in resultados}
     r.comprobar(
-        "3. ve exactamente los mismos pliegues que la regresion y las lineas base",
+        "3. ve exactamente los mismos pliegues que los otros dos y las lineas base",
         NOMBRE in largos and len(set(largos.values())) == 1 and largos[NOMBRE] > 0,
         f"largos por estimador: {largos}",
     )
-    bosque = next((x for x in resultados if x.nombre == NOMBRE), None)
+    fila_x = next((x for x in resultados if x.nombre == NOMBRE), None)
     r.comprobar(
         "4. encuentra la senal que se le puso",
-        bosque is not None and bosque.media > 0.9,
-        f"F1-macro {bosque.media if bosque else 'sin fila'}; deberia ser casi 1",
+        fila_x is not None and fila_x.media > 0.9,
+        f"F1-macro {fila_x.media if fila_x else 'sin fila'}; deberia ser casi 1",
     )
 
     # ------------------------------------------------------------------ 5
@@ -149,12 +155,12 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
     mitad = len(filas) // 2
     obs = [Observacion(c, f, caracteristicas[(c, f)]) for c, f, _ in filas[:mitad]]
     eti = [n["lluvia_intensa"] for _, _, n in filas[:mitad]]
-    modelo = BosqueAleatorio().ajustar(obs, eti)
+    modelo = XGBoostEstimador().ajustar(obs, eti)
 
     incompletas = [Observacion(c, f, {"pp_acum3": 90.0}) for c, f, _ in filas[:50]]
     prediccion = modelo.predecir(incompletas)
     r.comprobar(
-        "7. una observacion sin todas sus caracteristicas no se predice",
+        "7. una observacion sin todas sus caracteristicas no se predice, ni por la rama de ausentes",
         all(p is None for p in prediccion),
         f"predijo {sum(1 for p in prediccion if p is not None)} de {len(prediccion)}",
     )
@@ -170,7 +176,7 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
         for (c, f, _), o in zip(filas[:mitad], obs, strict=True)
     ]
     prediccion_a = modelo.predecir(obs)
-    prediccion_b = BosqueAleatorio().ajustar(por_diez, eti).predecir(por_diez)
+    prediccion_b = XGBoostEstimador().ajustar(por_diez, eti).predecir(por_diez)
     r.comprobar(
         "8. invariante a escala: no hay ningun ajuste global escondido",
         prediccion_a == prediccion_b and not hasattr(modelo, "_escalador"),
@@ -178,12 +184,14 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
     )
 
     # ------------------------------------------------------------------ 9
-    # NO SE COMPRUEBA SOBRE LA SENAL SEPARABLE. Con clases separables, doscientos
-    # arboles votan lo mismo con cualquier semilla, y el criterio quedaria en
-    # verde aunque la semilla no existiera: se probo saboteandola y paso 20 de
-    # 20. Se comprueba sobre clases que se solapan, donde cada semilla produce
-    # otro bosque y otras probabilidades, y se comparan **las probabilidades**,
-    # que son mas finas que el voto.
+    # Se comprueba sobre clases que se solapan y comparando **probabilidades**,
+    # por lo que H3.4 aprendio: sobre la senal separable el criterio no podia
+    # fallar. Y hay una diferencia con el bosque que importa al sabotear:
+    # en XGBoost `random_state=None` NO es aleatorio -la libreria usa semilla 0-
+    # y sin submuestreo no hay nada aleatorio que sembrar. Para hacer caer este
+    # criterio a proposito hubo que poner una semilla distinta en cada ajuste
+    # **y** `subsample=0.5`; con solo quitar la semilla paso 21 de 21. Queda
+    # dicho para que nadie crea que ese sabotaje prueba algo aqui.
     import random
 
     azar = random.Random(7)
@@ -195,11 +203,11 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
         Observacion("50801", f, {"pp_acum3": v, "tmax_media7": v / 3})
         for (_, f, _), v in zip(filas[:400], ruidosos, strict=True)
     ]
-    primera = BosqueAleatorio().ajustar(obs_ruido, eti_ruido).probabilidades(obs_ruido)
-    segunda = BosqueAleatorio().ajustar(obs_ruido, eti_ruido).probabilidades(obs_ruido)
+    primera = XGBoostEstimador().ajustar(obs_ruido, eti_ruido).probabilidades(obs_ruido)
+    segunda = XGBoostEstimador().ajustar(obs_ruido, eti_ruido).probabilidades(obs_ruido)
     r.comprobar(
         "9. dos ajustes con los mismos datos dan las mismas probabilidades, aun con ruido",
-        prediccion_a == BosqueAleatorio().ajustar(obs, eti).predecir(obs) and primera == segunda,
+        prediccion_a == XGBoostEstimador().ajustar(obs, eti).predecir(obs) and primera == segunda,
         "el estimador no es reproducible: no se puede comparar contra nada",
     )
 
@@ -233,11 +241,7 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
     r.comprobar(
         "    y cada distribucion trae una entrada por clase y suma 1",
         all(
-            d is None
-            or (
-                set(d) == set(NivelRiesgo(x) for x in modelo._modelo.classes_)
-                and abs(sum(d.values()) - 1) < 1e-9
-            )
+            d is None or (set(d) == set(modelo._clases) and abs(sum(d.values()) - 1) < 1e-6)
             for d in distribuciones
         ),
     )
@@ -251,28 +255,53 @@ def verificar() -> Resultado:  # noqa: PLR0915 - es una lista de criterios
         )
         for i, o in enumerate(obs)
     ]
+    x = XGBoostEstimador().ajustar(con_huecos, eti)
     b = BosqueAleatorio().ajustar(con_huecos, eti)
     g = RegresionLogistica().ajustar(con_huecos, eti)
-    mismas_al_ajustar = b.filas_descartadas_al_ajustar == g.filas_descartadas_al_ajustar > 0
-    huecos_b = [p is None for p in b.predecir(con_huecos)]
-    huecos_g = [p is None for p in g.predecir(con_huecos)]
+    descartadas = {m.filas_descartadas_al_ajustar for m in (x, b, g)}
+    huecos = [[p is None for p in m.predecir(con_huecos)] for m in (x, b, g)]
+    sin_prediccion = {m.filas_sin_prediccion for m in (x, b, g)}
     r.comprobar(
-        "12. trata los nulos exactamente igual que la regresion: mismas filas fuera",
-        mismas_al_ajustar
-        and huecos_b == huecos_g
-        and b.filas_sin_prediccion == g.filas_sin_prediccion,
-        f"ajustar: {b.filas_descartadas_al_ajustar} vs {g.filas_descartadas_al_ajustar}; "
-        f"predecir: {b.filas_sin_prediccion} vs {g.filas_sin_prediccion}",
+        "12. trata los nulos exactamente igual que la regresion y el bosque: mismas filas fuera",
+        len(descartadas) == 1
+        and descartadas != {0}
+        and huecos[0] == huecos[1] == huecos[2]
+        and len(sin_prediccion) == 1,
+        f"ajustar: {[m.filas_descartadas_al_ajustar for m in (x, b, g)]}; "
+        f"predecir: {[m.filas_sin_prediccion for m in (x, b, g)]}",
     )
 
     # ------------------------------------------------------------------ 13
+    # Los cajones repetidos de H3.4: una minoria de ALTO que nunca llega a la
+    # mitad. Sin pesos nadie predice ALTO; con pesos, los cajones altos si.
+    cajones_v = [float(azar.randrange(10)) for _ in range(500)]
+    eti_caj = [
+        NivelRiesgo.ALTO if azar.random() < 0.04 * v else NivelRiesgo.BAJO for v in cajones_v
+    ]
+    obs_caj = [
+        Observacion("50801", f, {"pp_acum3": v, "tmax_media7": 1.0})
+        for (_, f, _), v in zip(filas[:500], cajones_v, strict=True)
+    ]
+    cajones = [
+        Observacion("50801", filas[i][1], {"pp_acum3": float(i), "tmax_media7": 1.0})
+        for i in range(10)
+    ]
+    con_pesos = XGBoostEstimador(balancear=True).ajustar(obs_caj, eti_caj).predecir(cajones)
+    sin_pesos = XGBoostEstimador(balancear=False).ajustar(obs_caj, eti_caj).predecir(cajones)
+    r.comprobar(
+        "13. el peso por fila actua, y en la direccion declarada",
+        NivelRiesgo.ALTO not in sin_pesos and NivelRiesgo.ALTO in con_pesos,
+        f"sin pesos: {[p.value for p in sin_pesos]}; con pesos: {[p.value for p in con_pesos]}",
+    )
+
+    # ------------------------------------------------------------------ 14
     resultados = comparar(TipoEvento.INCENDIO, filas, con, caracteristicas)
     if len(resultados) >= 2:
         primero, segundo = resultados[0], resultados[1]
         dictamen = veredicto(resultados)
         empatan = (primero.media - segundo.media) <= primero.rango
         r.comprobar(
-            "13. con todas las filas del registro, sigue sin declarar ganador cuando la ventaja cabe en el ruido",
+            "14. con todas las filas del registro, sigue sin declarar ganador cuando la ventaja cabe en el ruido",
             len(resultados) == len(con) and ("empate tecnico" in dictamen) == empatan,
             f"{len(resultados)} filas; dictamen: {dictamen}",
         )
@@ -288,7 +317,7 @@ def main() -> int:
             print(f"  - {f}")
         print()
         return 1
-    print("\nH3.4 cumple sus criterios de aceptacion.\n")
+    print("\nH3.5 cumple sus criterios de aceptacion.\n")
     return 0
 
 

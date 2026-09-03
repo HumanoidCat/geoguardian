@@ -391,8 +391,19 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
 
-- [ ] **H3.5** · Entrenar y evaluar XGBoost
+- [x] **H3.5** · Entrenar y evaluar XGBoost (2026-09-03)
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.6**
+  - horas: estimada 2.5 . real 0.9
+  - Evidencia: `docs/evidencias/objetivos/H3.5-xgboost.md`
+  - `xgboost_.py` completa los tres de D-09; `PENDIENTES` queda vacio. **21
+    criterios** en `verificar_h35.py` y **18 pruebas** en `test_xgboost.py`. No
+    se le permite usar su rama de ausentes: los tres estimadores descartan las
+    mismas filas (D-07).
+  - **Resultado: primer algoritmo por encima de la climatologica en lluvia
+    intensa (0,371 contra 0,346), pero dentro del ruido: empate tecnico.** En
+    incendio empata con la regresion. Decidir con la tabla es H3.6.
+  - Al entrar la quinta fila, `verificar_h34` se puso en rojo por un `== 4`
+    escrito a mano; los dos verificadores comparan ahora contra el registro.
   - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
