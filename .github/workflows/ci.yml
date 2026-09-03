@@ -162,6 +162,36 @@ jobs:
           fi
           echo "Sin marcas de conflicto."
 
+  # Los manifiestos de entrega continua. Historias H11.2 a H11.4.
+  #
+  # POR QUE ESTA COMPROBACION VIVE EN EL CI Y NO SOLO EN EL CD.
+  #
+  # `cd.yml` solo corre sobre `main`. Sin esto, un manifiesto roto se fusionaria
+  # a `dev`, de ahi a `main`, y recien alli se descubriria — con el despliegue
+  # como primer aviso.
+  #
+  # `--manifiestos` no necesita cluster: comprueba estructura e invariantes.
+  # Entre ellas la de SC-07, que una barra final en DESTINO_API produce
+  # `//distritos` sin fallar al arrancar y sin aparecer en ningun registro.
+  #
+  # **Este trabajo tiene que estar en la lista de verificaciones obligatorias de
+  # `dev`.** Si no lo esta, corre, sale en rojo y no impide fusionar: es I-25
+  # otra vez, y la observacion (c) del PR #229 ya cayo en eso una vez.
+  entrega-continua:
+    name: Manifiestos de despliegue
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install pyyaml
+      - name: Los manifiestos de infra/k8s cumplen sus invariantes
+        run: python infra/verificar_cd.py --manifiestos
+      - name: El guion de despliegue no tiene errores de sintaxis
+        run: python -m py_compile infra/k8s/desplegar.py
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
@@ -228,6 +258,19 @@ jobs:
       - name: La capa de calor se recorta contra los poligonos
         if: steps.existe.outputs.si == 'true'
         run: node frontend/herramientas/verificar_recorte_calor.mjs
+      # Cuarenta comprobaciones de la transformacion a CRTM05, sin vigilancia
+      # hasta hoy: entro con H5.6 y quedo corriendo solo cuando alguien se
+      # acordaba, que es exactamente lo que I-10 dejo escrito que no sirve.
+      #
+      # Corre Node por dentro para importar el modulo real del visor, asi que
+      # necesita las dos cosas -node y pyproj- y las dos ya estan en el runner.
+      #
+      # Sin `--if-present`: si desaparece, esto sale en rojo.
+      - name: La transformacion a CRTM05 coincide con pyproj
+        if: steps.existe.outputs.si == 'true'
+        run: |
+          python -m pip install --quiet pyproj
+          python frontend/herramientas/verificar_proyeccion.py
 
   pruebas:
     name: Pruebas contra PostgreSQL
@@ -283,7 +326,28 @@ jobs:
           # directorio actual al path de importacion y falla con "No module
           # named 'backend'". `pyproject.toml` tambien lo cubre con `pythonpath`,
           # de modo que las dos formas funcionan.
-          python -m pytest backend/tests -v --cov=backend --cov-report=term-missing
+          #
+          # La ruta es `backend` y no `backend/tests`. Hasta el 2026-08-30 era lo
+          # segundo, y por eso el CI NUNCA ejecuto las 46 pruebas de
+          # `backend/api/test_repositorio_postgres.py` y
+          # `backend/etl/test_imputacion.py`: existen, pasan, y vivian fuera del
+          # unico directorio que el CI miraba.
+          #
+          # `testpaths = ["backend"]` de pyproject.toml no lo cubria: solo aplica
+          # cuando se invoca `pytest` SIN ruta, y aqui se le pasa una.
+          #
+          # Es I-06 otra vez, en su forma mas incomoda: quien corria pytest en su
+          # maquina veia pasar esas 46 y concluia que estaban cubiertas. El CI no
+          # las habia ejecutado ni una vez. Un control apagado que se ve igual que
+          # uno encendido.
+          #
+          # **Y ESTA LINEA YA SE REVIRTIO UNA VEZ.** El PR #212, de H11.1, la
+          # devolvio a `backend/tests` al reescribir esta seccion desde una copia
+          # vieja del archivo. Estuvo dos dias asi y **el CI siguio en verde**,
+          # porque las 46 pruebas que dejo de correr pasan igual. Ver **I-21**.
+          #
+          # Si vas a tocar este trabajo, no reescribas el bloque: edita la linea.
+          python -m pytest backend -v --cov=backend --cov-report=term-missing
 
       # Los dos verificadores de criterios de aceptacion viven aca porque este es
       # el unico trabajo que instala requirements.txt, y los dos necesitan

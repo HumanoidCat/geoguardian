@@ -321,6 +321,47 @@ body {
 }
 
 /* -------------------------------------------------------------------------- *
+ * Ubicacion en la reticula nacional
+ * -------------------------------------------------------------------------- */
+
+.panel-ubicacion-sistema {
+  margin: var(--espacio-4) 0 var(--espacio-2);
+  font-size: var(--texto-xs);
+  color: var(--texto-tenue);
+}
+
+.panel-ubicacion {
+  margin-bottom: var(--espacio-3);
+}
+
+.panel-ubicacion-titulo {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+}
+
+/* Los metros van primero y en grande: es la cifra que alguien va a leer en voz
+   alta por radio, que es para lo que existe esta seccion. Los grados quedan
+   debajo, mas chicos, para quien los necesite pegar en un mapa web. */
+.panel-ubicacion-reticula {
+  margin: 0;
+  font-size: var(--texto-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto);
+}
+
+.panel-ubicacion-grados {
+  margin: 0;
+  font-size: var(--texto-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-suave);
+}
+
+/* -------------------------------------------------------------------------- *
  * Selector de fecha
  * -------------------------------------------------------------------------- */
 

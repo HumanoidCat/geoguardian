@@ -51,10 +51,10 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 36.4** | 113.1** | 40.4** | 52.8** | 278.6 | 184 |
-| Cesar | 18.3 | 24.9 | 0.0 | 47.0** | 34.0 | 124.2 | 96 |
-| Luna | 25.9 | 34.3 | 31.0 | 20.3 | 32.0 | 143.5 | 80 |
-| Avril | 2.9 | 11.5 | 11.6 | 25.0 | 36.6** | 87.6 | 74 |
+| Alejandro | 35.9 | 36.4** | 103.6** | 43.8** | 52.8** | 272.5 | 177 |
+| Cesar | 18.3 | 24.9 | 0.0 | 23.4 | 34.0 | 100.6 | 79 |
+| Luna | 25.9 | 34.3 | 31.0 | 40.5** | 32.0 | 163.7 | 96 |
+| Avril | 2.9 | 11.5 | 21.1 | 25.0 | 36.6** | 97.1 | 82 |
 | **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 155.4 | **633.9** | **434** |
 
 Las celdas con `**` estan por encima del compromiso.
@@ -116,9 +116,9 @@ Las celdas con `**` estan por encima del compromiso.
 | **H3.0** Implementar el etiquetado de los tres eventos y su distribucion de clases | alejandro | 8 | 12.5 | OE2 | H2.3, H2.7, H1.2 | H3.1, H3.2 |
 | **H3.1** Construir la linea base climatologica por distrito, mes y tipo de evento | alejandro | 6 | 9.4 | OE2 | H3.0 | — |
 | **H3.2** Definir y documentar la validacion por ventana expansiva | alejandro | 8 | 12.5 | OE2 | H3.0 | H3.3, H3.4, H3.5 |
-| **H10.3** Manual de usuario con capturas paso a paso | alejandro | 5 | 4.8 | MVP | H7.1 | H10.9 |
+| **H10.3** Manual de usuario con capturas paso a paso | avril | 5 | 4.8 | MVP | H7.1 | H10.9 |
 | **H10.7** Diagramas de casos de uso y entidad-relacion | alejandro | 5 | 7.8 | Arq | H1.8 | — |
-| **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | alejandro | 3 | 4.7 | CG-1 | H5.1 | — |
+| **H5.6** Transformacion WGS84 a CRTM05 verificada con puntos de control | avril | 3 | 4.7 | CG-1 | H5.1 | — |
 | **H5.7** Selector de fecha que recarga el estado del mapa | avril | 3 | 2.9 | CG-4 | H5.3 | — |
 | **H5.8** Encuadre del mapa en el canton y marca de seleccion accesible | avril | 3 | 2.9 | CG-1 | H5.1 | — |
 | **H7.1** Semaforo de riesgo por distrito y evento con umbrales documentados | avril | 6 | 5.8 | CG-2 | H5.3 | H10.3 |
@@ -142,15 +142,15 @@ Las celdas con `**` estan por encima del compromiso.
 |---|---|---|---|---|---|---|
 | **H3.6** Tabla comparativa de tres algoritmos contra la linea base, por evento | alejandro | 10 | 15.6 | OE2 | H3.5 | H3.7, H3.8, H4.1, H4.4 |
 | **H3.8** Ajuste de hiperparametros del mejor modelo, documentado | alejandro | 3 | 4.7 | OE2 | H3.6 | — |
-| **H4.1** Importancia de variables global del mejor modelo | alejandro | 3 | 2.9 | OE3 | H3.6 | H4.2 |
-| **H4.2** Aplicar SHAP para explicar predicciones individuales | alejandro | 8 | 12.5 | OE3 | H4.1 | — |
+| **H4.1** Importancia de variables global del mejor modelo | luna | 3 | 2.9 | OE3 | H3.6 | H4.2 |
+| **H4.2** Aplicar SHAP para explicar predicciones individuales | luna | 8 | 12.5 | OE3 | H4.1 | — |
 | **H5.4** Mapa de calor por interpolacion IDW | avril | 8 | 12.5 | CG-1 | H5.3 | — |
 | **H5.5** Indices NDVI y NDWI renderizados como capa | avril | 5 | 7.8 | CG-3 | H1.6 | — |
 | **H6.5** Diagrama de componentes y de secuencia del flujo principal | avril | 3 | 4.7 | Arq | H6.1 | — |
 | **H1.10** Estrategia de respaldo definida y restauracion probada | cesar | 5 | 7.8 | BD-4 | H1.9 | — |
-| **H12.1** Centralizar los logs de pipeline y aplicacion en control.bitacora_etl | cesar | 5 | 4.8 | Troubleshoot | H1.9 | H12.2, H12.4 |
-| **H3.4** Entrenar y evaluar Random Forest | cesar | 6 | 9.4 | OE2 | H3.2 | — |
-| **H3.5** Entrenar y evaluar XGBoost | cesar | 6 | 9.4 | OE2 | H3.2 | H3.6 |
+| **H12.1** Centralizar los logs de pipeline y aplicacion en control.bitacora_etl | luna | 5 | 4.8 | Troubleshoot | H1.9 | H12.2, H12.4 |
+| **H3.4** Entrenar y evaluar Random Forest | alejandro | 6 | 9.4 | OE2 | H3.2 | — |
+| **H3.5** Entrenar y evaluar XGBoost | alejandro | 6 | 9.4 | OE2 | H3.2 | H3.6 |
 | **H8.2** ETL concurrente con medicion secuencial contra paralelo | cesar | 5 | 7.8 | SO-1 | H1.1 | — |
 | **H10.2** Pruebas automatizadas del backend, cobertura de dominio | luna | 5 | 4.8 | QA | H6.2 | — |
 | **H2.2** Analisis espectral de la lluvia e interpretacion fisica | luna | 5 | 7.8 | Senales | H2.1 | — |

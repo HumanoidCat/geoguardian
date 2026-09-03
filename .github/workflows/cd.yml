@@ -1,0 +1,275 @@
+# Entrega continua · historias H11.2, H11.3 y H11.4
+#
+# =============================================================================
+# LO PRIMERO, PORQUE CAMBIA COMO SE LEE TODO LO DEMAS
+# =============================================================================
+#
+# **Este flujo NO despliega al cluster k3d del equipo.** No puede: GitHub
+# Actions corre en la nube y ese cluster vive en una maquina detras de un router
+# domestico, sin direccion publica.
+#
+# Lo que hace es **crear su propio cluster k3d dentro del runner**, aplicar los
+# mismos manifiestos de `infra/k8s/`, comprobar que converjan, y destruirlo.
+#
+# La decision, con sus alternativas descartadas y lo que se pierde, esta en
+# **D-36**. Lo que se pierde, dicho aca tambien para que nadie lo lea solo alli:
+# **al terminar no queda nada corriendo.** El cluster persistente se actualiza
+# con `infra/k8s/desplegar.py`, que aplica exactamente estos manifiestos.
+#
+# =============================================================================
+# LOS TRES ENTORNOS, Y QUE HISTORIA CIERRA CADA UNO
+# =============================================================================
+#
+#   desarrollo  H11.2  automatico al fusionar a main, sin aprobacion
+#   pruebas     H11.3  despues de desarrollo, con aprobacion manual
+#   produccion  H11.4  despues de pruebas, aprobacion explicita y REVERSION
+#
+# Las aprobaciones no se implementan aqui: son `environment:` de GitHub, con
+# revisores configurados en Settings. Un `if:` en el flujo no es una aprobacion,
+# es una condicion que quien edita el archivo puede quitar.
+#
+# =============================================================================
+# LAS IMAGENES NO SE CONSTRUYEN AQUI
+# =============================================================================
+#
+# Se consumen las que H11.1 publico en ghcr.io, por SHA exacto. Reconstruirlas
+# al desplegar daria un binario distinto del que se probo, y el despliegue
+# dejaria de decir nada sobre lo verificado.
+#
+# Se bajan con `docker pull` y se meten al cluster con `k3d image import`, en
+# vez de dejar que Kubernetes las baje. Dos motivos: evita tener que crear un
+# `imagePullSecret` para un registro privado, y hace que un fallo de red se vea
+# como un fallo de descarga y no como un pod en `ImagePullBackOff`, que se lee
+# como un problema del manifiesto.
+
+name: CD
+
+# =============================================================================
+# SE DISPARA CUANDO EL CI TERMINA, NO CON EL PUSH
+# =============================================================================
+#
+# La primera version usaba `on: push: branches: [main]`, y **fallo en su primera
+# corrida** con `manifest unknown`.
+#
+# El motivo: el CI, que es quien publica las imagenes en ghcr.io, se dispara con
+# **ese mismo push, al mismo tiempo**. El CD salia a buscar
+# `api:sha-<commit>` cuando el CI todavia no la habia construido. Nada
+# garantizaba el orden, y se asumio que si.
+#
+# `workflow_run` espera a que el CI termine y solo sigue si termino bien. Es la
+# unica forma de que el despliegue no dependa de que dos flujos independientes
+# corran en el orden conveniente.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      probar_reversion:
+        description: >-
+          Despliega a produccion una etiqueta de imagen que no existe, para
+          comprobar que la reversion automatica de H11.4 funciona de verdad.
+        type: boolean
+        default: false
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  # ===========================================================================
+  # Que version se despliega, y si hay que desplegar.
+  # ===========================================================================
+  #
+  # Con `workflow_run`, `github.sha` NO es el commit que disparo el CI: apunta a
+  # la cabeza de la rama por omision. El commit real esta en
+  # `workflow_run.head_sha`, y es el que etiqueta las imagenes.
+  #
+  # Confundirlos daria un despliegue de una version distinta de la que se probo,
+  # sin que nada lo delatara.
+  version:
+    name: Que version se despliega
+    runs-on: ubuntu-latest
+    # Si el CI fallo no se despliega. Un CD que corre sobre un CI en rojo
+    # convierte el rojo en una molestia en vez de una barrera.
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      sha: ${{ steps.elegir.outputs.sha }}
+    steps:
+      - id: elegir
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo "Se despliega ${{ steps.elegir.outputs.sha }}"
+
+  # ===========================================================================
+  # H11.2 · Desarrollo. Automatico, sin aprobacion.
+  # ===========================================================================
+  desarrollo:
+    name: Desplegar a desarrollo (H11.2)
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      # `ref` explicito: con `workflow_run` el checkout por omision trae la
+      # cabeza de la rama, que puede no ser el commit que se esta desplegando.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - name: Preparar el cluster efimero y las imagenes
+        uses: ./.github/acciones/preparar-cluster
+        with:
+          entorno: desarrollo
+          sha: ${{ needs.version.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          actor: ${{ github.actor }}
+
+      - name: Desplegar
+        run: python infra/k8s/desplegar.py desarrollo "${{ needs.version.outputs.sha }}"
+
+      - name: Comprobar lo que el despliegue promete
+        run: python infra/verificar_cd.py --entorno desarrollo --sha "${{ needs.version.outputs.sha }}"
+
+      - name: Destruir el cluster efimero
+        if: always()
+        run: k3d cluster delete geoguardian-ci || true
+
+  # ===========================================================================
+  # H11.3 · Pruebas. Con aprobacion manual.
+  # ===========================================================================
+  #
+  # `environment: pruebas` es lo que produce la aprobacion. Si el entorno no
+  # existe en Settings o no tiene revisores, este trabajo corre solo y la
+  # historia NO esta cumplida aunque el flujo salga verde.
+  #
+  # Por eso `verificar_cd.py --comprobar-aprobacion` consulta la API de GitHub y
+  # falla si el entorno no tiene revisores configurados: es la unica forma de
+  # que una condicion que vive fuera del repositorio quede vigilada por una
+  # maquina.
+  pruebas:
+    name: Desplegar a pruebas (H11.3)
+    needs: [version, desarrollo]
+    runs-on: ubuntu-latest
+    environment: pruebas
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - name: Preparar el cluster efimero y las imagenes
+        uses: ./.github/acciones/preparar-cluster
+        with:
+          entorno: pruebas
+          sha: ${{ needs.version.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          actor: ${{ github.actor }}
+
+      - name: Desplegar
+        run: python infra/k8s/desplegar.py pruebas "${{ needs.version.outputs.sha }}"
+
+      - name: Comprobar lo que el despliegue promete
+        run: python infra/verificar_cd.py --entorno pruebas --sha "${{ needs.version.outputs.sha }}"
+
+      - name: El entorno exige aprobacion de una persona
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python infra/verificar_cd.py --comprobar-aprobacion pruebas
+
+      - name: Destruir el cluster efimero
+        if: always()
+        run: k3d cluster delete geoguardian-ci || true
+
+  # ===========================================================================
+  # H11.4 · Produccion. Aprobacion explicita y reversion automatica.
+  # ===========================================================================
+  #
+  # LA REVERSION SE COMPRUEBA, NO SE DECLARA.
+  #
+  # Se despliega DOS veces a proposito:
+  #
+  #   1. la etiqueta `latest`, que establece la revision 1
+  #   2. el SHA de este commit, que produce la revision 2
+  #
+  # Sin el primer paso no hay a que revertir, y `kubectl rollout undo` sobre una
+  # revision unica no hace nada mientras informa exito. Seria una reversion que
+  # no puede fallar, o sea ninguna.
+  #
+  # Y con `probar_reversion` en el disparo manual se despliega una etiqueta que
+  # **no existe**: el rollout no converge, la reversion entra, y se comprueba que
+  # el sistema vuelve a la revision 1 y responde. Es la unica manera de saber que
+  # el camino de reversion funciona antes de necesitarlo.
+  produccion:
+    name: Desplegar a produccion (H11.4)
+    needs: [version, pruebas]
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - name: Preparar el cluster efimero y las imagenes
+        uses: ./.github/acciones/preparar-cluster
+        with:
+          entorno: produccion
+          sha: ${{ needs.version.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          actor: ${{ github.actor }}
+
+      # Revision 1: el estado bueno conocido, al que se vuelve si el nuevo falla.
+      - name: Establecer la revision anterior
+        run: python infra/k8s/desplegar.py produccion latest
+
+      - name: Desplegar la version nueva
+        id: nueva
+        continue-on-error: true
+        run: |
+          if [ "${{ inputs.probar_reversion }}" = "true" ]; then
+            echo "::warning::Prueba de reversion: se despliega una etiqueta inexistente a proposito."
+            python infra/k8s/desplegar.py produccion sha-0000000000000000000000000000000000000000
+          else
+            python infra/k8s/desplegar.py produccion "${{ needs.version.outputs.sha }}"
+          fi
+
+      - name: Revertir si no convergio
+        if: steps.nueva.outcome == 'failure'
+        run: |
+          echo "::error::El despliegue no convergio. Revirtiendo a la revision anterior."
+          kubectl -n geoguardian-produccion rollout undo deployment/api
+          kubectl -n geoguardian-produccion rollout undo deployment/visor
+          kubectl -n geoguardian-produccion rollout status deployment/api --timeout=180s
+          kubectl -n geoguardian-produccion rollout status deployment/visor --timeout=180s
+          python infra/verificar_cd.py --entorno produccion --tras-reversion
+
+      - name: Comprobar lo que el despliegue promete
+        if: steps.nueva.outcome == 'success'
+        run: python infra/verificar_cd.py --entorno produccion --sha "${{ needs.version.outputs.sha }}"
+
+      - name: El entorno exige aprobacion de una persona
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python infra/verificar_cd.py --comprobar-aprobacion produccion
+
+      # El resultado del trabajo sigue al despliegue, no a la reversion. Una
+      # reversion exitosa es una red que funciono, no un despliegue exitoso: si
+      # este paso no estuviera, un despliegue roto saldria en verde por haberse
+      # revertido bien, y nadie se enteraria de que produccion quedo en la
+      # version vieja.
+      - name: El despliegue fallo, aunque la reversion funcionara
+        if: steps.nueva.outcome == 'failure' && inputs.probar_reversion != true
+        run: exit 1
+
+      - name: Destruir el cluster efimero
+        if: always()
+        run: k3d cluster delete geoguardian-ci || true

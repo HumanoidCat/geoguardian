@@ -1441,3 +1441,575 @@ sobre una base vacia, en vez de asumir que el camino feliz es el unico camino.
 **Impacto.** Ninguna hora perdida en H1.9 mas alla de reproducirlo. El costo real
 esta diferido a H1.10, que ahora arranca sabiendo lo que tiene que arreglar en
 vez de descubrirlo.
+
+---
+
+## I-20 · El arreglo de I-18 solo toco una de las tres tablas, y el control tampoco miraba las otras
+
+**Fecha.** 2026-09-01.
+
+**Quien lo detecto.** Alejandro Rodriguez, al leer `crudo.medicion_diaria` para
+particionarla en H1.11.
+
+**Que paso.** La migracion **007** quito `CURRENT_DATE` del `CHECK` de
+`analitico.riesgo` el mismo dia en que se registro **I-18**. Nadie reviso el resto
+del esquema. Dos tablas seguian con el mismo defecto:
+
+    crudo.medicion_diaria   CHECK (fecha >= '1981-01-01' AND fecha <= CURRENT_DATE)
+    crudo.foco_calor        CHECK (fecha >= '2000-01-01' AND fecha <= CURRENT_DATE)
+
+`crudo.medicion_diaria` es **la tabla que guarda todo el dato crudo del
+proyecto**: 99 296 filas, las que alimentan el etiquetado, las senales y el
+modelo.
+
+**Causa raiz.** Dos, y la segunda es peor que la primera.
+
+**La primera:** se arreglo el sintoma donde se vio, y no se busco el patron.
+I-18 se descubrio escribiendo el verificador de H1.13, que mira `analitico.riesgo`,
+asi que la busqueda se detuvo en esa tabla. Nadie corrio la consulta obvia
+-«dame todos los CHECK del esquema que mencionen CURRENT_DATE»- que habria
+devuelto las tres de una vez.
+
+**La segunda:** los controles que se escribieron para que no se repitiera
+**nacieron con menos alcance que el defecto**. El criterio 9 de
+`verificar_h1_13.py` filtra por `conrelid = 'analitico.riesgo_auditoria'::regclass`
+y el criterio 14 de `verificar_h1_9.py` por `control.fallo`. Los dos pasan en
+verde con las dos tablas rotas al lado.
+
+**Un control con menos alcance que el defecto da la misma tranquilidad y ninguna
+proteccion.** Es peor que no tenerlo, porque cierra la busqueda.
+
+**Donde hacia dano, y no era donde se pensaba.** En `analitico.riesgo` el CHECK
+rompia la restauracion porque el limite era `CURRENT_DATE + 31 dias` y una fila
+futura dejaba de ser valida al dia siguiente. En `crudo.medicion_diaria` el limite
+es `<= CURRENT_DATE` y las fechas historicas nunca dejan de cumplirlo, asi que
+**la restauracion no se rompe**. El dano es otro:
+
+    CREATE TABLE m_2027 PARTITION OF m FOR VALUES FROM ('2027-01-01') ...
+      -> creada, sin una sola advertencia
+    INSERT INTO m VALUES ('50801', '2027-03-10', 1.0)
+      -> ERROR: new row violates check constraint
+
+**No se puede particionar hacia adelante.** La particion existe, se ve sana en el
+catalogo y no acepta una sola fila. Comprobado contra PostgreSQL 16 antes de
+escribir la migracion.
+
+Conviene anotar que **el mismo defecto tuvo dos consecuencias distintas en dos
+tablas distintas**. Buscar «el sintoma de I-18» en vez de «la construccion de
+I-18» fue justamente lo que hizo que no se encontrara.
+
+**Accion tomada.** La migracion `010_particionar_medicion.sql` quita el limite
+superior de las dos tablas y conserva el inferior, que es constante y atrapa el
+error real -una fecha de 1900 por un parseo malo-.
+
+Y el control se ensancho. El **criterio 14 de `verificar_h1_11.py`** ya no filtra
+por tabla: recorre `pg_constraint` en los cuatro esquemas y exige que **ninguna**
+restriccion `CHECK` contenga `CURRENT_DATE`, `now()`, `CURRENT_TIMESTAMP` ni
+`localtime`. Toda tabla nueva hereda la comprobacion sin que nadie tenga que
+acordarse de agregarla.
+
+**Aprendizaje.** **Cuando se arregla un defecto, el control que lo atrapa se
+escribe sobre la clase, no sobre el caso.** La pregunta al cerrar una incidencia
+no es «¿arregle esto?» sino «¿cuantos sitios mas tienen esta forma, y como me
+entero del proximo?».
+
+La consulta que lo habria encontrado el 2026-09-01 por la manana cabe en cinco
+lineas y ahora es un criterio permanente. Escribirla el dia de I-18 habria costado
+diez minutos; no escribirla costo que el dato crudo del proyecto quedara tres
+migraciones con una restriccion que impedia crecer.
+
+**Impacto.** Ninguna fila perdida y ninguna carga fallida: el limite `<=
+CURRENT_DATE` no rechaza dato historico. El costo cierto fue el bloqueo de H1.11
+-que no podia crear particiones utilizables- y el riesgo diferido de que la carga
+del proximo anio fallara en produccion sin causa visible.
+
+---
+
+## I-21 · El arreglo de I-17 se revirtio dos dias despues, y el CI siguio en verde
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Alejandro Rodriguez, comparando `ci.yml` entre `dev` y
+`main` al resolver los conflictos de la fusion semanal.
+
+**Que paso.** El PR **#208** (H10.2, de Luna) arreglo I-17 el 30 de agosto:
+cambio la ruta de `pytest backend/tests` a `pytest backend`, con lo que el CI
+paso a ejecutar las 198 pruebas del repositorio en vez de 152.
+
+El PR **#212** (H11.1, mio) la devolvio a `backend/tests` el 1 de septiembre.
+Junto con la linea se borro el bloque de catorce lineas de comentario que
+explicaba por que tenia que ser `backend`.
+
+**Durante dos dias el CI volvio a correr 152 de 198 pruebas, y estuvo verde todo
+el tiempo.**
+
+**Causa raiz.** Al agregar el trabajo de imagenes a `ci.yml`, la seccion de
+pruebas se **reescribio** en vez de editarse, partiendo de una copia del archivo
+anterior al arreglo. No fue una decision: fue un pegado.
+
+Lo que convierte el descuido en incidencia es lo otro: **ningun control podia
+detectarlo.**
+
+  * Las 46 pruebas que dejaron de correr **pasan**. Quitarlas no pone nada en
+    rojo: pone menos cosas en verde.
+  * `verificar_documentacion.py` comprueba que las cifras de la prosa coincidan
+    con el repositorio, pero **nadie escribio en ninguna parte «el CI corre 198
+    pruebas»**. No habia cifra que contrastar.
+  * El PR #212 se reviso y se fusiono con los checks en verde. La revision miro
+    lo que el PR agregaba, no lo que quitaba.
+
+**Es la forma mas dificil de I-06.** Un control que se apaga del todo se puede
+detectar; **uno que se estrecha, no**: sigue corriendo, sigue pasando, y solo
+cambia cuanto mira.
+
+**Y se encontro por casualidad.** Aparecio comparando dos ramas por otro motivo
+-los conflictos de la fusion a `main`- y porque `main` conservaba la version
+buena. Si el arreglo hubiera llegado a `main` despues de la reversion, no habria
+habido dos versiones que comparar y nadie lo habria visto.
+
+**Accion tomada.** Se restaura `pytest backend` y el bloque de comentarios, con
+una linea nueva que dice que **esto ya se revirtio una vez** y que quien toque el
+trabajo edite la linea en vez de reescribir el bloque.
+
+**Aprendizaje.** **Un control que solo puede fallar hacia menos no se vigila
+solo.** Para que el proyecto se entere del proximo, la cifra tiene que existir en
+algun sitio donde una maquina la pueda contrastar: si `docs/10-manual-tecnico.md`
+dijera «el CI ejecuta 198 pruebas», `verificar_documentacion.py` habria puesto
+rojo el mismo dia.
+
+Es la misma leccion que I-20 desde el otro lado. Alli el control era mas angosto
+que el defecto; aqui **el control se angosto solo y nada lo midio**.
+
+**Impacto.** Ninguna prueba fallaba, asi que no se dejo pasar ningun defecto por
+esta via **que se sepa** — y nadie puede afirmar lo contrario, porque durante dos
+dias esas 46 pruebas no se ejecutaron en ningun PR. Se fusionaron cinco PR en esa
+ventana: #216, #217, #218, #219 y #220.
+
+---
+
+## I-22 · La capa de mapa de calor esta encendida y no se ve, y nadie lo noto en nueve dias
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Avril Madrigal, abriendo el visor para verificar H5.6.
+
+**Que paso.** Con la casilla «Mapa de calor» marcada, **en el mapa no aparece
+ninguna superficie**. Lo unico visible son los ocho puntos de origen. La capa se
+dibuja por debajo de la coropleta de riesgo, que va al 85 % de opacidad y la tapa
+entera.
+
+La capa es el entregable de **H5.4**, cerrada el 18 de agosto, restituida por
+**D-30** el 27 de agosto. Desde entonces esta encendida y es invisible.
+
+**Causa raiz.** El orden de dibujo de las dos capas nunca se fijo en ninguna
+parte: quedo como salio del orden de montaje de los componentes. La coropleta
+tiene control de opacidad y la superficie interpolada no, asi que basta con que
+la primera se dibuje encima para anular a la segunda por completo.
+
+Lo que convierte el descuido en incidencia es que **el proyecto ya tenia el aviso
+por escrito y no lo leyo como tal**. El profesor lo dijo el 2026-08-27 con estas
+palabras: «Mapa de calor debe quedar arriba del riesgo». Se archivo como una
+preferencia de presentacion. Era el reporte de un defecto funcional.
+
+**Y ningun control podia atraparlo.** `verificar_recorte_calor.mjs` comprueba que
+la superficie se recorte contra los poligonos, y pasa: la superficie **se calcula
+y se dibuja bien**. Lo que falla es que otra capa la tapa, y eso no esta en el
+alcance de ningun verificador del proyecto. La capa es correcta y no se ve.
+
+**Accion tomada.** Se documenta el defecto en `docs/18-manual-de-usuario.md`,
+seccion 9, con la advertencia de que la casilla no produce nada visible. El
+arreglo del orden de dibujo queda pendiente y se decidira si es defecto de H5.4,
+de H5.8 o historia nueva, con la medicion de Avril a la vista.
+
+**Aprendizaje.** **Un control que verifica el calculo no verifica el resultado.**
+Las 22 comprobaciones del recorte miran la geometria que se produce; ninguna mira
+la pantalla. Entre «la capa es correcta» y «la capa se ve» hay una distancia que
+solo se cubre abriendo la aplicacion, y es la misma leccion que **I-10**.
+
+Y la otra mitad: **una nota del profesor es un reporte hasta que se demuestre lo
+contrario.** Esta se leyo como una opinion sobre el orden visual durante nueve
+dias. La forma de no repetirlo es reproducir antes de clasificar, que es lo que
+quedo escrito en **I-14** despues del caso inverso.
+
+**Impacto.** Nueve dias con un entregable de 8 puntos invisible en la aplicacion
+publicada, incluida la revision del profesor del 27 de agosto. Ninguna decision
+se tomo sobre esa capa en ese periodo, asi que el dano es de presentacion y no de
+dato. Aparece en las capturas de H5.6 y en el manual de usuario de H10.3.
+
+---
+
+## I-23 · El diagrama de secuencia nombra un endpoint que la API no expone
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Avril Madrigal, leyendo los diagramas contra el
+repositorio antes de arrancar H6.5.
+
+**Que paso.** `docs/diagramas/secuencia-consulta-riesgo.svg` dibuja el flujo
+principal del sistema con la llamada **`GET /riesgo?evento=&fecha=`**.
+
+Esa ruta no existe. La API expone **`/riesgos`**, en plural
+(`backend/api/rutas.py`), y el visor pide `/riesgos?...` en `cliente.js`. Hay un
+`/distritos/{codigo}/riesgo` en singular, pero es otra ruta y no es la del flujo
+que el diagrama representa.
+
+El diagrama esta en el documento tecnico. Quien lo lea y pruebe `/riesgo` recibe
+un 404.
+
+En el mismo repaso aparecio lo segundo: la capa de presentacion del diagrama de
+componentes quedo en agosto. Muestra «Visor React» y «MapaCanton», y desde
+entonces entraron el semaforo de H7.1, el selector de fecha de H5.7 y el panel de
+coordenadas de H5.6.
+
+**Causa raiz.** `verificar_diagramas.py` comprueba cinco cosas y **las cinco son
+sobre el entidad-relacion**: que cada tabla del DDL aparezca, que cada clave
+foranea este, que los seis archivos existan y no esten vacios, que el generador
+siga produciendo lo versionado, y que el control distinga una tabla ausente.
+
+**Ninguna mira el contenido de los otros cinco diagramas.** El README del
+generador lo dice de frente: estan «declarados» porque no se pueden derivar del
+codigo con honestidad.
+
+Esa afirmacion era demasiado ancha, y es la causa raiz de verdad. Las capas, las
+flechas de dependencia y la degradacion de D-23 no se pueden derivar, cierto.
+**Pero los nombres si.** Los endpoints estan declarados en `rutas.py` y los
+componentes son archivos. Se dio por inderivable el diagrama entero cuando lo
+inderivable era una parte.
+
+**Accion tomada.** El arreglo de los dos diagramas y su comprobacion entran como
+alcance de **H6.5**, con autorizacion escrita para que Avril toque
+`generar_diagramas.py` y `verificar_diagramas.py`, que estan fuera de su carpeta.
+
+Las comprobaciones nuevas: que cada ruta nombrada en el SVG exista en
+`rutas.py`, y que cada componente dibujado corresponda a un modulo real -que
+atrapa el caso inverso, dibujar algo que ya no existe-.
+
+**Aprendizaje.** **«Esto no se puede verificar» es una afirmacion, y se sostiene
+o se acota.** Escrita sin acotar, exime de comprobar la parte que si se podia. La
+pregunta correcta no es si el artefacto entero se deriva del codigo, sino **que
+porcion se deriva**, porque esa porcion vigilada es mejor que ninguna.
+
+Y vale citarse a si mismo: el propio README del generador dice que «un diagrama
+desactualizado es peor que ninguno: se ve autorizado y dice algo falso». La
+frase estaba escrita al lado del diagrama que lo hacia.
+
+**Impacto.** Un diagrama del documento tecnico afirmando una ruta inexistente
+desde que se genero, el 2026-08-27. No bloqueo a nadie porque nadie implemento
+contra el diagrama; el costo es de credibilidad del entregable, que es la
+moneda de la rubrica de Arquitectura.
+
+---
+
+## I-24 · Cuatro controles del proyecto no corren en Windows, donde trabaja todo el equipo
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Avril Madrigal, al reunir en una lista los cuatro casos
+sueltos que habia ido arreglando.
+
+**Que paso.** Cuatro controles pasan en verde en el CI y **fallan al ejecutarlos
+en la maquina de cualquiera del equipo**:
+
+  * `verificar_proyeccion.py` — el cargador ESM de Node rechaza las rutas `C:\...`
+    y exige `file:///C:/...`.
+  * `verificar_recorte_calor.mjs` — el mismo defecto, en el import dinamico.
+  * El mismo `verificar_proyeccion.py`, por otra via: pasar la geometria de los
+    ocho distritos como argumento de `node -e` supera el limite de longitud de
+    linea de comandos de Windows y muere con `WinError 206`, que no menciona el
+    tamano en ningun lado.
+  * `verificar_issues.py` — lee con `encoding="utf-8"`, y el volcado de `gh`
+    redirigido en PowerShell trae marca BOM, asi que revienta con
+    `Unexpected UTF-8 BOM`.
+
+**El CI corre en Linux y los cuatro pasan. Ninguno de los cuatro corre donde se
+trabaja.**
+
+**Causa raiz.** El CI es el unico entorno donde se comprueba que los controles
+funcionan, y ese entorno no es el de nadie. Cada uno de los cuatro casos se
+escribio, se probo en el CI, salio verde y se dio por bueno.
+
+No es que se olvidara probar en Windows: es que **el proyecto nunca declaro que
+sus controles tuvieran que correr en Windows**, asi que no habia nada que
+incumplir. La ausencia del requisito es la causa, no el descuido.
+
+**Accion tomada.** Los cuatro arreglados: `pathToFileURL` y `Path.as_uri()` para
+las rutas, archivo temporal en vez de argumento para la entrada larga, y
+`utf-8-sig` para el BOM -que ademas lee bien los dos casos, porque sin BOM se
+comporta igual que `utf-8`-.
+
+**Pendiente, y es lo que de verdad cierra la incidencia:** una comprobacion de
+que los controles corren en el entorno del equipo. Propuesta por Avril; queda
+como trabajo con nombre y no como intencion.
+
+**Aprendizaje.** **Un control que solo corre en un entorno que nadie usa protege
+a nadie.** Su valor no esta en pasar: esta en que alguien lo ejecute antes de
+abrir el PR, y eso solo pasa si corre en su maquina. Los cuatro casos estaban en
+verde todo el tiempo, que es exactamente por lo que nadie los miro.
+
+Es **I-06** en serie, y la serie es el hallazgo. Uno solo es un defecto; cuatro
+con la misma forma es que falta un requisito.
+
+**Impacto.** Cuatro controles inutiles en la practica durante el tiempo que
+llevan escritos, sin forma de saber cuantas veces alguien renuncio a correr uno y
+mando el PR a ciegas. Las horas de diagnostico las absorbio Avril, que ademas
+identifico el patron.
+
+**Actualizacion del mismo dia: apareció el quinto, y lo produjo esta incidencia.**
+
+El guion de despliegue de H11.2 se escribio en bash y **no corria en ninguna
+maquina del equipo**. El motivo es nuevo y vale anotarlo: winget instala
+`kubectl` como **alias de linea de comandos**, uno de los reparse points de
+`WindowsApps`. PowerShell lo ejecuta, Python lo ejecuta, **Git Bash no**, ni
+siquiera lo encuentra con `command -v`.
+
+El sintoma fue el peor posible: el guion decia «falta kubectl» mientras el
+verificador de al lado, en Python, hablaba con el cluster sin problema.
+
+Dos cosas se aprendieron que no estaban arriba:
+
+  * **`command -v` pregunta si existe un archivo. La pregunta era si se puede
+    ejecutar.** Las dos respuestas difieren justo en el caso que importaba.
+  * Se podia arreglar pidiendole a cada uno que bajara el binario real. Eso es
+    **resolver el sintoma en cuatro maquinas en vez de la causa en un archivo**,
+    y deja la trampa puesta para el proximo que clone el repositorio.
+
+El guion se reescribio en Python, que ya es requisito del proyecto y resuelve
+los ejecutables como los resuelve el sistema operativo. `verificar_cd.py`
+comprueba que no vuelva a bash, con el motivo escrito al lado.
+
+---
+
+## I-25 · Dos verificaciones del CI corrian sin impedir ninguna fusion
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** Alejandro Rodriguez, revisando la proteccion de la rama
+`dev` por un motivo distinto: el costo de actualizar cada rama antes de mergear.
+
+**Que paso.** La regla de proteccion de `dev` exigia **tres** verificaciones para
+poder fusionar: «Contratos y simulados», «Linter y formato» y «Pruebas contra
+PostgreSQL».
+
+El flujo de trabajo define **cinco**. Las dos que faltaban en la lista:
+
+  * **Frontend** — el que corre `verificar_recorte_calor.mjs` y, desde hoy, las
+    40 comprobaciones de `verificar_proyeccion.py`.
+  * **Backlog y documentacion** — el que contrasta el tablero de issues contra el
+    repositorio. **El mismo que salio en rojo esta manana por la issue #17.**
+
+Las dos se ejecutaban en cada PR y salian en rojo cuando algo se rompia. Ninguna
+de las dos impedia fusionar.
+
+**Causa raiz.** La lista de verificaciones obligatorias se llena a mano, una por
+una, y no se deriva del flujo de trabajo. Los dos trabajos se agregaron a
+`ci.yml` despues de que la regla se configurara, y agregar un trabajo no lo
+inscribe en ninguna parte.
+
+Es un desfase silencioso por construccion: **el sitio donde se declara un control
+y el sitio donde se le da poder son dos, y nada los compara.**
+
+**Accion tomada.** Las dos agregadas a la lista de verificaciones obligatorias.
+La proteccion de `dev` pasa de tres a cinco.
+
+**Aprendizaje.** **Un control tiene dos mitades: que corra y que bloquee.** Solo
+la primera se ve al mirar el CI, y es la que todo el mundo mira. Agregar un paso
+al flujo de trabajo se siente como haber puesto una barrera; hasta que esta en la
+lista de obligatorias, es un aviso.
+
+Tiene consecuencia inmediata sobre trabajo de hoy: la observacion (c) del PR #229
+pedia meter `verificar_proyeccion.py` al CI **para que no quedara sin
+vigilancia**. Entro a un trabajo que no bloqueaba nada, asi que quedo a medias
+sin que ninguno de los dos lo notara. La observacion se dio por cerrada y no lo
+estaba.
+
+Es la misma familia de I-17 y de I-21: un control que corre y no protege se ve
+identico a uno que protege.
+
+**Impacto.** Todos los PR fusionados en `dev` desde que existen esos dos trabajos
+pudieron entrar con ellos en rojo. No se sabe si alguno lo hizo, y esa es
+justamente la parte que no se puede reconstruir hacia atras.
+
+---
+
+## I-26 · El CD salio a buscar una imagen que el CI todavia no habia publicado
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** La primera corrida del flujo, sobre `main`, sin que nadie
+lo buscara.
+
+**Que paso.** El despliegue a desarrollo murio a los 28 segundos con
+`Error response from daemon: manifest unknown` al bajar
+`ghcr.io/humanoidcat/geoguardian/api:sha-4bffbd6`.
+
+Esa imagen no existia. Y no tenia por que existir todavia.
+
+**Causa raiz.** `cd.yml` se disparaba con `on: push: branches: [main]`. **El CI
+se dispara con el mismo evento**, y es el CI el que publica las imagenes en
+ghcr.io, en su trabajo de H11.1.
+
+Los dos flujos arrancan a la vez y son independientes: **nada define un orden
+entre ellos.** El CD salio a buscar la imagen del commit mientras el CI todavia
+estaba instalando Python.
+
+Lo que hace que esto sea incidencia y no un descuido: **la dependencia estaba
+escrita en el codigo y no en el disparador.** El propio `cd.yml` decia, en su
+encabezado, «se consumen las que H11.1 publico en ghcr.io». La frase describia
+una dependencia real que ningun mecanismo garantizaba.
+
+Es la misma forma que **I-12**: un control correcto conectado con la condicion
+equivocada. Alli la condicion era demasiado ancha; aca directamente no expresaba
+la dependencia que el flujo necesitaba.
+
+**Accion tomada.** El disparador pasa a `on: workflow_run` sobre el CI, con
+`types: [completed]` y la condicion `conclusion == 'success'`. Ahora el CD
+empieza cuando el CI termino, y solo si termino bien.
+
+Eso obligo a un segundo cambio que no era obvio: **con `workflow_run`,
+`github.sha` no es el commit que disparo el CI**, apunta a la cabeza de la rama
+por omision. El commit real esta en `workflow_run.head_sha`, y es el que etiqueta
+las imagenes. Confundirlos habria desplegado una version distinta de la probada
+**sin que nada lo delatara** — un defecto peor que el que se estaba arreglando.
+
+Y el paso que baja las imagenes ahora **dice su causa al fallar**: `manifest
+unknown` no menciona a H11.1 en ningun lado, asi que el mensaje lo nombra.
+
+**Aprendizaje.** **Una dependencia entre dos flujos no existe porque este escrita
+en un comentario: existe si el disparador la expresa.** Dos flujos con el mismo
+evento no tienen orden, y el que ese orden salga bien en las pruebas no lo
+convierte en garantia.
+
+La pregunta que faltaba al escribir `cd.yml` es la que queda: **«que tiene que
+haber terminado antes de que esto empiece, y quien lo garantiza?»**.
+
+**Impacto.** Ninguno mas alla del tiempo de diagnostico: el flujo fallo en su
+primera corrida, en el paso de preparacion, sin llegar a desplegar nada. Es el
+mejor momento posible para encontrarlo, y es el argumento de por que las
+historias H11.2 a H11.4 **no se marcaron `[x]` al escribirlas**.
+
+---
+
+## I-27 · Dos caminos en el guion de despliegue, y solo uno se recorria
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** La segunda corrida del CD sobre `main`.
+
+**Que paso.** El despliegue murio con
+`Error: Missing kustomization file 'kustomization.yaml'`.
+
+`fijar_etiqueta()` llamaba a `kustomize edit set image` **sin situarse en el
+directorio del overlay**. En la version en bash el comando iba dentro de un
+`( cd "$TEMPORAL/local/$ENTORNO" && ... )`; al portar el guion a Python por I-24,
+ese `cd` se perdio, y `subprocess` hereda el directorio actual —la raiz del
+repositorio, donde no hay ningun `kustomization.yaml`—.
+
+**Causa raiz.** El descuido del `cd` es la mitad. La otra es la que importa:
+
+**el guion tenia dos caminos y solo uno se ejecutaba nunca.** Usaba `kustomize`
+si el binario existia, y una sustitucion de texto si no. **En las maquinas del
+equipo no hay `kustomize` instalado**, asi que todas las pruebas locales tomaban
+el segundo camino. El runner si lo tiene, y tomo el primero, que no se habia
+ejecutado ni una vez.
+
+Es I-24 vista desde el otro lado. Alli el control corria en un entorno que no era
+el nuestro; aca **el codigo que se probaba no era el que iba a correr**.
+
+**Y el verificador no podia atraparlo.** `verificar_cd.py --manifiestos`
+comprobaba que la cadena `newTag` **apareciera en el archivo del guion**. Eso
+pasa en verde mientras la funcion revienta: buscar un texto no dice si el codigo
+corre. Es la forma de **I-10** aplicada a un verificador estatico.
+
+**Accion tomada.** Tres cambios, en orden de importancia:
+
+  1. **Queda un solo camino.** Se elimina el de `kustomize`. La sustitucion de
+     texto es la que se ejecuta en las dos partes y esta comprobada.
+  2. **El verificador ejecuta la funcion** en vez de buscar una cadena: copia el
+     arbol a un temporal, llama a `fijar_etiqueta()` y comprueba el resultado.
+     Se introdujo el defecto a proposito y **el criterio lo detecta**.
+  3. Ese criterio nuevo, en su primera version, **tampoco distinguia**: atrapaba
+     `Exception` y `fijar_etiqueta` se planta con `SystemExit`, que hereda de
+     `BaseException`. El verificador moria a mitad y se saltaba los trece
+     criterios restantes. Corregido a `except (Exception, SystemExit)`.
+
+**Aprendizaje.** **Una rama condicional que depende de que una herramienta este
+instalada crea dos programas, y se prueba uno.** Si las dos ramas no se ejercitan
+en el mismo sitio, la que no se ejercita es codigo sin escribir.
+
+Y la de los controles, que ya va tercera esta semana: **un verificador que busca
+texto comprueba la forma del codigo, no su comportamiento.** Ejecutar la funcion
+cuesta cinco lineas mas y es la diferencia entre un control y un adorno.
+
+**Impacto.** Dos corridas fallidas del CD, ninguna con consecuencia: las dos
+murieron antes de desplegar. Las historias H11.2 a H11.4 siguen sin marcarse, que
+es exactamente para lo que se dejo esa condicion.
+
+## I-28 · El control de produccion contaba el pod que se estaba apagando
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** La corrida `CD #5` sobre `main` (33727543241), la primera
+que llego a produccion con una aprobacion real de por medio. Salio en rojo
+despues de esperar la aprobacion desde la 1:19 hasta las 14:12.
+
+**Que paso.** Produccion desplego bien -las dos revisiones, `latest` y luego el
+SHA `e930d60`- y el paso «Comprobar lo que el despliegue promete» fallo en una
+sola comprobacion de nueve:
+
+    ok    api-64fd9f9cdb-kc248 esta Ready
+    ok    postgis-0 esta Ready
+    FALLA visor-7d5d85594d-zl54c esta Ready
+    ok    visor-7f7994f8d5-cs59q esta Ready
+    ok    visor corre el SHA exacto, no `latest`  ...:sha-e930d60...
+    ok    la API responde 200 en /salud desde el cluster
+
+Dos pods de `visor` con dos ReplicaSet distintos: `7f7994f8d5` es la revision
+nueva, Ready; `7d5d85594d` es **la revision anterior, en proceso de apagarse**.
+`kubectl rollout status` -que es lo que espera `desplegar.py`- vuelve cuando la
+revision nueva esta disponible, no cuando la anterior termino de morir. La
+comprobacion corrio cuatro segundos despues y el pod viejo todavia estaba en la
+lista, con `deletionTimestamp` puesto y `Ready=False`.
+
+**Causa raiz.** `comprobar_entorno()` exigia `Ready` a **todos los pods del
+namespace**, cuando lo que el despliegue promete es que **la revision
+desplegada** este Ready. Son dos afirmaciones distintas, y la primera depende
+del reloj: es verdadera unos segundos despues de que la segunda ya lo era.
+
+Y en produccion el hueco existe **siempre**, porque el flujo despliega dos veces
+a proposito -para tener a que revertir, ver la cabecera de `cd.yml`-. Que las
+dos corridas anteriores pasaran fue suerte: el pod de nginx suele morir en
+menos de cuatro segundos, esta vez no. En desarrollo y pruebas no hay revision
+anterior, y por eso alli nunca fallo.
+
+**Es la familia de I-17, I-21 y I-25 con una variante nueva: un control que
+pasa o falla segun el reloj.** Un control asi es peor que uno que siempre falla,
+porque las corridas en verde lo acreditan.
+
+**Accion tomada.**
+
+  1. `separar_pods()`: los pods con `deletionTimestamp` se apartan y se
+     imprimen como «se esta apagando: revision anterior, no cuenta». Solo los
+     vivos tienen que estar Ready, y tiene que quedar al menos uno.
+  2. **El control se prueba sin cluster, en cada PR**: `--manifiestos` ahora le
+     da a `separar_pods()` los tres casos -pod nuevo Ready, pod viejo apagandose,
+     pod vivo y roto- y comprueba que aparta el segundo y **conserva el
+     tercero**. Se saboteo dos veces: con el comportamiento viejo caen tres
+     comprobaciones; con el arreglo tramposo -apartar todo lo que no esta Ready-
+     cae la que dice que un pod vivo y roto sigue haciendo fallar el criterio.
+     Es la advertencia de I-21: el arreglo tiene que vigilar al menos lo mismo
+     que antes, y aca se comprueba que vigila.
+  3. No se toca `cd.yml` ni se agrega una espera: esperar a que el pod viejo
+     muera habria escondido la misma pregunta mal hecha detras de un `sleep`.
+
+**Aprendizaje.** Un control tiene que comprobar **lo que se prometio**, no el
+estado del mundo en un instante. «Todos los pods Ready» era mas facil de
+escribir que «la revision desplegada esta Ready», y por eso se escribio; la
+diferencia solo aparecio cuando el reloj cayo del lado malo.
+
+**Impacto.** Una corrida del CD en rojo sobre `main` con el despliegue
+correcto. Ningun entorno quedo afectado: el cluster es efimero y se destruye al
+final de cada corrida (D-36). H11.4 sigue cerrada: la aprobacion, el despliegue
+al SHA exacto y la respuesta de `/salud` se cumplieron; lo que fallo fue una
+pregunta mal hecha del verificador. Se corrige en `dev` y se promueve a `main`
+para que la siguiente corrida lo demuestre.
+

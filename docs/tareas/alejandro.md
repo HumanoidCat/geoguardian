@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 184 puntos · 278.6 horas · 27.9 h por semana en promedio
+**Total asignado:** 177 puntos · 272.5 horas · 27.3 h por semana en promedio
 
 ## Carga por sprint
 
@@ -36,8 +36,8 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
-| S2 | semanas 6-7 | 113.1 | 36 | SOBRECARGA +77 h |
-| S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
+| S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
+| S3 | semanas 8-9 | 43.8 | 36 | SOBRECARGA +8 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
@@ -117,8 +117,23 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+- [x] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+  - Evidencia: `docs/evidencias/computacion-grafica/H1.6-sentinel2-estacion-seca.md`
+  - **Seis escenas** en la estacion seca 2024-25 con nubosidad bajo 20 %, todas en
+    el mosaico T16PGS. Comprobado contra el catalogo, no supuesto.
+  - **Se bajan 4 bandas de 20 m y no el producto entero**: 49,6 MB por escena en
+    vez de 555 a 929 MB. 4,4 GB no caben con comodidad en la maquina de nadie del
+    equipo, asi que la diferencia es entre una historia que corre y una que no.
+  - **A 20 m el infrarrojo cercano es `B8A`, no `B08`.** Encontrado listando el
+    producto; copiar la formula del NDVI sin mirar habria pedido un archivo que no
+    esta ahi.
+  - La busqueda **no necesita credenciales** y la descarga si, asi que el
+    verificador corre en el CI sin poner un secreto ahi.
+  - Al correrlo aparecio un defecto propio: **dos formas de leer el `.env`**, una
+    en el comprobador y otra en el extractor, y solo una funcionaba. Es I-27
+    otra vez. Queda `load_dotenv()`, que es lo que el proyecto ya usaba.
+  - horas: estimada 7.8 . real 4.0
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
@@ -136,7 +151,7 @@
   - `E13` · 5 pts · 13.2 h · rubrica: Scrum
 
 
-## Sprint 2 (semanas 6-7) — 113.1 h
+## Sprint 2 (semanas 6-7) — 103.6 h
 
 
 - [x] **H1.9** · Funciones PL/pgSQL con EXCEPTION WHEN, RAISE y bitacora de fallos (2026-09-01)
@@ -157,13 +172,43 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.11** · Particionar mediciones por anio y medir efecto en consultas
+- [x] **H1.11** · Particionar mediciones por anio y medir efecto en consultas (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.11-particionado-medicion.md`
+  - Migracion `010_particionar_medicion.sql`, verificador
+    `basedatos/verificar_h1_11.py`: **14 de 14 criterios** contra PostgreSQL real.
+    99 296 filas migradas en 1.54 s, 37 particiones, la DEFAULT vacia.
+  - **El efecto se midio, no se supuso.** `basedatos/medir_particionado.py`
+    construye las dos formas de la tabla con las mismas filas y corre las mismas
+    consultas: el visor mejora **84 %**, el pliegue de H3.2 **35 %**, y el
+    agregado anual empeora **4 %**. Se adopta porque lo que mejora esta en el
+    camino del usuario y lo que empeora corre fuera de linea.
+  - **I-20**: el arreglo de I-18 solo habia tocado una de las tres tablas, y los
+    controles que se escribieron para atajarlo miraban una tabla cada uno. El
+    criterio 14 ahora recorre los cuatro esquemas enteros.
+  - El criterio 6 es el que mas vale: comprueba que el upsert idempotente de H1.1
+    sobrevive al particionado. Si fallara, la ingesta duplicaria en silencio.
+  - horas: estimada 4.8 . real 3.1
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.3 · **bloquea a: H1.12**
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.12** · Indices espaciales y compuestos con planes antes y despues
+- [x] **H1.12** · Indices espaciales y compuestos con planes antes y despues (2026-09-01)
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.12-indices.md`
+  - Migracion `011_indices.sql`, verificador `basedatos/verificar_h1_12.py`:
+    **11 criterios que miran el PLAN**, no el catalogo. Un indice que existe y el
+    planificador nunca elige es coste puro.
+  - **Se midieron cuatro candidatos y entraron tres.** `medicion_fecha_ix` se
+    descarto: la consulta iba 8 % mas rapida con el creado, pero el indice **no
+    aparece en el plan**. Ese 8 % era cache. Es el motivo por el que el banco
+    comprueba el plan y no solo el reloj.
+  - **El criterio de aceptacion estaba mal planteado y la medicion lo dijo.**
+    Empezo en «ahorra mas de 0,5 ms» y eso descartaba `riesgo_fecha_evento_ix`
+    por 0,05 ms. Midiendo a cuatro tamanos, el ahorro crece de 0,49 ms a 10,09 ms
+    -de 8,5x a 90,6x- mientras la consulta indexada se queda plana. La regla paso
+    a ser **que tipo de escaneo reemplaza**, no cuantos milisegundos ahorra hoy.
+  - El punto de partida era **un solo indice secundario en todo el proyecto**.
+  - horas: estimada 4.8 . real 2.8
   - `E1` · 5 pts · 4.8 h · rubrica: BD-1 · depende de: H1.11
   - **Traspasada desde Cesar el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
@@ -199,29 +244,45 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control
-  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+> **H5.6 volvio a Avril el 2026-09-02**, por la clausula de devolucion de D-33:
+> «quien retome algo suyo lo avisa y se le devuelve, sin pedir permiso». Estaba
+> terminada y verificada antes del traspaso y se cierra el mismo dia. La entrada
+> vive ahora en `docs/tareas/avril.md`.
 
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+- [x] **H7.2** · Graficas interactivas de series con seleccion de rango (2026-09-03)
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.2-graficas-de-serie.md`
+  - Excepcion de propiedad declarada **antes** de tocar `frontend/`, en
+    `docs/07-propiedad-archivos.md`.
+  - **Los huecos cortan la linea.** El simulado trae un dia sin dato de cada
+    veinte y viajan como `null` hasta el dibujo: unir la linea por encima
+    afirmaria una medicion que nadie tomo. El exportador se planta si la serie
+    sale sin ningun hueco, porque entonces el criterio no podria fallar.
+  - **El respaldo estatico tambien tiene serie** (`mediciones.json`, 239 KB): sin
+    eso la grafica no existiria en el visor publicado por H11.5, que es el unico
+    que alguien puede abrir sin levantar nada.
+  - **Medido, no supuesto:** `recharts` llevaba el paquete inicial de 325 a
+    710 kB. Con carga perezosa queda en 332 kB y los 379 kB del dibujo se piden
+    al abrir una ficha. Salio de construir las dos versiones.
+  - horas: estimada 4.8 . real 3.5
 
-- [ ] **H10.3** · Manual de usuario con capturas paso a paso
-  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
-  - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
-    alcance ni una correccion del trabajo previo: la historia se movio para
-    poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-
-- [ ] **H10.7** · Diagramas de casos de uso y entidad-relacion
+- [x] **H10.7** · Diagramas de casos de uso y entidad-relacion (2026-09-02)
   - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/arquitectura-software/H10.7-diagramas-casos-de-uso.md`
+  - **El entidad-relacion ya existia desde H6.5** y nadie lo habia anotado: la
+    historia figuraba entera cuando le faltaba una mitad. Solo se entrego el de
+    casos de uso.
+  - Se derivo de `backend/api/rutas.py` en vez de dibujarlo. **CA-6** comprueba
+    que las 6 rutas aparezcan y que el diagrama no declare ninguna que ya no
+    exista. Su primera version **no distinguia** -leia el SVG generado, que solo
+    cambia al regenerar-; se descubrio intentando romperla.
+  - horas: estimada 7.8 . real 2.5
 - [x] **H6.6** · El visor consume la API real en lugar de los JSON estaticos (2026-08-20)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.1
   - horas: estimada n/d (la regla se creo el mismo dia del cierre) . real 3.0
@@ -239,14 +300,36 @@
   - Queda pendiente de Avril, por solicitud: pintar `origen` y `motivo_respaldo`
     en `AvisoModoSimulado.jsx`. El cliente ya los devuelve.
 
-- [ ] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main
+- [x] **H11.2** · CD: despliegue automatico al entorno de desarrollo al mergear a main (2026-09-03)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1 · **bloquea a: H11.3, H12.3**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - Corrida `CD #4`, commit `8bb6849`. **8 de 8 comprobaciones** contra el cluster
+    efimero, incluido un `GET /salud` desde dentro.
+  - Encadenado al CI con `workflow_run`: en `push` simple corria a la vez que la
+    construccion de la imagen y moria con `manifest unknown`. Es **I-26**.
+  - horas: estimada 7.8 . real 9.0
 
-- [ ] **H11.3** · CD: despliegue a staging en namespace propio, con aprobacion manual
+- [x] **H11.3** · CD: despliegue a staging en namespace propio, con aprobacion manual (2026-09-03)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H11.2 · **bloquea a: H11.4**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - **8 de 8** contra el cluster y **2 de 2** de aprobacion. La aprobacion quedo
+    registrada en la corrida a las 03:27.
+  - `--comprobar-aprobacion` consulta la API de GitHub: un flujo puede declarar
+    `environment: pruebas` y salir verde aunque ese entorno no tenga revisores.
+  - horas: estimada 4.7 . real 3.0
 
-- [ ] **H11.4** · CD: despliegue a produccion con aprobacion explicita y rollback automatico
+- [x] **H11.4** · CD: despliegue a produccion con aprobacion explicita y rollback automatico (2026-09-03)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.3 · **bloquea a: H13.2**
+  - Evidencia: `docs/evidencias/sistemas-operativos/H11.2-H11.4-entrega-continua.md`
+  - **La reversion se provoco, no se declaro.** Disparo manual con
+    `probar_reversion=true`: se desplego una etiqueta inexistente, el rollout no
+    convergio en cuatro minutos, entro `rollout undo` y `--tras-reversion` dio
+    **8 de 8**, con `api volvio a la revision anterior` y `200 en /salud`.
+  - Mirando los nombres de los pods se vio que **la corrida demuestra dos cosas
+    distintas**: con `Recreate` la API estuvo caida de verdad y la reversion la
+    devolvio; con `RollingUpdate` el pod del visor nunca se fue, asi que su
+    reversion fue preventiva. Anotado en la evidencia, no previsto.
+  - horas: estimada 7.8 . real 11.0
 
 - [x] **H3.0** · Implementar el etiquetado de los tres eventos y su distribucion de clases (2026-08-25)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H2.3, H2.7, H1.2 · **bloquea a: H3.1, H3.2**
@@ -286,7 +369,44 @@
   - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
-## Sprint 3 (semanas 8-9) — 40.4 h
+## Sprint 3 (semanas 8-9) — 43.8 h
+
+- [x] **H3.4** · Entrenar y evaluar Random Forest (2026-09-03)
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+  - horas: estimada 3.0 . real 1.0
+  - Evidencia: `docs/evidencias/objetivos/H3.4-random-forest.md`
+  - `random_forest.py` entra al arnes de H3.6 con el mismo contrato y el mismo
+    trato de nulos que H3.3. **20 criterios** en `verificar_h34.py` y **17
+    pruebas** en `test_random_forest.py`. Trae `importancias` por nombre, para
+    H4.1, y `probabilidades()`, para la tuberia.
+  - **Resultado: sin ajustar no supera ninguna linea base.** En incendio empata
+    con la trivial: predijo ALTO en 15 de 21 894 filas de prueba y no acerto
+    ninguna. Se midio por que -hojas puras sobre 0,87 % de positivos, donde
+    `class_weight` no actua- y queda para H3.8. Es D-10: un resultado, no una
+    excepcion.
+  - El control se probo rompiendolo. El sabotaje de la semilla paso en verde la
+    primera vez; al reescribir el criterio aparecio que con `n_jobs=-1`
+    `predict_proba` no es reproducible bit a bit. Quedo `n_jobs=1`.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
+
+- [x] **H3.5** · Entrenar y evaluar XGBoost (2026-09-03)
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.6**
+  - horas: estimada 2.5 . real 0.9
+  - Evidencia: `docs/evidencias/objetivos/H3.5-xgboost.md`
+  - `xgboost_.py` completa los tres de D-09; `PENDIENTES` queda vacio. **21
+    criterios** en `verificar_h35.py` y **18 pruebas** en `test_xgboost.py`. No
+    se le permite usar su rama de ausentes: los tres estimadores descartan las
+    mismas filas (D-07).
+  - **Resultado: primer algoritmo por encima de la climatologica en lluvia
+    intensa (0,371 contra 0,346), pero dentro del ruido: empate tecnico.** En
+    incendio empata con la regresion. Decidir con la tabla es H3.6.
+  - Al entrar la quinta fila, `verificar_h34` se puso en rojo por un `== 4`
+    escrito a mano; los dos verificadores comparan ahora contra el registro.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
 
 - [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
@@ -324,12 +444,6 @@
 
 - [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6
-
-- [ ] **H4.1** · Importancia de variables global del mejor modelo
-  - `E4` · 3 pts · 2.9 h · rubrica: OE3 · depende de: H3.6 · **bloquea a: H4.2**
-
-- [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
-  - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
 - [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Normaliza `DESTINO_API` antes de que se procesen las plantillas. Historia H11.1,
+# por la revision de SC-07.
+#
+# QUE ARREGLA
+#
+# En `nginx.conf.template`, `proxy_pass $destino_api;` concatena el valor tal cual
+# con el URI ya reescrito. Si el valor termina en barra, cada peticion sale con
+# doble barra:
+#
+#     DESTINO_API=http://api:8000/  ->  proxy_pass http://api:8000//distritos
+#
+# **No falla al arrancar y no aparece en ningun registro.** El contenedor levanta,
+# nginx no se queja, y el sintoma es que la API responde raro. Es la peor clase de
+# defecto: el que solo se nota cuando ya se le creyo al sistema.
+#
+# Hoy el Dockerfile declara el valor sin barra y funciona. Pero el proposito
+# entero de SC-07 es que H11.2 y H11.3 apunten el visor a otra API **sin
+# reconstruir la imagen**, o sea que ese valor lo va a escribir otra persona, en
+# un manifiesto de despliegue, meses despues. Y una URL se escribe con barra al
+# final por costumbre.
+#
+# POR QUE ESTE ARCHIVO EXISTE, EN VEZ DE UNA LINEA EN 10-resolver.sh
+#
+# **Porque ahi no habria funcionado.** El entrypoint de la imagen oficial de nginx
+# trata los dos sufijos distinto:
+#
+#     *.envsh)  . "$f"     # se hace SOURCE: lo que cambie sobrevive
+#     *.sh)     "$f"       # se EJECUTA: cambia el entorno de un subproceso que muere
+#
+# Cambiar `DESTINO_API` dentro de un `.sh` la corrige en un proceso que termina
+# antes de que `20-envsubst-on-templates.sh` lea la variable. Comprobado
+# reproduciendo la logica del entrypoint: con `.sh` el paso 20 sigue viendo la
+# barra; con `.envsh` no.
+#
+# Que el arreglo de un defecto silencioso fuera, el mismo, silencioso, es la razon
+# de que esta explicacion sea tan larga.
+#
+# El numero 05 lo pone antes del 10 y del 20. No comparte archivo con el resolver
+# a proposito: este cambia el entorno, aquel escribe un archivo de configuracion.
+
+DESTINO_API="${DESTINO_API%/}"
+export DESTINO_API
+
+echo "05-destino-api.envsh: DESTINO_API -> ${DESTINO_API}"

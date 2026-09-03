@@ -10,6 +10,8 @@
  * visor declara que el dato no es real: la banda de arriba, el aviso de la
  * leyenda y esta linea.
  */
+import { CRTM05, aCRTM05, formatearCRTM05, formatearGrados } from '../datos/proyeccion'
+import GraficaSerie from './GraficaSerie.jsx'
 
 const NOMBRE_POR_NIVEL = {
   bajo: 'Bajo',
@@ -31,6 +33,32 @@ function Dato({ etiqueta, valor, unidad, ausente }) {
           </>
         )}
       </dd>
+    </div>
+  )
+}
+
+/**
+ * Las dos coordenadas del mismo punto.
+ *
+ * Se muestran juntas y no una u otra: los grados sirven para pegar en un mapa
+ * web, y los metros de CRTM05 para **decirlos**, que es para lo que existe H5.6.
+ * Quien pasa una posicion por radio no dicta grados decimales.
+ *
+ * Si no hay punto no se dibuja nada. Una coordenada dudosa rotulada como la
+ * ubicacion del distrito es peor que la ausencia.
+ */
+function BloqueUbicacion({ titulo, punto }) {
+  if (!punto) return null
+
+  return (
+    <div className="panel-ubicacion">
+      <h3 className="panel-ubicacion-titulo">{titulo}</h3>
+      <p className="panel-ubicacion-reticula">
+        {formatearCRTM05(aCRTM05(punto.longitud, punto.latitud))}
+      </p>
+      <p className="panel-ubicacion-grados">
+        {formatearGrados(punto.longitud, punto.latitud)}
+      </p>
     </div>
   )
 }
@@ -74,7 +102,7 @@ function BloqueRiesgo({ riesgo, nombreEvento }) {
   )
 }
 
-export default function PanelDistrito({ distrito, riesgo, nombreEvento }) {
+export default function PanelDistrito({ distrito, riesgo, nombreEvento, ubicacion, puntoClic }) {
   if (!distrito) {
     return (
       <aside className="panel">
@@ -84,6 +112,7 @@ export default function PanelDistrito({ distrito, riesgo, nombreEvento }) {
   }
 
   const { codigo, nombre, area_km2: area, poblacion, geometria_simulada: simulada } = distrito
+
 
   return (
     <aside className="panel">
@@ -95,7 +124,19 @@ export default function PanelDistrito({ distrito, riesgo, nombreEvento }) {
         <Dato etiqueta="Poblacion" valor={poblacion} ausente="Sin dato censal" />
       </dl>
 
+      {/* El sistema se nombra una sola vez, no en cada bloque: repetirlo dos
+          veces sugiere que podrian ser distintos. */}
+      <p className="panel-ubicacion-sistema">
+        Coordenadas en {CRTM05.nombre}, EPSG:{CRTM05.epsg}
+      </p>
+      <BloqueUbicacion titulo="Ubicacion del distrito" punto={ubicacion} />
+      <BloqueUbicacion titulo="Donde hiciste clic" punto={puntoClic} />
+
       <BloqueRiesgo riesgo={riesgo} nombreEvento={nombreEvento} />
+
+      {/* H7.2. Punto de insercion, y nada mas: ningun bloque de arriba se toco.
+          Ver la excepcion en docs/07-propiedad-archivos.md. */}
+      <GraficaSerie key={codigo} codigo={codigo} nombre={nombre} />
 
       {/* Desde el 24 de agosto la geometria es la real del SNIT y esta nota no
           se muestra nunca: `verificar_h115.py` no deja publicar un dist con

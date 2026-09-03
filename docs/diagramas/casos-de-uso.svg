@@ -1,0 +1,185 @@
+<svg width="736pt" height="487pt"
+ viewBox="0.00 0.00 735.75 487.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 465.6)">
+<title>casos_de_uso</title>
+<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-465.6 714.15,-465.6 714.15,21.6 -21.6,21.6"/>
+<g id="clust1" class="cluster">
+<title>cluster_sistema</title>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M207,-47C207,-47 672.55,-47 672.55,-47 678.55,-47 684.55,-53 684.55,-59 684.55,-59 684.55,-424 684.55,-424 684.55,-430 678.55,-436 672.55,-436 672.55,-436 207,-436 207,-436 201,-436 195,-430 195,-424 195,-424 195,-59 195,-59 195,-53 201,-47 207,-47"/>
+<text text-anchor="middle" x="239.5" y="-422.4" font-family="Helvetica,Arial,sans-serif" font-size="12.00">GeoGuardian</text>
+</g>
+<!-- usuaria -->
+<g id="node1" class="node">
+<title>usuaria</title>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M93.5,-310C93.5,-310 19.5,-310 19.5,-310 13.5,-310 7.5,-304 7.5,-298 7.5,-298 7.5,-270 7.5,-270 7.5,-264 13.5,-258 19.5,-258 19.5,-258 93.5,-258 93.5,-258 99.5,-258 105.5,-264 105.5,-270 105.5,-270 105.5,-298 105.5,-298 105.5,-304 99.5,-310 93.5,-310"/>
+<text text-anchor="middle" x="56.5" y="-298" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«actor»</text>
+<text text-anchor="middle" x="56.5" y="-287" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Persona usuaria</text>
+<text text-anchor="middle" x="56.5" y="-276" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">vecina, funcionaria</text>
+<text text-anchor="middle" x="56.5" y="-265" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">municipal</text>
+</g>
+<!-- uc_mapa -->
+<g id="node4" class="node">
+<title>uc_mapa</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="293.61" cy="-358" rx="79.81" ry="26.74"/>
+<text text-anchor="middle" x="293.61" y="-365.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver el riesgo del canton</text>
+<text text-anchor="middle" x="293.61" y="-355.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en una fecha</text>
+<text text-anchor="middle" x="293.61" y="-345.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/riesgos</text>
+</g>
+<!-- usuaria&#45;&gt;uc_mapa -->
+<g id="edge1" class="edge">
+<title>usuaria&#45;&gt;uc_mapa</title>
+<path fill="none" stroke="#5b636d" d="M105.65,-299.15C142.99,-310.91 194.9,-327.25 234.55,-339.73"/>
+</g>
+<!-- uc_ficha -->
+<g id="node5" class="node">
+<title>uc_ficha</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="293.61" cy="-284" rx="80.72" ry="26.74"/>
+<text text-anchor="middle" x="293.61" y="-291.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Consultar la ficha</text>
+<text text-anchor="middle" x="293.61" y="-281.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
+<text text-anchor="middle" x="293.61" y="-271.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/riesgo</text>
+</g>
+<!-- usuaria&#45;&gt;uc_ficha -->
+<g id="edge2" class="edge">
+<title>usuaria&#45;&gt;uc_ficha</title>
+<path fill="none" stroke="#5b636d" d="M105.65,-284C136.41,-284 177.06,-284 212.59,-284"/>
+</g>
+<!-- uc_capas -->
+<g id="node9" class="node">
+<title>uc_capas</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="293.61" cy="-217" rx="67.35" ry="19.6"/>
+<text text-anchor="middle" x="293.61" y="-219.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Encender y apagar</text>
+<text text-anchor="middle" x="293.61" y="-209.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">capas del mapa</text>
+</g>
+<!-- usuaria&#45;&gt;uc_capas -->
+<g id="edge3" class="edge">
+<title>usuaria&#45;&gt;uc_capas</title>
+<path fill="none" stroke="#5b636d" d="M105.65,-270.28C146.22,-258.72 203.98,-242.26 244.53,-230.7"/>
+</g>
+<!-- equipo -->
+<g id="node2" class="node">
+<title>equipo</title>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M88,-117.5C88,-117.5 25,-117.5 25,-117.5 19,-117.5 13,-111.5 13,-105.5 13,-105.5 13,-88.5 13,-88.5 13,-82.5 19,-76.5 25,-76.5 25,-76.5 88,-76.5 88,-76.5 94,-76.5 100,-82.5 100,-88.5 100,-88.5 100,-105.5 100,-105.5 100,-111.5 94,-117.5 88,-117.5"/>
+<text text-anchor="middle" x="56.5" y="-105.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«actor»</text>
+<text text-anchor="middle" x="56.5" y="-94.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Equipo de datos</text>
+<text text-anchor="middle" x="56.5" y="-83.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">GeoGuardian</text>
+</g>
+<!-- uc_ingesta -->
+<g id="node11" class="node">
+<title>uc_ingesta</title>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="293.61" cy="-157" rx="52.15" ry="19.6"/>
+<text text-anchor="middle" x="293.61" y="-159.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ingerir datos</text>
+<text text-anchor="middle" x="293.61" y="-149.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de las fuentes</text>
+</g>
+<!-- equipo&#45;&gt;uc_ingesta -->
+<g id="edge8" class="edge">
+<title>equipo&#45;&gt;uc_ingesta</title>
+<path fill="none" stroke="#5b636d" d="M100.08,-107.87C142.42,-118.67 207.04,-135.16 249.56,-146.01"/>
+</g>
+<!-- uc_modelo -->
+<g id="node12" class="node">
+<title>uc_modelo</title>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="570.39" cy="-85" rx="64.19" ry="19.6"/>
+<text text-anchor="middle" x="570.39" y="-87.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Entrenar y evaluar</text>
+<text text-anchor="middle" x="570.39" y="-77.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">el modelo</text>
+</g>
+<!-- equipo&#45;&gt;uc_modelo -->
+<g id="edge10" class="edge">
+<title>equipo&#45;&gt;uc_modelo</title>
+<path fill="none" stroke="#5b636d" d="M100.15,-85.21C127.11,-78.39 162.81,-70.47 195,-67 306.77,-54.95 438.17,-67.36 511.82,-76.7"/>
+</g>
+<!-- uc_desplegar -->
+<g id="node13" class="node">
+<title>uc_desplegar</title>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="293.61" cy="-97" rx="72.66" ry="19.6"/>
+<text text-anchor="middle" x="293.61" y="-99.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Desplegar el sistema</text>
+<text text-anchor="middle" x="293.61" y="-89.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">H11.2 a H11.4</text>
+</g>
+<!-- equipo&#45;&gt;uc_desplegar -->
+<g id="edge9" class="edge">
+<title>equipo&#45;&gt;uc_desplegar</title>
+<path fill="none" stroke="#5b636d" d="M100.08,-97C133.56,-97 180.96,-97 220.35,-97"/>
+</g>
+<!-- fuentes -->
+<g id="node3" class="node">
+<title>fuentes</title>
+<path fill="#f2f2f4" stroke="#b9c0c8" d="M101,-52C101,-52 12,-52 12,-52 6,-52 0,-46 0,-40 0,-40 0,-12 0,-12 0,-6 6,0 12,0 12,0 101,0 101,0 107,0 113,-6 113,-12 113,-12 113,-40 113,-40 113,-46 107,-52 101,-52"/>
+<text text-anchor="middle" x="56.5" y="-40" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«actor de sistema»</text>
+<text text-anchor="middle" x="56.5" y="-29" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Fuentes externas</text>
+<text text-anchor="middle" x="56.5" y="-18" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">CHIRPS &#160;· &#160;FIRMS</text>
+<text text-anchor="middle" x="56.5" y="-7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">POWER &#160;· &#160;Sentinel&#45;2</text>
+</g>
+<!-- uc_distritos -->
+<g id="node7" class="node">
+<title>uc_distritos</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="570.39" cy="-233" rx="65.11" ry="33.88"/>
+<text text-anchor="middle" x="570.39" y="-245.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ubicar los distritos</text>
+<text text-anchor="middle" x="570.39" y="-235.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en el mapa</text>
+<text text-anchor="middle" x="570.39" y="-225.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos</text>
+<text text-anchor="middle" x="570.39" y="-215.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}</text>
+</g>
+<!-- uc_mapa&#45;&gt;uc_distritos -->
+<g id="edge5" class="edge">
+<title>uc_mapa&#45;&gt;uc_distritos</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M341.85,-336.51C390.01,-314.6 464.65,-280.65 515.19,-257.66"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="516.33,-259.44 520.92,-255.05 514.59,-255.62 516.33,-259.44"/>
+<text text-anchor="middle" x="424.22" y="-308.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+</g>
+<!-- uc_modo -->
+<g id="node8" class="node">
+<title>uc_modo</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="570.39" cy="-314" rx="78.48" ry="26.74"/>
+<text text-anchor="middle" x="570.39" y="-321.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Saber si los datos</text>
+<text text-anchor="middle" x="570.39" y="-311.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">son reales o simulados</text>
+<text text-anchor="middle" x="570.39" y="-301.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/salud</text>
+</g>
+<!-- uc_mapa&#45;&gt;uc_modo -->
+<g id="edge6" class="edge">
+<title>uc_mapa&#45;&gt;uc_modo</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M366.09,-346.55C404.88,-340.34 452.86,-332.66 492.46,-326.32"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="493.15,-328.33 498.74,-325.31 492.49,-324.19 493.15,-328.33"/>
+<text text-anchor="middle" x="424.22" y="-341.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+</g>
+<!-- uc_filtro -->
+<g id="node10" class="node">
+<title>uc_filtro</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="570.39" cy="-379" rx="58.13" ry="18"/>
+<text text-anchor="middle" x="570.39" y="-376.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Elegir evento y fecha</text>
+</g>
+<!-- uc_mapa&#45;&gt;uc_filtro -->
+<g id="edge4" class="edge">
+<title>uc_mapa&#45;&gt;uc_filtro</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M371.88,-363.91C414.67,-367.18 467.16,-371.19 507.26,-374.25"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="507.45,-376.37 513.59,-374.74 507.77,-372.18 507.45,-376.37"/>
+<text text-anchor="middle" x="424.22" y="-371.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+</g>
+<!-- uc_serie -->
+<g id="node6" class="node">
+<title>uc_serie</title>
+<ellipse fill="white" stroke="#b9c0c8" cx="570.39" cy="-152" rx="96.33" ry="26.74"/>
+<text text-anchor="middle" x="570.39" y="-159.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver la serie climatica</text>
+<text text-anchor="middle" x="570.39" y="-149.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
+<text text-anchor="middle" x="570.39" y="-139.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/mediciones</text>
+</g>
+<!-- uc_serie&#45;&gt;uc_ficha -->
+<g id="edge7" class="edge">
+<title>uc_serie&#45;&gt;uc_ficha</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M510.65,-173.19C498.46,-178.05 485.8,-183.43 474.22,-189 427.92,-211.26 419.79,-223.26 374.22,-247 365.83,-251.37 356.82,-255.8 347.99,-260"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="347.05,-258.13 342.52,-262.59 348.84,-261.92 347.05,-258.13"/>
+<text text-anchor="middle" x="424.22" y="-229.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«extend»</text>
+</g>
+<!-- uc_ingesta&#45;&gt;fuentes -->
+<g id="edge12" class="edge">
+<title>uc_ingesta&#45;&gt;fuentes</title>
+<path fill="none" stroke="#5b636d" d="M244.94,-149.14C228.01,-144.67 209.56,-137.73 195,-127 185.47,-119.98 188.47,-113.26 180,-105 160.29,-85.79 135.21,-68.64 112.88,-55.27"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="113.81,-53.37 107.57,-52.13 111.67,-56.99 113.81,-53.37"/>
+<text text-anchor="middle" x="163" y="-107.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">descarga</text>
+</g>
+<!-- uc_modelo&#45;&gt;uc_ingesta -->
+<g id="edge11" class="edge">
+<title>uc_modelo&#45;&gt;uc_ingesta</title>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M520.62,-97.78C470.58,-110.89 393.18,-131.17 343.2,-144.27"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="342.51,-142.28 337.24,-145.83 343.58,-146.34 342.51,-142.28"/>
+<text text-anchor="middle" x="424.22" y="-129.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+</g>
+</g>
+</svg>

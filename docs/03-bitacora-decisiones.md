@@ -3708,3 +3708,385 @@ Si aparece mas serie -la ETL llega hasta 2024 por el limite de los focos- o si s
 amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
 decision depende del numero, no de una preferencia: **se rehace corriendo
 `generar_etiquetas.py`**.
+
+---
+
+## D-35 · La clausula de reversion de D-33 se ejerce, y devuelve dos de las doce historias
+
+**Fecha.** 2026-09-02 · **Decide.** Alejandro, a peticion de Avril · **Estado.** Aceptada
+**Revisa.** D-33 · **Afecta.** H5.6, H10.3, H10.7, H1.6
+
+### Contexto
+
+**D-33** traspaso al PM las doce historias abiertas de S1 y S2 que estaban a
+nombre de Cesar y Avril, y dejo escrita la salida: *«quien quiera retomar algo
+suyo lo avisa y se le devuelve, sin discutir y sin pedir permiso»*.
+
+Esa clausula no se habia usado nunca. Al pedirle al equipo respuesta por historia
+antes del jueves, Avril respondio por las trece que tenia abiertas y pidio dos de
+vuelta. Es la primera vez que la reversion se ejerce, asi que conviene dejar
+escrito **como se resolvio**, porque el criterio va a hacer falta otra vez.
+
+### Decision
+
+**Se devuelven H5.6 y H10.3. Se quedan con el PM H1.6 y H10.7.**
+
+| Historia | Vuelve a | Por que |
+|---|---|---|
+| **H5.6** | Avril | **Ya estaba hecha.** El trabajo existe en `feature/ame-h5.6-crtm05` con 25 controles contra `pyproj`. Empezarla de nuevo habria tirado ese trabajo y producido dos implementaciones de la misma transformacion |
+| **H10.3** | Avril | Desbloquea **H10.9, que es CG-6 entera**. Quien conoce el visor saca las capturas a la primera |
+| **H1.6** | se queda | Es Sprint 1, vencido hace cuatro semanas. La cuenta de Copernicus ya esta resuelta, asi que el PM la entrega **esta semana** contra el sabado 13 de la peticion. Ademas **destraba H5.5, de Avril, once dias antes** |
+| **H10.7** | se queda | Avril la retiro ella misma: es Arq, y ese criterio ya lo cubre H6.5. Son 7,8 h que no sacan ningun criterio del cero |
+
+### Medicion
+
+Las fechas comprometidas de cada opcion, que son el dato que decidio:
+
+| Historia | Si la hace Avril | Si la hace el PM | Diferencia |
+|---|---|---|---|
+| **H5.6** | viernes 4 · **ya hecha** | ~viernes 4, reescribiendola | mismo dia, y el doble de trabajo |
+| **H10.3** | martes 9 | ~viernes 4 | 3 dias peor, y desbloquea CG-6 |
+| **H1.6** | sabado 13 | **esta semana** | **hasta 12 dias mejor** |
+| **H10.7** | jueves 11 | esta semana | 7 dias mejor, y no saca ningun criterio del cero |
+
+Efecto en el cierre de los sprints:
+
+| | Antes de D-35 | Despues |
+|---|---|---|
+| Sprint 1 cierra | sabado 13 (por H1.6) | **esta semana**, a falta de H10.4 |
+| Sprint 2 depende de | solo el PM | PM + Avril, en paralelo |
+| Carga del PM | 184 pts · 278,6 h | **176 pts · 269,1 h** |
+| Carga de Avril | 74 pts · 87,6 h | **82 pts · 97,1 h** |
+
+Avril estimo su plan completo en **74,3 h en tres semanas -24,8 por semana-**
+contra las 18 que firmo. Con este reparto baja a **57,7 h**, sin perder ninguna de
+las historias que sostienen un criterio en cero.
+
+### Justificacion
+
+**El criterio de desempate es la fecha, no la propiedad.** Con tiempo por delante,
+que cada quien haga lo suyo produce mejor codigo y mejor aprendizaje. A tres
+semanas del final y con el Sprint 1 vencido hace cuatro, lo que decide es que
+opcion entrega antes — y eso se puede comprobar contra una fecha comprometida, no
+discutir.
+
+Aplicarlo asi mantiene D-33 en pie: la reversion sigue siendo un derecho, y
+ejercerla obliga a poner una fecha. **Una regla que se puede invocar sin coste
+tampoco informa nada.**
+
+Y hay un motivo que no es de calendario: **H5.6 ya estaba escrita**. Ninguna
+consideracion de reparto justifica producir dos veces la misma transformacion de
+coordenadas.
+
+### Por que no se aplico la regla al pie de la letra
+
+D-33 dice «sin discutir». Aplicado literalmente, las cuatro volvian.
+
+**Pero D-33 existia para destrabar**, y una devolucion que empuja el cierre del
+Sprint 1 de esta semana al **sabado 13** trabaja contra su propio motivo. Asi que
+en vez de negarse -que habria invalidado la regla para todos- o de aceptar en
+silencio -que habria costado doce dias-, se devolvio una, se argumento la otra
+**con la fecha como criterio**, y se dejo la decision en manos de quien la pidio.
+
+Avril acepto el argumento y lo dijo con estas palabras: *«no la voy a discutir, y
+no porque sea la regla sino porque tu argumento es mejor que el mio»*.
+
+**El criterio que queda, y es el que hay que reusar: en una reversion no decide de
+quien es la historia, decide que fecha entrega antes.** La propiedad importa
+cuando hay tiempo; a tres semanas del final importa la fecha.
+
+### Lo que salio de ejercerla, y no se esperaba
+
+**El trabajo de H5.6 llevaba dias hecho y sin subir.** No aparecio en ningun
+tablero, en ningun PR y en ninguna de las cifras de avance del proyecto: para
+`verificar_estado.py` la historia estaba abierta, porque **un commit local no es
+trabajo entregado**.
+
+Se descubrio de pura suerte, porque el PM aviso que arrancaba y ella contesto a
+tiempo. Un dia mas y se escriben dos veces la misma transformacion.
+
+Es la misma forma que los cinco dias de la firma de SC-07: **trabajo terminado
+detenido por un paso de comunicacion, invisible para todos los controles del
+proyecto**. Los verificadores miden el repositorio, y lo que no esta en el
+repositorio no existe para ellos.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no |
+|---|---|
+| Devolver las cuatro | Empujaba el cierre del Sprint 1 al sabado 13, contra el motivo de D-33 |
+| No devolver ninguna | La regla la escribio el PM. Aplicarla solo cuando conviene la anula para todos, y el rastro queda en el ADR |
+| Decidirlo el PM sin consultar | H5.6 se habria reescrito desde cero con el trabajo hecho al lado |
+| Cambiar D-33 para agregar condiciones | La regla simple funciono: forzo a argumentar en vez de imponer. Lo que faltaba era el criterio de desempate, y eso es lo que registra esta decision |
+
+### Consecuencias
+
+- Alejandro baja de 184 a **176 puntos** y de 278,6 a **269,1 h**.
+- Avril sube de 74 a **82 puntos** y de 87,6 a **97,1 h** — con su propia
+  estimacion, 57,7 h en tres semanas, mas cerca de las 18 semanales que firmo.
+- El **Sprint 2 ya no depende solo del PM**: H5.6 el viernes 4 y H10.3 el martes 9
+  son de Avril.
+- Quedan dos compromisos del PM hacia ella, y los dos sostienen criterios en cero:
+  **H10.5c a mas tardar el lunes 14** para que H10.6 salga el viernes 19, y
+  **H11.4 a mas tardar el miercoles 16** para H13.2 el domingo 21.
+
+---
+
+## D-36 · El despliegue continuo corre contra un cluster efimero, no contra el cluster local
+
+**Fecha.** 2026-09-02 · **Decide.** Alejandro · **Estado.** Aceptada
+**Afecta.** H11.2, H11.3, H11.4, H13.2, H12.2
+
+### Contexto
+
+**D-05** puso los tres entornos que exige la rubrica -desarrollo, pruebas y
+produccion- en **un mismo cluster k3d local**, en espacios de nombres distintos.
+Esa decision sigue siendo correcta y no se toca.
+
+H11.2 pide **despliegue automatico al entorno de desarrollo al mergear a `main`**,
+y H11.3 y H11.4 encadenan pruebas y produccion detras.
+
+Hay un hecho que no se puede negociar: **GitHub Actions corre en la nube y el
+cluster k3d vive en una maquina del equipo, detras de un router domestico, sin
+direccion publica ni credenciales expuestas.** Un `kubectl apply` desde el runner
+no tiene contra que hablar.
+
+No es una limitacion del proyecto: es la topologia. Cualquier solucion pasa por
+elegir **que se automatiza y que queda en manos de una persona**, y el error
+seria no elegirlo y escribir un flujo de trabajo que parezca desplegar.
+
+### Decision
+
+**El flujo de despliegue crea su propio cluster k3d dentro del runner, aplica los
+manifiestos del entorno que corresponde, comprueba que converja, y lo destruye.**
+
+**Y el cluster local persistente se actualiza con un guion de un comando**,
+`infra/k8s/desplegar.py`, que aplica exactamente los mismos manifiestos.
+
+Los dos caminos usan **el mismo kustomize y las mismas imagenes de ghcr.io**. No
+hay dos definiciones del despliegue: hay una, aplicada en dos sitios.
+
+La cadena queda asi:
+
+| Historia | Entorno | Disparo | Aprobacion |
+|---|---|---|---|
+| **H11.2** | `geoguardian-desarrollo` | al fusionar a `main` | ninguna |
+| **H11.3** | `geoguardian-pruebas` | despues de desarrollo | **manual**, entorno de GitHub |
+| **H11.4** | `geoguardian-produccion` | despues de pruebas | **explicita**, y con reversion automatica si no converge |
+
+### Justificacion
+
+**Lo que el cluster efimero si demuestra**, y es la mayor parte de lo que la
+rubrica evalua:
+
+  * Que los manifiestos son validos y kustomize los construye.
+  * Que las imagenes publicadas por H11.1 **arrancan dentro de Kubernetes**, que
+    es distinto de arrancar en `docker run` -es lo que comprueba `verificar_h111`-.
+  * Que los pods **convergen**: `kubectl rollout status` con limite de tiempo.
+  * Que la reversion funciona, porque se puede provocar el fallo a proposito.
+  * Que **cualquiera lo reproduce**, incluido el profesor, sin acceso a ninguna
+    maquina nuestra.
+
+**Lo que no demuestra:** que haya algo corriendo despues. Eso queda declarado
+abajo y va a limitaciones del documento IEEE.
+
+El criterio que decidio: **entre un despliegue que se puede reproducir y uno que
+solo funciona si una maquina esta encendida, el primero es mas verificable.** Un
+CD que depende de que alguien no haya apagado su computadora produce fallos que
+no son del sistema, y una historia cerrada con un flujo que hoy no corre no vale
+como evidencia.
+
+### Alternativas descartadas
+
+**Un runner autoalojado en la maquina del cluster.** Es la unica opcion que
+despliega de verdad al namespace real, y por eso se considero primero.
+
+Se descarta por tres motivos, en orden de peso:
+
+  1. **El CD falla cuando la maquina esta apagada**, y eso es lo normal fuera de
+     horario. Un flujo rojo por estar apagada la computadora entrena al equipo a
+     ignorar el rojo, que es el peor habito que puede dejar una tuberia.
+  2. **Nadie mas puede reproducirlo.** Ni el profesor al evaluar, ni un
+     companero. La evidencia se vuelve una captura de pantalla.
+  3. Un runner autoalojado ejecuta codigo de cualquier PR en una maquina
+     personal. En un repositorio publico eso es un problema de seguridad real, y
+     resolverlo bien -runner efimero, aislado- es mas trabajo que la historia.
+
+**Exponer el cluster con un tunel.** Descartada sin medirla en detalle: mete una
+dependencia de un tercero en el camino critico del despliegue y credenciales de
+cluster en secretos del repositorio, a cambio de la misma fragilidad del punto 1.
+
+**Declarar H11.2 imposible.** Es la salida que este proyecto tomo en **D-34** con
+la sequia, y aca no aplica: alli faltaba el dato -9 episodios contra 30- y no
+habia forma de fabricarlo. Aca **si se puede comprobar lo esencial**, y lo que no
+se puede es una parte acotada que se declara.
+
+### Consecuencias
+
+**A favor:**
+
+  * H11.2, H11.3 y H11.4 se pueden cerrar con evidencia ejecutable, no narrada.
+  * El mismo kustomize se aplica en el CI y en local. Un manifiesto que no
+    converge se descubre en el PR y no al desplegar a mano.
+  * La reversion de H11.4 se puede **provocar** y por lo tanto comprobar. En un
+    cluster persistente, provocar un fallo para probar la reversion significa
+    romper el entorno de alguien.
+
+**En contra, y hay que decirlo sin adornarlo:**
+
+  * **Al terminar el flujo no queda nada corriendo.** El despliegue automatico
+    demuestra que el despliegue funciona; no deja un sistema en linea.
+  * **El cluster local se actualiza cuando una persona corre el guion.** No es
+    entrega continua hasta el entorno persistente, y llamarlo asi seria mentir en
+    la memoria.
+  * **H13.2, el manual de operacion de Avril, documenta un sistema que se levanta
+    localmente**, no uno con una direccion publica. Se le avisa el 2026-09-02, no
+    al entregarlo.
+  * **H12.2 -la pantalla de monitoreo de entornos- no puede leer estado de un
+    cluster que se destruye.** Va a tener que leer del ultimo despliegue local o
+    del historial de corridas, y eso cambia su diseno.
+
+### Medicion
+
+Lo que cada opcion demuestra, contado sobre lo que la rubrica CICD evalua:
+
+| | Efimero | Runner autoalojado |
+|---|:---:|:---:|
+| Los manifiestos construyen | si | si |
+| Las imagenes arrancan en Kubernetes | si | si |
+| Los pods convergen | si | si |
+| La reversion funciona | **si, provocable** | solo rompiendo el entorno real |
+| Queda algo corriendo | **no** | si |
+| Lo reproduce un tercero | **si** | no |
+| Corre con la maquina apagada | **si** | no |
+
+**Cinco de siete contra tres de siete.** Las dos que pierde el efimero son
+reales, y son las que se declaran en limitaciones.
+
+El costo se mide tambien en tiempo de tuberia: crear y destruir un k3d en el
+runner agrega alrededor de un minuto por entorno. Se acepta porque corre solo
+sobre `main`, no en cada PR.
+
+---
+
+## D-37 · Las historias de Cesar que bloquean a otros salen de su nombre, y Luna toma carga
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Continua.** D-33 · **Afecta.** H3.4, H3.5, H12.1, H4.1, H4.2, H3.6
+
+### Contexto
+
+Semana 9 de 12, la ultima del Sprint 3. `verificar_estado.py` al momento de decidir:
+
+    historias: 56 de 89 · puntos: 276 de 434 (63.6 %)
+    S1 15 de 16 · S2 23 de 23 · S3 7 de 18 · S4 0 de 21
+
+**D-33** paso al PM las doce historias abiertas de Cesar y Avril en S1 y S2 y
+dejo escrito que las de S3 y S4 «siguen a su nombre» porque reasignarlas «seria
+declarar que ya no se espera nada de ellos, y eso no se ha decidido». Tambien
+dejo escrita la salida: *recortar alcance o aceptar la ayuda de Luna*, que se
+ofrecio por escrito el 2026-08-30.
+
+Desde entonces pasaron dos cosas distintas. **Avril retomo**: pidio de vuelta
+H5.6 y H10.3 por la clausula de D-33 (D-35) y las cerro el 2026-09-02, y cerro
+H6.5 el 2026-09-03. **De Cesar no entro ninguna historia**: sigue en 9 cerradas,
+las mismas que en D-33.
+
+Lo que queda del Sprint 3 a nombre de Cesar son seis historias, 47 h, y tres de
+ellas bloquean a otras personas: **H3.5 bloquea H3.6** (10 pts del PM, que a su
+vez bloquea H3.7, H3.8, H4.1 y H4.4); **H3.4** es uno de los «tres algoritmos»
+sin los que H3.6 no se puede cerrar; **H12.1 bloquea H12.2** de Avril **y
+H12.4** de Luna. Luna no tiene ninguna historia abierta en S1, S2 ni S3.
+
+Ademas, el visor sigue mostrando riesgo simulado porque nadie ha escrito una
+fila en `analitico.riesgo`: los cinco metodos que lo harian estan en
+`backend/api/repositorio_postgres.py`, archivo de Cesar, y el encabezado del
+propio archivo los asigna a H3.6.
+
+### Decision
+
+**Las tres historias de Cesar que bloquean a otros salen de su nombre. Luna
+toma carga por primera vez. El PM toma la tuberia modelo → API.**
+
+| Historia | De | A | Por que esta persona |
+|---|---|---|---|
+| **H3.4** Random Forest | Cesar | Alejandro | H3.3 dejo el arnes de caracteristicas y evaluacion en `backend/modelado`; cambia el estimador |
+| **H3.5** XGBoost | Cesar | Alejandro | Igual que H3.4. Es la que bloquea H3.6 |
+| **H12.1** logs en `control.bitacora_etl` | Cesar | Luna | Desbloquea su propia H12.4 y la H12.2 de Avril |
+| **H4.1** importancia de variables | Alejandro | Luna | Reparte la carga del S3; va junto con H4.2 |
+| **H4.2** SHAP | Alejandro | Luna | Analisis, no infraestructura; Luna hace la investigacion del proyecto |
+
+Y una excepcion de propiedad, escrita en `docs/07-propiedad-archivos.md` antes de
+tocar nada: **Alejandro escribe los cinco metodos de H3.6 en
+`repositorio_postgres.py`** y el guion que corre el modelo y escribe las filas.
+Solo esos metodos, no el archivo.
+
+El contenido de cada historia se traspasa **sin modificar**, con la nota de
+origen y fecha en `docs/tareas/`, igual que en D-33. El documento IEEE (H10.5c)
+**se queda con el PM** y se hace al final, con resultados.
+
+### Justificacion
+
+La regla de D-33 era no cargar a quien viene cumpliendo. Se sostuvo una semana
+mas y el resultado es el que dice el contexto: el PM cerro lo de S1 y S2, y el
+Sprint 3 sigue detenido en las tres historias que solo Cesar podia mover. Lo
+que cambia hoy no es el criterio sobre Cesar —sus historias que no bloquean a
+nadie siguen a su nombre— sino que **ninguna historia que bloquee a otra persona
+puede quedar en manos de quien no entrega**.
+
+Luna tiene la carga mas baja del equipo y cero historias abiertas hasta S4. Es
+la unica holgura real, y el mismo D-33 la nombro como salida.
+
+La tuberia va al PM porque es la cadena mas corta hacia numeros reales en el
+visor —tres metodos, un guion, una variable de entorno— y porque los metodos
+llevan el nombre de su historia, H3.6, en el archivo desde que se creo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Esperar otra semana a Cesar | Es la apuesta de D-33, ya medida: una semana mas y cero historias de el |
+| Pasar todo lo de Cesar al PM | El PM ya carga 272 h contra 180 de capacidad. Repetir D-33 completo no cabe, y D-33 lo dijo |
+| Pasar la tuberia a Luna | Es `backend/api`, base de datos y despliegue: la carpeta y el contexto son del PM, no de calidad |
+| Dar el documento IEEE a Luna | Se planteo y el PM lo retuvo: necesita los resultados de H3.6 y H4.4 que hoy no existen; se hace al final |
+| Reasignar tambien H1.10, H1.14 y H8.2 | No bloquean a nadie. Moverlas seria declarar que no se espera nada de Cesar, y eso sigue sin decidirse |
+
+### Consecuencias
+
+Carga por sprint despues del cambio, en horas del backlog:
+
+| | S3 antes | S3 despues | Total |
+|---|---|---|---|
+| Alejandro | 40.4 | **43.8** | 272.5 h · 177 pts |
+| Luna | 20.3 | **40.5** | 163.7 h · 96 pts |
+| Cesar | 47.0 | 23.4 | 100.6 h · 79 pts |
+
+Se gana: H3.6 deja de depender de alguien que no entrega; H12.2 y H12.4 quedan
+desbloqueadas por alguien que si; el visor tiene por primera vez una ruta
+asignada hacia riesgo real. Se pierde: el PM suma 3.4 h netas a un sprint ya
+excedido, y Luna pasa de holgado a +4.5 h sobre el compromiso. **La cadena H3.4 →
+H3.5 → H3.6 → H4.1 → H4.2 sigue siendo secuencial** y ninguna cantidad de gente
+la acorta: lo que esta decision hace es que cada eslabon tenga a alguien que
+lo esta moviendo.
+
+Lo que queda a nombre de Cesar no bloquea a nadie: si no entrega, el proyecto
+no se detiene. Esa es la propiedad que esta decision compra.
+
+Como en D-33, si Cesar retoma cualquiera de sus historias, se le devuelve por
+la misma clausula y sin pedir permiso.
+
+### Medicion
+
+Se da por buena si al cierre de la semana 9 estan cerradas **H3.4, H3.5 y H3.6**
+—los tres algoritmos contra la linea base— y el visor corre con
+`GEOGUARDIAN_REPOSITORIO` distinto de `simulado`. El plan detras de esa fecha:
+**Sprint 3 cerrado en la semana 9, lo esencial del Sprint 4 listo en la semana
+10, y la semana 11 reservada para pruebas y lo que falte.** Es lo que deja
+margen para la entrega de la semana 12.
+
+Se revisa si al cierre de la semana 9 Luna no cerro **H12.1**: seria la senal
+de que la carga se movio de un cuello a otro.
+
+Las cifras salen de `verificar_estado.py` y `verificar_backlog.py`, que fallan
+si backlog, archivos de tareas y matriz discrepan. Se corrieron despues del
+cambio y coinciden.

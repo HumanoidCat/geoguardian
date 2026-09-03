@@ -28,7 +28,16 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 74 puntos · 87.6 horas · 8.8 h por semana en promedio
+**Total asignado:** 82 puntos · 97.1 horas · 8.8 h por semana en promedio
+
+> Estas cifras salen de `docs/backlog.csv` y **todavia no incluyen H5.6**, que
+> volvio aca el 2026-09-02 por la clausula de devolucion de D-33. La celda
+> `responsable` de esa fila sigue diciendo `alejandro` y es un archivo compartido:
+> cuando el PM la cambie, el total pasa a 77 puntos y 92.3 h. Se deja escrito en
+> vez de corregir la tabla, porque el CSV es la fuente.
+>
+> El encabezado del Sprint 2 dice **21.1 h** y no 16.3: ademas de H5.6 volvio
+> **H10.3**, tambien por D-33, y esa devolucion entro por otra rama.
 
 ## Carga por sprint
 
@@ -36,7 +45,7 @@
 |---|---|---|---|---|
 | S0 | semanas 2-3 | 2.9 | 36 | holgado |
 | S1 | semanas 4-5 | 11.5 | 36 | holgado |
-| S2 | semanas 6-7 | 11.6 | 36 | holgado |
+| S2 | semanas 6-7 | 21.1 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
 | S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
 
@@ -55,7 +64,25 @@
   - `E5` · 7 pts · 6.7 h · rubrica: CG-1 · depende de: H5.1 · **bloquea a: H5.4, H5.7, H7.1**
 
 
-## Sprint 2 (semanas 6-7) — 11.6 h
+## Sprint 2 (semanas 6-7) — 21.1 h
+
+- [x] **H5.6** · Transformacion WGS84 a CRTM05 verificada con puntos de control (2026-09-02)
+  - `E5` · 3 pts · 4.7 h · rubrica: CG-1 · depende de: H5.1
+  - horas: estimada 3.0 . real 0.7
+  - **Retomada el 2026-09-02** por la clausula de devolucion de **D-33**. Estaba
+    terminada y verificada antes del traspaso del 31 de agosto; lo que faltaba
+    era subirla, y eso es lo que se corrige aca. Se cierra el mismo dia con el
+    PR #229.
+
+- [x] **H10.3** · Manual de usuario con capturas paso a paso (2026-09-02)
+  - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H7.1 · **bloquea a: H10.9**
+  - horas: estimada n/d (no se pidio al arrancar) . real 1.2
+  - **Devuelta el 2026-09-02** por la clausula de reversion de **D-33**. Se
+    devuelve porque **desbloquea H10.9, que es CG-6 entera** -el unico criterio
+    que sostiene esa historia- y porque quien conoce el visor saca las capturas a
+    la primera.
+  - Comprometida para el **martes 9** y entregada el **2026-09-02**, siete dias
+    antes. **Cierra el criterio MVP, que estaba en cero.**
 
 - [x] **H5.7** · Selector de fecha que recarga el estado del mapa (2026-08-26)
   - `E5` · 3 pts · 2.9 h · rubrica: CG-4 · depende de: H5.3
@@ -110,8 +137,30 @@
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
 
-- [ ] **H6.5** · Diagrama de componentes y de secuencia del flujo principal
+- [x] **H6.5** · Diagrama de componentes y de secuencia del flujo principal (2026-09-03)
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.1
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.5-diagramas-componentes-y-secuencia.md`
+  - horas: estimada n/d (no se estimo al arrancar) . real 0.6
+  - **Entregada el 2026-09-02 y cerrada el 2026-09-03.** Quedo abierta un dia por
+    su fila en `docs/trazabilidad.csv`, que es archivo compartido y requiere
+    aprobacion del PM. La fila se agrego tal como Avril la propuso en la
+    evidencia, sin cambiarle una coma.
+  - **La marca la puso el PM, no Avril**, siguiendo la instruccion literal que
+    ella dejo escrita aca: «al aprobarse se marca `[x]` con `estimada n/d . real
+    0.6`». Es el mismo criterio de **`15-cerrar-una-historia.md` §5b**: ejecutar
+    una decision ya tomada no es tomarla. Si Avril prefiere otra cosa, se cambia.
+  - **Sobre la estimacion.** No hubo: la historia arranco sin estimar y el numero
+    se habria puesto despues. Se deja en `n/d` a proposito, porque una estimacion
+    escrita con la historia terminada siempre acierta y contaminaria lo que
+    **D-24** mide. Para la retrospectiva: **a posteriori se habria estimado en
+    2 h**, o sea el triple de lo que costo.
+  - Las 0,6 h son **tiempo de reloj**, reconstruido de las marcas de los archivos:
+    del commit de H10.3 a las 19:58 al cierre de la evidencia a las 20:11, mas
+    unos veinte minutos previos de investigar los diagramas.
+  - **La historia cambio de forma antes de empezar.** Pedia «hacer los
+    diagramas», y los diagramas ya existian desde el 27 de agosto. Lo que hacia
+    falta era que dejaran de mentir: los dos nombraban `GET /riesgo` contra una
+    API que expone `/riesgos`. Alcance acordado con el PM antes de tocar nada.
 
 
 ## Sprint 4 (semanas 10-11) — 36.6 h

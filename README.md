@@ -117,7 +117,7 @@ Requisitos: Docker, Docker Compose, **Python 3.11** y **Node 20 o superior**.
 | Base de datos | PostgreSQL 16 + PostGIS, levanta con `docker compose up -d` |
 | Despliegue | Tres entornos en k3d local, ver `infra/k8s/README.md` |
 | Visor publicado | https://humanoidcat.github.io/geoguardian/ · datos simulados, sin API ni base |
-| Integración continua | 7 trabajos: contratos, backlog y documentación, linter, frontend, pruebas, imágenes Docker y publicación del visor |
+| Integración continua | 8 trabajos: contratos, backlog y documentación, linter, manifiestos de despliegue, frontend, pruebas, imágenes Docker y publicación del visor |
 | Backlog | 89 historias, 434 puntos. Completo en `docs/08-backlog.md`, por persona en `docs/tareas/` |
 | Tablero | GitHub Projects, agrupado por sprint |
 

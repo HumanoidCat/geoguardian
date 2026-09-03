@@ -53,12 +53,20 @@ calculado sobre `datos/` no es reproducible por otra persona.
 ## Excepcion: la descarga de Sentinel-2, para H1.6
 
 `backend/etl/` es de Cesar. La historia **H1.6** —descargar imagenes Sentinel-2 de
-estacion seca— es de Avril, y su script es un extractor: pertenece ahi y no en
-`frontend/`.
+estacion seca— y su script es un extractor: pertenece ahi y no en `frontend/`.
 
 | Quien | Donde | Para que historia |
 |---|---|---|
-| Avril | `backend/etl/fuentes/sentinel.py` y su prueba en `backend/tests/` | H1.6, y nada mas |
+| Alejandro | `backend/etl/fuentes/sentinel.py` y su verificador | H1.6, y nada mas |
+
+> **Actualizada el 2026-09-03 por D-33.** H1.6 era de Avril y paso a Alejandro el
+> 2026-08-31; la excepcion se movio con la historia **sin abrir una solicitud de
+> cambio**, que es lo que dice la regla de mas abajo. Si Avril la retoma, la fila
+> vuelve a su nombre por el mismo camino.
+>
+> El verificador quedo en `backend/etl/fuentes/verificar_h16.py`, junto al
+> extractor, y no en `backend/tests/`, que es carpeta de Luna: eso habria hecho
+> falta una segunda excepcion para una historia que solo necesita una.
 
 **Por que ahi y no en la carpeta de Avril.** Un extractor que vive en `frontend/`
 porque lo escribio la persona del frontend es organizar el codigo por autor en vez
@@ -80,10 +88,15 @@ seis veces.
 | Quien | Donde | Para que historias |
 |---|---|---|
 | Cesar | `backend/senales` | H2.6 |
-| Cesar | `backend/modelado` | H3.4, H3.5, H3.7 |
+| Cesar | `backend/modelado` | H3.7 |
+| Luna | `backend/modelado` | H4.1 y H4.2, **desde D-37** |
 | Alejandro | `backend/senales` | lo que necesiten sus historias de modelado, **y H2.5** |
-| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3** |
+| Alejandro | `backend/modelado` | es su carpeta, **y desde D-33 tambien H3.3; desde D-37, H3.4 y H3.5** |
 
+> **Actualizada el 2026-09-03 por D-37.** H3.4 y H3.5 pasaron de Cesar a
+> Alejandro, y H4.1 y H4.2 de Alejandro a Luna, por el mismo camino que D-33:
+> la fila se mueve con la historia y no hay solicitud de cambio.
+>
 > **Actualizada el 2026-09-01 por D-33.** H2.5 y H3.3 pasaron de Cesar a
 > Alejandro, y la excepcion se movio con ellas **sin abrir una solicitud de
 > cambio**: es lo que dice la regla de abajo. Si Cesar las retoma, la fila vuelve
@@ -130,6 +143,40 @@ hiciera falta tocar un componente, se pide.
 
 Es el mismo criterio de **D-16**: la propiedad de un archivo sigue al trabajo
 asignado, y se declara por historia y no en general.
+
+## Excepcion: las graficas de serie, para H7.2
+
+`frontend/` es de Avril. La historia **H7.2** —graficas interactivas de series con
+seleccion de rango— **paso a Alejandro el 2026-08-31 por D-33**, y la excepcion se
+mueve con ella: es la misma regla que ya se aplico a H2.5 y H3.3 en `backend/`,
+declarada arriba. **La propiedad sigue al trabajo asignado.**
+
+Si Avril retoma H7.2, la fila vuelve a su nombre por el mismo camino y sin pedir
+permiso.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `frontend/src/componentes/GraficaSerie.jsx` **archivo nuevo** | H7.2, y nada mas |
+| Alejandro | `frontend/src/datos/cliente.js` | H7.2, **ademas de** H6.6 |
+| Alejandro | `frontend/src/componentes/PanelDistrito.jsx` | H7.2, **solo el punto de insercion** |
+| Alejandro | `frontend/herramientas/exportar_simulados.py` | H7.2, **solo la exportacion de mediciones** |
+| Alejandro | `frontend/herramientas/verificar_h72.mjs` **archivo nuevo** | H7.2, y nada mas |
+
+**«Solo el punto de insercion» es literal.** En `PanelDistrito.jsx` se agrega el
+import y una linea que monta el componente. No se toca ningun bloque existente, ni
+`Dato`, ni `BloqueUbicacion`, ni `BloqueRiesgo`, ni un estilo. Si hiciera falta
+cambiar algo de eso, se pide.
+
+**Por que `cliente.js` otra vez y no una llamada suelta desde el componente.** Ese
+archivo es «el unico modulo que sabe de donde vienen los datos», y la serie diaria
+tiene exactamente el mismo problema que los riesgos: **dos origenes**, la API y el
+respaldo estatico. Pedirla desde el componente pondria la negociacion de origen en
+dos lugares, que es el defecto que `cliente.js` existe para evitar. Ver D-23.
+
+**Por que se toca el exportador.** El respaldo estatico **no tenia mediciones**, y
+sin ellas la grafica no existiria en el visor publicado por H11.5 —que es el unico
+que alguien puede abrir sin levantar nada—. Se agrega `mediciones.json` a lo que ya
+genera; **no se modifica nada de lo existente en ese guion.**
 
 ## Excepcion: el arreglo de la geometria publicada, por I-10
 
@@ -431,3 +478,38 @@ Queda autorizado **`frontend/nginx.conf`, para H6.0 y para su mantenimiento
 posterior**, con Avril revisando el Pull Request igual que en el resto de la
 excepción. No hace falta rehacer lo ya fusionado: se mueve la próxima vez que
 alguien lo toque.
+
+## Excepcion: `backend/api/repositorio_postgres.py`, para H3.6
+
+**Declarada el 2026-09-03 por D-37, antes de tocar el archivo.**
+
+El archivo es de Cesar. Diez de sus metodos levantan `_pendiente(...)`, y el
+encabezado del propio archivo asigna cinco de ellos a **H3.6**, que es historia
+de Alejandro: `guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`,
+`guardar_metricas` y `listar_metricas`. Nadie ha escrito nunca una fila en
+`analitico.riesgo`, y por eso el visor sigue en `GEOGUARDIAN_REPOSITORIO: simulado`.
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los cinco metodos que el encabezado asigna a H3.6, y el guion que corre el modelo y escribe `analitico.riesgo` |
+
+Lo que **no** cubre: el resto del archivo (`guardar_indices`, `obtener_indices`,
+`listar_eventos`, los reportes de calidad), el contrato `contratos/`, ni
+`docker-compose.yml`. Cambiar la variable de entorno del despliegue es
+`infra/`, que ya es de Alejandro.
+
+Es la misma regla de siempre: **la propiedad sigue al trabajo asignado.** Los
+metodos llevan el nombre de H3.6 escrito en el archivo desde que se creo.
+
+## Excepcion: H12.1, para Luna
+
+**Declarada el 2026-09-03 por D-37.** H12.1 —centralizar los logs de pipeline y
+aplicacion en `control.bitacora_etl`— paso de Cesar a Luna. Toca carpetas de
+Cesar, asi que la excepcion se escribe aqui, estrecha:
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Luna | `backend/etl`, `backend/api`, `basedatos` | **solo** lo que H12.1 necesite para escribir en `control.bitacora_etl`; una historia, y se cierra con ella |
+
+Si Cesar retoma H12.1, la fila vuelve a su nombre por la clausula de D-33, sin
+pedir permiso.

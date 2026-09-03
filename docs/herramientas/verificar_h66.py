@@ -125,9 +125,85 @@ def main() -> int:
         "hay una unica promesa de negociacion memorizada",
         "let negociacion = null" in texto_cliente,
     )
+
+    # NO SE CUENTAN LAS LLAMADAS: SE COMPRUEBA CADA FUNCION.
+    #
+    # La primera version exigia `count("await resolverOrigen()") == 3`. Fallo el
+    # 2026-09-03 al agregar `obtenerMediciones` en H7.2 -una cuarta funcion que
+    # **si** negociaba-, o sea que el control se rompio por un cambio correcto.
+    #
+    # Un numero escrito a mano obliga a editar el verificador cada vez que crece
+    # el modulo, y lo que la gente hace entonces es subir el numero sin pensar.
+    # Eso convierte el criterio en un tramite y deja de proteger.
+    #
+    # Lo que la historia realmente exige es esto: **toda funcion exportada que
+    # toque un origen tiene que negociar primero**. Se deriva del archivo, asi
+    # que una funcion nueva que no negocie falla, y una que negocie pasa sin que
+    # nadie toque este control.
+    #
+    # EL CUERPO SE DELIMITA CONTANDO LLAVES, NO PARTIENDO EL ARCHIVO.
+    #
+    # Partirlo con un `re.split` en cada `export function` parecia alcanzar, y no:
+    # las funciones AUXILIARES que viven entre dos exportadas quedan pegadas al
+    # bloque anterior. `obtenerRiesgosDeVariosEventos` salia como infractora
+    # porque arrastraba una ayudante que si nombra el respaldo, cuando en
+    # realidad delega en `obtenerRiesgos` y no toca ningun origen.
+    #
+    # Se vio corriendo el control, no leyendolo.
+    def cuerpo_de(texto: str, inicio: int) -> str:
+        abre = texto.index("{", inicio)
+        nivel, i = 0, abre
+        while i < len(texto):
+            if texto[i] == "{":
+                nivel += 1
+            elif texto[i] == "}":
+                nivel -= 1
+                if nivel == 0:
+                    return texto[abre : i + 1]
+            i += 1
+        return texto[abre:]
+
+    # SE SIGUEN LAS LLAMADAS, PORQUE NO TODAS NEGOCIAN DIRECTAMENTE.
+    #
+    # `obtenerSalud` llama a `resolverOrigen()` y no nombra ningun origen.
+    # `obtenerDistritos` no hace ninguna de las dos cosas: delega en la ayudante
+    # privada `pedirDistritos()`. Mirar solo el cuerpo propio deja fuera a las
+    # dos, y el criterio pasaria vigilando **dos** funciones donde el original
+    # vigilaba tres. Hacerlo pasar estrechando lo que examina es peor que dejarlo
+    # roto, porque no se nota.
+    #
+    # Asi que se arma el conjunto de funciones que **alcanzan** `resolverOrigen`,
+    # propagando por las llamadas hasta que deja de crecer.
+    cuerpos: dict[str, str] = {}
+    for hallada in re.finditer(r"^(?:export )?(?:async )?function (\w+)", texto_cliente, re.M):
+        cuerpos[hallada.group(1)] = cuerpo_de(texto_cliente, hallada.end())
+
+    alcanzan = {n for n, c in cuerpos.items() if "resolverOrigen()" in c}
+    while True:
+        nuevas = {
+            n
+            for n, c in cuerpos.items()
+            if n not in alcanzan and any(f"{otra}(" in c for otra in alcanzan)
+        }
+        if not nuevas:
+            break
+        alcanzan |= nuevas
+
+    exportadas = [
+        m.group(1) for m in re.finditer(r"^export (?:async )?function (\w+)", texto_cliente, re.M)
+    ]
+    # Una funcion pura -no llama a nada del modulo- no tiene que negociar.
+    # `fechaDeHoy` es la unica hoy, y queda fuera sola.
+    con_datos = [
+        n for n in exportadas if any(f"{otra}(" in cuerpos[n] for otra in cuerpos if otra != n)
+    ]
+    sin_negociar = [n for n in con_datos if n not in alcanzan]
+
+    detalle = f"  ->  NO lo alcanzan: {sin_negociar}" if sin_negociar else ""
     comprobar(
-        "las tres funciones publicas la esperan",
-        texto_cliente.count("await resolverOrigen()") == 3,
+        f"las {len(con_datos)} funciones de datos alcanzan resolverOrigen: "
+        f"{', '.join(con_datos)}{detalle}",
+        len(con_datos) >= 3 and not sin_negociar,
     )
 
     # ---------------------------------------------------------------- CA-4 -- #
