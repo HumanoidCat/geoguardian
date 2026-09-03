@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 80 puntos · 143.5 horas · 14.3 h por semana en promedio
+**Total asignado:** 96 puntos · 163.7 horas · 16.4 h por semana en promedio
 
 ## Carga por sprint
 
@@ -37,7 +37,7 @@
 | S0 | semanas 2-3 | 25.9 | 36 | holgado |
 | S1 | semanas 4-5 | 34.3 | 36 | ajustado |
 | S2 | semanas 6-7 | 31.0 | 36 | ajustado |
-| S3 | semanas 8-9 | 20.3 | 36 | holgado |
+| S3 | semanas 8-9 | 40.5 | 36 | SOBRECARGA +5 h |
 | S4 | semanas 10-11 | 32.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 25.9 h
@@ -77,7 +77,25 @@
   - `E2` · 5 pts · 7.8 h · rubrica: Senales · depende de: H2.1 · **bloquea a: H3.0**
 
 
-## Sprint 3 (semanas 8-9) — 20.3 h
+## Sprint 3 (semanas 8-9) — 40.5 h
+
+- [ ] **H12.1** · Centralizar los logs de pipeline y aplicacion en control.bitacora_etl
+  - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H1.9 · **bloquea a: H12.2, H12.4**
+  - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
+
+- [ ] **H4.1** · Importancia de variables global del mejor modelo
+  - `E4` · 3 pts · 2.9 h · rubrica: OE3 · depende de: H3.6 · **bloquea a: H4.2**
+  - **Traspasada desde Alejandro el 2026-09-03** por **D-37**. No es un cambio de
+    alcance: se movio para repartir la carga del Sprint 3, y su contenido
+    queda tal como estaba escrito.
+
+- [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
+  - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
+  - **Traspasada desde Alejandro el 2026-09-03** por **D-37**. No es un cambio de
+    alcance: se movio para repartir la carga del Sprint 3, y su contenido
+    queda tal como estaba escrito.
 
 - [x] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio (2026-08-30)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: H6.2

@@ -244,17 +244,81 @@ def imagenes_corriendo(namespace: str) -> dict[str, str]:
     return dict(linea.split("=", 1) for linea in salida.strip().splitlines() if "=" in linea)
 
 
+def separar_pods(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Los pods que cuentan y los que se estan apagando. I-28.
+
+    `kubectl rollout status` vuelve cuando la revision nueva esta disponible, no
+    cuando la anterior termino de morir. Durante ese hueco -hasta 30 s por
+    omision- el pod viejo sigue en la lista con `deletionTimestamp` puesto y
+    `Ready=False`, y exigirle Ready es exigirle a un despliegue correcto que
+    parezca roto. En produccion el hueco existe SIEMPRE, porque el flujo
+    despliega dos veces a proposito para tener a que revertir.
+
+    Un pod que se apaga no cuenta. Uno vivo y no Ready si, y sigue haciendo
+    fallar el criterio: es lo que `--manifiestos` comprueba sin cluster.
+    """
+    apagandose = [p for p in items if p.get("metadata", {}).get("deletionTimestamp")]
+    vivos = [p for p in items if not p.get("metadata", {}).get("deletionTimestamp")]
+    return vivos, apagandose
+
+
+def esta_ready(pod: dict) -> bool:
+    condiciones = {c["type"]: c["status"] for c in pod.get("status", {}).get("conditions", [])}
+    return condiciones.get("Ready") == "True"
+
+
+def comprobar_separacion_de_pods() -> None:
+    """El control sabe decir que no: se le dan los tres casos y se mira que hace.
+
+    Corre en `--manifiestos`, o sea en cada PR y sin cluster, porque la primera
+    version de este control paso dos corridas del CD en verde y fallo en la
+    tercera por el reloj, y un control que depende del reloj no se puede probar
+    esperando a que falle.
+    """
+    print("\nLa separacion de pods de I-28, sin cluster\n")
+    ready = {"status": {"conditions": [{"type": "Ready", "status": "True"}]}}
+    no_ready = {"status": {"conditions": [{"type": "Ready", "status": "False"}]}}
+    vivo_ready = {"metadata": {"name": "visor-nuevo"}, **ready}
+    vivo_roto = {"metadata": {"name": "visor-roto"}, **no_ready}
+    viejo = {
+        "metadata": {"name": "visor-viejo", "deletionTimestamp": "2026-09-03T20:12:40Z"},
+        **no_ready,
+    }
+
+    vivos, apagandose = separar_pods([vivo_ready, viejo])
+    exigir(
+        [p["metadata"]["name"] for p in apagandose] == ["visor-viejo"],
+        "un pod con deletionTimestamp se aparta y no cuenta",
+    )
+    exigir(
+        [p["metadata"]["name"] for p in vivos] == ["visor-nuevo"] and esta_ready(vivos[0]),
+        "el pod nuevo cuenta y esta Ready",
+    )
+    vivos, _ = separar_pods([vivo_ready, vivo_roto])
+    exigir(
+        any(not esta_ready(p) for p in vivos),
+        "un pod vivo y no Ready sigue contando, y haria fallar el criterio",
+    )
+    vivos, apagandose = separar_pods([viejo])
+    exigir(
+        not vivos and len(apagandose) == 1,
+        "si solo queda el pod que se apaga, no hay pods que cuenten",
+    )
+
+
 def comprobar_entorno(entorno: str, sha: str | None, tras_reversion: bool) -> None:
     namespace = f"geoguardian-{entorno}"
     print(f"\nEl entorno {namespace}, contra el cluster\n")
 
-    listos = json.loads(kubectl("-n", namespace, "get", "pods", "-o", "json"))["items"]
-    exigir(bool(listos), "hay pods en el namespace", f"{len(listos)} pods")
+    items = json.loads(kubectl("-n", namespace, "get", "pods", "-o", "json"))["items"]
+    vivos, apagandose = separar_pods(items)
+    for pod in apagandose:
+        print(f"  --    {pod['metadata']['name']} se esta apagando: revision anterior, no cuenta")
+    detalle = f"{len(vivos)} pods" + (f", {len(apagandose)} apagandose" if apagandose else "")
+    exigir(bool(vivos), "hay pods en el namespace", detalle)
 
-    for pod in listos:
-        nombre = pod["metadata"]["name"]
-        condiciones = {c["type"]: c["status"] for c in pod["status"].get("conditions", [])}
-        exigir(condiciones.get("Ready") == "True", f"{nombre} esta Ready")
+    for pod in vivos:
+        exigir(esta_ready(pod), f"{pod['metadata']['name']} esta Ready")
 
     imagenes = imagenes_corriendo(namespace)
     exigir(set(imagenes) == {"api", "visor"}, "estan los dos Deployment", f"{sorted(imagenes)}")
@@ -361,6 +425,7 @@ def main() -> int:
 
     if args.manifiestos:
         comprobar_manifiestos()
+        comprobar_separacion_de_pods()
     if args.entorno:
         # Un problema de herramienta se distingue de un criterio incumplido.
         # Confundirlos hace perder tiempo buscando el defecto donde no esta.

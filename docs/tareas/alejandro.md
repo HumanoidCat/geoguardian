@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 176 puntos · 269.1 horas · 26.9 h por semana en promedio
+**Total asignado:** 177 puntos · 272.5 horas · 27.3 h por semana en promedio
 
 ## Carga por sprint
 
@@ -37,7 +37,7 @@
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
-| S3 | semanas 8-9 | 40.4 | 36 | SOBRECARGA +4 h |
+| S3 | semanas 8-9 | 43.8 | 36 | SOBRECARGA +8 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
@@ -369,7 +369,44 @@
   - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
-## Sprint 3 (semanas 8-9) — 40.4 h
+## Sprint 3 (semanas 8-9) — 43.8 h
+
+- [x] **H3.4** · Entrenar y evaluar Random Forest (2026-09-03)
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+  - horas: estimada 3.0 . real 1.0
+  - Evidencia: `docs/evidencias/objetivos/H3.4-random-forest.md`
+  - `random_forest.py` entra al arnes de H3.6 con el mismo contrato y el mismo
+    trato de nulos que H3.3. **20 criterios** en `verificar_h34.py` y **17
+    pruebas** en `test_random_forest.py`. Trae `importancias` por nombre, para
+    H4.1, y `probabilidades()`, para la tuberia.
+  - **Resultado: sin ajustar no supera ninguna linea base.** En incendio empata
+    con la trivial: predijo ALTO en 15 de 21 894 filas de prueba y no acerto
+    ninguna. Se midio por que -hojas puras sobre 0,87 % de positivos, donde
+    `class_weight` no actua- y queda para H3.8. Es D-10: un resultado, no una
+    excepcion.
+  - El control se probo rompiendolo. El sabotaje de la semilla paso en verde la
+    primera vez; al reescribir el criterio aparecio que con `n_jobs=-1`
+    `predict_proba` no es reproducible bit a bit. Quedo `n_jobs=1`.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
+
+- [x] **H3.5** · Entrenar y evaluar XGBoost (2026-09-03)
+  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.6**
+  - horas: estimada 2.5 . real 0.9
+  - Evidencia: `docs/evidencias/objetivos/H3.5-xgboost.md`
+  - `xgboost_.py` completa los tres de D-09; `PENDIENTES` queda vacio. **21
+    criterios** en `verificar_h35.py` y **18 pruebas** en `test_xgboost.py`. No
+    se le permite usar su rama de ausentes: los tres estimadores descartan las
+    mismas filas (D-07).
+  - **Resultado: primer algoritmo por encima de la climatologica en lluvia
+    intensa (0,371 contra 0,346), pero dentro del ruido: empate tecnico.** En
+    incendio empata con la regresion. Decidir con la tabla es H3.6.
+  - Al entrar la quinta fila, `verificar_h34` se puso en rojo por un `== 4`
+    escrito a mano; los dos verificadores comparan ahora contra el registro.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio para
+    poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
 
 - [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
@@ -407,12 +444,6 @@
 
 - [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6
-
-- [ ] **H4.1** · Importancia de variables global del mejor modelo
-  - `E4` · 3 pts · 2.9 h · rubrica: OE3 · depende de: H3.6 · **bloquea a: H4.2**
-
-- [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
-  - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
 
 - [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
