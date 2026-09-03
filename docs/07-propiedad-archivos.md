@@ -53,12 +53,20 @@ calculado sobre `datos/` no es reproducible por otra persona.
 ## Excepcion: la descarga de Sentinel-2, para H1.6
 
 `backend/etl/` es de Cesar. La historia **H1.6** —descargar imagenes Sentinel-2 de
-estacion seca— es de Avril, y su script es un extractor: pertenece ahi y no en
-`frontend/`.
+estacion seca— y su script es un extractor: pertenece ahi y no en `frontend/`.
 
 | Quien | Donde | Para que historia |
 |---|---|---|
-| Avril | `backend/etl/fuentes/sentinel.py` y su prueba en `backend/tests/` | H1.6, y nada mas |
+| Alejandro | `backend/etl/fuentes/sentinel.py` y su verificador | H1.6, y nada mas |
+
+> **Actualizada el 2026-09-03 por D-33.** H1.6 era de Avril y paso a Alejandro el
+> 2026-08-31; la excepcion se movio con la historia **sin abrir una solicitud de
+> cambio**, que es lo que dice la regla de mas abajo. Si Avril la retoma, la fila
+> vuelve a su nombre por el mismo camino.
+>
+> El verificador quedo en `backend/etl/fuentes/verificar_h16.py`, junto al
+> extractor, y no en `backend/tests/`, que es carpeta de Luna: eso habria hecho
+> falta una segunda excepcion para una historia que solo necesita una.
 
 **Por que ahi y no en la carpeta de Avril.** Un extractor que vive en `frontend/`
 porque lo escribio la persona del frontend es organizar el codigo por autor en vez

@@ -36,9 +36,11 @@ Uso:
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
 
 RAIZ = Path(__file__).resolve().parents[2]
 ENV = RAIZ / ".env"
@@ -50,26 +52,22 @@ CLIENTE = "cdse-public"
 TIEMPO_LIMITE = 30.0
 
 
-def leer_env(ruta: Path) -> dict[str, str]:
-    """Lee el .env sin dependencias. Devuelve el diccionario tal cual."""
-    valores: dict[str, str] = {}
-    if not ruta.exists():
-        return valores
-    for linea in ruta.read_text(encoding="utf-8").splitlines():
-        linea = linea.strip()
-        if not linea or linea.startswith("#") or "=" not in linea:
-            continue
-        clave, _, valor = linea.partition("=")
-        valores[clave.strip()] = valor.strip().strip('"').strip("'")
-    return valores
-
-
 def main() -> int:
     print("\nComprobando el acceso a Copernicus Data Space Ecosystem\n")
 
-    env = leer_env(ENV)
-    usuario = env.get("COPERNICUS_USER", "")
-    clave = env.get("COPERNICUS_PASSWORD", "")
+    # SE LEE EL .env COMO LO LEE TODO EL PROYECTO, Y NO CON UN PARSER PROPIO.
+    #
+    # La primera version traia su propio lector de `.env` escrito a mano. Parecia
+    # inofensivo -son diez lineas- hasta que `sentinel.py` uso `os.getenv` y las
+    # dos herramientas dieron respuestas distintas **sobre la misma cuenta**: esta
+    # decia SIRVE y el extractor decia que faltaban las credenciales.
+    #
+    # Dos formas de leer lo mismo son dos programas, y se prueba uno. Es la forma
+    # de I-27. `load_dotenv()` ya estaba en `requirements.txt` y en
+    # `basedatos/conexion.py`; ahora es la unica.
+    load_dotenv()
+    usuario = os.getenv("COPERNICUS_USER", "")
+    clave = os.getenv("COPERNICUS_PASSWORD", "")
 
     # LAS DOS VARIABLES SE COMPRUEBAN POR SEPARADO.
     #

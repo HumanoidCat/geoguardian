@@ -117,8 +117,23 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 
-- [ ] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20%
+- [x] **H1.6** · Descargar imagenes Sentinel-2 de estacion seca, nubosidad menor a 20% (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: CG-3 · **bloquea a: H5.5, H8.4**
+  - Evidencia: `docs/evidencias/computacion-grafica/H1.6-sentinel2-estacion-seca.md`
+  - **Seis escenas** en la estacion seca 2024-25 con nubosidad bajo 20 %, todas en
+    el mosaico T16PGS. Comprobado contra el catalogo, no supuesto.
+  - **Se bajan 4 bandas de 20 m y no el producto entero**: 49,6 MB por escena en
+    vez de 555 a 929 MB. 4,4 GB no caben con comodidad en la maquina de nadie del
+    equipo, asi que la diferencia es entre una historia que corre y una que no.
+  - **A 20 m el infrarrojo cercano es `B8A`, no `B08`.** Encontrado listando el
+    producto; copiar la formula del NDVI sin mirar habria pedido un archivo que no
+    esta ahi.
+  - La busqueda **no necesita credenciales** y la descarga si, asi que el
+    verificador corre en el CI sin poner un secreto ahi.
+  - Al correrlo aparecio un defecto propio: **dos formas de leer el `.env`**, una
+    en el comprobador y otra en el extractor, y solo una funcionaba. Es I-27
+    otra vez. Queda `load_dotenv()`, que es lo que el proyecto ya usaba.
+  - horas: estimada 7.8 . real 4.0
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
