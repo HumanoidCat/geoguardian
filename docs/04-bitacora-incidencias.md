@@ -1943,3 +1943,73 @@ cuesta cinco lineas mas y es la diferencia entre un control y un adorno.
 **Impacto.** Dos corridas fallidas del CD, ninguna con consecuencia: las dos
 murieron antes de desplegar. Las historias H11.2 a H11.4 siguen sin marcarse, que
 es exactamente para lo que se dejo esa condicion.
+
+## I-28 · El control de produccion contaba el pod que se estaba apagando
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** La corrida `CD #5` sobre `main` (33727543241), la primera
+que llego a produccion con una aprobacion real de por medio. Salio en rojo
+despues de esperar la aprobacion desde la 1:19 hasta las 14:12.
+
+**Que paso.** Produccion desplego bien -las dos revisiones, `latest` y luego el
+SHA `e930d60`- y el paso «Comprobar lo que el despliegue promete» fallo en una
+sola comprobacion de nueve:
+
+    ok    api-64fd9f9cdb-kc248 esta Ready
+    ok    postgis-0 esta Ready
+    FALLA visor-7d5d85594d-zl54c esta Ready
+    ok    visor-7f7994f8d5-cs59q esta Ready
+    ok    visor corre el SHA exacto, no `latest`  ...:sha-e930d60...
+    ok    la API responde 200 en /salud desde el cluster
+
+Dos pods de `visor` con dos ReplicaSet distintos: `7f7994f8d5` es la revision
+nueva, Ready; `7d5d85594d` es **la revision anterior, en proceso de apagarse**.
+`kubectl rollout status` -que es lo que espera `desplegar.py`- vuelve cuando la
+revision nueva esta disponible, no cuando la anterior termino de morir. La
+comprobacion corrio cuatro segundos despues y el pod viejo todavia estaba en la
+lista, con `deletionTimestamp` puesto y `Ready=False`.
+
+**Causa raiz.** `comprobar_entorno()` exigia `Ready` a **todos los pods del
+namespace**, cuando lo que el despliegue promete es que **la revision
+desplegada** este Ready. Son dos afirmaciones distintas, y la primera depende
+del reloj: es verdadera unos segundos despues de que la segunda ya lo era.
+
+Y en produccion el hueco existe **siempre**, porque el flujo despliega dos veces
+a proposito -para tener a que revertir, ver la cabecera de `cd.yml`-. Que las
+dos corridas anteriores pasaran fue suerte: el pod de nginx suele morir en
+menos de cuatro segundos, esta vez no. En desarrollo y pruebas no hay revision
+anterior, y por eso alli nunca fallo.
+
+**Es la familia de I-17, I-21 y I-25 con una variante nueva: un control que
+pasa o falla segun el reloj.** Un control asi es peor que uno que siempre falla,
+porque las corridas en verde lo acreditan.
+
+**Accion tomada.**
+
+  1. `separar_pods()`: los pods con `deletionTimestamp` se apartan y se
+     imprimen como «se esta apagando: revision anterior, no cuenta». Solo los
+     vivos tienen que estar Ready, y tiene que quedar al menos uno.
+  2. **El control se prueba sin cluster, en cada PR**: `--manifiestos` ahora le
+     da a `separar_pods()` los tres casos -pod nuevo Ready, pod viejo apagandose,
+     pod vivo y roto- y comprueba que aparta el segundo y **conserva el
+     tercero**. Se saboteo dos veces: con el comportamiento viejo caen tres
+     comprobaciones; con el arreglo tramposo -apartar todo lo que no esta Ready-
+     cae la que dice que un pod vivo y roto sigue haciendo fallar el criterio.
+     Es la advertencia de I-21: el arreglo tiene que vigilar al menos lo mismo
+     que antes, y aca se comprueba que vigila.
+  3. No se toca `cd.yml` ni se agrega una espera: esperar a que el pod viejo
+     muera habria escondido la misma pregunta mal hecha detras de un `sleep`.
+
+**Aprendizaje.** Un control tiene que comprobar **lo que se prometio**, no el
+estado del mundo en un instante. «Todos los pods Ready» era mas facil de
+escribir que «la revision desplegada esta Ready», y por eso se escribio; la
+diferencia solo aparecio cuando el reloj cayo del lado malo.
+
+**Impacto.** Una corrida del CD en rojo sobre `main` con el despliegue
+correcto. Ningun entorno quedo afectado: el cluster es efimero y se destruye al
+final de cada corrida (D-36). H11.4 sigue cerrada: la aprobacion, el despliegue
+al SHA exacto y la respuesta de `/salud` se cumplieron; lo que fallo fue una
+pregunta mal hecha del verificador. Se corrige en `dev` y se promueve a `main`
+para que la siguiente corrida lo demuestre.
+
