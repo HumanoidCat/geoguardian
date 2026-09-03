@@ -105,6 +105,8 @@
 
 - [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
+  - **Diferida el 2026-09-03 por D-38**, a pedido de Cesar. Ver la nota al pie
+    del sprint.
   - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
     **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
     una vez, asi que el sistema era una foto y no un servicio.
@@ -135,15 +137,26 @@
 
 - [ ] **H8.2** · ETL concurrente con medicion secuencial contra paralelo
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
+  - **Diferida el 2026-09-03 por D-38**, a pedido de Cesar: SO-1 ya salio del
+    cero y no bloquea a nadie. Sigue a su nombre y sin marcar; vuelve solo si se
+    cumple la condicion de D-38.
 
+> **H1.14 tambien queda diferida por D-38**, por la misma razon: BD-1 va 4 de 7
+> y no bloquea a nadie. Las dos suman 15,6 h que Cesar declino por escrito el
+> 2026-09-03, historia por historia, como se le pidio.
 
 ## Sprint 4 (semanas 10-11) — 34.0 h
+
+> **Compromiso escrito de Cesar, 2026-09-03 (D-38):** H12.3, H6.3 y H8.4 en la
+> semana 10 (15,5 h, 13 pts). H3.7 si H3.6 cierra a tiempo. **H2.6 y H8.3
+> quedan diferidas** por D-38.
 
 - [ ] **H12.3** · Alertas automaticas ante fallo de pipeline o despliegue
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H11.2
 
 - [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
   - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
+  - **Diferida el 2026-09-03 por D-38.**
 
 - [ ] **H3.7** · Versionar modelos con metricas y fecha asociadas
   - `E3` · 3 pts · 2.9 h · rubrica: Arq · depende de: H3.6
@@ -153,6 +166,7 @@
 
 - [ ] **H8.3** · Cache en memoria con politica de expiracion y consumo medido
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1
+  - **Diferida el 2026-09-03 por D-38.**
 
 - [ ] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1 · depende de: H1.6
