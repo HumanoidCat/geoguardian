@@ -4090,3 +4090,117 @@ de que la carga se movio de un cuello a otro.
 Las cifras salen de `verificar_estado.py` y `verificar_backlog.py`, que fallan
 si backlog, archivos de tareas y matriz discrepan. Se corrieron despues del
 cambio y coinciden.
+---
+
+## D-38 · El alcance de Cesar se acota por escrito: dos historias pasan al PM, dos se difieren, tres se comprometen
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM), sobre la respuesta escrita de Cesar · **Estado.** Aceptada
+**Continua.** D-37, D-27 · **Afecta.** H1.14, H8.2 (al PM); H2.6, H8.3 (diferidas); H12.3, H6.3, H8.4, H3.7 (comprometidas); H1.10
+
+### Contexto
+
+D-37 le pidio a Cesar una respuesta escrita antes del viernes, historia por
+historia, diciendo cual entregaba y en que semana. **Respondio el mismo dia**,
+con esto:
+
+- **H1.10 entregada**: PR #250, ocho criterios en verde, pruebas contra
+  PostgreSQL en verde. Con ella **BD-4 pasa de 0 de 1 a cubierta**, el unico
+  criterio del proyecto que dependia de una sola historia.
+- **H1.14 y H8.2 no las hace** (15,6 h): BD-1 va 4 de 7, SO-1 ya salio del
+  cero, y ninguna bloquea a nadie.
+- De su Sprint 4, **se compromete a H12.3, H6.3 y H8.4 en la semana 10** (15,5 h,
+  13 pts) y **suelta H2.6 y H8.3** (15,6 h). Con razon: si la semana 11 es de
+  pruebas, su Sprint 4 tiene una sola semana y 34 h no entran en 18.
+- **H3.7 la toma si H3.6 cierra en la semana 10**; si no, se cae sola.
+- Pide dos cosas: dos lineas en `.gitignore` para `basedatos/respaldos/`, y que
+  la fila de H1.10 en `trazabilidad.csv` apunte a lo entregado.
+- Y reporta un hallazgo sobre el registro de migraciones, que va como **I-29**.
+
+Es exactamente la respuesta que D-37 pedia, y la primera vez desde D-33 que el
+plan de Cesar esta escrito por Cesar.
+
+### Decision
+
+**Se acepta la respuesta de Cesar en todo lo que dice de si mismo. Lo que
+suelta del Sprint 3 lo toma el PM; lo que suelta del Sprint 4 se difiere.**
+
+| Historia | Queda | Como |
+|---|---|---|
+| **H1.10** | Entregada por Cesar | Entra por el PR #250 en cuanto regenere la matriz (es lo unico que le falla al CI) |
+| **H1.14, H8.2** (S3) | **Pasan al PM** | Cesar pidio «reasignar» y el PM las toma, con nota de origen en `docs/tareas/alejandro.md` y excepcion de propiedad en `docs/07` para `backend/etl` |
+| **H2.6, H8.3** (S4) | **Diferidas** | Siguen a nombre de Cesar y sin marcar, con la nota en su archivo de tareas y condicion de reactivacion abajo |
+| **H12.3, H6.3, H8.4** (S4) | Comprometidas, semana 10 | A nombre de Cesar, como estaban |
+| **H3.7** (S4) | Condicionada | Cesar la toma si H3.6 cierra en la semana 10 |
+
+**Por que las dos de S3 se toman y las dos de S4 se difieren.** El objetivo
+fijado en D-37 es cerrar el Sprint 3 entero; H1.14 y H8.2 son las unicas dos
+que, sin dueno, lo dejaban en 16 de 18. El PM decidio tomarlas sabiendo lo
+que cuestan: 15,6 h mas sobre un Sprint 3 que ya iba en 43,8. Las de S4 no
+sostienen ningun criterio en cero ni ningun objetivo fijado, y ahi si aplica
+D-27: alcance diferido con condicion.
+
+Las dos peticiones se conceden en el mismo PR que esta decision: `.gitignore`
+ignora `basedatos/respaldos/` entera, y la fila de H1.10 en `trazabilidad.csv`
+nombra `respaldar.py`, `restaurar.py` y `verificar_h1_10.py`.
+
+### Justificacion
+
+Lo que D-33 y D-37 buscaban era saber con que contar, y ahora se sabe. Una
+persona que dice por escrito «estas tres si, estas cuatro no, y esta si se
+cumple tal condicion» vale mas que una asignacion de 47 h que nadie va a
+cumplir: se puede planificar contra ella y se puede medir.
+
+Ninguna de las cuatro que Cesar suelta deja un criterio de rubrica en cero
+-es su argumento y se comprobo contra `docs/08-backlog.md`: BD-1 tiene otras
+cuatro historias cerradas, SO-1 tiene H8.1 cerrada y H8.4 comprometida, y OE2
+tiene el eje E3 entero- y ninguna bloquea a otra persona. Por eso las de S4
+se pueden diferir sin costo de rubrica. Las de S3 se toman por otra razon:
+**el Sprint 3 es el objetivo declarado**, y el PM prefiere cargarlas a cerrar
+el sprint con dos huecos que nadie intento. Es una apuesta sobre su
+capacidad, y se escribe como tal.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Diferir tambien H1.14 y H8.2 | Era la recomendacion inicial: no bloquean a nadie y el PM ya carga 288 h contra 180. Se descarto porque deja el Sprint 3 en 16 de 18 sin que nadie lo intente, y el objetivo de D-37 es cerrarlo. Si el PM no llega, la retrospectiva lo dira con nombre y no con un hueco |
+| Reasignar H1.14 y H8.2 a Luna | Luna ya paso de 20,3 a 40,5 h en S3 por D-37 |
+| Exigir el Sprint 4 completo a Cesar | 34 h en una semana de 18. Es la apuesta que fallo cinco semanas seguidas, y esta vez el mismo Cesar la nombro antes de que fallara |
+| Borrar las diferidas del backlog | D-27 decidio que el alcance diferido se registra con condicion, no se borra. El backlog sigue en 89 historias y el avance se mide contra ese numero |
+
+### Consecuencias
+
+Lo que queda del Sprint 3 despues de esta decision: H1.10 (Cesar, en PR), H3.6,
+H3.8, **H1.14 y H8.2** (PM), H4.1 y H4.2 (Luna, detras de H3.6), H5.5 (Avril) y
+H12.1 (Luna). Todas tienen dueno; el Sprint 3 puede cerrar en 18 de 18, y el
+que decide si cierra es el PM.
+
+Carga del PM en S3 despues de esto: **59,4 h** contra un compromiso de 36, con
+total de 288,1 h y 187 puntos. Se registra el numero para que nadie diga que se
+decidio sin conocerlo. El orden de trabajo del PM es la cadena que desbloquea a
+otros -H3.6 y la tuberia- y despues H1.14, H8.2 y H3.8; si algo se cae, se cae
+de atras hacia adelante.
+
+Lo que Cesar deja de cargar en S4, 15,6 h, no lo carga nadie: es alcance
+diferido. Lo que Cesar si carga, 15,5 h en la semana 10, es la primera cifra
+suya contra la que se puede medir.
+
+**Condicion de reactivacion de H2.6 y H8.3**, una sola y evaluada en un momento
+fijo: se reabren **solo si al cierre de la semana 10 estan cerradas H3.6,
+H12.1, H12.3, H6.3 y H8.4**. Si se cumple, se reabre **una** y se estima antes
+de comprometerla.
+
+### Medicion
+
+Se da por buena si al cierre de la semana 10 `verificar_estado.py` muestra
+**H12.3, H6.3 y H8.4 cerradas**. Es la unica cifra que esta decision agrega, y
+es de Cesar.
+
+Se revisa si al cierre de la semana 10 esta cerrada una o ninguna de las tres:
+en ese caso la decision siguiente no es otro reparto, es declarar el Sprint 4
+de Cesar como diferido entero. Y se revisa tambien del lado del PM: si al
+cierre de la semana 10 H1.14 y H8.2 siguen abiertas, vuelven a diferidas por
+este mismo registro, sin decision nueva.
+
+`verificar_estado.py` y `verificar_backlog.py` se corrieron despues de escribir
+esto y coinciden: las diferidas siguen contadas como abiertas.

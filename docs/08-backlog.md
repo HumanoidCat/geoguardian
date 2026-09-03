@@ -51,8 +51,8 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 36.4** | 103.6** | 43.8** | 52.8** | 272.5 | 177 |
-| Cesar | 18.3 | 24.9 | 0.0 | 23.4 | 34.0 | 100.6 | 79 |
+| Alejandro | 35.9 | 36.4** | 103.6** | 59.4** | 52.8** | 288.1 | 187 |
+| Cesar | 18.3 | 24.9 | 0.0 | 7.8 | 34.0 | 85.0 | 69 |
 | Luna | 25.9 | 34.3 | 31.0 | 40.5** | 32.0 | 163.7 | 96 |
 | Avril | 2.9 | 11.5 | 21.1 | 25.0 | 36.6** | 97.1 | 82 |
 | **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 155.4 | **633.9** | **434** |
@@ -151,7 +151,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H12.1** Centralizar los logs de pipeline y aplicacion en control.bitacora_etl | luna | 5 | 4.8 | Troubleshoot | H1.9 | H12.2, H12.4 |
 | **H3.4** Entrenar y evaluar Random Forest | alejandro | 6 | 9.4 | OE2 | H3.2 | — |
 | **H3.5** Entrenar y evaluar XGBoost | alejandro | 6 | 9.4 | OE2 | H3.2 | H3.6 |
-| **H8.2** ETL concurrente con medicion secuencial contra paralelo | cesar | 5 | 7.8 | SO-1 | H1.1 | — |
+| **H8.2** ETL concurrente con medicion secuencial contra paralelo | alejandro | 5 | 7.8 | SO-1 | H1.1 | — |
 | **H10.2** Pruebas automatizadas del backend, cobertura de dominio | luna | 5 | 4.8 | QA | H6.2 | — |
 | **H2.2** Analisis espectral de la lluvia e interpretacion fisica | luna | 5 | 7.8 | Senales | H2.1 | — |
 | **H2.4** Anomalias respecto a la normal climatologica 1991-2020 | luna | 3 | 2.9 | Senales | H2.1 | H7.4 |
