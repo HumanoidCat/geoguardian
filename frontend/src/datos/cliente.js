@@ -16,7 +16,11 @@
  *
  * frontend/ es de Avril. La excepcion de docs/07-propiedad-archivos.md autoriza a
  * Alejandro a tocar unicamente este archivo y la configuracion de entorno del
- * visor, para H6.6 y nada mas.
+ * visor, para H6.6 y para H7.2.
+ *
+ * H7.2 agrega `obtenerMediciones`. Va aqui y no en el componente por la misma
+ * razon que todo lo demas: la serie diaria tiene DOS origenes, y negociar el
+ * origen en dos lugares es el defecto que este archivo existe para evitar.
  */
 
 /**
@@ -62,6 +66,7 @@ const RESPALDO = {
   salud: `${BASE}simulados/salud.json`,
   distritos: `${BASE}simulados/distritos.geojson`,
   riesgos: (evento) => `${BASE}simulados/riesgos-${evento}.json`,
+  mediciones: `${BASE}simulados/mediciones.json`,
 }
 
 /**
@@ -336,4 +341,115 @@ export async function obtenerRiesgosDeVariosEventos(eventos, fechaPedida = null)
     eventos.map((evento) => obtenerRiesgos(evento, fechaPedida)),
   )
   return Object.fromEntries(eventos.map((evento, indice) => [evento, paquetes[indice]]))
+}
+
+// --------------------------------------------------------------------------- //
+// Serie diaria de un distrito. Historia H7.2                                    //
+// --------------------------------------------------------------------------- //
+
+/**
+ * Las siete variables que la grafica puede dibujar.
+ *
+ * El orden importa: es el que se ofrece en el selector, y va de lo que la gente
+ * busca primero -lluvia- a lo que casi nadie mira.
+ *
+ * `clave` es el nombre corto del respaldo estatico; `campo`, el del contrato que
+ * devuelve la API. Estan los dos porque los dos origenes existen y ninguno es el
+ * canonico: traducir en un solo sentido dejaria el otro adivinando.
+ */
+export const VARIABLES = [
+  { clave: 'p', campo: 'precipitacion_mm', etiqueta: 'Precipitacion', unidad: 'mm' },
+  { clave: 'tx', campo: 'temp_max_c', etiqueta: 'Temperatura maxima', unidad: '°C' },
+  { clave: 'tn', campo: 'temp_min_c', etiqueta: 'Temperatura minima', unidad: '°C' },
+  { clave: 'tm', campo: 'temp_media_c', etiqueta: 'Temperatura media', unidad: '°C' },
+  { clave: 'h', campo: 'humedad_relativa_pct', etiqueta: 'Humedad relativa', unidad: '%' },
+  { clave: 'v', campo: 'viento_ms', etiqueta: 'Viento', unidad: 'm/s' },
+  { clave: 'r', campo: 'radiacion_mj_m2', etiqueta: 'Radiacion', unidad: 'MJ/m²' },
+]
+
+/**
+ * El respaldo entero, memorizado.
+ *
+ * Son 239 KB y los ocho distritos vienen en el mismo archivo. Sin memorizar, abrir
+ * la ficha de cuatro distritos lo descargaria cuatro veces. Se guarda la PROMESA y
+ * no el resultado, para que dos fichas abiertas a la vez no disparen dos descargas.
+ */
+let respaldoMediciones = null
+
+function leerRespaldoMediciones() {
+  if (!respaldoMediciones) {
+    respaldoMediciones = leerJson(RESPALDO.mediciones, 'las series diarias')
+  }
+  return respaldoMediciones
+}
+
+/**
+ * Serie diaria de un distrito, con la ventana que el origen puede cubrir.
+ *
+ * Devuelve `{ filas, ventana, origen }`:
+ *
+ *   filas    [{ fecha, precipitacion_mm, temp_max_c, ... }], una por dia, en orden.
+ *            Un dia sin medir viene con la variable en `null`.
+ *   ventana  { desde, hasta } que el origen puede servir DE VERDAD.
+ *   origen   'api' o 'estatico'.
+ *
+ * POR QUE SE DEVUELVE LA VENTANA Y NO SOLO LAS FILAS
+ *
+ * La API acepta cualquier rango; el respaldo estatico tiene 365 dias y se acabo.
+ * Si el visor ofreciera elegir fuera de esa ventana, la grafica saldria vacia y
+ * eso se lee como «no llovio», no como «no hay datos». Devolver la ventana deja
+ * que el selector se limite a lo que existe, en vez de mentir por omision.
+ *
+ * Es el mismo criterio que `obtenerRiesgos` aplica con la fecha: el paquete viene
+ * rotulado con la fecha que el origen pudo servir, no con la que se pidio.
+ *
+ * LOS `null` NO SE FILTRAN
+ *
+ * Un dia sin medir llega como `null` y asi se queda. Quitar la fila la haria
+ * desaparecer del eje de tiempo y la linea se cerraria por encima del hueco:
+ * dibujaria una continuidad que nadie observo. Ver el criterio CA-3 de H7.2.
+ */
+export async function obtenerMediciones(codigo, desde, hasta) {
+  const { origen } = await resolverOrigen()
+
+  if (origen !== ORIGEN_API) {
+    const paquete = await leerRespaldoMediciones()
+    const serie = paquete?.series?.[codigo]
+    if (!Array.isArray(serie)) {
+      throw new Error(`El respaldo no trae la serie del distrito ${codigo}.`)
+    }
+
+    // La ventana del respaldo manda: se recorta lo pedido contra lo que hay.
+    const inicio = desde > paquete.desde ? desde : paquete.desde
+    const fin = hasta < paquete.hasta ? hasta : paquete.hasta
+
+    const filas = serie
+      .filter((f) => f.f >= inicio && f.f <= fin)
+      .map((f) => {
+        const fila = { fecha: f.f }
+        for (const { clave, campo } of VARIABLES) fila[campo] = f[clave] ?? null
+        return fila
+      })
+
+    return { filas, ventana: { desde: paquete.desde, hasta: paquete.hasta }, origen }
+  }
+
+  const consulta = new URLSearchParams({ desde, hasta })
+  const lista = await leerJson(
+    `${RUTA_API}/distritos/${codigo}/mediciones?${consulta}`,
+    `las mediciones del distrito ${codigo}`,
+  )
+
+  if (!Array.isArray(lista)) {
+    throw new Error(`El origen de las mediciones de ${codigo} no devolvio una lista.`)
+  }
+
+  const filas = lista.map((m) => {
+    const fila = { fecha: m.fecha }
+    for (const { campo } of VARIABLES) fila[campo] = m[campo] ?? null
+    return fila
+  })
+
+  // Contra la API la ventana pedida ES la que se puede servir: no hay tope.
+  return { filas, ventana: { desde, hasta }, origen }
 }

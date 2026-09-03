@@ -11,6 +11,7 @@
  * leyenda y esta linea.
  */
 import { CRTM05, aCRTM05, formatearCRTM05, formatearGrados } from '../datos/proyeccion'
+import GraficaSerie from './GraficaSerie.jsx'
 
 const NOMBRE_POR_NIVEL = {
   bajo: 'Bajo',
@@ -132,6 +133,10 @@ export default function PanelDistrito({ distrito, riesgo, nombreEvento, ubicacio
       <BloqueUbicacion titulo="Donde hiciste clic" punto={puntoClic} />
 
       <BloqueRiesgo riesgo={riesgo} nombreEvento={nombreEvento} />
+
+      {/* H7.2. Punto de insercion, y nada mas: ningun bloque de arriba se toco.
+          Ver la excepcion en docs/07-propiedad-archivos.md. */}
+      <GraficaSerie key={codigo} codigo={codigo} nombre={nombre} />
 
       {/* Desde el 24 de agosto la geometria es la real del SNIT y esta nota no
           se muestra nunca: `verificar_h115.py` no deja publicar un dist con

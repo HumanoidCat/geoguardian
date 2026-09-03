@@ -234,11 +234,25 @@
 > terminada y verificada antes del traspaso y se cierra el mismo dia. La entrada
 > vive ahora en `docs/tareas/avril.md`.
 
-- [ ] **H7.2** · Graficas interactivas de series con seleccion de rango
+- [x] **H7.2** · Graficas interactivas de series con seleccion de rango (2026-09-03)
   - `E7` · 5 pts · 4.8 h · rubrica: CG-2 · depende de: H6.1
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.2-graficas-de-serie.md`
+  - Excepcion de propiedad declarada **antes** de tocar `frontend/`, en
+    `docs/07-propiedad-archivos.md`.
+  - **Los huecos cortan la linea.** El simulado trae un dia sin dato de cada
+    veinte y viajan como `null` hasta el dibujo: unir la linea por encima
+    afirmaria una medicion que nadie tomo. El exportador se planta si la serie
+    sale sin ningun hueco, porque entonces el criterio no podria fallar.
+  - **El respaldo estatico tambien tiene serie** (`mediciones.json`, 239 KB): sin
+    eso la grafica no existiria en el visor publicado por H11.5, que es el unico
+    que alguien puede abrir sin levantar nada.
+  - **Medido, no supuesto:** `recharts` llevaba el paquete inicial de 325 a
+    710 kB. Con carga perezosa queda en 332 kB y los 379 kB del dibujo se piden
+    al abrir una ficha. Salio de construir las dos versiones.
+  - horas: estimada 4.8 . real 3.5
 
 - [x] **H10.7** · Diagramas de casos de uso y entidad-relacion (2026-09-02)
   - `E10` · 5 pts · 7.8 h · rubrica: Arq · depende de: H1.8
