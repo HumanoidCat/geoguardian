@@ -1828,3 +1828,61 @@ identico a uno que protege.
 **Impacto.** Todos los PR fusionados en `dev` desde que existen esos dos trabajos
 pudieron entrar con ellos en rojo. No se sabe si alguno lo hizo, y esa es
 justamente la parte que no se puede reconstruir hacia atras.
+
+---
+
+## I-26 · El CD salio a buscar una imagen que el CI todavia no habia publicado
+
+**Fecha.** 2026-09-02.
+
+**Quien lo detecto.** La primera corrida del flujo, sobre `main`, sin que nadie
+lo buscara.
+
+**Que paso.** El despliegue a desarrollo murio a los 28 segundos con
+`Error response from daemon: manifest unknown` al bajar
+`ghcr.io/humanoidcat/geoguardian/api:sha-4bffbd6`.
+
+Esa imagen no existia. Y no tenia por que existir todavia.
+
+**Causa raiz.** `cd.yml` se disparaba con `on: push: branches: [main]`. **El CI
+se dispara con el mismo evento**, y es el CI el que publica las imagenes en
+ghcr.io, en su trabajo de H11.1.
+
+Los dos flujos arrancan a la vez y son independientes: **nada define un orden
+entre ellos.** El CD salio a buscar la imagen del commit mientras el CI todavia
+estaba instalando Python.
+
+Lo que hace que esto sea incidencia y no un descuido: **la dependencia estaba
+escrita en el codigo y no en el disparador.** El propio `cd.yml` decia, en su
+encabezado, «se consumen las que H11.1 publico en ghcr.io». La frase describia
+una dependencia real que ningun mecanismo garantizaba.
+
+Es la misma forma que **I-12**: un control correcto conectado con la condicion
+equivocada. Alli la condicion era demasiado ancha; aca directamente no expresaba
+la dependencia que el flujo necesitaba.
+
+**Accion tomada.** El disparador pasa a `on: workflow_run` sobre el CI, con
+`types: [completed]` y la condicion `conclusion == 'success'`. Ahora el CD
+empieza cuando el CI termino, y solo si termino bien.
+
+Eso obligo a un segundo cambio que no era obvio: **con `workflow_run`,
+`github.sha` no es el commit que disparo el CI**, apunta a la cabeza de la rama
+por omision. El commit real esta en `workflow_run.head_sha`, y es el que etiqueta
+las imagenes. Confundirlos habria desplegado una version distinta de la probada
+**sin que nada lo delatara** — un defecto peor que el que se estaba arreglando.
+
+Y el paso que baja las imagenes ahora **dice su causa al fallar**: `manifest
+unknown` no menciona a H11.1 en ningun lado, asi que el mensaje lo nombra.
+
+**Aprendizaje.** **Una dependencia entre dos flujos no existe porque este escrita
+en un comentario: existe si el disparador la expresa.** Dos flujos con el mismo
+evento no tienen orden, y el que ese orden salga bien en las pruebas no lo
+convierte en garantia.
+
+La pregunta que faltaba al escribir `cd.yml` es la que queda: **«que tiene que
+haber terminado antes de que esto empiece, y quien lo garantiza?»**.
+
+**Impacto.** Ninguno mas alla del tiempo de diagnostico: el flujo fallo en su
+primera corrida, en el paso de preparacion, sin llegar a desplegar nada. Es el
+mejor momento posible para encontrarlo, y es el argumento de por que las
+historias H11.2 a H11.4 **no se marcaron `[x]` al escribirlas**.

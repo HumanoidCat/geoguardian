@@ -44,8 +44,26 @@
 
 name: CD
 
+# =============================================================================
+# SE DISPARA CUANDO EL CI TERMINA, NO CON EL PUSH
+# =============================================================================
+#
+# La primera version usaba `on: push: branches: [main]`, y **fallo en su primera
+# corrida** con `manifest unknown`.
+#
+# El motivo: el CI, que es quien publica las imagenes en ghcr.io, se dispara con
+# **ese mismo push, al mismo tiempo**. El CD salia a buscar
+# `api:sha-<commit>` cuando el CI todavia no la habia construido. Nada
+# garantizaba el orden, y se asumio que si.
+#
+# `workflow_run` espera a que el CI termine y solo sigue si termino bien. Es la
+# unica forma de que el despliegue no dependa de que dos flujos independientes
+# corran en el orden conveniente.
+
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -66,27 +84,62 @@ permissions:
 
 jobs:
   # ===========================================================================
+  # Que version se despliega, y si hay que desplegar.
+  # ===========================================================================
+  #
+  # Con `workflow_run`, `github.sha` NO es el commit que disparo el CI: apunta a
+  # la cabeza de la rama por omision. El commit real esta en
+  # `workflow_run.head_sha`, y es el que etiqueta las imagenes.
+  #
+  # Confundirlos daria un despliegue de una version distinta de la que se probo,
+  # sin que nada lo delatara.
+  version:
+    name: Que version se despliega
+    runs-on: ubuntu-latest
+    # Si el CI fallo no se despliega. Un CD que corre sobre un CI en rojo
+    # convierte el rojo en una molestia en vez de una barrera.
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      sha: ${{ steps.elegir.outputs.sha }}
+    steps:
+      - id: elegir
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo "Se despliega ${{ steps.elegir.outputs.sha }}"
+
+  # ===========================================================================
   # H11.2 · Desarrollo. Automatico, sin aprobacion.
   # ===========================================================================
   desarrollo:
     name: Desplegar a desarrollo (H11.2)
+    needs: version
     runs-on: ubuntu-latest
     steps:
+      # `ref` explicito: con `workflow_run` el checkout por omision trae la
+      # cabeza de la rama, que puede no ser el commit que se esta desplegando.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: Preparar el cluster efimero y las imagenes
         uses: ./.github/acciones/preparar-cluster
         with:
           entorno: desarrollo
-          sha: ${{ github.sha }}
+          sha: ${{ needs.version.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           actor: ${{ github.actor }}
 
       - name: Desplegar
-        run: python infra/k8s/desplegar.py desarrollo "${{ github.sha }}"
+        run: python infra/k8s/desplegar.py desarrollo "${{ needs.version.outputs.sha }}"
 
       - name: Comprobar lo que el despliegue promete
-        run: python infra/verificar_cd.py --entorno desarrollo --sha "${{ github.sha }}"
+        run: python infra/verificar_cd.py --entorno desarrollo --sha "${{ needs.version.outputs.sha }}"
 
       - name: Destruir el cluster efimero
         if: always()
@@ -106,25 +159,27 @@ jobs:
   # maquina.
   pruebas:
     name: Desplegar a pruebas (H11.3)
-    needs: desarrollo
+    needs: [version, desarrollo]
     runs-on: ubuntu-latest
     environment: pruebas
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: Preparar el cluster efimero y las imagenes
         uses: ./.github/acciones/preparar-cluster
         with:
           entorno: pruebas
-          sha: ${{ github.sha }}
+          sha: ${{ needs.version.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           actor: ${{ github.actor }}
 
       - name: Desplegar
-        run: python infra/k8s/desplegar.py pruebas "${{ github.sha }}"
+        run: python infra/k8s/desplegar.py pruebas "${{ needs.version.outputs.sha }}"
 
       - name: Comprobar lo que el despliegue promete
-        run: python infra/verificar_cd.py --entorno pruebas --sha "${{ github.sha }}"
+        run: python infra/verificar_cd.py --entorno pruebas --sha "${{ needs.version.outputs.sha }}"
 
       - name: El entorno exige aprobacion de una persona
         env:
@@ -156,17 +211,19 @@ jobs:
   # el camino de reversion funciona antes de necesitarlo.
   produccion:
     name: Desplegar a produccion (H11.4)
-    needs: pruebas
+    needs: [version, pruebas]
     runs-on: ubuntu-latest
     environment: produccion
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: Preparar el cluster efimero y las imagenes
         uses: ./.github/acciones/preparar-cluster
         with:
           entorno: produccion
-          sha: ${{ github.sha }}
+          sha: ${{ needs.version.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           actor: ${{ github.actor }}
 
@@ -182,7 +239,7 @@ jobs:
             echo "::warning::Prueba de reversion: se despliega una etiqueta inexistente a proposito."
             python infra/k8s/desplegar.py produccion sha-0000000000000000000000000000000000000000
           else
-            python infra/k8s/desplegar.py produccion "${{ github.sha }}"
+            python infra/k8s/desplegar.py produccion "${{ needs.version.outputs.sha }}"
           fi
 
       - name: Revertir si no convergio
@@ -197,7 +254,7 @@ jobs:
 
       - name: Comprobar lo que el despliegue promete
         if: steps.nueva.outcome == 'success'
-        run: python infra/verificar_cd.py --entorno produccion --sha "${{ github.sha }}"
+        run: python infra/verificar_cd.py --entorno produccion --sha "${{ needs.version.outputs.sha }}"
 
       - name: El entorno exige aprobacion de una persona
         env:
