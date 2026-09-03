@@ -1,5 +1,5 @@
 """
-Fabrica de extractores. Dueno: Cesar. Historia H6.3, issue #62.
+Fabrica de extractores. Dueno: Cesar. Historia H6.3, issue #61.
 
 QUE RESUELVE
 
