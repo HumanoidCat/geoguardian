@@ -62,7 +62,8 @@ from pathlib import Path
 from basedatos.conexion import ErrorConexion, conectar
 
 from . import bitacora
-from .fuentes.firms import ErrorFirms, ExtractorFirms, FocoBruto
+from .fuentes import fabrica
+from .fuentes.firms import ErrorFirms, FocoBruto
 
 # Ventana del archivo historico. Arranca en 2001 y no en 2000 porque MODIS Terra
 # empezo a operar a finales de 2000 y el primer anio esta incompleto; el conteo de
@@ -212,7 +213,7 @@ def _cargar(opciones, desde: date, hasta: date, registrar) -> int:
         # una transaccion propia.
         with conectar(autocommit=True) as conexion:
             caja = caja_del_canton(conexion)
-            extractor = ExtractorFirms(caja)
+            extractor = fabrica.crear_focos("firms", caja=caja)
 
             registrar(f"Fuente: {extractor.nombre}")
             registrar(f"Ventana: {desde} a {hasta}")

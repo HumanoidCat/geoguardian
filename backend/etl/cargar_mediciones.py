@@ -61,9 +61,10 @@ from basedatos.conexion import ErrorConexion, conectar
 from contratos.esquemas import MedicionDiaria
 
 from . import bitacora
-from .fuentes.chirps import ErrorChirps, ExtractorChirps
-from .fuentes.hibrido import ExtractorHibrido, territorios_desde_base
-from .fuentes.power import ErrorPower, ExtractorPower
+from .fuentes import fabrica
+from .fuentes.chirps import ErrorChirps
+from .fuentes.hibrido import territorios_desde_base
+from .fuentes.power import ErrorPower
 
 # Ventana de la historia. El inicio es 1991 porque es el primer anio que cubren
 # las dos fuentes: CHIRPS arranca en 1981 y POWER en 1981, pero el charter pide
@@ -217,9 +218,8 @@ def principal(argumentos: list[str] | None = None) -> int:
 
 def _cargar(opciones, desde: date, hasta: date, registrar) -> int:
     """Hace el trabajo. Separado de `principal` para que la bitacora lo envuelva."""
-    power = ExtractorPower()
-    chirps = ExtractorChirps()
     arranque = time.monotonic()
+    extractor = None
 
     try:
         with conectar() as conexion:
@@ -233,9 +233,7 @@ def _cargar(opciones, desde: date, hasta: date, registrar) -> int:
                     return 2
                 territorios = [t for t in territorios if t.codigo in pedidos]
 
-            extractor = ExtractorHibrido(
-                territorios, power=power, chirps=chirps, registrar=registrar
-            )
+            extractor = fabrica.crear_clima("hibrido", territorios=territorios, registrar=registrar)
 
             registrar(f"Fuente: {extractor.nombre}")
             registrar(f"Ventana: {desde} a {hasta}")
@@ -311,8 +309,8 @@ def _cargar(opciones, desde: date, hasta: date, registrar) -> int:
         registrar("\nFALLO INESPERADO:\n" + traceback.format_exc())
         raise
     finally:
-        power.cerrar()
-        chirps.cerrar()
+        if extractor is not None:
+            extractor.cerrar()
 
 
 if __name__ == "__main__":
