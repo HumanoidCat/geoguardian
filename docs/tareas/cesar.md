@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 96 puntos · 124.2 horas · 12.4 h por semana en promedio
+**Total asignado:** 79 puntos · 100.6 horas · 10.1 h por semana en promedio
 
 ## Carga por sprint
 
@@ -37,7 +37,7 @@
 | S0 | semanas 2-3 | 18.3 | 36 | holgado |
 | S1 | semanas 4-5 | 24.9 | 36 | holgado |
 | S2 | semanas 6-7 | 0.0 | 36 | holgado |
-| S3 | semanas 8-9 | 47.0 | 36 | SOBRECARGA +11 h |
+| S3 | semanas 8-9 | 23.4 | 36 | holgado |
 | S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
@@ -97,7 +97,11 @@
 
 ## Sprint 2 (semanas 6-7) — 0.0 h
 
-## Sprint 3 (semanas 8-9) — 47.0 h
+## Sprint 3 (semanas 8-9) — 23.4 h
+
+> **Actualizado el 2026-09-03 por D-37.** H3.4, H3.5 y H12.1 salieron de esta
+> lista: las dos primeras a Alejandro y la tercera a Luna. Son las tres que
+> bloqueaban a otras personas. Lo que queda aqui no bloquea a nadie.
 
 - [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
@@ -128,15 +132,6 @@
 
 - [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9
-
-- [ ] **H12.1** · Centralizar los logs de pipeline y aplicacion en control.bitacora_etl
-  - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H1.9 · **bloquea a: H12.2, H12.4**
-
-- [ ] **H3.4** · Entrenar y evaluar Random Forest
-  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
-
-- [ ] **H3.5** · Entrenar y evaluar XGBoost
-  - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2 · **bloquea a: H3.6**
 
 - [ ] **H8.2** · ETL concurrente con medicion secuencial contra paralelo
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
