@@ -129,9 +129,9 @@
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.2
   - Entregada el 2026-09-03 y esperando fila en `docs/trazabilidad.csv`, que es de
     Alejandro. Se marca `[x]` cuando la fila exista: `generar_matriz.py` falla si una
-    historia cerrada no la tiene.
+    historia cerrada no la tiene, y `verificar_horas.py` rechaza declarar horas de
+    algo que sigue abierto. Al marcarla va la linea `estimada 4.8 . real 5.0`.
   - Evidencia: `docs/evidencias/arquitectura-software/H6.3-strategy-y-factory.md`
-  - horas: estimada 4.8 . real 5.0 (se declaran al marcarla)
   - Construye la Factory, **no** el orquestador: no existe. Los criterios daban por
     hecho cuatro implementaciones y son dos: `ExtractorChirps` y `ExtractorPower` no
     cumplen `ExtractorClima` -no tienen `extraer()`-. Correccion anotada en los criterios.
