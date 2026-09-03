@@ -3829,3 +3829,140 @@ repositorio no existe para ellos.
 - Quedan dos compromisos del PM hacia ella, y los dos sostienen criterios en cero:
   **H10.5c a mas tardar el lunes 14** para que H10.6 salga el viernes 19, y
   **H11.4 a mas tardar el miercoles 16** para H13.2 el domingo 21.
+
+---
+
+## D-36 · El despliegue continuo corre contra un cluster efimero, no contra el cluster local
+
+**Fecha.** 2026-09-02 · **Decide.** Alejandro · **Estado.** Aceptada
+**Afecta.** H11.2, H11.3, H11.4, H13.2, H12.2
+
+### Contexto
+
+**D-05** puso los tres entornos que exige la rubrica -desarrollo, pruebas y
+produccion- en **un mismo cluster k3d local**, en espacios de nombres distintos.
+Esa decision sigue siendo correcta y no se toca.
+
+H11.2 pide **despliegue automatico al entorno de desarrollo al mergear a `main`**,
+y H11.3 y H11.4 encadenan pruebas y produccion detras.
+
+Hay un hecho que no se puede negociar: **GitHub Actions corre en la nube y el
+cluster k3d vive en una maquina del equipo, detras de un router domestico, sin
+direccion publica ni credenciales expuestas.** Un `kubectl apply` desde el runner
+no tiene contra que hablar.
+
+No es una limitacion del proyecto: es la topologia. Cualquier solucion pasa por
+elegir **que se automatiza y que queda en manos de una persona**, y el error
+seria no elegirlo y escribir un flujo de trabajo que parezca desplegar.
+
+### Decision
+
+**El flujo de despliegue crea su propio cluster k3d dentro del runner, aplica los
+manifiestos del entorno que corresponde, comprueba que converja, y lo destruye.**
+
+**Y el cluster local persistente se actualiza con un guion de un comando**,
+`infra/k8s/desplegar.py`, que aplica exactamente los mismos manifiestos.
+
+Los dos caminos usan **el mismo kustomize y las mismas imagenes de ghcr.io**. No
+hay dos definiciones del despliegue: hay una, aplicada en dos sitios.
+
+La cadena queda asi:
+
+| Historia | Entorno | Disparo | Aprobacion |
+|---|---|---|---|
+| **H11.2** | `geoguardian-desarrollo` | al fusionar a `main` | ninguna |
+| **H11.3** | `geoguardian-pruebas` | despues de desarrollo | **manual**, entorno de GitHub |
+| **H11.4** | `geoguardian-produccion` | despues de pruebas | **explicita**, y con reversion automatica si no converge |
+
+### Justificacion
+
+**Lo que el cluster efimero si demuestra**, y es la mayor parte de lo que la
+rubrica evalua:
+
+  * Que los manifiestos son validos y kustomize los construye.
+  * Que las imagenes publicadas por H11.1 **arrancan dentro de Kubernetes**, que
+    es distinto de arrancar en `docker run` -es lo que comprueba `verificar_h111`-.
+  * Que los pods **convergen**: `kubectl rollout status` con limite de tiempo.
+  * Que la reversion funciona, porque se puede provocar el fallo a proposito.
+  * Que **cualquiera lo reproduce**, incluido el profesor, sin acceso a ninguna
+    maquina nuestra.
+
+**Lo que no demuestra:** que haya algo corriendo despues. Eso queda declarado
+abajo y va a limitaciones del documento IEEE.
+
+El criterio que decidio: **entre un despliegue que se puede reproducir y uno que
+solo funciona si una maquina esta encendida, el primero es mas verificable.** Un
+CD que depende de que alguien no haya apagado su computadora produce fallos que
+no son del sistema, y una historia cerrada con un flujo que hoy no corre no vale
+como evidencia.
+
+### Alternativas descartadas
+
+**Un runner autoalojado en la maquina del cluster.** Es la unica opcion que
+despliega de verdad al namespace real, y por eso se considero primero.
+
+Se descarta por tres motivos, en orden de peso:
+
+  1. **El CD falla cuando la maquina esta apagada**, y eso es lo normal fuera de
+     horario. Un flujo rojo por estar apagada la computadora entrena al equipo a
+     ignorar el rojo, que es el peor habito que puede dejar una tuberia.
+  2. **Nadie mas puede reproducirlo.** Ni el profesor al evaluar, ni un
+     companero. La evidencia se vuelve una captura de pantalla.
+  3. Un runner autoalojado ejecuta codigo de cualquier PR en una maquina
+     personal. En un repositorio publico eso es un problema de seguridad real, y
+     resolverlo bien -runner efimero, aislado- es mas trabajo que la historia.
+
+**Exponer el cluster con un tunel.** Descartada sin medirla en detalle: mete una
+dependencia de un tercero en el camino critico del despliegue y credenciales de
+cluster en secretos del repositorio, a cambio de la misma fragilidad del punto 1.
+
+**Declarar H11.2 imposible.** Es la salida que este proyecto tomo en **D-34** con
+la sequia, y aca no aplica: alli faltaba el dato -9 episodios contra 30- y no
+habia forma de fabricarlo. Aca **si se puede comprobar lo esencial**, y lo que no
+se puede es una parte acotada que se declara.
+
+### Consecuencias
+
+**A favor:**
+
+  * H11.2, H11.3 y H11.4 se pueden cerrar con evidencia ejecutable, no narrada.
+  * El mismo kustomize se aplica en el CI y en local. Un manifiesto que no
+    converge se descubre en el PR y no al desplegar a mano.
+  * La reversion de H11.4 se puede **provocar** y por lo tanto comprobar. En un
+    cluster persistente, provocar un fallo para probar la reversion significa
+    romper el entorno de alguien.
+
+**En contra, y hay que decirlo sin adornarlo:**
+
+  * **Al terminar el flujo no queda nada corriendo.** El despliegue automatico
+    demuestra que el despliegue funciona; no deja un sistema en linea.
+  * **El cluster local se actualiza cuando una persona corre el guion.** No es
+    entrega continua hasta el entorno persistente, y llamarlo asi seria mentir en
+    la memoria.
+  * **H13.2, el manual de operacion de Avril, documenta un sistema que se levanta
+    localmente**, no uno con una direccion publica. Se le avisa el 2026-09-02, no
+    al entregarlo.
+  * **H12.2 -la pantalla de monitoreo de entornos- no puede leer estado de un
+    cluster que se destruye.** Va a tener que leer del ultimo despliegue local o
+    del historial de corridas, y eso cambia su diseno.
+
+### Medicion
+
+Lo que cada opcion demuestra, contado sobre lo que la rubrica CICD evalua:
+
+| | Efimero | Runner autoalojado |
+|---|:---:|:---:|
+| Los manifiestos construyen | si | si |
+| Las imagenes arrancan en Kubernetes | si | si |
+| Los pods convergen | si | si |
+| La reversion funciona | **si, provocable** | solo rompiendo el entorno real |
+| Queda algo corriendo | **no** | si |
+| Lo reproduce un tercero | **si** | no |
+| Corre con la maquina apagada | **si** | no |
+
+**Cinco de siete contra tres de siete.** Las dos que pierde el efimero son
+reales, y son las que se declaran en limitaciones.
+
+El costo se mide tambien en tiempo de tuberia: crear y destruir un k3d en el
+runner agrega alrededor de un minuto por entorno. Se acepta porque corre solo
+sobre `main`, no en cada PR.

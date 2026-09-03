@@ -62,7 +62,7 @@
  */
 
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const AQUI = dirname(fileURLToPath(import.meta.url))
@@ -390,8 +390,13 @@ function medir({ lienzo, limites, anillos, cajaMuestreo, contorno }) {
  * Principal
  * ========================================================================== */
 
+// `pathToFileURL` y no la ruta suelta: en Windows el cargador de modulos de Node
+// exige `file:///C:/...` y rechaza `C:\...` con ERR_UNSUPPORTED_ESM_URL_SCHEME.
+// En Linux la ruta funciona, asi que el CI pasaba y este script no corria en la
+// mitad de las maquinas del equipo. `readFileSync` de abajo no lo necesita: solo
+// el import dinamico.
 const { dibujarSuperficie, limitesDeColeccion, centroidesDeColeccion, puntosDeOrigen } =
-  await import(resolve(RAIZ, 'frontend/src/datos/interpolacion.js'))
+  await import(pathToFileURL(resolve(RAIZ, 'frontend/src/datos/interpolacion.js')).href)
 
 const coleccion = JSON.parse(
   readFileSync(resolve(RAIZ, 'frontend/public/simulados/distritos.geojson'), 'utf-8'),

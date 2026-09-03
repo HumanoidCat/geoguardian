@@ -1,0 +1,85 @@
+# Levanta el cluster efimero y le mete las imagenes. Historias H11.2 a H11.4.
+#
+# Existe como accion compuesta y no repetido tres veces en cd.yml por un motivo
+# concreto: los tres entornos tienen que preparar el cluster **de la misma
+# manera**. Si se copiara, el dia que uno cambie los otros dos seguirian con la
+# version vieja y el despliegue a produccion probaria algo distinto del de
+# desarrollo — que es exactamente la clase de defecto que este proyecto
+# registro como I-21.
+
+name: Preparar cluster efimero
+description: Crea un k3d en el runner, le carga las imagenes de ghcr.io y deja kubectl listo.
+
+inputs:
+  entorno:
+    description: desarrollo, pruebas o produccion
+    required: true
+  sha:
+    description: SHA del commit cuya imagen se despliega
+    required: true
+  token:
+    description: GITHUB_TOKEN, para leer los paquetes de ghcr.io
+    required: true
+  actor:
+    description: github.actor, usuario del login a ghcr.io
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Instalar k3d y kubectl
+      shell: bash
+      run: |
+        curl -sfL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+        k3d version
+        kubectl version --client
+
+    # Un solo nodo. Mas nodos no prueban nada mas aqui: lo que se comprueba es
+    # que los manifiestos converjan, no la distribucion entre maquinas.
+    - name: Crear el cluster
+      shell: bash
+      run: |
+        k3d cluster create geoguardian-ci --agents 0 --wait --timeout 180s
+        kubectl cluster-info
+        kubectl get nodes
+
+    # El Secret NO viene del repositorio, y eso es a proposito.
+    #
+    # El cluster se destruye al terminar el trabajo, asi que una clave real no
+    # aportaria seguridad ni realismo: aportaria un secreto de repositorio mas
+    # que mantener. Se genera una al vuelo y muere con el cluster.
+    #
+    # En el cluster persistente el Secret lo crea una persona, y como esta en
+    # infra/k8s/README.md.
+    - name: Crear el Secret de la base
+      shell: bash
+      run: |
+        kubectl create namespace "geoguardian-${{ inputs.entorno }}" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        kubectl -n "geoguardian-${{ inputs.entorno }}" create secret generic geoguardian-db \
+          --from-literal=POSTGRES_USER=geoguardian \
+          --from-literal=POSTGRES_PASSWORD="$(openssl rand -hex 24)" \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Entrar a ghcr.io
+      shell: bash
+      run: echo "${{ inputs.token }}" | docker login ghcr.io -u "${{ inputs.actor }}" --password-stdin
+
+    # Se importan por SHA y tambien `latest`, porque produccion necesita las dos:
+    # `latest` establece la revision anterior a la que se revierte.
+    #
+    # `|| true` en las de SHA no: si la imagen del commit no existe, el
+    # despliegue tiene que fallar aca y no quince pasos despues con un pod en
+    # ImagePullBackOff, que se lee como un problema del manifiesto.
+    - name: Bajar las imagenes e importarlas al cluster
+      shell: bash
+      run: |
+        base=ghcr.io/humanoidcat/geoguardian
+        for nombre in api visor; do
+          docker pull "$base/$nombre:sha-${{ inputs.sha }}"
+          docker pull "$base/$nombre:latest" || echo "sin latest para $nombre, se sigue"
+          k3d image import -c geoguardian-ci "$base/$nombre:sha-${{ inputs.sha }}"
+          k3d image import -c geoguardian-ci "$base/$nombre:latest" || true
+        done
+        docker pull postgis/postgis:16-3.4
+        k3d image import -c geoguardian-ci postgis/postgis:16-3.4
