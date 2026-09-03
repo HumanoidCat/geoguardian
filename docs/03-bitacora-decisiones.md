@@ -4092,10 +4092,10 @@ si backlog, archivos de tareas y matriz discrepan. Se corrieron despues del
 cambio y coinciden.
 ---
 
-## D-38 · El alcance de Cesar se acota por escrito: cuatro historias diferidas, tres comprometidas
+## D-38 · El alcance de Cesar se acota por escrito: dos historias pasan al PM, dos se difieren, tres se comprometen
 
 **Fecha.** 2026-09-03 · **Decide.** Alejandro (PM), sobre la respuesta escrita de Cesar · **Estado.** Aceptada
-**Continua.** D-37, D-27 · **Afecta.** H1.14, H8.2, H2.6, H8.3 (diferidas); H12.3, H6.3, H8.4, H3.7 (comprometidas); H1.10
+**Continua.** D-37, D-27 · **Afecta.** H1.14, H8.2 (al PM); H2.6, H8.3 (diferidas); H12.3, H6.3, H8.4, H3.7 (comprometidas); H1.10
 
 ### Contexto
 
@@ -4121,20 +4121,23 @@ plan de Cesar esta escrito por Cesar.
 
 ### Decision
 
-**Se acepta la respuesta entera, tal como esta.**
+**Se acepta la respuesta de Cesar en todo lo que dice de si mismo. Lo que
+suelta del Sprint 3 lo toma el PM; lo que suelta del Sprint 4 se difiere.**
 
 | Historia | Queda | Como |
 |---|---|---|
 | **H1.10** | Entregada por Cesar | Entra por el PR #250 en cuanto regenere la matriz (es lo unico que le falla al CI) |
-| **H1.14, H8.2** (S3) | **Diferidas** | Siguen a nombre de Cesar y sin marcar, con la nota en su archivo de tareas |
-| **H2.6, H8.3** (S4) | **Diferidas** | Igual |
+| **H1.14, H8.2** (S3) | **Pasan al PM** | Cesar pidio «reasignar» y el PM las toma, con nota de origen en `docs/tareas/alejandro.md` y excepcion de propiedad en `docs/07` para `backend/etl` |
+| **H2.6, H8.3** (S4) | **Diferidas** | Siguen a nombre de Cesar y sin marcar, con la nota en su archivo de tareas y condicion de reactivacion abajo |
 | **H12.3, H6.3, H8.4** (S4) | Comprometidas, semana 10 | A nombre de Cesar, como estaban |
 | **H3.7** (S4) | Condicionada | Cesar la toma si H3.6 cierra en la semana 10 |
 
-**Las diferidas no se reasignan.** Cesar propuso «reasignar» H1.14 y H8.2; no
-hay a quien: el PM y Luna estan al limite por D-37, y Avril tiene su propio
-Sprint 4. Se registran como alcance diferido, que es lo que D-27 decidio hacer
-con el trabajo que no cabe: con **condicion de reactivacion medible**, abajo.
+**Por que las dos de S3 se toman y las dos de S4 se difieren.** El objetivo
+fijado en D-37 es cerrar el Sprint 3 entero; H1.14 y H8.2 son las unicas dos
+que, sin dueno, lo dejaban en 16 de 18. El PM decidio tomarlas sabiendo lo
+que cuestan: 15,6 h mas sobre un Sprint 3 que ya iba en 43,8. Las de S4 no
+sostienen ningun criterio en cero ni ningun objetivo fijado, y ahi si aplica
+D-27: alcance diferido con condicion.
 
 Las dos peticiones se conceden en el mismo PR que esta decision: `.gitignore`
 ignora `basedatos/respaldos/` entera, y la fila de H1.10 en `trazabilidad.csv`
@@ -4147,37 +4150,45 @@ persona que dice por escrito «estas tres si, estas cuatro no, y esta si se
 cumple tal condicion» vale mas que una asignacion de 47 h que nadie va a
 cumplir: se puede planificar contra ella y se puede medir.
 
-Las cuatro diferidas no dejan ningun criterio de rubrica en cero -es el
-argumento de Cesar y se comprobo contra `docs/08-backlog.md`: BD-1 tiene
-otras cuatro historias cerradas, SO-1 tiene H8.1 cerrada y H8.4 comprometida, y
-OE2 tiene el eje E3 entero- y ninguna bloquea a otra persona. Son las
-candidatas correctas para soltar, y el PM ya las habia nombrado como tales el
-2026-09-03 al reorganizar.
+Ninguna de las cuatro que Cesar suelta deja un criterio de rubrica en cero
+-es su argumento y se comprobo contra `docs/08-backlog.md`: BD-1 tiene otras
+cuatro historias cerradas, SO-1 tiene H8.1 cerrada y H8.4 comprometida, y OE2
+tiene el eje E3 entero- y ninguna bloquea a otra persona. Por eso las de S4
+se pueden diferir sin costo de rubrica. Las de S3 se toman por otra razon:
+**el Sprint 3 es el objetivo declarado**, y el PM prefiere cargarlas a cerrar
+el sprint con dos huecos que nadie intento. Es una apuesta sobre su
+capacidad, y se escribe como tal.
 
 ### Alternativas descartadas
 
 | Alternativa | Por que no se eligio |
 |---|---|
-| Reasignar H1.14 y H8.2 al PM o a Luna | Nadie tiene las 15,6 h. D-33 ya midio lo que pasa cuando el PM absorbe lo ajeno: 185 h pendientes contra 54 de capacidad |
+| Diferir tambien H1.14 y H8.2 | Era la recomendacion inicial: no bloquean a nadie y el PM ya carga 288 h contra 180. Se descarto porque deja el Sprint 3 en 16 de 18 sin que nadie lo intente, y el objetivo de D-37 es cerrarlo. Si el PM no llega, la retrospectiva lo dira con nombre y no con un hueco |
+| Reasignar H1.14 y H8.2 a Luna | Luna ya paso de 20,3 a 40,5 h en S3 por D-37 |
 | Exigir el Sprint 4 completo a Cesar | 34 h en una semana de 18. Es la apuesta que fallo cinco semanas seguidas, y esta vez el mismo Cesar la nombro antes de que fallara |
 | Borrar las diferidas del backlog | D-27 decidio que el alcance diferido se registra con condicion, no se borra. El backlog sigue en 89 historias y el avance se mide contra ese numero |
 
 ### Consecuencias
 
-Lo que queda del Sprint 3 despues de esta decision: H1.10 (Cesar, en PR), H3.6
-y H3.8 (PM), H4.1 y H4.2 (Luna, detras de H3.6), H5.5 (Avril), H12.1 (Luna), y
-**dos diferidas que no van a cerrar**. El Sprint 3 termina, como maximo, en 16
-de 18. Se dice ahora y no en la semana 12.
+Lo que queda del Sprint 3 despues de esta decision: H1.10 (Cesar, en PR), H3.6,
+H3.8, **H1.14 y H8.2** (PM), H4.1 y H4.2 (Luna, detras de H3.6), H5.5 (Avril) y
+H12.1 (Luna). Todas tienen dueno; el Sprint 3 puede cerrar en 18 de 18, y el
+que decide si cierra es el PM.
 
-Lo que Cesar deja de cargar, 31,2 h entre S3 y S4, no lo carga nadie: es
-alcance que no entra este trimestre. Lo que Cesar si carga, 15,5 h en la semana
-10, es la primera cifra suya contra la que se puede medir.
+Carga del PM en S3 despues de esto: **59,4 h** contra un compromiso de 36, con
+total de 288,1 h y 187 puntos. Se registra el numero para que nadie diga que se
+decidio sin conocerlo. El orden de trabajo del PM es la cadena que desbloquea a
+otros -H3.6 y la tuberia- y despues H1.14, H8.2 y H3.8; si algo se cae, se cae
+de atras hacia adelante.
 
-**Condicion de reactivacion**, una sola y evaluada en un momento fijo: las
-diferidas se reabren **solo si al cierre de la semana 10 estan cerradas H3.6,
-H12.1, H12.3, H6.3 y H8.4**, es decir, si el eje de modelado y el compromiso de
-Cesar entraron. Si se cumple, se reabre **una** -la que mas aporte a la
-rubrica, que hoy es H1.14 por BD-1- y se estima antes de comprometerla.
+Lo que Cesar deja de cargar en S4, 15,6 h, no lo carga nadie: es alcance
+diferido. Lo que Cesar si carga, 15,5 h en la semana 10, es la primera cifra
+suya contra la que se puede medir.
+
+**Condicion de reactivacion de H2.6 y H8.3**, una sola y evaluada en un momento
+fijo: se reabren **solo si al cierre de la semana 10 estan cerradas H3.6,
+H12.1, H12.3, H6.3 y H8.4**. Si se cumple, se reabre **una** y se estima antes
+de comprometerla.
 
 ### Medicion
 
@@ -4187,7 +4198,9 @@ es de Cesar.
 
 Se revisa si al cierre de la semana 10 esta cerrada una o ninguna de las tres:
 en ese caso la decision siguiente no es otro reparto, es declarar el Sprint 4
-de Cesar como diferido entero.
+de Cesar como diferido entero. Y se revisa tambien del lado del PM: si al
+cierre de la semana 10 H1.14 y H8.2 siguen abiertas, vuelven a diferidas por
+este mismo registro, sin decision nueva.
 
 `verificar_estado.py` y `verificar_backlog.py` se corrieron despues de escribir
 esto y coinciden: las diferidas siguen contadas como abiertas.

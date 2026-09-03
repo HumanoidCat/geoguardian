@@ -513,3 +513,18 @@ Cesar, asi que la excepcion se escribe aqui, estrecha:
 
 Si Cesar retoma H12.1, la fila vuelve a su nombre por la clausula de D-33, sin
 pedir permiso.
+
+## Excepcion: H1.14 y H8.2, para Alejandro
+
+**Declarada el 2026-09-03 por D-38.** Cesar declino por escrito H1.14 (ingesta
+reejecutable con cadencia) y H8.2 (ETL concurrente medido) y el PM las tomo.
+Las dos viven en `backend/etl`, carpeta de Cesar, asi que la excepcion se
+escribe aqui, estrecha:
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Alejandro | `backend/etl`, `basedatos` | **solo** lo que H1.14 y H8.2 necesiten; dos historias, y se cierra con ellas |
+
+Si Cesar retoma cualquiera de las dos, la fila vuelve a su nombre por la
+clausula de D-33, sin pedir permiso.
+
