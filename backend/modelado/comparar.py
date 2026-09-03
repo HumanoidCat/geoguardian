@@ -5,12 +5,13 @@ QUE PRODUCE, Y QUE NO
 ===========================================================================
 
 **Produce la tabla**, no los modelos. H3.3, H3.4 y H3.5 -Regresion Logistica,
-Random Forest y XGBoost- son de Cesar y todavia no existen. Esta historia decide
-**como se comparan** y deja el hueco declarado, no escondido.
+Random Forest y XGBoost- son historias aparte. Esta historia decide **como se
+comparan** y deja el hueco declarado, no escondido.
 
-Hoy la tabla se puebla con las dos lineas base de **H3.1**, que si estan
-implementadas. Cuando entren los tres algoritmos, se agregan al registro y la
-tabla se llena sola: no hay que tocar nada mas.
+Arranco con las dos lineas base de **H3.1**. La regresion entro con H3.3 el
+2026-09-01 y el bosque con H3.4 el 2026-09-03, cada uno agregandose al registro
+`CON_CARACTERISTICAS` sin tocar nada mas; falta XGBoost, que sigue en
+`PENDIENTES` hasta H3.5.
 
 ===========================================================================
 POR QUE EL CONTRATO VA ANTES QUE LOS MODELOS
@@ -185,6 +186,14 @@ def _regresion_logistica():
     return RegresionLogistica()
 
 
+def _random_forest():
+    """Diferida por la misma razon que la regresion: `random_forest.py` importa
+    `Observacion` de aca, y el contrato tiene que poder leerse sin scikit-learn."""
+    from .random_forest import BosqueAleatorio
+
+    return BosqueAleatorio()
+
+
 #: Las lineas base de H3.1. **No necesitan caracteristicas** -es CA-1 de esa
 #: historia- asi que estan siempre.
 DISPONIBLES: dict[str, callable] = {
@@ -202,6 +211,7 @@ DISPONIBLES: dict[str, callable] = {
 #: Comprobado el 2026-09-01: `verificar_h36` pasaba de verde a rojo.
 CON_CARACTERISTICAS: dict[str, callable] = {
     "regresion logistica": _regresion_logistica,
+    "random forest": _random_forest,
 }
 
 
@@ -216,10 +226,17 @@ def pendientes(hay_caracteristicas: bool) -> dict[str, str]:
     """Los que faltan, con el motivo real y no solo el numero de historia."""
     faltan = dict(PENDIENTES)
     if not hay_caracteristicas:
-        faltan["regresion logistica"] = (
-            "H3.3, escrita y probada; necesita datos/procesados/caracteristicas.csv, "
-            "que produce `python -m backend.modelado.generar_caracteristicas`"
-        )
+        # Uno por cada estimador que aprende, y no una lista escrita a mano:
+        # el dia que entre otro (H3.5) tiene que aparecer aca sin que nadie se
+        # acuerde de agregarlo. Un pendiente que falta en esta lista es
+        # indistinguible de uno que ya esta hecho.
+        historias = {"regresion logistica": "H3.3", "random forest": "H3.4"}
+        for nombre in CON_CARACTERISTICAS:
+            faltan[nombre] = (
+                f"{historias.get(nombre, '?')}, escrita y probada; necesita "
+                "datos/procesados/caracteristicas.csv, que produce "
+                "`python -m backend.modelado.generar_caracteristicas`"
+            )
     return faltan
 
 
@@ -265,7 +282,6 @@ NO_MODELABLES: dict[TipoEvento, str] = {
 # `regresion logistica` ya no vive aca: desde H3.3 esta escrita, probada y
 # **conectada**, y `pendientes()` la vuelve a listar solo si falta la matriz.
 PENDIENTES: dict[str, str] = {
-    "random forest": "H3.4",
     "xgboost": "H3.5",
 }
 
@@ -497,7 +513,7 @@ def main() -> int:
     faltan = pendientes(bool(caracteristicas))
     if faltan:
         print("La tabla esta incompleta a proposito: faltan " + ", ".join(faltan))
-        print("Agregarlos a DISPONIBLES es todo lo que hace falta; la particion,")
+        print("Agregarlos a CON_CARACTERISTICAS es todo lo que hace falta; la particion,")
         print("la metrica y el trato de los None ya estan decididos aca.\n")
     else:
         print("Los tres algoritmos de D-09 estan en la tabla.\n")

@@ -371,8 +371,22 @@
 
 ## Sprint 3 (semanas 8-9) — 43.8 h
 
-- [ ] **H3.4** · Entrenar y evaluar Random Forest
+- [x] **H3.4** · Entrenar y evaluar Random Forest (2026-09-03)
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
+  - horas: estimada 3.0 . real 1.0
+  - Evidencia: `docs/evidencias/objetivos/H3.4-random-forest.md`
+  - `random_forest.py` entra al arnes de H3.6 con el mismo contrato y el mismo
+    trato de nulos que H3.3. **20 criterios** en `verificar_h34.py` y **17
+    pruebas** en `test_random_forest.py`. Trae `importancias` por nombre, para
+    H4.1, y `probabilidades()`, para la tuberia.
+  - **Resultado: sin ajustar no supera ninguna linea base.** En incendio empata
+    con la trivial: predijo ALTO en 15 de 21 894 filas de prueba y no acerto
+    ninguna. Se midio por que -hojas puras sobre 0,87 % de positivos, donde
+    `class_weight` no actua- y queda para H3.8. Es D-10: un resultado, no una
+    excepcion.
+  - El control se probo rompiendolo. El sabotaje de la semilla paso en verde la
+    primera vez; al reescribir el criterio aparecio que con `n_jobs=-1`
+    `predict_proba` no es reproducible bit a bit. Quedo `n_jobs=1`.
   - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
