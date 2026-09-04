@@ -2117,3 +2117,87 @@ no la declara. Si un valor puede cambiar por una historia futura, o se deriva
 o se vigila; escribirlo con un comentario que explica por que hoy es cierto
 es dejarle una trampa a quien cierre esa historia.
 
+
+---
+
+## I-31 · Los verificadores que corremos antes de cerrar no son los que corre el CI
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** El Pull Request #258 de H1.14, que fallo en el trabajo
+*Backlog y documentacion* despues de haber pasado en verde los siete
+verificadores de la lista de cierre, `pytest` completo y `ruff` en la maquina
+del PM.
+
+**Que paso.** La migracion 013 agrego `control.bitacora_etl` con diez columnas.
+`verificar_diagramas.py` exige que **cada tabla y cada columna del DDL**
+aparezcan en `docs/diagramas/entidad-relacion.svg`, y el diagrama versionado no
+las tenia. El CI lo vio; la lista de cierre, no.
+
+**Causa raiz.** `docs/15-cerrar-una-historia.md` manda correr tres
+verificadores antes de pedir revision -`verificar_estado`, `verificar_horas`,
+`verificar_documentacion`- y dice, textual: «si alguno falla, el CI tambien va
+a fallar». La frase es cierta al reves y **falsa en la direccion que importa**:
+que esos pasen no dice nada del CI, porque el trabajo *Backlog y documentacion*
+corre ademas `verificar_diagramas.py`, `verificar_cobertura_evidencias.py` y
+`verificar_issues.py`. La lista se escribio cuando esos tres no existian y
+nadie la actualizo al agregarlos.
+
+Es la forma de I-06 otra vez -el CI corriendo algo que ninguna persona corre-
+pero al reves: la persona corriendo **menos** de lo que corre el CI.
+
+**Y hay una segunda mitad.** `verificar_diagramas.py` **no se puede correr
+entero en la maquina del PM**: necesita Graphviz para regenerar y comparar
+(CA-4), y ahi no esta instalado. O sea que aunque la lista lo hubiera incluido,
+habria fallado por falta de herramienta y no por un defecto. Un verificador que
+no corre donde se hace el trabajo solo avisa cuando ya es tarde.
+
+**Accion tomada.**
+
+  1. `docs/15` corregido: la seccion «comprobar antes de pedir revision» lista
+     ahora **los seis** verificadores del trabajo de documentacion del CI, y
+     dice cual necesita Graphviz y como se instala.
+  2. El diagrama se regenero y entro en el mismo PR.
+  3. Queda pendiente, y se declara: **nadie ha medido** cuanto tarda correr los
+     seis en local. Si resultara caro, la respuesta no es sacarlos de la lista
+     sino separarlos en «los que corro siempre» y «los que corro cuando toque
+     el DDL o el backlog», con esa regla escrita.
+
+---
+
+## I-32 · El diagrama entidad-relacion no muestra las columnas que agrega un `ALTER TABLE`
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** Alejandro, mirando el `entidad-relacion.png` regenerado
+para arreglar I-31: `control.fallo` sale con ocho columnas y en la base tiene
+nueve.
+
+**Que paso.** La migracion 012 agrego `control.fallo.corrida_id` con
+`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`. `leer_ddl()` de
+`generar_diagramas.py` extrae las columnas del texto de los `CREATE TABLE`, asi
+que esa columna no existe para el generador. El dibujo la omite desde el
+2026-09-02 y **nadie lo noto durante un dia**.
+
+**Causa raiz.** El verificador y el generador leen el DDL **de la misma
+manera**. `verificar_diagramas.py` compara el diagrama contra lo que
+`leer_ddl()` sabe leer, no contra lo que la base tiene: una columna invisible
+para el lector es invisible para el control. Un control que comparte el punto
+ciego de lo que vigila da verde sobre el defecto que existe para vigilar.
+
+Es la misma familia que I-21 y que el CA-8 de I-30: el control conoce solo el
+caso con el que nacio.
+
+**Accion tomada.** Registrar. **No se arregla en H8.2**: tocar `leer_ddl()` es
+cambiar el generador de diagramas, que es de H6.5, y hacerlo dentro de una
+historia de concurrencia seria exactamente lo que `docs/07` existe para
+impedir. Lo que corresponde, y queda propuesto para quien tome esa historia:
+
+  1. Que `leer_ddl()` aplique tambien los `ALTER TABLE ... ADD COLUMN` del DDL,
+     que es donde el proyecto agrega columnas desde la 007.
+  2. O, mejor, que el control compare contra **la base levantada**
+     (`information_schema.columns`) en vez de contra el texto del DDL: ahi no
+     hay punto ciego posible. Cuesta que el trabajo del CI necesite PostgreSQL,
+     que ya lo tiene el trabajo de pruebas.
+  3. Mientras tanto, el diagrama dice de menos y esta declarado aca. Decir de
+     menos es menos grave que decir de mas, pero no es correcto.

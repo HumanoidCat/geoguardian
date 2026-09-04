@@ -89,7 +89,7 @@ from datetime import date, datetime, timedelta
 from basedatos.conexion import ErrorConexion, conectar
 from contratos.esquemas import MedicionDiaria
 
-from . import bitacora
+from . import bitacora, concurrencia
 from .cargar_focos import CODIGO_CANTON, caja_del_canton
 from .cargar_focos import HASTA as HASTA_FOCOS
 from .cargar_focos import SQL_INSERTAR as SQL_INSERTAR_FOCO
@@ -129,6 +129,25 @@ TIPO_DATO_DE = {v: k for k, v in chirps.PRODUCTOS.items()}
 
 EVENTOS = tuple(CADENCIA)
 PROCESO = {evento: f"ingesta.{evento}" for evento in EVENTOS}
+
+# Cuantas peticiones en vuelo admite la fuente de cada evento. **Medido**, no
+# elegido (H8.2, `medir_concurrencia.py`, 2026-09-03):
+#
+#   FIRMS por area   reloj 3.18 -> 1.11 s con cuatro (x2.86), y **cada tarea
+#                    sigue tardando 0.19 s**: las peticiones avanzan a la vez.
+#   ClimateSERV      reloj 53.69 -> 48.34 s con cuatro (x1.11), pero **cada
+#                    tarea pasa de 6.18 s a 20.27 s**: el servicio las encola
+#                    del lado del servidor y solo se solapa la espera del
+#                    sondeo. Es la misma firma que el GIL en el trabajo de CPU.
+#
+# Pedirle cuatro a la vez a un servicio publico y gratuito que las pone en fila
+# es carga extra a cambio de un 11 %. La precipitacion va de a una, y `None`
+# significa "usa el tope del guion".
+EN_VUELO: dict[str, int | None] = {
+    "incendio": None,
+    "lluvia_intensa": 1,
+    "sequia": 1,
+}
 
 EN_CURSO, EXITOSA, FALLIDA, OMITIDA = "en_curso", "exitosa", "fallida", "omitida"
 
@@ -496,18 +515,56 @@ def planear_incendio(
     return tramos, reemplazos, avisos
 
 
-def escribir_focos(conexion, corrida: Corrida, extractor, tramos, reemplazos, registrar) -> int:
-    """Descarga y escribe todo en una transaccion: o entra completo o no entra."""
+def descargar_focos(
+    extractor, tramos, reemplazos, registrar, trabajadores: int = 1
+) -> tuple[list[list[FocoBruto]], list[list[FocoBruto]]]:
+    """
+    Baja todo lo que la corrida necesita **antes** de abrir la transaccion.
+
+    H1.14 descargaba dentro de la transaccion: 244 peticiones a FIRMS con la
+    escritura abierta mientras el proceso esperaba por la red. La cabecera de
+    `cargar_mediciones` ya lo decia para el otro cargador -"una sola
+    transaccion tendria que mantenerse abierta durante toda la descarga"- y aca
+    se habia colado igual. H8.2 lo separa: primero la red, que es lo que tarda,
+    y despues la escritura, que son dos `executemany` de menos de un segundo.
+
+    Devuelve una lista de focos por reemplazo y otra por tramo, **en el mismo
+    orden** que recibio, para que quien escriba sepa a que pertenece cada una.
+    """
+    de_reemplazo = [
+        extractor.descargar(
+            r.desde,
+            r.hasta,
+            r.base,
+            preliminar=False,
+            registrar=registrar,
+            trabajadores=trabajadores,
+        )
+        for r in reemplazos
+    ]
+    nuevos = [
+        extractor.descargar(
+            desde, hasta, base, preliminar, registrar=registrar, trabajadores=trabajadores
+        )
+        for base, preliminar, desde, hasta in tramos
+    ]
+    return de_reemplazo, nuevos
+
+
+def escribir_focos(conexion, corrida: Corrida, reemplazos, de_reemplazo, nuevos, registrar) -> int:
+    """
+    Escribe lo ya descargado en una transaccion: o entra completo o no entra.
+
+    Ningun hilo llega hasta aca (CA-2 de H8.2): la descarga termino antes de
+    abrir la transaccion, y quien escribe es el hilo principal.
+    """
     with conexion.transaction(), conexion.cursor() as cursor:
         Bitacora(conexion).declarar(cursor, corrida)
         total = 0
-        for r in reemplazos:
+        for r, focos in zip(reemplazos, de_reemplazo, strict=True):
             codigo = firms_area.codigo_producto(r.base, preliminar=True)
             cursor.execute(SQL_BORRAR_NRT, (codigo, r.desde, r.hasta))
             borradas = _filas_afectadas(cursor, 0)
-            focos = extractor.descargar(
-                r.desde, r.hasta, r.base, preliminar=False, registrar=registrar
-            )
             if focos:
                 cursor.executemany(SQL_INSERTAR_FOCO, [_parametros_foco(f) for f in focos])
             registrar(
@@ -515,8 +572,7 @@ def escribir_focos(conexion, corrida: Corrida, extractor, tramos, reemplazos, re
                 f"{borradas} nrt borrados, {len(focos)} sp escritos"
             )
             total += len(focos)
-        for base, preliminar, desde, hasta in tramos:
-            focos = extractor.descargar(desde, hasta, base, preliminar, registrar=registrar)
+        for focos in nuevos:
             if focos:
                 cursor.executemany(SQL_INSERTAR_FOCO, [_parametros_foco(f) for f in focos])
             total += len(focos)
@@ -550,6 +606,7 @@ def correr(
     extractor=None,
     territorios: list[Territorio] | None = None,
     escribir: bool = True,
+    trabajadores: int = 1,
 ) -> Corrida:
     """
     Una corrida de un evento, de principio a fin, registrada.
@@ -557,7 +614,17 @@ def correr(
     `extractor` y `territorios` se inyectan para probar sin red ni base; en
     produccion salen de la fabrica y de `geo.distrito`. Con `escribir=False`
     decide y descarga pero no escribe ni registra.
+
+    `trabajadores` (H8.2) es cuantas peticiones van en vuelo a la vez. Solo
+    afecta a la descarga: la escritura ocurre despues, en el hilo principal. Y
+    lo acota `EN_VUELO`, que dice lo que cada fuente admite **segun la
+    medicion**: pedir el doble a una fuente que encola no la apura.
     """
+    if evento in EN_VUELO and EN_VUELO[evento] is not None:
+        trabajadores = min(trabajadores, EN_VUELO[evento])
+    if trabajadores > 1:
+        # La bitacora la tocan varios hilos: sin esto las lineas salen partidas.
+        registrar = concurrencia.serializar(registrar)
     if evento not in CADENCIA:
         raise ErrorIngesta(f"Evento {evento!r} desconocido; conocidos: {EVENTOS}")
 
@@ -600,21 +667,26 @@ def correr(
             for aviso in avisos:
                 registrar(f"  AVISO {aviso}")
             corrida.mensaje = "; ".join(avisos)
+            de_reemplazo, nuevos = descargar_focos(
+                extractor, tramos, reemplazos, registrar, trabajadores
+            )
             if escribir:
                 corrida.filas = escribir_focos(
-                    conexion, corrida, extractor, tramos, reemplazos, registrar
+                    conexion, corrida, reemplazos, de_reemplazo, nuevos, registrar
                 )
             else:
-                for base, preliminar, d, h in tramos:
-                    corrida.filas += len(
-                        extractor.descargar(d, h, base, preliminar, registrar=registrar)
-                    )
+                corrida.filas = sum(len(f) for f in de_reemplazo + nuevos)
         else:
             if territorios is None:
                 territorios = territorios_desde_base(conexion, CODIGO_CANTON)
-            mediciones: list[MedicionDiaria] = []
-            for territorio in territorios:
-                mediciones += extractor.extraer(territorio.codigo, desde, hasta)
+            por_distrito, medicion = concurrencia.mapear(
+                lambda t: extractor.extraer(t.codigo, desde, hasta),
+                territorios,
+                trabajadores=trabajadores,
+                etiqueta=f"{evento} {len(territorios)} distritos",
+            )
+            mediciones: list[MedicionDiaria] = [m for lista in por_distrito for m in lista]
+            registrar(f"  {medicion}")
             sin_dato = sum(1 for m in mediciones if m.precipitacion_mm is None)
             registrar(f"  {len(mediciones)} mediciones, {sin_dato} sin precipitacion")
             if escribir:
@@ -653,32 +725,63 @@ def _omitir(libro: Bitacora, corrida: Corrida, motivo: str, registrar, escribir:
 # --------------------------------------------------------------------------- #
 
 
-def principal(argumentos: list[str] | None = None) -> int:
-    analizador = argparse.ArgumentParser(
+def analizador() -> argparse.ArgumentParser:
+    """
+    Los argumentos, en una funcion aparte para que se puedan comprobar.
+
+    El verificador de H8.2 lee de aca que el tope por omision es el declarado y
+    que `--secuencial` significa un trabajador. Si estuviera dentro de
+    `principal`, comprobarlo obligaria a arrancar el programa entero, que
+    necesita base de datos y red.
+    """
+    partes = argparse.ArgumentParser(
         description="Trae lo nuevo de cada fuente con la cadencia declarada por evento"
     )
-    analizador.add_argument("--evento", action="append", choices=EVENTOS, help="Repetible")
-    analizador.add_argument(
-        "--sin-escribir", action="store_true", help="Decide y descarga, no escribe"
+    partes.add_argument("--evento", action="append", choices=EVENTOS, help="Repetible")
+    partes.add_argument("--sin-escribir", action="store_true", help="Decide y descarga, no escribe")
+    partes.add_argument("--registro", help="Archivo donde guardar la salida completa")
+    partes.add_argument(
+        "--trabajadores",
+        type=int,
+        default=concurrencia.TRABAJADORES,
+        help=(
+            "Peticiones en vuelo a la vez (H8.2). Por omision "
+            f"{concurrencia.TRABAJADORES}, el tope declarado y medido."
+        ),
     )
-    analizador.add_argument("--registro", help="Archivo donde guardar la salida completa")
-    opciones = analizador.parse_args(argumentos)
+    partes.add_argument(
+        "--secuencial",
+        action="store_true",
+        help="Equivale a --trabajadores 1. Es el tiempo base de la medicion de H8.2.",
+    )
+    return partes
+
+
+def trabajadores_de(opciones) -> int:
+    """`--secuencial` gana sobre `--trabajadores`, y nunca hay menos de uno."""
+    return 1 if opciones.secuencial else max(1, opciones.trabajadores)
+
+
+def principal(argumentos: list[str] | None = None) -> int:
+    opciones = analizador().parse_args(argumentos)
 
     with bitacora.abrir(opciones.registro) as registrar:
         return _principal(opciones, registrar)
 
 
-def encabezado(registrar: Registrar, hoy: date) -> None:
+def encabezado(registrar: Registrar, hoy: date, trabajadores: int = 1) -> None:
     """CA-1: la cadencia y el producto se imprimen al arrancar, como datos."""
     registrar(f"Cadencia declarada: {CADENCIA}")
     registrar(f"Producto por evento: {PRODUCTO}")
+    registrar(f"Peticiones en vuelo: {trabajadores} como tope, por fuente {EN_VUELO} (H8.2)")
     registrar(f"Hoy: {hoy} · inicio {datetime.now().astimezone().isoformat(timespec='seconds')}")
 
 
 def _principal(opciones, registrar) -> int:
     hoy = date.today()
     eventos = opciones.evento or list(EVENTOS)
-    encabezado(registrar, hoy)
+    trabajadores = trabajadores_de(opciones)
+    encabezado(registrar, hoy, trabajadores)
     if opciones.sin_escribir:
         registrar("Modo --sin-escribir: no se escribe ni se registra nada")
 
@@ -691,7 +794,12 @@ def _principal(opciones, registrar) -> int:
             for evento in eventos:
                 registrar("")
                 corrida = correr(
-                    conexion, evento, hoy, registrar, escribir=not opciones.sin_escribir
+                    conexion,
+                    evento,
+                    hoy,
+                    registrar,
+                    escribir=not opciones.sin_escribir,
+                    trabajadores=trabajadores,
                 )
                 fallidas += corrida.estado == FALLIDA
     except ErrorConexion as error:

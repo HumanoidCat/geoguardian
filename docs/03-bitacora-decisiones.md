@@ -4435,3 +4435,130 @@ debe seguirse: el ultimo dia con dato de `chirps` en `crudo.medicion_diaria`
 contra la fecha de la corrida, que `contar_ingesta.py` imprime. Si alguna vez
 el CHIRP (tipo 90) adelanta al final, `medir_productos_ingesta.py --solo chirp`
 lo mostrara y esta decision se revisa.
+
+---
+
+## D-41 · La concurrencia del ETL va en la descarga, con hilos, y cada fuente admite lo que se midio
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Se apoya en.** D-15, D-26, D-40, H1.1 (CA-12), H1.14 · **Afecta.** H8.2, H1.14, H8.3
+
+### Contexto
+
+El ETL hace dos cosas que no se parecen: **espera por la red** y **escribe en
+PostgreSQL**. Hasta hoy hacia las dos de a una por vez.
+
+Las corridas reales de H1.14, en `control.bitacora_etl`, dicen donde esta el
+tiempo: la de incendio son **244 peticiones** de cinco dias a FIRMS, y la de
+lluvia **ocho consultas a ClimateSERV que el servicio encola** y hay que
+sondear cada tres segundos. La escritura de esas mismas corridas son dos
+`executemany`. El reloj se va esperando, no escribiendo.
+
+Y H1.14 dejo un defecto que esta historia encontro al medir: **descargaba
+dentro de la transaccion**. La cabecera de `cargar_mediciones.py` ya advertia
+que eso mantiene la tabla tomada mientras el proceso espera por la red, y se
+habia colado igual en `ingestar.py`.
+
+### Decision
+
+**1. Se paraleliza la descarga, y solo la descarga.** Un pool acotado de hilos
+para las peticiones; la escritura sigue en una transaccion por lote, en el hilo
+principal. Ningun hilo toca PostgreSQL, y el verificador lo comprueba anotando
+de que hilo sale cada sentencia.
+
+**2. Primero la red, despues la escritura.** `descargar_focos` y
+`escribir_focos` son dos funciones: la transaccion se abre cuando ya no queda
+nada que esperar.
+
+**3. Hilos, no `asyncio`.** Un trabajo que espera por la red no necesita
+corrutinas para dejar de esperar. El GIL no estorba ahi porque un hilo
+bloqueado en la red lo suelta.
+
+**4. Cada fuente admite lo que la medicion dice que aprovecha**, no un numero
+igual para todas:
+
+| Fuente | En vuelo | Por que |
+|---|---|---|
+| FIRMS por area | **4** | x2.49 con cuatro, y cada tarea sigue tardando lo mismo |
+| ClimateSERV (lluvia y sequia) | **1** | x1.11 con cuatro, y cada tarea tarda 3,3 veces mas: el servicio las encola |
+
+**5. El tope general es 4 y sale de la escalera**, no de subir hasta que algo
+se rompa. FIRMS publica su limite -5 000 transacciones cada diez minutos- y las
+244 peticiones no lo rozan; ClimateSERV **no publica ninguno**, y ante una
+fuente publica y gratuita que no dice cuanto aguanta, el equipo no lo averigua
+a la fuerza.
+
+**6. El estado compartido se protege, y el defecto se demuestra antes de
+arreglarlo**: la cache de POWER por celda y la bitacora de la corrida.
+
+### Justificacion
+
+La medicion de CA-9, sobre el trabajo real y no sobre un banco de pruebas
+inventado, midio **el reloj de la tanda y cuanto tardo cada tarea**. Esa
+segunda columna es la que decide, porque distingue tres situaciones que el
+reloj solo no distingue:
+
+| Trabajo | Reloj, 1 -> 4 trabajadores | Cada tarea | Que pasa |
+|---|---|---|---|
+| FIRMS por area | 3.18 -> 1.11 s (**x2.86**) | 0.19 -> **0.19 s** | se reparte de verdad |
+| Lectura de CSV (CPU) | 2.96 -> 3.25 s (x0.91) | 0.40 -> **1.50 s** | el GIL serializa |
+| CHIRPS por distrito | 53.69 -> 48.34 s (x1.11) | 6.18 -> **20.27 s** | el servidor encola |
+
+CHIRPS tiene **la misma firma que el GIL**: cada tarea se vuelve tres veces mas
+lenta, asi que el reloj no se mueve. El 11 % que igual se gana es solape del
+sondeo, no trabajo en paralelo. Pedirle cuatro peticiones a la vez a un
+servicio gratuito que las pone en fila es cuadruplicar la carga a cambio de
+nada, y por eso la precipitacion va de a una **aunque se pida mas**.
+
+Sobre el tope de FIRMS, la escalera de siete repeticiones:
+
+    1 trabajador    2.77 s   x1.00     eficiencia por trabajador
+    2 trabajadores  1.69 s   x1.64     0.82
+    4 trabajadores  1.11 s   x2.49     0.62
+    8 trabajadores  0.87 s   x3.18     0.40
+
+Cada trabajador despues del cuarto compra menos de medio trabajador. Sobre la
+corrida completa de 244 tramos son unos segundos al dia, y no se pagan
+duplicando la presion sobre el servicio.
+
+### Alternativas descartadas
+
+- **Paralelizar la escritura.** Repartir el lote entre transacciones gana menos
+  de un segundo y cuesta la garantia de H1.1: o entran todas las filas o no
+  entra ninguna. Cambiar una garantia por un segundo es un trato que este
+  proyecto no hace.
+- **`asyncio`.** Reescribiria `chirps.py`, `power.py`, `firms.py`,
+  `firms_area.py`, sus pruebas y los dos cargadores para ganar lo mismo: el
+  cuello es la espera, no el costo de un hilo.
+- **Procesos en vez de hilos.** Sirven cuando el cuello es CPU. Se midio que no
+  lo es, y traerian que serializar resultados entre procesos.
+- **Un solo tope para todo el ETL.** Es lo que estaba escrito antes de medir.
+  La medicion mostro que las dos fuentes no se parecen, y un numero unico
+  habria significado hostigar a ClimateSERV para no ganar nada.
+- **Subir el tope hasta que rinda.** Es medir contra un servicio ajeno hasta
+  molestarlo. Se mide una escalera corta y se elige dentro de ella.
+
+### Consecuencias
+
+- La bitacora de una corrida de incendio sale **en orden de terminacion**, no
+  de lectura. Las lineas van enteras -con candado-, pero los tramos aparecen
+  desordenados en el archivo de evidencia. Es el precio y queda dicho.
+- `--secuencial` se queda en el guion para siempre: es el tiempo base de
+  cualquier medicion futura, y sin el la comparacion no se puede repetir.
+- **H8.3** (cache con expiracion, de Cesar) hereda un ETL donde varias
+  peticiones ocurren a la vez: su cache va a necesitar la misma proteccion que
+  la de POWER, y el candado de `hibrido.py` es el ejemplo.
+- Esto **no** mejora la latencia del dato. CHIRPS sigue llegando con 33 dias de
+  retraso (D-40): la corrida tarda menos, el dato no llega antes.
+- Si algun dia ClimateSERV deja de encolar, `EN_VUELO["lluvia_intensa"]`
+  vuelve a `None` y la ingesta aprovecha el pool sin tocar nada mas. La
+  medicion que lo justificaria es la misma que ya existe.
+
+### Medicion
+
+`python -m backend.etl.medir_concurrencia`, repetible, no escribe en la base.
+Las corridas de esta decision estan en `gestion/medicion-h82-b.txt` (escalera
+de FIRMS, siete repeticiones) y `gestion/medicion-h82-c.txt` (tiempos por tarea
+y CHIRPS). La cifra a seguir es **el tiempo por tarea**: si al subir los
+trabajadores cada tarea empieza a tardar proporcionalmente mas, del otro lado
+no hay paralelismo que aprovechar.
