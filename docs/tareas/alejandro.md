@@ -371,8 +371,13 @@
 
 ## Sprint 3 (semanas 8-9) — 59.4 h
 
-- [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
+- [x] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
+  - horas: estimada 7.8 . real 2.8
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.14-ingesta.md`; criterios en
+    `H1.14-criterios-aceptacion.md` (PR #257). **D-40**: el preliminar que sirve
+    ClimateSERV llega despues que el final; se carga el final, con la latencia
+    medida declarada.
   - **Traspasada desde Cesar el 2026-09-03** por **D-38**. Cesar la declino por
     escrito -no cabe en su calendario- y el PM la tomo. Su contenido queda tal
     como estaba escrito.

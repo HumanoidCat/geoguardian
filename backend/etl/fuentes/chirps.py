@@ -47,8 +47,16 @@ BASE = "https://climateserv.servirglobal.net/chirps"
 ENVIAR = f"{BASE}/submitDataRequest/"
 RECOGER = f"{BASE}/getDataFromRequest/"
 
-# Catalogo de ClimateSERV: 0 es CHIRPS de precipitacion.
+# Catalogo de ClimateSERV, comprobado en la pagina de la API el 2026-09-03:
+# 0 es "UCSB CHIRPS Rainfall", el producto final con estaciones; 90 es
+# "UCSB CHIRP Rainfall", el mismo algoritmo SIN la correccion por estaciones.
+# El catalogo NO ofrece el "CHIRPS preliminar" del que habla D-26 (ese lo
+# publica CHC en GeoTIFF). Y medido ese mismo dia, el 90 llega DESPUES que el
+# 0 (junio contra julio), asi que no sirve como preliminar: la ingesta carga
+# el 0 (D-40). El 90 queda disponible, declarado, por si algun dia adelanta.
 TIPO_DATO = "0"
+TIPO_DATO_CHIRP = "90"
+PRODUCTOS = {TIPO_DATO: "chirps", TIPO_DATO_CHIRP: "chirp"}
 # Operacion 5: promedio sobre el poligono. Es lo que representa a un distrito que
 # abarca varias celdas.
 OPERACION_PROMEDIO = "5"
@@ -110,7 +118,16 @@ class ExtractorChirps:
 
     nombre = "CHIRPS 2.0 via ClimateSERV"
 
-    def __init__(self, cliente: httpx.Client | None = None) -> None:
+    def __init__(self, cliente: httpx.Client | None = None, tipo_dato: str = TIPO_DATO) -> None:
+        if tipo_dato not in PRODUCTOS:
+            raise ErrorChirps(
+                f"Tipo de dato {tipo_dato!r} no esta en el catalogo conocido: "
+                f"{sorted(PRODUCTOS)}"
+            )
+        # H1.14: que producto pide este cliente. Se declara al construirlo para
+        # que cada fila escrita pueda decir de cual vino.
+        self.tipo_dato = tipo_dato
+        self.producto = PRODUCTOS[tipo_dato]
         self._propio = cliente is None
         self._cliente = cliente or httpx.Client(timeout=TIEMPO_LIMITE, follow_redirects=True)
 
@@ -153,7 +170,7 @@ class ExtractorChirps:
         respuesta = self._cliente.post(
             ENVIAR,
             data={
-                "datatype": TIPO_DATO,
+                "datatype": self.tipo_dato,
                 "begintime": desde.strftime("%m/%d/%Y"),
                 "endtime": hasta.strftime("%m/%d/%Y"),
                 "intervaltype": "0",
