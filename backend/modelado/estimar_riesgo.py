@@ -59,6 +59,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+from backend.modelado.afinar import fabricas  # noqa: E402
 from backend.modelado.comparar import (  # noqa: E402
     COLUMNA,
     DISTRITOS_CON_INCENDIO,
@@ -66,7 +67,6 @@ from backend.modelado.comparar import (  # noqa: E402
     Resultado,
     comparar,
     elegir_escritor,
-    estimadores_disponibles,
     veredicto,
 )
 from backend.modelado.evaluar_linea_base import leer  # noqa: E402
@@ -98,7 +98,10 @@ class Decision:
 
 def decidir(evento: TipoEvento, filas: list, caracteristicas: dict, hoy: date) -> Decision:
     """La tabla y la regla de D-39, sin escribir nada."""
-    tabla = comparar(evento, filas, estimadores_disponibles(bool(caracteristicas)), caracteristicas)
+    # `fabricas` y no `estimadores_disponibles`: trae los hiperparametros que
+    # H3.8 eligio para este evento, si los hay. Con AFINADOS vacio devuelve
+    # exactamente lo mismo que antes.
+    tabla = comparar(evento, filas, fabricas(evento, bool(caracteristicas)), caracteristicas)
     escritor, motivo = elegir_escritor(tabla)
     version = None
     if escritor is not None:
@@ -132,7 +135,9 @@ def filas_a_escribir(
     entrenamiento = [
         (observacion(c, f), n[columna]) for c, f, n in propias if n[columna] is not None
     ]
-    modelo = estimadores_disponibles(bool(caracteristicas))[decision.escritor]()
+    # La MISMA puerta que armo la tabla: el que se evaluo y el que escribe no
+    # pueden ser dos modelos distintos.
+    modelo = fabricas(evento, bool(caracteristicas))[decision.escritor]()
     modelo.ajustar([o for o, _ in entrenamiento], [e for _, e in entrenamiento])
 
     # Las fechas: las del dato, y hasta `hasta` si el escritor solo mira el calendario.

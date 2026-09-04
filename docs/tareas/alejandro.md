@@ -522,8 +522,27 @@
     - dejar estos como material del documento IEEE y que H6.5 siga aparte.
     Hasta que se decida, **H6.5 no se toca**: sigue abierta y de Avril.
 
-- [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
+- [x] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado (2026-09-04)
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6
+  - horas: estimada 4.7 . real 3.5
+  - Evidencia: `docs/evidencias/objetivos/H3.8-afinado.md`, contra los criterios
+    escritos el 2026-09-03 en `H3.8-criterios-aceptacion.md`.
+  - **Cerrada con el ajuste aplicado y el veredicto sin cambiar en lluvia.** La
+    busqueda va en una particion interna que no toca ningun bloque de prueba de
+    H3.2; la primera version filtraba 7 752 dias y **la detecto el propio CA-2
+    antes de que existiera ningun resultado** (I-33).
+  - **Lo que salio.** En las seis busquedas -tres algoritmos por dos eventos-
+    *todas* las combinaciones cayeron dentro del ruido de la mejor, asi que el
+    F1 interno no distinguio nada y decidio entero el desempate por simplicidad.
+    En lluvia el ajuste **empeoro** a xgboost (0.371 a 0.327): la esquina que
+    conviene en cinco anios subajusta en treinta y cuatro. En incendio el bosque
+    de fabrica venia **degenerado** -0.494, por debajo del piso trivial, con las
+    mismas cifras por pliegue que la trivial- y regularizado da 0.557.
+  - **Lo que hay que mirar.** Por D-42 los afinados se aplican y D-39 decide en
+    cada corrida; en incendio eso cambia el escritor de la climatologica a la
+    regresion logistica **por 0.0024 de F1-macro**, que es I-34 y necesita su
+    propia historia.
+  - Doce sabotajes, ninguno paso en verde. Verificador: 38 de 38 sin base ni red.
 
 - [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**

@@ -2201,3 +2201,130 @@ impedir. Lo que corresponde, y queda propuesto para quien tome esa historia:
      que ya lo tiene el trabajo de pruebas.
   3. Mientras tanto, el diagrama dice de menos y esta declarado aca. Decir de
      menos es menos grave que decir de mas, pero no es correcto.
+
+---
+
+## I-33 · La particion interna de H3.8 buscaba hiperparametros sobre 7 752 dias de prueba
+
+**Fecha.** 2026-09-04.
+
+**Quien lo detecto.** El criterio CA-2 de la propia historia, al correrlo por
+primera vez, antes de que existiera ningun resultado que defender.
+
+**Que paso.** H3.8 busca hiperparametros en una particion **interna** para no
+elegirlos mirando los pliegues sobre los que despues informa. La primera
+implementacion construyo esa particion interna con la ventana de entrenamiento
+del **ultimo** pliegue externo, razonando que es la mas larga y la que mas se
+parece a lo que el modelo vera en produccion.
+
+CA-2 compara los dos conjuntos de fechas de prueba y fallo:
+
+```
+lluvia_intensa: ninguna fecha de prueba interna cae en una de prueba externa: 7752 dias compartidos
+incendio:       ninguna fecha de prueba interna cae en una de prueba externa: 5472 dias compartidos
+```
+
+**Causa raiz.** La particion de H3.2 es de **ventana expansiva**: el
+entrenamiento de cada pliegue incluye todo lo anterior. El entrenamiento del
+ultimo pliegue **contiene los bloques de prueba de los cuatro anteriores**.
+Buscar ahi es elegir hiperparametros sobre cuatro quintos del conjunto con el
+que despues se informa el resultado.
+
+El razonamiento "la ventana mas larga es la mejor" es correcto **para entrenar**
+y falso **para buscar**. Son dos usos de la misma ventana y solo uno de ellos
+tiene prohibido ver la prueba.
+
+**Por que no lo habria encontrado nadie despues.** Esta fuga no rompe nada: no
+lanza excepciones, no deja filas de mas, no pone el CI en rojo. Lo unico que
+hace es **subir el numero**. Un F1 inflado por buscar sobre la prueba se ve
+igual que un F1 alto, y se defiende igual de bien en una presentacion.
+
+**Accion tomada.** La particion interna se construye con la ventana de
+entrenamiento del **primer** pliegue externo, que es la unica enteramente
+anterior a todos los bloques de prueba. El solape quedo en 0 dias para los dos
+eventos.
+
+**Lo que esto cuesta, dicho y no escondido.** La ventana del primer pliegue son
+unos cinco anios y medio, mientras que el modelo final se ajusta con treinta y
+cuatro. Unos hiperparametros elegidos sobre una muestra chica pueden no ser los
+mejores para la grande, y es esperable que pidan mas regularizacion de la
+necesaria. Lo correcto seria una validacion anidada -buscar dentro del
+entrenamiento de **cada** pliegue-, que cuesta cinco veces mas y deja un juego
+de parametros por pliegue que D-39 no sabe usar. Queda declarado como trabajo
+futuro en el docstring de `pliegues_internos` y en la evidencia de la historia,
+no como algo que se paso por alto.
+
+**Lo que confirma.** Un criterio de aceptacion escrito **antes** del codigo, y
+redactado como una comprobacion ejecutable en vez de como una intencion, es lo
+unico que separo a este proyecto de publicar un numero inflado. El criterio
+tambien fallaba contra la version escrita del propio CA-2, que decia "ultimo":
+la correccion esta fechada al pie de
+`docs/evidencias/objetivos/H3.8-criterios-aceptacion.md`, sin reescribir el
+texto original.
+
+---
+
+## I-34 · Quien escribe en incendio se decidio por 0.0024 de F1-macro
+
+**Fecha.** 2026-09-04.
+
+**Quien lo detecto.** Alejandro, leyendo la tabla externa de H3.8 despues de
+aplicar los hiperparametros afinados.
+
+**Que paso.** En incendio, D-39 cambio de escritor: escribia la climatologica y
+pasa a escribir la regresion logistica. El cambio no viene de que la regresion
+logistica haya demostrado nada -paso de 0.5351 a 0.5299, o sea empeoro- sino de
+donde quedo el borde de la banda de ruido:
+
+| estimador | media | rango | banda ≥ 0.5020 |
+|---|---|---|---|
+| random forest afinado | 0.5567 | 0.0547 | dentro |
+| xgboost afinado | 0.5440 | 0.0567 | dentro |
+| regresion logistica afinada | 0.5299 | 0.0607 | dentro, **escribe** |
+| **climatologica** | **0.4996** | 0.1383 | **fuera por 0.0024** |
+| trivial | 0.4938 | 0.0085 | piso |
+
+**Causa raiz.** `elegir_escritor` arma la banda con el rango **del primero**:
+`media_del_primero - rango_del_primero`. La pertenencia a la banda es un umbral
+duro, y el rango del candidato excluido no interviene. Entonces:
+
+  1. **Un estimador que no escribe puede cambiar quien escribe.** Lo que movio
+     el techo fue el bosque afinado, que no escribe -no es el mas simple dentro
+     de la banda-. Su mejora saco a la climatologica de la banda y ascendio a un
+     tercero.
+  2. **La exclusion puede descansar en menos de lo que se mueve el excluido.**
+     La climatologica quedo fuera por 0.0024 y se mueve 0.1383 entre pliegues:
+     cincuenta y siete veces el margen que la excluyo.
+  3. Es la misma objecion que el proyecto ya tiene escrita -«un tercer decimal
+     no justifica un modelo mas grande»- aplicada del otro lado de la regla. El
+     desempate por simplicidad se escribio para que los decimales no decidieran,
+     y el borde de la banda los deja decidir igual, un paso antes.
+
+**Accion tomada.** Registrar, y **no arreglarlo en H3.8**. La regla se cambiaria
+con el resultado que incomoda a la vista, que es el error que D-42 y CA-2 de esa
+misma historia existen para impedir. D-42 decide aplicar D-39 tal como esta.
+
+**Lo que queda propuesto**, para decidirse por sus propios meritos:
+
+  1. Que la exclusion de la banda tenga que superar **la dispersion del
+     excluido**, no solo la del primero: un candidato queda fuera cuando
+     `media < primero.media - primero.rango` **y** ademas
+     `primero.media - candidato.media > candidato.rango`. Aplicada a mano a las
+     **cuatro** tablas de la corrida de H3.8 -de fabrica y afinada, para los dos
+     eventos- la climatologica vuelve a escribir en incendio y las otras tres
+     decisiones no cambian. **No esta comprobado contra las tablas anteriores**
+     ni contra la primera de H3.6, del 2026-08-27: eso es parte de lo que
+     tendria que hacer la historia que lo tome.
+  2. O declarar un margen minimo absoluto por debajo del cual dos estimadores se
+     consideran iguales, en la escala de F1-macro de este problema.
+
+La primera es preferible porque no agrega un numero magico: usa la dispersion
+que ya se mide. Cualquiera de las dos toca `elegir_escritor`, que es el corazon
+de D-39, asi que **necesita su propia historia, su ADR y su ronda de sabotaje**,
+y hay que correrla contra todas las tablas ya publicadas para ver que decisiones
+pasadas cambiarian.
+
+**Lo que confirma.** Un desempate escrito para que los decimales no decidan
+puede, en su implementacion, dejar que los decimales decidan en otro lugar. La
+regla se probo con tablas armadas a mano donde el borde estaba lejos; el primer
+dato real que puso un estimador a 0.0024 del borde fue el que lo mostro.
