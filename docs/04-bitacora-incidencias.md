@@ -2099,6 +2099,14 @@ derivado y uno escrito a mano.
      resuelve el mismo problema para `modo` sin que las rutas conozcan la clase.
   2. Que `verificar_h61` compruebe el campo **en los dos modos**, no solo en el
      que existia cuando nacio.
+  3. Y que `verificar_h61` **fije el modo que necesita en vez de heredarlo**:
+     al cerrar H3.6 se corrio en una terminal que tenia
+     `GEOGUARDIAN_REPOSITORIO=postgres` puesta desde la prueba anterior, y CA-8
+     salio en rojo -y con el, CA-7 de `verificar_h62`, que lo invoca- sin que
+     nada hubiera cambiado en el codigo. `verificar_h62` ya limpia esa variable
+     antes de probar; `verificar_h61` no. Es el mismo defecto visto desde el
+     verificador: un control cuyo resultado depende del entorno de quien lo
+     corre no distingue un defecto de una terminal.
 
 **Impacto.** Ninguno en el visor: la franja de «datos simulados» depende de
 `modo`, que es correcto. Un campo de `/salud` falso para quien lo consulte a
