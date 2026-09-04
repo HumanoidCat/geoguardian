@@ -121,7 +121,7 @@ cambiarlos.
 | `DB_PASS_ETL` | vacío | Sí, antes de H1.8 |
 | `DB_USER_API` | `api_geoguardian` | No |
 | `DB_PASS_API` | vacío | Sí, antes de H1.8 |
-| `FIRMS_MAP_KEY` | vacío | Solo para H1.2 |
+| `FIRMS_MAP_KEY` | vacío | Para la ingesta periódica de focos (H1.14); H1.2 la evita usando el archivo por país |
 | `COPERNICUS_USER` / `COPERNICUS_PASSWORD` | vacío | Solo para H1.6 |
 
 Las contraseñas son locales a cada máquina: inventar cualquiera larga sirve.
@@ -408,6 +408,8 @@ El mapa completo está en `docs/07-propiedad-archivos.md`.
 | Saber qué migraciones faltan | `python -m basedatos.aplicar_migraciones --verificar` |
 | Empezar la base desde cero | `docker compose down -v && docker compose up -d` ← **borra todos los datos** |
 | Regenerar los datos del visor | `python frontend/herramientas/exportar_simulados.py` |
+| Traer lo nuevo de las fuentes (H1.14) | `python -m backend.etl.ingestar` — decide la ventana sola; `--sin-escribir` para ver qué haría |
+| Ver qué corrió la ingesta y cuándo | `docker compose exec db psql -U geoguardian -d geoguardian -c "SELECT proceso, estado, ventana_desde, ventana_hasta, producto, filas, terminada_en FROM control.bitacora_etl ORDER BY id DESC LIMIT 10"` |
 | Detener todo sin perder datos | `docker compose down` |
 
 ---
@@ -493,7 +495,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 39 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 40 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

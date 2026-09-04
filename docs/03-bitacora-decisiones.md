@@ -4335,3 +4335,103 @@ construidas a mano para cada rama: ganador fuera del ruido, empate con mas
 simple, piso, y nadie. Se sabotea cada rama y se comprueba que cae el
 criterio correcto.
 
+
+---
+
+## D-40 · La ingesta de precipitacion carga el CHIRPS final; el "preliminar" de ClimateSERV llega despues que el final
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Revisa.** D-26 (cadencia de lluvia intensa) · **Se apoya en.** D-07, D-15, D-17 · **Afecta.** H1.14, H4.4, `/salud.ultima_ingesta`
+
+### Contexto
+
+D-26 dejo la cadencia de lluvia intensa como «diaria, con preliminar
+declarado», porque el CHIRPS final llega entre 21 y 51 dias despues y existe
+un producto preliminar de 2 dias. Los criterios de H1.14 obligaron a
+**comprobar contra el catalogo real** que producto sirve ClimateSERV antes de
+escribir el extractor, y a medir su latencia. Tres hechos del 2026-09-03:
+
+1. El catalogo de ClimateSERV (pagina de la API) **no ofrece el CHIRPS
+   preliminar**. Ofrece `0 = UCSB CHIRPS Rainfall` (final) y `90 = UCSB CHIRP
+   Rainfall`, la estimacion satelital sin la correccion por estaciones. El
+   preliminar de D-26 lo publica CHC como GeoTIFF global diario, fuera de este
+   servicio.
+2. Medido con `docs/herramientas/medir_productos_ingesta.py` sobre la celda de
+   Tilaran: el **final llega hasta el 2026-07-31**, 33 dias de latencia, dentro
+   de lo que D-26 documento. El **CHIRP (90) llega solo hasta principios de
+   junio** -156 dias con dato desde el 1 de enero en la corrida de prueba de la
+   ingesta- y sobre una ventana sin datos el servicio **no responde**: dos
+   peticiones encoladas, 120 s y 450 s de espera, sin resultado.
+3. POWER, que aporta el resto de las variables, llega con 3 dias.
+
+Un producto que llega despues que el final no es un preliminar. Cargarlo a
+diario y reemplazarlo cada semana seria trabajo de la maquina para no ganar
+un solo dia, y una columna `fuente_precipitacion = 'chirp'` que nunca tendria
+el dato mas nuevo.
+
+### Decision
+
+1. **Lluvia intensa y sequia cargan el CHIRPS final** (`chirps`, tipo 0), cada
+   una con su cadencia de D-26: lluvia intensa a diario, sequia semanal como
+   mucho. La ventana de cada corrida empieza el dia siguiente al **ultimo dia
+   con dato** y termina ayer, asi que la corrida diaria trae lo que el
+   servicio haya publicado desde la anterior.
+2. **La latencia declarada de lluvia intensa pasa a ser la del final**: la
+   ultima medida, 33 dias, y la que `control.bitacora_etl` deje escrita en
+   cada corrida (`ventana_hasta` contra el ultimo dia con dato). El visor y
+   `/salud` deben mostrar esa fecha, no prometer dos dias.
+3. **La regla de reemplazo se queda**, implementada y probada contra la base:
+   el final reemplaza al preliminar, el preliminar nunca pisa un valor del
+   final, un nulo nunca pisa un valor. El codigo `chirp` sigue en
+   `crudo.fuente` (migracion 013) y `ExtractorChirps` acepta el tipo 90. Es lo
+   que hace falta el dia que un preliminar de verdad -el GeoTIFF de CHC, o un
+   CHIRP que adelante- se conecte: cambiar `PRODUCTO["lluvia_intensa"]` y nada
+   mas.
+4. **FIRMS si tiene un preliminar que llega antes**, y la misma regla se le
+   aplica: NRT (`modis-nrt`, `viirs-snpp-nrt`) declarado por fila, reemplazado
+   por SP por dia y producto cuando el servicio declara que el SP cubre el dia.
+   Medido el 2026-09-03: el SP de MODIS llega al 2026-04-30 y el de VIIRS S-NPP
+   al 2026-04-27; el NRT cubre desde ahi hasta hoy sin hueco.
+
+### Justificacion
+
+El criterio de H1.14 decia que el producto se comprueba contra el catalogo y
+no se supone, y que si el preliminar no esta, «lluvia intensa se declara con
+el producto que si hay y la cadencia diaria queda con la latencia real de ese
+producto, escrita». Esto es aplicar ese criterio con las cifras medidas. Es
+la forma de D-17 y D-25: el producto que se carga se declara, y una latencia
+se mide antes de prometerla.
+
+### Alternativas descartadas
+
+- **Cargar el CHIRP igual, como preliminar.** Llega despues que el final;
+  seria declarar como «mas nuevo» un dato mas viejo y sin correccion por
+  estaciones. Descartada por la medicion.
+- **Bajar el GeoTIFF preliminar de CHC.** Es el unico preliminar real, pero
+  cuesta `rasterio`, recorte por poligono y un archivo global por dia, y no
+  hay medicion de que para Costa Rica llegue antes que el final. Queda como
+  trabajo futuro, con esa medicion como condicion.
+- **Quitar el codigo `chirp` y el tipo 90.** Dejaria la regla de reemplazo sin
+  nada que reemplazar y sin prueba. Se conservan: son cincuenta lineas y la
+  prueba contra la base ya existe.
+
+### Consecuencias
+
+- D-26 sigue en pie en todo menos en la palabra «preliminar» para lluvia
+  intensa: la cadencia diaria se mantiene, el dato que trae es el final.
+- La migracion 013 dice en su comentario que el CHIRP «sale antes»; era lo que
+  el catalogo daba a entender y la medicion lo desmintio el mismo dia. **Una
+  migracion aplicada no se edita** (`aplicar_migraciones.py` lo impide); la
+  correccion vive aqui y en la evidencia de H1.14.
+- Queda como trabajo futuro, fuera de H1.14: un extractor del GeoTIFF de CHC,
+  que necesitaria `rasterio` y recorte por poligono. Solo tiene sentido si
+  se mide primero que ese producto llega antes que el final para Costa Rica.
+
+### Medicion
+
+`docs/herramientas/medir_productos_ingesta.py` (repetible) y la corrida real
+de H1.14 en `docs/evidencias/bases-de-datos/H1.14-ingesta.md`. La cifra que
+debe seguirse: el ultimo dia con dato de `chirps` en `crudo.medicion_diaria`
+contra la fecha de la corrida, que `contar_ingesta.py` imprime. Si alguna vez
+el CHIRP (tipo 90) adelanta al final, `medir_productos_ingesta.py --solo chirp`
+lo mostrara y esta decision se revisa.

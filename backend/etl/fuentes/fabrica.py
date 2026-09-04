@@ -55,8 +55,9 @@ from collections.abc import Callable
 
 from contratos.fuentes import ExtractorClima, ExtractorFocosCalor
 
-from .chirps import ExtractorChirps
+from .chirps import TIPO_DATO, ExtractorChirps
 from .firms import ExtractorFirms
+from .firms_area import ExtractorFirmsArea
 from .hibrido import ExtractorHibrido, Territorio
 from .power import ExtractorPower
 from .prueba_fabrica import ExtractorPrueba
@@ -69,9 +70,13 @@ class ErrorFuenteDesconocida(Exception):
 def construir_hibrido(
     territorios: list[Territorio],
     registrar: Callable[[str], None] | None = None,
+    tipo_dato_chirps: str = TIPO_DATO,
 ) -> ExtractorHibrido:
     """
     Arma la fuente climatica hibrida (D-15): CHIRPS para lluvia, POWER para el resto.
+
+    `tipo_dato_chirps` es el producto de ClimateSERV que pide la lluvia (H1.14):
+    el final por omision, o el CHIRP sin estaciones para la ingesta diaria.
 
     Instancia sus dos clientes aca adentro en vez de recibirlos hechos: son
     piezas internas de esta fuente, no fuentes registradas -no cumplen
@@ -83,7 +88,7 @@ def construir_hibrido(
     return ExtractorHibrido(
         territorios,
         power=ExtractorPower(),
-        chirps=ExtractorChirps(),
+        chirps=ExtractorChirps(tipo_dato=tipo_dato_chirps),
         registrar=registrar,
     )
 
@@ -95,6 +100,8 @@ REGISTRO_CLIMA: dict[str, Callable[..., ExtractorClima]] = {
 
 REGISTRO_FOCOS: dict[str, Callable[..., ExtractorFocosCalor]] = {
     "firms": ExtractorFirms,
+    # H1.14: el anio en curso, por la API por area. Necesita FIRMS_MAP_KEY.
+    "firms-area": ExtractorFirmsArea,
 }
 
 
