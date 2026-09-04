@@ -535,3 +535,22 @@ escribe aqui, estrecha:
 Si Cesar retoma cualquiera de las dos, la fila vuelve a su nombre por la
 clausula de D-33, sin pedir permiso.
 
+## Excepcion: `.github/workflows/alerta.yml`, para H12.3 de Cesar
+
+**Declarada el 2026-09-03, a peticion escrita de Cesar y antes de que exista el
+archivo.** `.github/workflows/` es de Alejandro y ademas esta en la lista de
+archivos compartidos; el dueno y el aprobador son la misma persona, y aprueba.
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Cesar | `.github/workflows/alerta.yml` (**nuevo**) | **H12.3, y nada mas**: un flujo que escucha con `workflow_run` cuando CI o CD terminan en `dev` o `main` y abre o cierra una issue de alerta. La logica va en un guion de Python en carpeta de Cesar |
+
+Lo que la excepcion **no** cubre: `ci.yml` y `cd.yml`. No se tocan, y H12.3 lo
+convierte en criterio (su CA-1 compara los dos por hash). Permisos del flujo:
+`issues: write` y `actions: read`, los minimos que necesita.
+
+Sobre la prueba: un `workflow_run` solo corre desde la rama por omision, asi
+que Cesar lo prueba corriendo el guion a mano contra una corrida que fallo de
+verdad. Eso abre una issue de alerta real, etiquetada `alerta`, que queda
+cerrada y **no se borra**: es la evidencia.
+
