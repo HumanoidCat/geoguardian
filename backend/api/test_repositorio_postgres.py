@@ -51,7 +51,7 @@ from backend.api.repositorio_postgres import (
     RepositorioPostgres,
     TablaPendiente,
 )
-from contratos.enums import MetodoImputacion, TipoEvento
+from contratos.enums import MetodoImputacion
 from contratos.esquemas import FocoCalor, MedicionDiaria
 from contratos.repositorio import Repositorio
 
@@ -231,11 +231,6 @@ def test_construir_con_un_doble_no_llama_a_conectar(monkeypatch):
 LLAMADAS_PENDIENTES = {
     "guardar_indices": lambda r: r.guardar_indices([]),
     "obtener_indices": lambda r: r.obtener_indices("50801", date(2024, 1, 1), date(2024, 1, 2)),
-    "guardar_riesgos": lambda r: r.guardar_riesgos([]),
-    "obtener_riesgo": lambda r: r.obtener_riesgo("50801", date(2024, 1, 1), TipoEvento.SEQUIA),
-    "obtener_riesgos_por_fecha": lambda r: r.obtener_riesgos_por_fecha(
-        date(2024, 1, 1), TipoEvento.SEQUIA
-    ),
     "listar_eventos": lambda r: r.listar_eventos(),
     "guardar_reporte_calidad": lambda r: r.guardar_reporte_calidad(None),
     "listar_reportes_calidad": lambda r: r.listar_reportes_calidad(),
@@ -244,9 +239,15 @@ LLAMADAS_PENDIENTES = {
 }
 
 
-def test_la_tabla_de_pendientes_cubre_exactamente_diez_metodos():
-    assert len(PENDIENTES) == 10
+def test_la_tabla_de_pendientes_cubre_exactamente_los_metodos_que_fallan():
+    """Sin numero escrito a mano: decia `== 10` y H3.6 implemento tres (D-39).
+
+    Lo que se exige es que cada metodo declarado pendiente tenga su llamada de
+    prueba y que ninguna llamada apunte a un metodo que ya existe. El numero
+    sale de `PENDIENTES`, que es la fuente.
+    """
     assert set(LLAMADAS_PENDIENTES) == set(PENDIENTES)
+    assert PENDIENTES, "si no queda ningun pendiente, esta prueba y sus vecinas se retiran"
 
 
 @pytest.mark.parametrize("metodo", sorted(LLAMADAS_PENDIENTES))

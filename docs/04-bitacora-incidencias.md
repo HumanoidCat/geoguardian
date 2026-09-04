@@ -2064,3 +2064,56 @@ personas; conviene esperar mas de estos.
 **Impacto.** Ninguno en datos: Cesar realineo su base sin perder nada. Un
 mensaje de error que manda a hacer lo incorrecto, pendiente de corregir en
 `basedatos/`.
+
+## I-30 · `/salud` dice que la base no esta conectada mientras sirve 143 407 filas de ella
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** La primera consulta a la API en modo `postgres`, al
+cerrar H3.6: `GET /salud` respondio `"modo":"real","base_datos_conectada":false`
+un segundo despues de que `GET /riesgos` devolviera filas leidas de
+`analitico.riesgo`.
+
+**Que paso.** En `backend/api/rutas.py`, `base_datos_conectada=False` esta
+escrito a mano desde H6.1, con este comentario: «Esta historia no abre conexion
+a PostgreSQL: eso es H6.2. Declararlo falso es la respuesta honesta». Era
+honesto el 2026-08-13. H6.2 trajo la conexion y no toco la linea; H3.6 activo el
+modo `postgres` y la linea siguio diciendo lo de agosto.
+
+**Causa raiz.** Un valor que era verdadero cuando se escribio y que **nada
+vigila cuando deja de serlo**. `verificar_h61` comprueba que el campo sea
+`False` en modo simulado (CA-8), que es correcto, y no comprueba nada en modo
+real, porque cuando se escribio no habia modo real. Es la familia de I-21 y de
+verificar_h66: un control que solo conoce la entrada con la que nacio.
+
+`modo`, en cambio, no miente: `modo_de()` pregunta por la implementacion. La
+diferencia entre los dos campos es exactamente la diferencia entre un valor
+derivado y uno escrito a mano.
+
+**Accion tomada.** Registrar y pedir la correccion a Cesar, dueno de
+`backend/api/rutas.py` y `dependencias.py`. Lo que se le pide:
+
+  1. Que el campo se **derive**: `True` si el repositorio activo es el de
+     PostgreSQL y la conexion responde; `False` en cualquier otro caso. La forma
+     natural es una funcion en `dependencias.py` al lado de `modo_de()`, que ya
+     resuelve el mismo problema para `modo` sin que las rutas conozcan la clase.
+  2. Que `verificar_h61` compruebe el campo **en los dos modos**, no solo en el
+     que existia cuando nacio.
+  3. Y que `verificar_h61` **fije el modo que necesita en vez de heredarlo**:
+     al cerrar H3.6 se corrio en una terminal que tenia
+     `GEOGUARDIAN_REPOSITORIO=postgres` puesta desde la prueba anterior, y CA-8
+     salio en rojo -y con el, CA-7 de `verificar_h62`, que lo invoca- sin que
+     nada hubiera cambiado en el codigo. `verificar_h62` ya limpia esa variable
+     antes de probar; `verificar_h61` no. Es el mismo defecto visto desde el
+     verificador: un control cuyo resultado depende del entorno de quien lo
+     corre no distingue un defecto de una terminal.
+
+**Impacto.** Ninguno en el visor: la franja de «datos simulados» depende de
+`modo`, que es correcto. Un campo de `/salud` falso para quien lo consulte a
+mano o para H12.2, la pantalla de monitoreo, que lo va a leer.
+
+**Aprendizaje.** Un campo de estado escrito a mano tiene fecha de caducidad y
+no la declara. Si un valor puede cambiar por una historia futura, o se deriva
+o se vigila; escribirlo con un comentario que explica por que hoy es cierto
+es dejarle una trampa a quien cierre esa historia.
+

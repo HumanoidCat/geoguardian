@@ -491,12 +491,19 @@ de Alejandro: `guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`,
 
 | Quien | Donde | Para que |
 |---|---|---|
-| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los cinco metodos que el encabezado asigna a H3.6, y el guion que corre el modelo y escribe `analitico.riesgo` |
+| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los tres metodos de riesgo (`guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`) y su SQL, y el guion que corre el modelo y escribe `analitico.riesgo` |
+| Alejandro | `backend/api/test_repositorio_postgres.py`, `backend/api/verificar_h62.py` | **solo** lo que deja de ser cierto al implementar esos tres: la prueba que decia «exactamente diez pendientes» con el numero escrito a mano, y el nombre con que `verificar_h62` la busca. Se cambian a derivar de `PENDIENTES`, no a otro numero |
+
+> **Acotada el 2026-09-03 por D-39.** `guardar_metricas` y `listar_metricas`
+> **salen** de esta excepcion: necesitan la tabla `analitico.metrica`, que no
+> existe y es DDL de `basedatos/`, de Cesar. Pasan a **H3.7**. El encabezado de
+> `repositorio_postgres.py` se corrige en el mismo PR.
 
 Lo que **no** cubre: el resto del archivo (`guardar_indices`, `obtener_indices`,
-`listar_eventos`, los reportes de calidad), el contrato `contratos/`, ni
-`docker-compose.yml`. Cambiar la variable de entorno del despliegue es
-`infra/`, que ya es de Alejandro.
+`listar_eventos`, los reportes de calidad, las metricas), el contrato
+`contratos/`, ni `docker-compose.yml` -que ya lee `GEOGUARDIAN_REPOSITORIO`
+del entorno y no hace falta tocar-. La variable en el despliegue es `infra/`,
+que ya es de Alejandro.
 
 Es la misma regla de siempre: **la propiedad sigue al trabajo asignado.** Los
 metodos llevan el nombre de H3.6 escrito en el archivo desde que se creo.

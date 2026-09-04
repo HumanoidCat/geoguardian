@@ -443,8 +443,21 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
 
-- [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
+- [x] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento (2026-09-03)
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
+  - horas: estimada 8.0 . real 1.8
+  - Evidencia: `docs/evidencias/objetivos/H3.6-cierre-tuberia.md` (y la primera
+    parte, `H3.6-tabla-comparativa.md`, del 2026-08-27).
+  - **Cerrada con los tres algoritmos en la tabla y D-39**: ningun modelo supera
+    a la climatologica fuera del ruido, asi que escribe la climatologica en
+    lluvia e incendio y nadie en sequia. La regla (`elegir_escritor`) se
+    recalcula en cada corrida; no hay un nombre de algoritmo en el guion.
+  - Tuberia: tres metodos de `repositorio_postgres.py` bajo excepcion,
+    `estimar_riesgo.py`, **143 407 filas reales** en `analitico.riesgo`, dos
+    corridas identicas sin auditoria, y **la API en modo `postgres` con
+    `modo: real`**. 21 criterios en `verificar_h36_tuberia.py`.
+  - Hallazgo: `/salud` dice `base_datos_conectada: false` mientras sirve filas de
+    PostgreSQL; escrito a mano desde H6.1. Es **I-30**, de Cesar.
   - **Entregado el arnes y el contrato, el 2026-08-27. NO se marca `[x]`**: la
     historia dice «tres algoritmos» y los tres -H3.3, H3.4 y H3.5, de Cesar- no
     existen. Cerrarla con dos lineas base seria declarar hecho el contraste de

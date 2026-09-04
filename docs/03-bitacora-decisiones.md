@@ -4204,3 +4204,134 @@ este mismo registro, sin decision nueva.
 
 `verificar_estado.py` y `verificar_backlog.py` se corrieron despues de escribir
 esto y coinciden: las diferidas siguen contadas como abiertas.
+
+---
+
+## D-39 · Que estimador escribe `analitico.riesgo` cuando ninguno gana fuera del ruido
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Se apoya en.** D-07, D-09, D-10, D-21, D-34, CA-5 de H3.6 · **Afecta.** H3.6, H3.8, H4.1, H4.2, H4.4
+
+### Contexto
+
+Con H3.4 y H3.5 la tabla de H3.6 tiene los tres algoritmos de D-09 y las dos
+lineas base, sobre las 102 272 filas reales y los cinco pliegues de H3.2. Las
+cifras del 2026-09-03, con hiperparametros de fabrica:
+
+    lluvia_intensa   xgboost 0.371 · climatologica 0.346 · random forest 0.312 · trivial 0.309 · regresion 0.306
+                     veredicto: empate tecnico, xgboost +0.025 sobre climatologica con rango 0.031
+    incendio         regresion 0.535 · xgboost 0.528 · climatologica 0.500 · trivial 0.494 · random forest 0.494
+                     veredicto: empate tecnico, regresion +0.007 sobre xgboost con rango 0.072
+    sequia           no modelable (D-34); solo lineas base: trivial 0.333 · climatologica 0.272
+
+**Ningun algoritmo supera a la linea base climatologica fuera del ruido.** La
+regla que lo dice no se invento hoy: es CA-5 de H3.6, fijada el 2026-08-27
+antes de que existiera un solo modelo: «no se declara ganador cuando la
+ventaja es menor que la dispersion entre pliegues».
+
+Y la tuberia hacia `analitico.riesgo` -tres metodos del repositorio y un guion-
+necesita saber **que estimador escribe cada evento**. Nadie ha escrito nunca
+una fila; el visor sigue en `simulado` por eso.
+
+### Decision
+
+**1. Escribe el estimador que la tabla elige con una regla fija, no uno que se
+elige a mano.** La regla, en `comparar.elegir_escritor()`:
+
+  a. Se ordenan los estimadores por F1-macro, como la tabla.
+  b. Si el primero supera al segundo **fuera del ruido** (ventaja mayor que su
+     propio rango entre pliegues, la regla de CA-5), escribe el primero.
+  c. Si no, escribe **el mas simple** de los que quedan **dentro del ruido del
+     primero** (media ≥ media del primero − rango del primero). El orden de
+     simplicidad es fijo: climatologica < regresion logistica < random forest
+     < xgboost.
+  d. **La trivial nunca escribe.** Es el piso absoluto contra el que se mide,
+     no una estimacion: «siempre BAJO» convertiria la ausencia de senal en
+     riesgo bajo, que es exactamente lo que D-07 prohibe.
+  e. **Nadie escribe por debajo del piso.** Un estimador cuya media no alcanza
+     a la trivial no escribe. Si ninguno la alcanza, el evento queda **sin
+     fila** y el visor lo muestra como «sin estimacion».
+
+**2. Con las cifras de hoy, la regla da:**
+
+| Evento | Escribe | Por que |
+|---|---|---|
+| lluvia intensa | **climatologica** | xgboost no gana fuera del ruido (+0,025 < 0,031); dentro del ruido, la climatologica es la mas simple |
+| incendio | **climatologica** | regresion no gana fuera del ruido (rango 0,072 cubre a xgboost y a la climatologica); la mas simple dentro del ruido |
+| sequia | **nadie** | D-34; y la climatologica (0,272) esta por debajo del piso (0,333) |
+
+**3. La regla se recalcula en cada corrida.** El guion corre la tabla completa
+y elige con ella; no hay un nombre de algoritmo escrito en el guion. El dia
+que H3.8 ajuste hiperparametros y un modelo gane fuera del ruido, la misma
+corrida lo pone a escribir sin tocar una linea. Es lo contrario del `== 3` de
+`verificar_h66`: la decision sigue al dato.
+
+**4. Cada fila declara quien la escribio y por que.** `algoritmo` lleva el
+estimador y `version_modelo` lleva la fecha de la corrida, el F1-macro del
+escritor y el veredicto de la tabla (`climatologica@2026-09-03 f1=0.346
+empate-tecnico`). Una fila de `analitico.riesgo` se puede reproducir y se puede
+retirar.
+
+**5. `probabilidad` es P(nivel = alto) por D-21, tambien para la climatologica**:
+la tasa de ALTO en ese distrito y ese mes calendario en el entrenamiento. Es una
+probabilidad empirica legitima y la unica que la climatologica puede dar.
+
+### Justificacion
+
+**La alternativa era declarar ganador al de mayor media aunque cayera dentro
+del ruido.** Habria puesto a xgboost en lluvia y a la regresion en incendio, y
+el visor mostraria «aprendizaje automatico». Se descarto porque **cambiaria la
+regla despues de ver el dato**, que es lo unico que la metodologia del proyecto
+prohibe sin excepcion: CA-5 se fijo antes, y si hoy se relaja para que gane un
+modelo, la tabla deja de significar lo que dice.
+
+Lo que se gana con esta regla es que el visor muestre **riesgo real** desde
+hoy: la climatologica es el almanaque de 35 anios por distrito y mes, se
+explica en una frase, y esta medida como no peor que cualquier modelo. Y lo
+que se pierde -que el mapa no lleve un modelo de aprendizaje- se pierde por una
+razon medida, no por una omision.
+
+Y hay un segundo motivo, mas importante para H3.8: **una regla que puede dar
+«climatologica» es una regla que puede decir que no.** Si la regla siempre
+eligiera un modelo, ajustar hiperparametros no tendria nada que demostrar.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Empate tecnico → el de mayor media | Cambia CA-5 despues de ver el dato. Y con rango 0,072 en incendio, la «mayor media» es ruido con nombre |
+| Escribir los tres modelos y que el visor elija | Tres filas por terna rompen la clave natural de `analitico.riesgo` (una estimacion por distrito, dia y evento, D-21) y trasladan al visor una decision de modelado |
+| Que la trivial escriba en sequia | «Siempre BAJO» presentado como estimacion es la ausencia disfrazada de riesgo bajo: D-07 |
+| Elegir a mano y escribirlo en el guion | Es el `== 3` de verificar_h66: la proxima tabla lo deja obsoleto sin que nadie lo note |
+
+### Consecuencias
+
+El visor con `GEOGUARDIAN_REPOSITORIO=postgres` muestra riesgo climatologico
+real para lluvia intensa e incendio, «sin estimacion» para sequia, y «sin
+estimacion» para cualquier fecha sin caracteristicas -hoy, todo lo posterior
+al ultimo dia ingerido-. Que haya fila para hoy depende de la ingesta con
+cadencia, **H1.14**, que ahora es del PM por D-38.
+
+`explicacion` (SHAP, H4.2) queda NULL: la climatologica no tiene variables que
+explicar. H4.1 y H4.2 siguen siendo sobre los modelos, no sobre el escritor,
+y su valor esta en explicar **por que los modelos no ganan**, que es tan
+resultado como lo contrario.
+
+`guardar_metricas` y `listar_metricas` **no entran en H3.6**: la tabla
+`analitico.metrica` no existe y crearla es DDL de `basedatos/`, de Cesar. Pasan a
+**H3.7** (versionar modelos con metricas), que Cesar toma si H3.6 cierra a
+tiempo. La excepcion de `docs/07` se acota a los tres metodos de riesgo.
+
+### Medicion
+
+Se da por buena si `python -m backend.modelado.estimar_riesgo` escribe filas
+en `analitico.riesgo` con `algoritmo` y `version_modelo` declarados, y
+`GET /riesgos?fecha=<ultimo dia con datos>&tipo_evento=incendio` devuelve los
+ocho distritos con nivel y probabilidad, con la API en modo `postgres` y sin
+que `Salud.modo` diga `simulado`.
+
+La regla se prueba sin base en `verificar_h36_tuberia.py`, con tablas
+construidas a mano para cada rama: ganador fuera del ruido, empate con mas
+simple, piso, y nadie. Se sabotea cada rama y se comprueba que cae el
+criterio correcto.
+

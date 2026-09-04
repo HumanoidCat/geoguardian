@@ -125,6 +125,9 @@ class LineaBaseClimatologica:
     respaldo: dict[tuple[str, int], int] = field(default_factory=dict)
     #: la tasa de cada clase en todo el entrenamiento, que es el denominador
     tasa_base: dict[NivelRiesgo, float] = field(default_factory=dict)
+    #: (codigo_distrito, mes) -> tasa de cada clase en esa celda. Es la
+    #: distribucion empirica que D-39 usa como P(nivel = alto) por D-21.
+    tasas: dict[tuple[str, int], dict[NivelRiesgo, float]] = field(default_factory=dict)
 
     def ajustar(self, entrenamiento: list[tuple[str, date, NivelRiesgo]]) -> LineaBaseClimatologica:
         por_celda: dict[tuple[str, int], Counter] = defaultdict(Counter)
@@ -137,9 +140,11 @@ class LineaBaseClimatologica:
         self.tasa_base = {c: n / total for c, n in global_.items()} if total else {}
         self.tabla = {}
         self.respaldo = {}
+        self.tasas = {}
 
         for celda, cuenta in por_celda.items():
             filas = sum(cuenta.values())
+            self.tasas[celda] = {c: cuenta[c] / filas for c in global_}
 
             def realce(clase: NivelRiesgo, cuenta: Counter = cuenta, filas: int = filas) -> float:
                 base = self.tasa_base.get(clase, 0.0)
@@ -159,6 +164,15 @@ class LineaBaseClimatologica:
         y esconder que el pliegue no alcanzaba. Es **D-07**.
         """
         return self.tabla.get((codigo_distrito, fecha.month))
+
+    def distribucion(self, codigo_distrito: str, fecha: date) -> dict[NivelRiesgo, float] | None:
+        """La tasa de cada clase en ese distrito y mes, o None si la celda no tuvo dato.
+
+        Es lo que D-39 escribe como `probabilidad` (P(nivel = alto), D-21) cuando
+        la climatologica es la escritora: una probabilidad empirica sobre 35
+        anios de calendario, no un numero inventado. Suma 1 por construccion.
+        """
+        return self.tasas.get((codigo_distrito, fecha.month))
 
 
 # --------------------------------------------------------------------------- #
