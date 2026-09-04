@@ -241,6 +241,10 @@ class BosqueAleatorio:
 
     # ----------------------------------------------------------------- #
     @property
+    def necesita_caracteristicas(self) -> bool:
+        return True
+
+    @property
     def filas_sin_prediccion(self) -> int:
         """Cuantas filas quedaron en `None` en la ultima llamada a `predecir`."""
         return self._filas_sin_prediccion

@@ -195,6 +195,38 @@ class RegresionLogistica:
                 salida[i] = NivelRiesgo(etiqueta)
         return salida
 
+    def probabilidades(
+        self, observaciones: list[Observacion]
+    ) -> list[dict[NivelRiesgo, float] | None]:
+        """Una distribucion por fila, rotulada por clase; `None` donde no se predice.
+
+        Agregada por D-39: la tuberia necesita P(nivel = alto) por D-21. Se
+        rotula por clase y no por posicion por lo mismo que `coeficientes`:
+        `classes_` viene en orden alfabetico y en un evento binario la columna 1
+        es `bajo`. Corta las mismas filas que `predecir()`: usa `_fila`.
+        """
+        if self._modelo is None or self._escalador is None:
+            raise ValueError("hay que llamar a ajustar() antes de probabilidades()")
+
+        salida: list[dict[NivelRiesgo, float] | None] = [None] * len(observaciones)
+        indices, filas = [], []
+        for i, observacion in enumerate(observaciones):
+            fila = self._fila(observacion)
+            if fila is not None:
+                indices.append(i)
+                filas.append(fila)
+        self._filas_sin_prediccion = len(observaciones) - len(filas)
+        if filas:
+            clases = [NivelRiesgo(c) for c in self._modelo.classes_]
+            X = self._escalador.transform(np.asarray(filas, dtype=float))
+            for i, fila in zip(indices, self._modelo.predict_proba(X), strict=True):
+                salida[i] = dict(zip(clases, fila.tolist(), strict=True))
+        return salida
+
+    @property
+    def necesita_caracteristicas(self) -> bool:
+        return True
+
     # ----------------------------------------------------------------- #
     def _fila(self, observacion: Observacion) -> list[float] | None:
         """Los valores en el orden de `_columnas`, o None si falta alguno.

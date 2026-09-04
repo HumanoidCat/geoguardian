@@ -8,7 +8,7 @@ del simulado que respondia hasta ahora. Los endpoints de H6.1 no cambian ni una
 linea: dependen del protocolo, no de la clase, y `dependencias.py` es el unico
 archivo que sabe cual implementacion esta activa.
 
-**SEIS DE LOS DIECISEIS METODOS ESTAN IMPLEMENTADOS.** Los otros diez dependen de
+**NUEVE DE LOS DIECISEIS METODOS ESTAN IMPLEMENTADOS.** Los otros siete dependen de
 tablas que todavia no existen:
 
     implementados          tabla                     historia que la trajo
@@ -19,19 +19,30 @@ tablas que todavia no existen:
     obtener_mediciones     crudo.medicion_diaria     H1.1
     guardar_focos          crudo.foco_calor          H1.2
     contar_focos           crudo.foco_calor          H1.2
+    guardar_riesgos        analitico.riesgo          H3.6 (Alejandro, D-39)
+    obtener_riesgo         analitico.riesgo          H3.6 (Alejandro, D-39)
+    obtener_riesgos_por_f  analitico.riesgo          H3.6 (Alejandro, D-39)
 
     pendientes             lo que falta              historia que lo va a traer
     ---------------------  ------------------------  --------------------------
     guardar_indices        analitico.indice          H2.5
     obtener_indices        analitico.indice          H2.5
-    guardar_riesgos        analitico.riesgo          H3.6
-    obtener_riesgo         analitico.riesgo          H3.6
-    obtener_riesgos_por_f  analitico.riesgo          H3.6
     listar_eventos         analitico.evento          H4.3
     guardar_reporte_cal    control.reporte_calidad   H1.5
     listar_reportes_cal    control.reporte_calidad   H1.5
-    guardar_metricas       analitico.metrica         H3.6
-    listar_metricas        analitico.metrica         H3.6
+    guardar_metricas       analitico.metrica         H3.7
+    listar_metricas        analitico.metrica         H3.7
+
+LOS TRES DE RIESGO, ESCRITOS POR EL PM BAJO EXCEPCION (docs/07, D-39)
+
+`analitico.riesgo` existe desde H1.15 con clave natural (distrito, fecha,
+evento) y sus restricciones. `guardar_riesgos` hace un `INSERT ... ON CONFLICT`
+sobre esa clave y **solo actualiza si algo cambio** (`IS DISTINCT FROM`): asi
+correr el guion dos veces no reescribe filas iguales ni dispara la auditoria de
+H1.13 en vano. `obtener_riesgos_por_fecha` devuelve **un `Riesgo` por
+distrito**, con `nivel` nulo donde no hay fila: el visor tiene que poder
+distinguir «sin estimacion» de «distrito que no existe», que es D-07 en la
+lectura. Las metricas quedan para H3.7, que trae la tabla.
 
 POR QUE LOS PENDIENTES FALLAN EN VEZ DE DEVOLVER VACIO
 
@@ -68,8 +79,9 @@ import json
 from datetime import date, timedelta
 
 from basedatos.conexion import conectar
-from contratos.enums import MetodoImputacion, TipoEvento
+from contratos.enums import Algoritmo, MetodoImputacion, NivelRiesgo, TipoEvento
 from contratos.esquemas import (
+    ContribucionVariable,
     Distrito,
     EventoHistorico,
     FocoCalor,
@@ -87,14 +99,11 @@ CODIGO_CANTON = 508
 PENDIENTES = {
     "guardar_indices": ("analitico.indice", "H2.5"),
     "obtener_indices": ("analitico.indice", "H2.5"),
-    "guardar_riesgos": ("analitico.riesgo", "H3.6"),
-    "obtener_riesgo": ("analitico.riesgo", "H3.6"),
-    "obtener_riesgos_por_fecha": ("analitico.riesgo", "H3.6"),
     "listar_eventos": ("analitico.evento", "H4.3"),
     "guardar_reporte_calidad": ("control.reporte_calidad", "H1.5"),
     "listar_reportes_calidad": ("control.reporte_calidad", "H1.5"),
-    "guardar_metricas": ("analitico.metrica", "H3.6"),
-    "listar_metricas": ("analitico.metrica", "H3.6"),
+    "guardar_metricas": ("analitico.metrica", "H3.7"),
+    "listar_metricas": ("analitico.metrica", "H3.7"),
 }
 
 
@@ -201,6 +210,54 @@ SQL_CONTAR_FOCOS = """
     SELECT count(*)
       FROM crudo.foco_calor
      WHERE codigo_distrito = %s AND fecha BETWEEN %s AND %s
+"""
+
+# Solo actualiza si algo cambio: una corrida repetida del guion de D-39 no
+# reescribe filas identicas, y el trigger de auditoria de H1.13 no registra
+# cambios que no existen.
+SQL_GUARDAR_RIESGO = """
+    INSERT INTO analitico.riesgo (
+        codigo_distrito, fecha, tipo_evento,
+        nivel, probabilidad, algoritmo, version_modelo, explicacion, estimado_en
+    )
+    VALUES (
+        %(codigo_distrito)s, %(fecha)s, %(tipo_evento)s,
+        %(nivel)s, %(probabilidad)s, %(algoritmo)s, %(version_modelo)s, %(explicacion)s, now()
+    )
+    ON CONFLICT (codigo_distrito, fecha, tipo_evento) DO UPDATE
+       SET nivel          = EXCLUDED.nivel,
+           probabilidad   = EXCLUDED.probabilidad,
+           algoritmo      = EXCLUDED.algoritmo,
+           version_modelo = EXCLUDED.version_modelo,
+           explicacion    = EXCLUDED.explicacion,
+           estimado_en    = now()
+     WHERE (analitico.riesgo.nivel, analitico.riesgo.probabilidad,
+            analitico.riesgo.algoritmo, analitico.riesgo.version_modelo,
+            analitico.riesgo.explicacion)
+           IS DISTINCT FROM
+           (EXCLUDED.nivel, EXCLUDED.probabilidad,
+            EXCLUDED.algoritmo, EXCLUDED.version_modelo, EXCLUDED.explicacion)
+"""
+
+SQL_RIESGO = """
+    SELECT codigo_distrito, fecha, tipo_evento,
+           nivel, probabilidad, algoritmo, version_modelo, explicacion
+      FROM analitico.riesgo
+     WHERE codigo_distrito = %s AND fecha = %s AND tipo_evento = %s
+"""
+
+# Un Riesgo por distrito del canton, con los campos nulos donde no hay fila:
+# la misma forma que SQL_MEDICIONES da a los dias sin dato.
+SQL_RIESGOS_POR_FECHA = """
+    SELECT d.codigo, %(fecha)s::date, %(tipo_evento)s,
+           r.nivel, r.probabilidad, r.algoritmo, r.version_modelo, r.explicacion
+      FROM geo.distrito d
+      LEFT JOIN analitico.riesgo r
+             ON r.codigo_distrito = d.codigo
+            AND r.fecha = %(fecha)s
+            AND r.tipo_evento = %(tipo_evento)s
+     WHERE d.codigo_canton = %(canton)s
+     ORDER BY d.codigo
 """
 
 
@@ -384,16 +441,69 @@ class RepositorioPostgres:
     ) -> list[IndiceDerivado]:
         raise _pendiente("obtener_indices")
 
+    # -- Riesgo. H3.6, escrito por el PM bajo la excepcion de docs/07 (D-39) -- #
+
+    @staticmethod
+    def _a_riesgo(fila) -> Riesgo:
+        codigo, fecha, tipo_evento, nivel, probabilidad, algoritmo, version, explicacion = fila
+        return Riesgo(
+            codigo_distrito=codigo,
+            fecha=fecha,
+            tipo_evento=TipoEvento(tipo_evento),
+            nivel=NivelRiesgo(nivel) if nivel else None,
+            probabilidad=float(probabilidad) if probabilidad is not None else None,
+            algoritmo=Algoritmo(algoritmo) if algoritmo else None,
+            version_modelo=version,
+            explicacion=([ContribucionVariable(**c) for c in explicacion] if explicacion else None),
+        )
+
     def guardar_riesgos(self, riesgos: list[Riesgo]) -> int:
-        raise _pendiente("guardar_riesgos")
+        """
+        Idempotente por la clave natural (distrito, fecha, evento). Todo o nada.
+
+        Devuelve cuantas filas se enviaron, no cuantas cambiaron: la base decide
+        eso con el `WHERE ... IS DISTINCT FROM` del SQL, y contarlo obligaria a
+        una segunda consulta por lote.
+        """
+        if not riesgos:
+            return 0
+        parametros = [
+            {
+                "codigo_distrito": r.codigo_distrito,
+                "fecha": r.fecha,
+                "tipo_evento": r.tipo_evento.value,
+                "nivel": r.nivel.value if r.nivel else None,
+                "probabilidad": r.probabilidad,
+                "algoritmo": r.algoritmo.value if r.algoritmo else None,
+                "version_modelo": r.version_modelo,
+                "explicacion": (
+                    json.dumps([c.model_dump() for c in r.explicacion]) if r.explicacion else None
+                ),
+            }
+            for r in riesgos
+        ]
+        with self._conexion.transaction(), self._conexion.cursor() as cursor:
+            cursor.executemany(SQL_GUARDAR_RIESGO, parametros)
+        return len(parametros)
 
     def obtener_riesgo(
         self, codigo_distrito: str, fecha: date, tipo_evento: TipoEvento
     ) -> Riesgo | None:
-        raise _pendiente("obtener_riesgo")
+        """None si no hay fila. No se inventa una: es lo que dice el contrato."""
+        with self._conexion.cursor() as cursor:
+            cursor.execute(SQL_RIESGO, (codigo_distrito, fecha, tipo_evento.value))
+            fila = cursor.fetchone()
+        return self._a_riesgo(fila) if fila else None
 
     def obtener_riesgos_por_fecha(self, fecha: date, tipo_evento: TipoEvento) -> list[Riesgo]:
-        raise _pendiente("obtener_riesgos_por_fecha")
+        """Un Riesgo por distrito del canton; `nivel` None donde no hay estimacion."""
+        with self._conexion.cursor() as cursor:
+            cursor.execute(
+                SQL_RIESGOS_POR_FECHA,
+                {"fecha": fecha, "tipo_evento": tipo_evento.value, "canton": self._codigo_canton},
+            )
+            filas = cursor.fetchall()
+        return [self._a_riesgo(f) for f in filas]
 
     def listar_eventos(self, tipo_evento: TipoEvento | None = None) -> list[EventoHistorico]:
         raise _pendiente("listar_eventos")

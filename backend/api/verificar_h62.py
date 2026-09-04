@@ -279,7 +279,7 @@ def ca5_sustitucion() -> Resultado:
         else:
             detalle.append(
                 f"  [ok ] sin la variable sigue el simulado ({type(por_omision).__name__}),"
-                " que es deliberado hasta que existan las diez tablas"
+                " que es deliberado hasta que existan las tablas que faltan"
             )
     finally:
         modulo.conectar = original_conectar
@@ -395,7 +395,7 @@ def main() -> int:
             "CA-3",
             "Los pendientes fallan nombrando la tabla y la historia",
             [
-                "test_la_tabla_de_pendientes_cubre_exactamente_diez_metodos",
+                "test_la_tabla_de_pendientes_cubre_exactamente_los_metodos_que_fallan",
                 "test_un_pendiente_falla_en_vez_de_devolver_vacio",
                 "test_los_pendientes_los_atrapa_un_except_generico",
             ],

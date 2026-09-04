@@ -223,6 +223,10 @@ class XGBoostEstimador:
 
     # ----------------------------------------------------------------- #
     @property
+    def necesita_caracteristicas(self) -> bool:
+        return True
+
+    @property
     def filas_sin_prediccion(self) -> int:
         return self._filas_sin_prediccion
 
