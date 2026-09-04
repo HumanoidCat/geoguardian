@@ -4562,3 +4562,91 @@ de FIRMS, siete repeticiones) y `gestion/medicion-h82-c.txt` (tiempos por tarea
 y CHIRPS). La cifra a seguir es **el tiempo por tarea**: si al subir los
 trabajadores cada tarea empieza a tardar proporcionalmente mas, del otro lado
 no hay paralelismo que aprovechar.
+
+---
+
+## D-42 · Los hiperparametros afinados se aplican a la tuberia, aunque cambien quien escribe por 0.0024
+
+**Fecha.** 2026-09-04. **Historia.** H3.8. **Quien decide.** Alejandro.
+**Estado.** Aceptada.
+
+### Contexto
+
+H3.8 busco hiperparametros para los tres algoritmos en los dos
+eventos modelables, sobre una particion interna que no toca ningun bloque de
+prueba de H3.2. Contra la particion externa, el resultado tiene tres partes:
+
+  1. En **lluvia_intensa** el ajuste **empeoro** a xgboost, de 0.371 a 0.327
+     F1-macro. La busqueda vio cinco anios y medio y eligio la esquina mas
+     regularizada; sobre treinta y cuatro anios esa esquina subajusta. Quien
+     escribe no cambia: la climatologica antes y despues.
+  2. En **incendio** el bosque de fabrica venia degenerado -0.4937, por debajo
+     del piso trivial 0.4938, con las mismas cifras por pliegue que la trivial-
+     y regularizarlo lo llevo a 0.5567.
+  3. Esa mejora **cambia quien escribe en incendio**: al subir el techo, la
+     banda de ruido de D-39 pasa a 0.5020 y la climatologica, en 0.4996, queda
+     **fuera por 0.0024**. Escribe la regresion logistica, que es la mas simple
+     de las que quedan dentro.
+
+### Decision
+
+Se versionan los hiperparametros afinados en `AFINADOS` y la
+tuberia los usa, **para los seis casos, incluidos los que empeoraron**, y se
+deja que D-39 decida quien escribe con la tabla externa en cada corrida. En
+incendio eso significa que `analitico.riesgo` pasa a escribirse con la regresion
+logistica afinada.
+
+### Justificacion
+
+La alternativa -no aplicar, o aplicar solo lo que mejoro- es
+elegir despues de ver el resultado, que es exactamente lo que D-10, el embargo
+de H3.2 y el CA-2 de esta historia existen para impedir. Que en este caso la
+eleccion posterior fuera *conservadora* no la hace distinta: si se acepta mover
+la regla cuando el resultado incomoda, la regla ya no mide nada. El criterio
+CA-7, escrito antes de conocer ningun numero, dice «el resultado pasa por D-39
+sin excepcion».
+
+Ademas, el caso de lluvia muestra que aplicar lo que empeoro **no tiene
+consecuencia practica**: xgboost no escribia antes y no escribe ahora, porque
+D-39 no premia al mejor sino al mas simple dentro del ruido. Lo que se aplica no
+es «el modelo ganador», es la tabla completa recalculada.
+
+### Alternativas descartadas
+
+  * **No aplicar nada, porque la mejora esta dentro del ruido.** Descartada: es
+    decidir con el resultado a la vista, y ademas dejaria el bosque degenerado
+    de incendio informado como si fuera el rendimiento del algoritmo.
+  * **Aplicar solo donde mejoro.** Descartada por lo mismo, y porque no hay
+    criterio previo que diga que significa «mejoro» cuando todo cae dentro del
+    ruido.
+  * **Corregir la regla de D-39 para que la exclusion de la banda tenga que
+    superar la dispersion del excluido.** Es probablemente lo correcto y esta
+    propuesto en **I-34**, pero cambiar la regla en la misma historia que
+    produjo el resultado que la incomoda es el error que esta ADR evita.
+    Se decide aparte y sin este resultado a la vista.
+  * **Ampliar la rejilla hasta que el ajuste gane fuera del ruido.** Descartada:
+    es buscar hasta que salga. Y el resultado dice que no ayudaria -en las seis
+    busquedas *todas* las combinaciones cayeron dentro del ruido de la mejor-:
+    lo que falta no son mas puntos, es una particion interna que pueda
+    distinguirlos.
+
+### Consecuencias
+
+  * `analitico.riesgo` en incendio pasa a escribirse con la regresion logistica
+    afinada en la proxima corrida de `estimar_riesgo`. En lluvia sigue la
+    climatologica.
+  * La tabla de H3.6 para incendio queda **corregida en su lectura**: el 0.494
+    del bosque no era el rendimiento del algoritmo, era el de un bosque sin
+    regularizar sobre un evento raro.
+  * Queda abierto **I-34**: quien escribe se decidio por 0.0024 de F1-macro.
+  * `AFINADOS` es un dato versionado del repositorio. Cambiarlo requiere volver
+    a correr `python -m backend.modelado.afinar`, y el verificador comprueba que
+    cada valor sale de la rejilla declarada.
+
+### Medicion
+
+`python -m backend.modelado.afinar` reimprime las dos tablas -de
+fabrica y afinada, sobre los mismos pliegues- y los dos veredictos de D-39 en
+cada corrida, asi que la decision se puede volver a comprobar entera con un
+comando. `python -m backend.modelado.verificar_h38` da 38 de 38 sin base ni red.
+Evidencia en `docs/evidencias/objetivos/H3.8-afinado.md`.
