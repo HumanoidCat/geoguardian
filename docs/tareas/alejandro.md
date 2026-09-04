@@ -405,11 +405,38 @@
     corta a mano; perseguir con el a un dataset que se mueve destruiria la
     propiedad que lo hace util.
 
-- [ ] **H8.2** · ETL concurrente con medicion secuencial contra paralelo
+- [x] **H8.2** · ETL concurrente con medicion secuencial contra paralelo (2026-09-03)
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
+  - horas: estimada 7.8 . real 2.5
+  - Evidencia: `docs/evidencias/sistemas-operativos/H8.2-concurrencia.md`;
+    criterios en `H8.2-criterios-aceptacion.md`, escritos antes del codigo.
+    **D-41** y las incidencias **I-31** e **I-32**.
   - **Traspasada desde Cesar el 2026-09-03** por **D-38**. Cesar la declino por
     escrito -no cabe en su calendario- y el PM la tomo. Su contenido queda tal
     como estaba escrito.
+  - **Se paraleliza la descarga, no la escritura.** La transaccion por lote es
+    lo que sostiene la idempotencia de H1.1 y H1.14; repartirla entre hilos
+    seria cambiar una garantia por segundos. Ningun hilo toca PostgreSQL y el
+    verificador lo comprueba anotando de que hilo sale cada sentencia.
+  - **Cada fuente admite lo que se midio, y no es lo mismo para las dos.** FIRMS
+    x2.49 con cuatro trabajadores y **cada tarea sigue tardando 0.19 s**: se
+    reparte de verdad. CHIRPS x1.11, pero **cada tarea pasa de 6.18 s a
+    20.27 s**: el servicio encola, asi que la precipitacion va de a una aunque
+    se pida mas. La mitad de la optimizacion no se aplico porque la medicion
+    dijo que no.
+  - **Lo que no acelera tambien se midio**: el trabajo de CPU da x1.00 con
+    cuatro hilos y cada tarea tarda 3,75 veces mas. Es el GIL, medido en vez de
+    citado.
+  - Encontro un defecto de H1.14: **descargaba dentro de la transaccion**, 244
+    peticiones con la escritura abierta. Se separo en `descargar_focos` y
+    `escribir_focos`, y el verificador comprueba con reloj que la ultima
+    peticion ocurre antes de abrir la transaccion.
+  - El control se probo rompiendolo, ocho veces. **Dos sabotajes pasaron en
+    verde** y ese fue el hallazgo: tragarse el error en un solo sitio no rompe
+    nada porque hay dos mecanismos para la misma garantia. Se dejaron los dos,
+    con el motivo escrito.
+  - La primera medicion se **descarto**: con tres repeticiones el secuencial
+    tuvo un pico de 8.13 s y produjo un x2.28 superlineal. Se repitio con siete.
 
 - [x] **H3.4** · Entrenar y evaluar Random Forest (2026-09-03)
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2

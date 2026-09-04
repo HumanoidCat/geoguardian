@@ -42,6 +42,7 @@ import httpx
 
 from contratos.esquemas import FocoCalor
 
+from ..concurrencia import Medicion, mapear
 from .firms import ErrorFirms, ExtractorFirms, FocoBruto
 
 BASE = "https://firms.modaps.eosdis.nasa.gov/api"
@@ -107,6 +108,9 @@ class ExtractorFirmsArea:
         # Reusa la traduccion de filas de H1.2: misma caja, mismos cortes.
         self._lector = ExtractorFirms(caja, cliente=self._cliente, productos=productos)
         self._disponibilidad: dict[tuple[str, str], tuple[date, date]] | None = None
+        # H8.2: lo que costo cada tanda de tramos, para la evidencia. Se escribe
+        # desde el hilo que llama, nunca desde los trabajadores.
+        self.mediciones: list[Medicion] = []
 
     def cerrar(self) -> None:
         if self._propio:
@@ -175,14 +179,50 @@ class ExtractorFirmsArea:
 
     # -- descarga ------------------------------------------------------------ #
 
+    def _bajar_tramo(
+        self, tramo: tuple[date, date], fuente: str, base: str, codigo: str, area: str, registrar
+    ) -> list[FocoBruto]:
+        """Un tramo: una peticion y su lectura. Es la unidad que el pool reparte."""
+        inicio, fin = tramo
+        dias = (fin - inicio).days + 1
+        texto = self._pedir(
+            f"area/csv/{self._clave}/{fuente}/{area}/{dias}/{inicio.isoformat()}",
+            f"{fuente} {inicio}..{fin}",
+        )
+        focos: list[FocoBruto] = []
+        for fila in csv.DictReader(io.StringIO(texto)):
+            foco = self._lector._leer(base, fila)
+            if foco is None or not (inicio <= foco.fecha <= fin):
+                continue
+            focos.append(replace(foco, producto=codigo))
+        if registrar:
+            registrar(f"  {codigo} {inicio}..{fin}: {len(focos)} en la caja")
+        return focos
+
     def descargar(
-        self, desde: date, hasta: date, base: str, preliminar: bool, registrar=None
+        self,
+        desde: date,
+        hasta: date,
+        base: str,
+        preliminar: bool,
+        registrar=None,
+        trabajadores: int = 1,
     ) -> list[FocoBruto]:
         """
         Baja un producto base en una version, en tramos de cinco dias.
 
         Los focos salen con `producto` ya declarado (`modis` o `modis-nrt`), que
         es lo que la base guarda y lo que permite reemplazar despues.
+
+        Con `trabajadores > 1` (H8.2) los tramos se piden a la vez, con el tope
+        que declara `concurrencia.TRABAJADORES`. El resultado **no cambia**: el
+        pool devuelve los tramos en el orden de entrada, asi que la lista de
+        focos es la misma que en secuencial. Lo que si cambia es el orden en que
+        salen las lineas de la bitacora, que es el de terminacion; por eso quien
+        llama pasa una funcion de registro serializada.
+
+        El valor por omision es 1: quien quiera concurrencia la pide. Una fuente
+        no decide sola cuantas peticiones hace en paralelo.
         """
         if base not in FUENTES:
             raise ErrorFirms(f"Producto {base!r} desconocido; conocidos: {sorted(FUENTES)}")
@@ -191,22 +231,15 @@ class ExtractorFirmsArea:
         oeste, sur, este, norte = self.caja
         area = f"{oeste},{sur},{este},{norte}"
 
-        salida: list[FocoBruto] = []
-        for inicio, fin in trocear(desde, hasta):
-            dias = (fin - inicio).days + 1
-            texto = self._pedir(
-                f"area/csv/{self._clave}/{fuente}/{area}/{dias}/{inicio.isoformat()}",
-                f"{fuente} {inicio}..{fin}",
-            )
-            antes = len(salida)
-            for fila in csv.DictReader(io.StringIO(texto)):
-                foco = self._lector._leer(base, fila)
-                if foco is None or not (inicio <= foco.fecha <= fin):
-                    continue
-                salida.append(replace(foco, producto=codigo))
-            if registrar:
-                registrar(f"  {codigo} {inicio}..{fin}: {len(salida) - antes} en la caja")
-        return salida
+        tramos = trocear(desde, hasta)
+        por_tramo, medicion = mapear(
+            lambda tramo: self._bajar_tramo(tramo, fuente, base, codigo, area, registrar),
+            tramos,
+            trabajadores=trabajadores,
+            etiqueta=f"firms {codigo} {desde}..{hasta}",
+        )
+        self.mediciones.append(medicion)
+        return [foco for focos in por_tramo for foco in focos]
 
     def extraer(self, desde: date, hasta: date) -> list[FocoCalor]:
         """Cumple el contrato: el NRT de todos los productos, en la forma acordada."""

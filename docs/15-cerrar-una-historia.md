@@ -149,9 +149,31 @@ Request, que es lo que sirve dentro de un mes para saber qué la cerró. Y en
 python docs/herramientas/verificar_estado.py
 python docs/herramientas/verificar_horas.py
 python docs/herramientas/verificar_documentacion.py
+python docs/herramientas/verificar_backlog.py
+python docs/herramientas/verificar_adr.py
+python docs/herramientas/verificar_cobertura_evidencias.py docs/backlog.csv
+python docs/herramientas/verificar_diagramas.py        # necesita Graphviz
 ```
 
-Si alguno falla, el CI también va a fallar. Sale más barato verlo antes.
+**Son los seis del trabajo «Backlog y documentación» del CI, más
+`verificar_backlog`.** Hasta el 2026-09-03 esta lista tenía solo los tres
+primeros y decía «si alguno falla, el CI también va a fallar» — cierto al
+revés, y falso en la dirección que importa: que esos tres pasen no dice nada de
+los otros. H1.14 pasó los tres, `pytest` y `ruff` en verde, y el CI la rechazó
+porque una tabla nueva del DDL no estaba en el entidad-relación. Es la
+incidencia **I-31**.
+
+`verificar_diagramas.py` es el único que necesita una herramienta externa:
+sin Graphviz corre hasta CA-4 y ahí se planta. En Windows,
+`winget install Graphviz.Graphviz`; en Debian o Ubuntu,
+`sudo apt install graphviz`. **Si tocaste el DDL, este no es opcional**: es el
+que se entera de que el diagrama dejó de describir la base.
+
+Y si el DDL cambió, antes de todo esto:
+
+```bash
+python docs/herramientas/generar_diagramas.py    # regenera y versiona el SVG
+```
 
 ---
 

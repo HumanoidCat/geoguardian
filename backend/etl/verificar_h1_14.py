@@ -113,6 +113,10 @@ class FuenteFocosFalsa:
     nombre: str = "focos falsa H1.14"
     productos: tuple[str, ...] = ("modis", "viirs-snpp")
     pedidos: list[tuple[str, bool, date, date]] = field(default_factory=list)
+    # H8.2 cambio la firma de `descargar` para aceptar el tope de peticiones en
+    # vuelo. El doble sigue a la interfaz real: si no, la prueba pasaria contra
+    # una fuente que ya no existe.
+    trabajadores_vistos: list[int] = field(default_factory=list)
 
     def disponible(self) -> bool:
         return self.responde
@@ -124,8 +128,11 @@ class FuenteFocosFalsa:
             salida[(base, "preliminar")] = (date(2025, 1, 1), self.fin_preliminar)
         return salida
 
-    def descargar(self, desde, hasta, base, preliminar, registrar=None) -> list[FocoBruto]:
+    def descargar(
+        self, desde, hasta, base, preliminar, registrar=None, trabajadores: int = 1
+    ) -> list[FocoBruto]:
         self.pedidos.append((base, preliminar, desde, hasta))
+        self.trabajadores_vistos.append(trabajadores)
         codigo = firms_area.codigo_producto(base, preliminar)
         return [
             FocoBruto(
