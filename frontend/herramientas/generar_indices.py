@@ -63,6 +63,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -125,12 +126,31 @@ RANGOS = {
     "ndwi": (-0.7, 0.7),
 }
 
-#: Tamano del lado del PNG de salida, en pixeles.
+#: Ancho del PNG de salida, en pixeles. **El alto se deriva de la caja del
+#: canton, no se copia de aca.**
 #:
-#: El canton mide unos 31 km de este a oeste. A 20 m por pixel eso son ~1550
-#: pixeles, asi que 1600 conserva la resolucion nativa sin inventar detalle.
-#: Subirlo mas seria remuestrear hacia arriba: mas peso y ni un dato nuevo.
-LADO = 1600
+#: POR QUE 1600 Y NO 800 NI 3200
+#:
+#: El canton mide **30,73 km** de este a oeste. La escena viene a 20 m por pixel,
+#: asi que reproducir esa resolucion pide 30730 / 20 = **1537 pixeles**. Se
+#: redondea a 1600, que da 19,2 m por pixel: un pelo por encima de la resolucion
+#: nativa, sin remuestrear hacia arriba.
+#:
+#: Con 800 se tiraria la mitad del detalle que el satelite si midio. Con 3200 se
+#: duplicaria el peso inventando pixeles que no aportan una sola medicion nueva:
+#: el limite lo pone la escena, no el lienzo.
+#:
+#: POR QUE EL ALTO SE CALCULA
+#:
+#: La caja del canton **no es cuadrada**: mide 30,73 x 36,59 km, o sea una razon
+#: de 1,19. La primera version escribio 1600 en los dos lados y produjo pixeles
+#: que en el terreno median **19,2 m de ancho y 22,9 m de alto**: un 19 % menos
+#: de resolucion en el eje norte-sur, sin motivo y sin que nada lo dijera.
+#:
+#: Lo observo Alejandro al revisar el PR #261, preguntando si 1600 era una
+#: eleccion o un numero heredado. Era una eleccion **a medias**: razonada sobre
+#: el eje este-oeste y aplicada a los dos.
+ANCHO = 1600
 
 
 def _fallar(mensaje: str) -> None:
@@ -222,7 +242,7 @@ def main() -> int:
         import numpy as np
         import rasterio
         from rasterio.features import geometry_mask
-        from rasterio.warp import Resampling, calculate_default_transform, reproject
+        from rasterio.warp import Resampling, reproject
     except ImportError as falta:
         _fallar(
             f"falta una dependencia: {falta.name}.\n"
@@ -277,22 +297,28 @@ def main() -> int:
     geometrias = geometrias_del_canton()
     oeste, sur, este, norte = limites_del_canton(geometrias)
 
-    destino_transformacion, ancho, alto = calculate_default_transform(
-        crs_origen,
-        "EPSG:4326",
-        bandas["B03"].shape[1],
-        bandas["B03"].shape[0],
-        *rasterio.transform.array_bounds(
-            bandas["B03"].shape[0], bandas["B03"].shape[1], transformacion_origen
-        ),
-        dst_width=LADO,
-        dst_height=LADO,
+    # El alto sale de la forma de la caja, para que el pixel sea cuadrado **en el
+    # terreno** y no en el archivo. Se mide en metros y no en grados: un grado de
+    # longitud a esta latitud vale menos que uno de latitud, y usar grados daria
+    # justo el error que se esta corrigiendo.
+    latitud_media = (norte + sur) / 2
+    ancho_km = (este - oeste) * 111.320 * math.cos(math.radians(latitud_media))
+    alto_km = (norte - sur) * 110.574
+    ancho_px = ANCHO
+    alto_px = round(ANCHO * alto_km / ancho_km)
+
+    print(f"Caja del canton: {ancho_km:.2f} x {alto_km:.2f} km")
+    print(
+        f"Lienzo: {ancho_px} x {alto_px} px  ->  "
+        f"{ancho_km * 1000 / ancho_px:.1f} x {alto_km * 1000 / alto_px:.1f} m por pixel\n"
     )
-    # Se reemplaza por la caja del canton: no interesa el mosaico entero.
-    destino_transformacion = rasterio.transform.from_bounds(oeste, sur, este, norte, LADO, LADO)
+
+    destino_transformacion = rasterio.transform.from_bounds(
+        oeste, sur, este, norte, ancho_px, alto_px
+    )
 
     def a_wgs84(arreglo: np.ndarray) -> np.ndarray:
-        salida = np.full((LADO, LADO), np.nan, dtype="float32")
+        salida = np.full((alto_px, ancho_px), np.nan, dtype="float32")
         reproject(
             source=arreglo,
             destination=salida,
@@ -314,7 +340,7 @@ def main() -> int:
     # se salia del canton porque su caja venia de los centroides.
     fuera = geometry_mask(
         geometrias,
-        out_shape=(LADO, LADO),
+        out_shape=(alto_px, ancho_px),
         transform=destino_transformacion,
         invert=False,
     )
@@ -324,7 +350,11 @@ def main() -> int:
         "escena": escena.name,
         "fecha": fecha,
         "limites": {"oeste": oeste, "sur": sur, "este": este, "norte": norte},
-        "lado": LADO,
+        # Se declaran los dos y no un "lado": el lienzo no es cuadrado, porque el
+        # canton tampoco lo es. Con un solo numero volveria el mismo defecto.
+        "ancho": ancho_px,
+        "alto": alto_px,
+        "metros_por_pixel": round(ancho_km * 1000 / ancho_px, 1),
         "indices": {},
     }
 
