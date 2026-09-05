@@ -1,6 +1,6 @@
 # Backlog completo
 
-**89 historias · 434 puntos · 633.9 horas** (incluye 20 % de revision)
+**90 historias · 439 puntos · 641.7 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -51,11 +51,11 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 36.4** | 103.6** | 59.4** | 52.8** | 288.1 | 187 |
+| Alejandro | 35.9 | 36.4** | 103.6** | 59.4** | 60.6** | 295.9 | 192 |
 | Cesar | 18.3 | 24.9 | 0.0 | 7.8 | 34.0 | 85.0 | 69 |
 | Luna | 25.9 | 34.3 | 31.0 | 40.5** | 32.0 | 163.7 | 96 |
 | Avril | 2.9 | 11.5 | 21.1 | 25.0 | 36.6** | 97.1 | 82 |
-| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 155.4 | **633.9** | **434** |
+| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 163.2 | **641.7** | **439** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -158,7 +158,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H9.1** Preparar SUS, guion de entrevista y dosier de 3 casos | luna | 5 | 4.8 | OE4 | - | H9.2a |
 | **H11.5** Publicar el visor como sitio estatico con datos declarados simulados | alejandro | 3 | 4.7 | CICD | H5.4, H6.6 | H9.2a |
 
-## Sprint 4 · semanas 10-11 · 21 historias · 155.4 h
+## Sprint 4 · semanas 10-11 · 22 historias · 163.2 h
 
 **Foco.** Documento IEEE, validacion externa y cierre  
 **Hito.** Segundo avance (semana 10) y feria (semana 12)
@@ -168,6 +168,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H10.5c** Redactar el documento IEEE completo | alejandro | 8 | 21.1 | IEEE | H10.5b | H10.6 |
 | **H4.4** Contrastar estimaciones contra el catalogo y analizar fallos | alejandro | 10 | 26.4 | OE3 | H4.3, H3.6 | H4.5 |
 | **H4.5** Redactar la respuesta a la pregunta de investigacion | alejandro | 2 | 5.3 | OE3 | H4.4 | — |
+| **H11.6** Publicar la API y la base en la nube y que el visor sirva dato real | alejandro | 5 | 7.8 | CICD | H11.1, H11.5, H6.2, H3.6, H3.8 | — |
 | **H10.6** Cartel academico IEEE legible a 1.5 m | avril | 8 | 7.7 | IEEE | H10.5c | — |
 | **H10.9** Guion de demo y tres ensayos completos | avril | 4 | 10.6 | CG-6 | H10.3 | — |
 | **H12.2** Pantalla de monitoreo de pipelines y entornos dentro del visor | avril | 5 | 4.8 | Troubleshoot | H12.1 | — |

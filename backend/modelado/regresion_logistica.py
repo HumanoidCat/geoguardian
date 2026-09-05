@@ -106,6 +106,8 @@ class RegresionLogistica:
 
     nombre: str = "regresion_logistica"
     balancear: bool = True
+    #: Hiperparametros que sobreescriben los de fabrica (H3.8).
+    parametros: dict = field(default_factory=dict)
 
     #: Se llenan en `ajustar()`. Antes de eso el estimador no predice.
     _columnas: list[str] = field(default_factory=list, init=False)
@@ -166,11 +168,13 @@ class RegresionLogistica:
 
         X = np.asarray(filas, dtype=float)
         self._escalador = StandardScaler().fit(X)  # CA-6: dentro del pliegue
-        self._modelo = LogisticRegression(
-            max_iter=MAXIMO_ITERACIONES,
-            class_weight="balanced" if self.balancear else None,
-            random_state=SEMILLA,
-        ).fit(self._escalador.transform(X), objetivo)
+        ajustes = {
+            "max_iter": MAXIMO_ITERACIONES,
+            "class_weight": "balanced" if self.balancear else None,
+            **self.parametros,
+            "random_state": SEMILLA,
+        }
+        self._modelo = LogisticRegression(**ajustes).fit(self._escalador.transform(X), objetivo)
         return self
 
     # ----------------------------------------------------------------- #

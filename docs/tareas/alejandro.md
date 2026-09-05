@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 187 puntos · 288.1 horas · 28.8 h por semana en promedio
+**Total asignado:** 192 puntos · 295.9 horas · 29.6 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
+| S4 | semanas 10-11 | 60.6 | 36 | SOBRECARGA +25 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -522,8 +522,27 @@
     - dejar estos como material del documento IEEE y que H6.5 siga aparte.
     Hasta que se decida, **H6.5 no se toca**: sigue abierta y de Avril.
 
-- [ ] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado
+- [x] **H3.8** · Ajuste de hiperparametros del mejor modelo, documentado (2026-09-04)
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H3.6
+  - horas: estimada 4.7 . real 3.5
+  - Evidencia: `docs/evidencias/objetivos/H3.8-afinado.md`, contra los criterios
+    escritos el 2026-09-03 en `H3.8-criterios-aceptacion.md`.
+  - **Cerrada con el ajuste aplicado y el veredicto sin cambiar en lluvia.** La
+    busqueda va en una particion interna que no toca ningun bloque de prueba de
+    H3.2; la primera version filtraba 7 752 dias y **la detecto el propio CA-2
+    antes de que existiera ningun resultado** (I-33).
+  - **Lo que salio.** En las seis busquedas -tres algoritmos por dos eventos-
+    *todas* las combinaciones cayeron dentro del ruido de la mejor, asi que el
+    F1 interno no distinguio nada y decidio entero el desempate por simplicidad.
+    En lluvia el ajuste **empeoro** a xgboost (0.371 a 0.327): la esquina que
+    conviene en cinco anios subajusta en treinta y cuatro. En incendio el bosque
+    de fabrica venia **degenerado** -0.494, por debajo del piso trivial, con las
+    mismas cifras por pliegue que la trivial- y regularizado da 0.557.
+  - **Lo que hay que mirar.** Por D-42 los afinados se aplican y D-39 decide en
+    cada corrida; en incendio eso cambia el escritor de la climatologica a la
+    regresion logistica **por 0.0024 de F1-macro**, que es I-34 y necesita su
+    propia historia.
+  - Doce sabotajes, ninguno paso en verde. Verificador: 38 de 38 sin base ni red.
 
 - [x] **H11.5** · Publicar el visor como sitio estatico con datos declarados simulados (2026-08-24)
   - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H5.4, H6.6 · **bloquea a: H9.2a**
@@ -542,7 +561,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 52.8 h
+## Sprint 4 (semanas 10-11) — 60.6 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -552,6 +571,9 @@
 
 - [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
+
+- [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
+  - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
 
 ## Regla: lo hecho no se borra
 

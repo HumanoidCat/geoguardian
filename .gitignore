@@ -1,5 +1,12 @@
 # Entorno
 .env
+# Cualquier .env con sufijo -.env.railway, .env.local- lleva credenciales
+# igual que .env, y el patron `.env` a secas NO los cubre: git lo trata
+# como nombre exacto. Se descubrio el 2026-09-05, con un .env.railway sin
+# ignorar y con contrasenas reales adentro.
+.env.*
+# ...menos el ejemplo, que si se versiona y no lleva ningun valor.
+!.env.example
 .venv/
 venv/
 __pycache__/
