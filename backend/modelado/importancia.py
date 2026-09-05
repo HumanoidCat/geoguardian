@@ -337,8 +337,7 @@ def importancia(
     salida = []
     for nombre in estimadores:
         columnas = [
-            ImportanciaColumna(columna, valores)
-            for columna, valores in acumulado[nombre].items()
+            ImportanciaColumna(columna, valores) for columna, valores in acumulado[nombre].items()
         ]
         columnas.sort(key=lambda c: -c.media)
         modelo = ajustados.get(nombre)
@@ -467,13 +466,16 @@ def main() -> int:
                 if est.referencia_por_pliegue
                 else 0.0
             )
-            emitir(f"  {est.nombre}  (F1-macro {media:.3f}, {len(est.referencia_por_pliegue)} pliegues)")
+            emitir(
+                f"  {est.nombre}  (F1-macro {media:.3f}, {len(est.referencia_por_pliegue)} pliegues)"
+            )
             if not est.permutacion:
                 emitir(f"    sin columnas evaluables. {'; '.join(est.saltados) or 'sin motivo'}\n")
                 continue
             if est.ninguna_distinguible:
                 emitir("    NINGUNA COLUMNA SUPERA SU PROPIO RUIDO ENTRE PLIEGUES.")
                 emitir("    El modelo no distingue variables. Es un resultado (CA-10).")
+
             def linea(columna):
                 marca = "si" if columna.distinguible else "no"
                 emitir(

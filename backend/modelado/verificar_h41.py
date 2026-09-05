@@ -383,6 +383,7 @@ def verificar() -> Resultado:
             embargo=None,
         )
     ]
+
     def referencia(pliegues_usados):
         salida = importancia(
             TipoEvento.LLUVIA_INTENSA,
