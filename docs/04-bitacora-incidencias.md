@@ -3011,3 +3011,126 @@ el correcto no lo comprueba ningun criterio automatico**, porque hacen falta fil
 de dos procesos distintos y `verificar_h61.py` corre sin base a proposito. La
 historia que introduce el segundo proceso es H12.1, asi que la comprobacion
 corresponde a la **Medicion de D-44**, y va avisado en el mensaje a Luna.
+
+---
+
+## I-42 · «Cluster created successfully» no significa que la API conteste
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, al aprobar los entornos de la corrida `CD #11`
+(33993914209). Produccion salio en rojo a los 27 segundos.
+
+**Que paso.** El paso «Crear el cluster», de la accion compuesta
+`preparar-cluster`, era:
+
+```bash
+k3d cluster create geoguardian-ci --agents 0 --wait --timeout 180s
+kubectl cluster-info
+kubectl get nodes
+```
+
+Y el registro:
+
+```
+INFO[0019] Cluster 'geoguardian-ci' created successfully!
+INFO[0019] You can now use it like this:
+kubectl cluster-info
+E0905 22:44:28.545593  memcache.go:381] "Couldn't get current server API group list"
+                       err="the server is currently unable to handle the request"
+Error from server (ServiceUnavailable): the server is currently unable to handle the request
+Error: Process completed with exit code 1.
+```
+
+**Causa raiz.** El `--wait` de k3d espera a que **arranque el contenedor del
+servidor**. La API de Kubernetes empieza a contestar despues. El
+`kubectl cluster-info` de la linea siguiente pregunto nueve milisegundos mas
+tarde, recibio `ServiceUnavailable`, y **esa respuesta unica se tomo como
+veredicto**.
+
+**Que lo confirma como carrera y no como configuracion rota.** En la misma
+corrida, con la misma accion compuesta y el mismo runner:
+
+```
+Desplegar a desarrollo (H11.2)   2m  2s   ok
+Desplegar a pruebas (H11.3)      2m  9s   ok
+Desplegar a produccion (H11.4)      27s   FALLA
+```
+
+Los tres hacen exactamente lo mismo -para eso la accion es compuesta y no esta
+copiada tres veces, que es I-21-. Dos pasaron y uno no. Por eso aparecia una vez
+de cada tantas y por eso no se habia visto antes.
+
+**Lo que esta corrida NO dice.** Todos los pasos posteriores figuran en **0 s**:
+`Establecer la revision anterior`, `Desplegar la version nueva`, `Revertir si no
+convergio`, `Comprobar lo que el despliegue promete`. **No se desplego nada y la
+reversion no se ejercito: se salto.** Asi que la corrida no dice nada sobre
+H11.4, ni a favor ni en contra. Y el cluster es efimero (D-36), asi que el sitio
+publicado en Railway no se toco: construye desde `main` por su cuenta.
+
+Se anota porque leer un CD rojo como «la reversion fallo» seria justo el error
+que este registro existe para evitar.
+
+**Es I-39 con otra cara.** Alli, Railway decia «Deployment successful» y «Online»
+mientras nginx llevaba dos horas en ciclo de reinicio sin servir una peticion.
+Aqui, k3d dice «created successfully» y la API todavia no contesta. **La misma
+frase, otro sistema**: el que arranca algo informa de que arranco, no de que
+sirve, y solo el consumidor puede decir lo segundo.
+
+**Los otros CD rojos NO son este, y conviene dejarlo escrito.**
+
+```
+CD #1  2026-09-02   manifest unknown          la era del `on: push`, cerrada en la cabecera de cd.yml
+CD #2  2026-09-02   idem, en desarrollo       misma era
+CD #5  2026-09-03   pod que se apagaba        I-28, cerrada el mismo dia
+CD #11 2026-09-05   la API no contestaba      esta
+```
+
+Se busco el patron -cuatro rojos en once corridas invita a buscarlo- y **no lo
+hay**: son cuatro causas y tres ya estaban cerradas. La primera lectura fue que
+#5 y #11 eran la misma familia; leer I-28 lo desmintio. Queda anotado porque la
+proxima persona que mire ese historial va a hacer la misma cuenta.
+
+**Accion tomada.**
+
+  1. El paso pregunta hasta que la API conteste, y si no contesta **falla
+     diciendo cuanto espero**. Un error que no trae ese numero no distingue
+     «tarda mas de lo previsto» de «no va a arrancar nunca», y las dos cosas
+     piden acciones distintas.
+  2. El limite es la variable `ESPERA_MAXIMA_API`, con 120 s por omision. No es
+     configuracion: existe para que la prueba pueda ejercitar el caso que no
+     contesta nunca sin tardar dos minutos. Es el mismo motivo por el que
+     `conectar()` recibe `espera_maxima`.
+  3. `infra/probar_espera_api.py`, tres comprobaciones, sin cluster ni red.
+
+**La prueba no ejecuta una copia del guion: lee el bloque `run:` del paso del
+`action.yml` y lo ejecuta.** Una copia se desincroniza en silencio, que es
+exactamente el motivo por el que esa accion es compuesta en vez de estar repetida
+tres veces en `cd.yml`. Lo unico que neutraliza es la linea de
+`k3d cluster create` -y falla si esa linea ya no esta, para que la prueba no siga
+verde probando algo que dejo de existir-. `kubectl` se reemplaza por un doble que
+contesta que no un numero fijo de veces y despues que si: la carrera de arriba,
+reproducida sin cluster.
+
+**Corre en el CI, no en el CD, y es deliberado.** El defecto vive en una accion
+del CD, pero **el CD solo corre despues de fusionar a `main`**. Un control que
+solo se ejecuta despues de fusionar no protege la fusion.
+
+**Los tres sabotajes, y ninguno paso en verde** (`gestion/sabotear_i42.py`):
+
+```
+1. sin bucle: el codigo con el que fallo CD #11    -> 3 de 3 comprobaciones en rojo
+2. al agotar el limite sale con codigo 0           -> el tercer caso en rojo
+3. el mensaje de exito no dice cuanto se espero    -> el primero y el segundo en rojo
+```
+
+El segundo es el que justifica el tercer caso de la prueba. Un bucle que espera y
+despues **se rinde con codigo 0** pasa los dos primeros casos sin despeinarse: la
+API contesta, el paso sale bien, todo verde. Esperar y rendirse en silencio no es
+esperar, es un adorno que tarda.
+
+**Lo que confirma.** Un programa que arranca otro solo puede informar de que lo
+arranco. Que **sirva** lo dice el consumidor, preguntando, y una sola pregunta no
+alcanza cuando la respuesta cambia con el tiempo. Es la tercera vez que este
+proyecto lo escribe -I-39, I-28 y esta-, y las tres veces el sintoma fue el
+mismo: un paso que leyo la primera respuesta como si fuera la definitiva.

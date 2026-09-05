@@ -191,6 +191,11 @@ jobs:
         run: python infra/verificar_cd.py --manifiestos
       - name: El guion de despliegue no tiene errores de sintaxis
         run: python -m py_compile infra/k8s/desplegar.py
+      # I-42. Corre aca y no en el CD a proposito: el defecto que atrapa vive en
+      # una accion del CD, pero el CD solo corre despues de fusionar a `main`.
+      # Un control que solo se ejecuta despues de fusionar no protege la fusion.
+      - name: La espera a la API de Kubernetes sabe rendirse y decirlo
+        run: python -m infra.probar_espera_api
 
   frontend:
     name: Frontend
