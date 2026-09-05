@@ -2710,3 +2710,107 @@ en nivel `info`, entre cuarenta lineas de arranque.
 sintoma no lo hace desaparecer: el 502 seguia igual, y la tentacion inmediata
 fue pensar que el arreglo del resolver no habia servido. Habia servido; faltaba
 la otra mitad.
+
+---
+
+## I-40 · El minimo privilegio dejo a la API sin poder llamar a PostGIS
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, abriendo el sitio recien publicado. El visor daba
+error y `/api/salud` decia `real`.
+
+**Que paso.** Con el visor por fin sirviendo, `/api/distritos` devolvia
+`Internal Server Error` mientras `/api/salud` respondia bien. Preguntando a la
+base **como el rol de la API**:
+
+```
+SELECT count(*) FROM geo.distrito                  -> 8
+SELECT count(*) FROM analitico.riesgo              -> 141461
+SELECT postgis_version()                           -> function postgis_version() does not exist
+SELECT ST_AsGeoJSON(geometria) FROM geo.distrito   -> function st_asgeojson(public.geometry) does not exist
+has_schema_privilege('api_geoguardian','public','USAGE') -> false
+```
+
+**Causa raiz.** La migracion 003 cierra el esquema `public` con
+`REVOKE ALL ... FROM PUBLIC`, que es correcto y necesario. Pero **PostGIS se
+instala en `public`**: ahi viven sus funciones y el tipo `geometry`. Sin `USAGE`
+sobre ese esquema, un rol lee las tablas perfectamente y no resuelve una sola
+funcion espacial.
+
+`SQL_DISTRITOS` hace `ST_AsGeoJSON(geometria)`. De ahi el 500 con la tabla
+legible, la conexion sana y `/salud` diciendo `real`.
+
+**Por que no lo vio ningun control, y esta es la incidencia de verdad.**
+
+`basedatos/seguridad/verificar_h18.py` comprueba **seis operaciones prohibidas**,
+todas rechazadas, con detalle. Y de lo **permitido**, cuatro casos: tres
+`SELECT count(*)` sobre tablas y una escritura.
+
+**Ninguno llamaba a una funcion.**
+
+El verificador estaba construido para responder «que no puede hacer este rol», y
+esa pregunta la contesta muy bien. La otra mitad -«que **si** puede hacer, de
+todo lo que necesita»- estaba cubierta por una muestra que no representaba el
+uso real: el endpoint mas visitado del sistema no hace un `count(*)`, hace una
+llamada a PostGIS.
+
+Un permiso concedido y no probado no esta concedido. Y un permiso **no**
+concedido y no probado tampoco se nota, que es lo que paso durante semanas.
+
+**Accion tomada.**
+
+  1. `basedatos/ddl/015_usage_public_para_postgis.sql` concede `USAGE` sobre
+     `public` a los tres roles de aplicacion, con guarda por si los roles todavia
+     no existen. **No devuelve nada a `PUBLIC` y no concede `CREATE`.**
+  2. `verificar_h18.py` gana tres casos en la lista de PERMITIDAS: la API llama a
+     `postgis_version()`, la API hace `ST_AsGeoJSON` sobre `geo.distrito`, y el
+     ETL llama a `postgis_version()`.
+
+Medido contra un PostgreSQL 16 real, provocando el estado de la nube:
+
+```
+antes de la 015   has_schema_privilege(api, public, USAGE)  -> f
+despues           has_schema_privilege(api, public, USAGE)  -> t
+PUBLIC sigue sin USAGE                                      -> f
+el rol sigue sin CREATE                                     -> f
+```
+
+Y aplicandola dos veces seguidas, sin error: la migracion es idempotente.
+
+**No era un accidente del despliegue: la base local tiene el mismo hueco.**
+
+Medido el 2026-09-05 contra el contenedor local, preguntando por los roles de
+grupo -que son donde viven los permisos y los unicos que existen en las dos
+bases-:
+
+```
+USAGE sobre los esquemas
+  NO  public     geoguardian_api
+  NO  public     geoguardian_etl
+  NO  public     geoguardian_lector
+```
+
+Los tres, en las dos bases. Asi que **015 no arregla la nube: arregla el
+proyecto**, y el defecto lleva ahi desde que la 003 cerro `public`.
+
+Por que nunca se noto en local: **todo lo que se corre en una maquina de
+desarrollo se conecta como `geoguardian`**, que es el dueno de la base. El ETL,
+los guiones de modelado, los verificadores. El unico que usa el rol de la
+aplicacion es la API, y la API en local tambien corria como `geoguardian` salvo
+que alguien pusiera `POSTGRES_USER` a mano.
+
+**El primer consumidor real del minimo privilegio fue el despliegue publico**, y
+por eso el defecto aparecio ahi. No porque la nube fuera distinta: porque fue la
+primera vez que alguien uso el rol para el que se diseno.
+
+**La deriva que esto deja, dicha.** El 2026-09-05 el `GRANT` se aplico **a mano**
+sobre la base publicada, porque el sitio estaba roto y el numero de migracion
+dependia de que entrara antes el PR #262. Durante ese rato la base de la nube
+tuvo un cambio que `control.migracion` no registraba -exactamente la clase de
+deriva que ese registro existe para evitar-. Se cierra al aplicar la 015.
+
+**Lo que confirma.** Un control que solo mira un lado de una regla la comprueba a
+medias, y la mitad que falta no avisa: **no falla, simplemente no mira**. H1.8
+pregunta «que esta prohibido» con rigor y «que esta permitido» con una muestra, y
+la muestra no incluia la operacion mas comun del sistema.
