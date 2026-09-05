@@ -2671,3 +2671,42 @@ La leccion operativa es corta: **la unica comprobacion de que un servicio
 publicado funciona es pedirle algo y mirar lo que contesta.** Es el CA-1 y el
 CA-5 de esta historia, y por eso estan escritos como peticiones y no como
 estados de la consola.
+
+### Segunda parte de I-39: nginx arrancaba y seguia sin contestar
+
+Con el resolver corregido y desplegado, los registros mostraban a nginx sano:
+
+```
+2026/09/05 07:48:15 [notice] 1#1: start worker process 34
+2026/09/05 07:48:15 [notice] 1#1: start worker process 37
+```
+
+Y el sitio seguia devolviendo el mismo 502 de la puerta de entrada de Railway.
+**Dos causas distintas, un solo sintoma.**
+
+`frontend/nginx.conf.template` declaraba `listen 80;` y nada mas. Eso escucha
+**solo en IPv4**. En Docker y en k3d alcanza, porque quien conecta llega por
+IPv4. La red de Railway es IPv6 -la misma propiedad que rompio el resolver-, asi
+que nginx aceptaba conexiones en una familia a la que nadie llamaba.
+
+**El aviso estaba en los registros desde el primer despliegue**, y lo dimos por
+ruido:
+
+```
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs
+from the packaged version
+```
+
+Ese guion de la imagen oficial existe para agregar `listen [::]:80;`, y **se
+abstiene cuando la configuracion no es la que ella empaqueta**. La nuestra sale
+de nuestra plantilla, asi que nunca la agrego. La linea decia exactamente eso,
+en nivel `info`, entre cuarenta lineas de arranque.
+
+**Accion tomada.** La plantilla declara las dos: `listen 80;` y
+`listen [::]:80;`, con el porque escrito arriba.
+
+**Lo que confirma.** Un mensaje de nivel `info` que explica por que un ajuste
+**no** se aplico es un aviso, no ruido. Y arreglar la primera causa de un
+sintoma no lo hace desaparecer: el 502 seguia igual, y la tentacion inmediata
+fue pensar que el arreglo del resolver no habia servido. Habia servido; faltaba
+la otra mitad.
