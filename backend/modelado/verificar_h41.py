@@ -326,6 +326,24 @@ def verificar() -> Resultado:
         "la regla del veredicto de H3.6, aplicada a una columna",
     )
 
+    # ------------------------------------------------------------------ 12b
+    #
+    # Que `ninguna_distinguible` mire TODAS las columnas y no solo las que la
+    # tabla imprime. La primera corrida real dejo ver el problema al reves: el
+    # unico bloque con una columna distinguible era el unico cuyas diez primeras
+    # decian `no`, porque esa columna tenia media negativa y quedaba al fondo del
+    # orden. La tabla escondia el unico hallazgo.
+    lista = [ImportanciaColumna(f"c{i}", [0.001, 0.002]) for i in range(12)]
+    lista.append(ImportanciaColumna("escondida", [-0.30, -0.31]))
+    est = type(al_reves[0])(
+        nombre="x", referencia_por_pliegue=[0.5], permutacion=sorted(lista, key=lambda c: -c.media)
+    )
+    r.comprobar(
+        "12b. una distinguible de media negativa no se pierde al final del orden",
+        not est.ninguna_distinguible and est.permutacion[-1].nombre == "escondida",
+        "queda ultima al ordenar por media, y aun asi tiene que contarse",
+    )
+
     # ------------------------------------------------------------------ 13
     #
     # SABOTAJE: la permutacion no permuta.

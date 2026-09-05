@@ -269,12 +269,18 @@ def importancia(
     pliegues: list | None = None,
     repeticiones: int = REPETICIONES,
     semilla: str = SEMILLA,
+    avisar: callable | None = None,
 ) -> list[ImportanciaEstimador]:
     """Importancia por permutacion de cada estimador que aprende, sobre este evento.
 
     Devuelve una entrada por estimador, con las columnas ordenadas por media
     descendente. **No decide cual estimador es el mejor** y no filtra ninguno por
     su metrica: eso lo deciden H3.6 y H3.8, y esta historia solo describe.
+
+    `avisar` recibe una linea de avance por pliegue y estimador. **Existe porque
+    una corrida de varios minutos sin salida no se distingue de una colgada**, y
+    quien no puede distinguirlas termina matando corridas buenas. No afecta al
+    resultado: si es None, no se imprime nada.
 
     Un evento de `NO_MODELABLES` devuelve la lista vacia (CA-9).
     """
@@ -304,6 +310,11 @@ def importancia(
                 continue
 
             referencia[nombre].append(base)
+            if avisar:
+                avisar(
+                    f"    pliegue {indice + 1}  {nombre:22} F1 {base:.3f}  "
+                    f"{len(columnas)} columnas x {repeticiones} permutaciones"
+                )
             # El ultimo pliegue ajustado es el que se usa para leer MDI y
             # coeficientes: es el que vio mas historia, porque la ventana es
             # expansiva. Se dice en la evidencia; no es un promedio.
@@ -370,71 +381,140 @@ def main() -> int:
     p.add_argument("--repeticiones", type=int, default=REPETICIONES)
     p.add_argument("--semilla", default=SEMILLA)
     p.add_argument("--columnas", type=int, default=10, help="cuantas mostrar por estimador")
+    p.add_argument(
+        "--salida",
+        type=Path,
+        default=None,
+        help="ademas de la pantalla, escribe la corrida en este archivo, en UTF-8",
+    )
     args = p.parse_args()
+
+    # EL ARCHIVO LO ESCRIBE PYTHON, NO LA CONSOLA, Y HAY DOS RAZONES MEDIDAS.
+    #
+    # 1. Con `>` de PowerShell la salida se va ENTERA al archivo y la pantalla
+    #    queda muda. Una corrida de varios minutos sin una sola linea no se
+    #    distingue de una colgada, y el 2026-09-05 se mato una corrida buena por
+    #    esto. Los avisos de avance no sirven de nada si el redireccionamiento se
+    #    los lleva.
+    # 2. `>` y `Tee-Object` en Windows PowerShell escriben UTF-16, asi que el
+    #    archivo que va a la evidencia sale con un byte nulo entre cada letra.
+    #
+    # Escribiendolo desde aca se ve en pantalla Y queda en UTF-8, y ademas se
+    # vacia el buffer en cada linea: si alguien la corta, lo escrito hasta ahi
+    # sirve.
+    #
+    # El `noqa` es deliberado y no una comodidad. Un `with` obligaria a meter el
+    # informe entero adentro o a partir la funcion en dos por una razon de
+    # sintaxis. El archivo vive lo que vive `main`, se cierra al final, y **cada
+    # linea se vacia al escribirse**: si la corrida se corta o revienta, lo
+    # escrito hasta ese punto ya esta en disco, que es justo lo que un `with`
+    # aportaria aca.
+    archivo = open(args.salida, "w", encoding="utf-8") if args.salida else None  # noqa: SIM115
+
+    def emitir(texto: str = "") -> None:
+        print(texto, flush=True)
+        if archivo:
+            archivo.write(texto + "\n")
+            archivo.flush()
 
     from backend.modelado.afinar import CARACTERISTICAS, ETIQUETAS, cargar, fabricas
     from backend.modelado.comparar import CON_CARACTERISTICAS, comparar, elegir_escritor, veredicto
 
     if not ETIQUETAS.exists() or not CARACTERISTICAS.exists():
-        print("\nHacen falta las dos: etiquetas.csv y caracteristicas.csv. Con la base levantada:")
-        print("\n    python -m backend.modelado.generar_etiquetas")
-        print("    python -m backend.modelado.generar_caracteristicas\n")
+        emitir("\nHacen falta las dos: etiquetas.csv y caracteristicas.csv. Con la base levantada:")
+        emitir("\n    python -m backend.modelado.generar_etiquetas")
+        emitir("    python -m backend.modelado.generar_caracteristicas\n")
         return 1
 
     filas, caracteristicas = cargar()
 
-    print("\nImportancia de variables global · H4.1")
-    print("  metrica         F1-macro, D-10, sobre los pliegues de H3.2")
-    print(f"  metodo          permutacion sobre PRUEBA, {args.repeticiones} repeticiones")
-    print(f"  semilla         {args.semilla}")
-    print("  modelos         los AFINADOS de H3.8, que son los que corre la tuberia\n")
-    print("  NINGUN ESTIMADOR SUPERA A LA CLIMATOLOGICA FUERA DEL RUIDO.")
-    print("  Esta tabla describe como decide cada modelo, NO por que acierta.\n")
+    emitir("\nImportancia de variables global · H4.1")
+    emitir("  metrica         F1-macro, D-10, sobre los pliegues de H3.2")
+    emitir(f"  metodo          permutacion sobre PRUEBA, {args.repeticiones} repeticiones")
+    emitir(f"  semilla         {args.semilla}")
+    emitir("  modelos         los AFINADOS de H3.8, que son los que corre la tuberia\n")
+    emitir("  NINGUN ESTIMADOR SUPERA A LA CLIMATOLOGICA FUERA DEL RUIDO.")
+    emitir("  Esta tabla describe como decide cada modelo, NO por que acierta.\n")
 
     for evento in TipoEvento:
         if evento in NO_MODELABLES:
-            print(f"{evento.value.upper()}: no modelable. {NO_MODELABLES[evento]}\n")
+            emitir(f"{evento.value.upper()}: no modelable. {NO_MODELABLES[evento]}\n")
             continue
 
         todas = fabricas(evento, True)
         resultados = comparar(evento, filas, todas, caracteristicas)
         escritor, motivo = elegir_escritor(resultados)
 
-        print(evento.value.upper())
-        print(f"  veredicto de H3.6/H3.8   {veredicto(resultados)}")
-        print(f"  escribe                  {escritor} ({motivo})\n")
+        emitir(evento.value.upper())
+        emitir(f"  veredicto de H3.6/H3.8   {veredicto(resultados)}")
+        emitir(f"  escribe                  {escritor} ({motivo})\n")
 
         aprenden = {n: f for n, f in todas.items() if n in CON_CARACTERISTICAS}
-        for est in importancia(
-            evento, filas, aprenden, caracteristicas, None, args.repeticiones, args.semilla
-        ):
+        calculadas = importancia(
+            evento,
+            filas,
+            aprenden,
+            caracteristicas,
+            None,
+            args.repeticiones,
+            args.semilla,
+            avisar=emitir,
+        )
+        emitir()
+        for est in calculadas:
             media = (
                 sum(est.referencia_por_pliegue) / len(est.referencia_por_pliegue)
                 if est.referencia_por_pliegue
                 else 0.0
             )
-            print(f"  {est.nombre}  (F1-macro {media:.3f}, {len(est.referencia_por_pliegue)} pliegues)")
+            emitir(f"  {est.nombre}  (F1-macro {media:.3f}, {len(est.referencia_por_pliegue)} pliegues)")
             if not est.permutacion:
-                print(f"    sin columnas evaluables. {'; '.join(est.saltados) or 'sin motivo'}\n")
+                emitir(f"    sin columnas evaluables. {'; '.join(est.saltados) or 'sin motivo'}\n")
                 continue
             if est.ninguna_distinguible:
-                print("    NINGUNA COLUMNA SUPERA SU PROPIO RUIDO ENTRE PLIEGUES.")
-                print("    El modelo no distingue variables. Es un resultado (CA-10).")
-            print(f"    {'columna':28}{'caida media':>12}{'rango':>9}  distinguible")
-            for columna in est.permutacion[: args.columnas]:
+                emitir("    NINGUNA COLUMNA SUPERA SU PROPIO RUIDO ENTRE PLIEGUES.")
+                emitir("    El modelo no distingue variables. Es un resultado (CA-10).")
+            def linea(columna):
                 marca = "si" if columna.distinguible else "no"
-                print(
+                emitir(
                     f"    {columna.nombre:28}{columna.media:>12.4f}"
                     f"{columna.rango:>9.4f}  {marca}"
                 )
-            print()
 
-    print(
+            emitir(
+                f"    {'columna':28}{'caida media':>12}{'rango':>9}  distinguible"
+                f"     ({len(est.permutacion)} columnas)"
+            )
+            for columna in est.permutacion[: args.columnas]:
+                linea(columna)
+
+            # LAS DISTINGUIBLES SE IMPRIMEN SIEMPRE, ESTEN DONDE ESTEN.
+            #
+            # La tabla se ordena por caida media descendente, asi que una columna
+            # con media NEGATIVA y rango aun mas chico -que es distinguible, y es
+            # justo el caso que CA-5 existe para no perder- cae al fondo de las 27
+            # y no entra en el corte de las primeras.
+            #
+            # Encontrado el 2026-09-05 en la primera corrida real: `regresion
+            # logistica` sobre incendio era el unico bloque que no anunciaba
+            # «ninguna distinguible», y sus diez primeras decian `no` todas. **El
+            # unico hallazgo de la corrida era el que la tabla escondia.**
+            escondidas = [c for c in est.permutacion[args.columnas :] if c.distinguible]
+            if escondidas:
+                emitir(f"    -- fuera del corte, pero DISTINGUIBLES ({len(escondidas)}):")
+                for columna in escondidas:
+                    linea(columna)
+            emitir()
+
+    emitir(
         "Como leerla. La caida es cuanto empeora el F1-macro al volver ruido esa\n"
         "columna. Un valor NEGATIVO significa que permutarla MEJORO la metrica, y\n"
         "no se recorta a cero (CA-5). 'distinguible' es que la caida supera a su\n"
         "propio movimiento entre pliegues; donde dice no, no hay que ordenar.\n"
     )
+    if archivo:
+        archivo.close()
+        print(f"Escrito {args.salida}\n")
     return 0
 
 
