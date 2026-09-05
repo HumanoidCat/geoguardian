@@ -76,7 +76,7 @@ valor para las ocho cargas. Ver la evidencia de H1.1.
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from basedatos.conexion import conectar
 from contratos.enums import Algoritmo, MetodoImputacion, NivelRiesgo, TipoEvento
@@ -125,6 +125,35 @@ def _pendiente(metodo: str):
         f"backend/api/repositorio_postgres.py."
     )
 
+
+# La ultima corrida de INGESTA que termino bien. El filtro por prefijo no es
+# adorno: H12.1 va a escribir filas con `proceso = 'api'` (D-44), y sin el, la
+# primera vez que la API se registre a si misma `ultima_ingesta` pasaria a
+# significar «la ultima vez que la API anoto algo». Cambiaria el significado de un
+# campo del contrato sin que nadie tocara el contrato.
+#
+# SOBRE EL INDICE DE LA 013, MEDIDO Y NO SUPUESTO
+#
+# La 013 dejo `bitacora_etl_proceso_ix (proceso, terminada_en DESC)` con el
+# comentario «la que /salud va a hacer». **Esta consulta no lo usa**, y conviene
+# decirlo antes de que alguien lo de por hecho. Medido sobre 200 000 filas en
+# PostgreSQL 16.15:
+#
+#     WHERE proceso = 'ingesta.sequia'    Index Scan            0.08 ms
+#     WHERE proceso LIKE 'ingesta.%'      Parallel Seq Scan    16.6 ms
+#     WHERE proceso IN (los tres)         Parallel Seq Scan    17.3 ms
+#
+# El indice sirve la pregunta del ETL -«la ultima corrida de ESTE proceso»-, que
+# es igualdad. La de /salud es «la ultima de CUALQUIER ingesta», y ni el LIKE ni
+# la lista explicita la vuelven indexable. Se deja el recorrido secuencial: son
+# 17 ms sobre doscientas mil filas y hoy la tabla tiene ocho. Cambiar el indice
+# por una consulta que se hace una vez al cargar la pagina no se paga.
+SQL_ULTIMA_INGESTA = """
+    SELECT max(terminada_en)
+      FROM control.bitacora_etl
+     WHERE estado = 'exitosa'
+       AND proceso LIKE %s
+"""
 
 SQL_DISTRITOS = """
     SELECT codigo, nombre, area_km2, poblacion, ST_AsGeoJSON(geometria)
@@ -277,6 +306,41 @@ class RepositorioPostgres:
 
     def cerrar(self) -> None:
         self._conexion.close()
+
+    # -- Estado, para /salud ------------------------------------------------ #
+    #
+    # Dos consultas y no una a proposito. Si se usara la de la ingesta tambien
+    # como sonda de conexion, un `permission denied` sobre control.bitacora_etl
+    # se reportaria como «base no conectada», que es una respuesta falsa distinta
+    # de la que se esta arreglando. Cada campo responde por lo suyo.
+
+    def esta_viva(self) -> bool:
+        """
+        Si la base contesta AHORA. No lanza: /salud tiene que poder decir que no.
+
+        Un /salud que devuelve 500 cuando la base se cae no informa de nada; es
+        justo el caso para el que el frontend consulta este endpoint.
+        """
+        try:
+            with self._conexion.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                return cursor.fetchone() is not None
+        except Exception:  # noqa: BLE001
+            return False
+
+    def ultima_ingesta(self) -> datetime | None:
+        """
+        Cuando termino la ultima ingesta exitosa, o None si no hay ninguna.
+
+        None aqui significa lo que el contrato dice que significa -«nunca se
+        ejecuto»- y por eso el fallo se distingue: si la consulta no se puede
+        hacer, esto propaga la excepcion en vez de devolver None. Devolver None
+        ante un error diria «nunca corrio», que es exactamente la mentira de I-41.
+        """
+        with self._conexion.cursor() as cursor:
+            cursor.execute(SQL_ULTIMA_INGESTA, ("ingesta.%",))
+            fila = cursor.fetchone()
+            return fila[0] if fila else None
 
     # -- Territorio --------------------------------------------------------- #
 
