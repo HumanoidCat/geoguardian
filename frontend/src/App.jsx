@@ -10,6 +10,7 @@ import {
   ORIGEN_API,
   fechaDeHoy,
   obtenerDistritos,
+  obtenerIndices,
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
@@ -20,13 +21,24 @@ import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
 import TableroSemaforo from './componentes/TableroSemaforo'
 import { centroidesDeColeccion } from './datos/interpolacion'
 import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
+import LeyendaIndice from './componentes/LeyendaIndice'
 
 const EVENTO_INICIAL = 'sequia'
 
 // Mismo valor que --riesgo-opacidad en tokens.css. Se repite aca porque el
 // estado de React necesita un numero inicial; el CSS sigue siendo el dueno del
 // valor por defecto cuando el deslizador no se ha tocado.
-const OPACIDAD_INICIAL = 0.85
+// Una opacidad **por capa**, no una compartida.
+//
+// Hasta H5.5 habia una sola capa con deslizador y alcanzaba con un numero. Al
+// entrar los indices se reuso ese mismo numero y los tres deslizadores pasaron a
+// ser el mismo valor con tres dibujos: mover el del NDVI movia el del riesgo.
+// Se vio probandolo en el visor, no leyendo el codigo.
+const OPACIDAD_INICIAL = {
+  riesgo: 0.85,
+  ndvi: 0.85,
+  ndwi: 0.85,
+}
 
 export default function App() {
   const [salud, setSalud] = useState(null)
@@ -41,6 +53,10 @@ export default function App() {
   const [capaBase, setCapaBase] = useState(CAPA_BASE_INICIAL)
   const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
   const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
+
+  const cambiarOpacidad = useCallback((id, valor) => {
+    setOpacidad((previas) => ({ ...previas, [id]: valor }))
+  }, [])
   const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
   const [paquetesTodos, setPaquetesTodos] = useState(null)
 
@@ -62,6 +78,10 @@ export default function App() {
   // nuevo. Con el codigo adentro, la comprobacion es una sola y no se puede
   // olvidar: si no corresponde al distrito de la ficha, no se muestra.
   const [puntoClic, setPuntoClic] = useState(null)
+
+  // Los indices de H5.5. Se cargan una sola vez: no dependen del evento ni de la
+  // fecha del selector, porque son de la fecha de la escena de satelite.
+  const [indices, setIndices] = useState(null)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -85,6 +105,18 @@ export default function App() {
     }
 
     cargar()
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // Los indices, aparte. Si no estan, la capa no se ofrece y ya: no es un error
+  // y no tiene que ensuciar el estado general con un mensaje rojo.
+  useEffect(() => {
+    let vigente = true
+    obtenerIndices().then((paquete) => {
+      if (vigente) setIndices(paquete)
+    })
     return () => {
       vigente = false
     }
@@ -258,6 +290,7 @@ export default function App() {
               opacidad={opacidad}
               exponente={exponente}
               centroides={centroides}
+              indices={indices}
             />
           </div>
 
@@ -268,7 +301,7 @@ export default function App() {
               superpuestas={superpuestas}
               alAlternarSuperpuesta={alternarSuperpuesta}
               opacidad={opacidad}
-              alCambiarOpacidad={setOpacidad}
+              alCambiarOpacidad={cambiarOpacidad}
               exponente={exponente}
               alCambiarExponente={setExponente}
             />
@@ -290,6 +323,9 @@ export default function App() {
             {superpuestas.mapaCalor && !cargandoRiesgos && (
               <LeyendaMapaCalor centroides={centroides} riesgos={riesgos} exponente={exponente} />
             )}
+
+            {superpuestas.ndvi && <LeyendaIndice id="ndvi" paquete={indices} />}
+            {superpuestas.ndwi && <LeyendaIndice id="ndwi" paquete={indices} />}
 
             <PanelDistrito
               distrito={distritoSeleccionado}
