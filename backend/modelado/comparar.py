@@ -157,6 +157,26 @@ class DesdeLineaBase:
             raise RuntimeError(f"{self.nombre} no fue ajustado")
         return [self._interno.predecir(o.codigo_distrito, o.fecha) for o in observaciones]
 
+    def probabilidades(
+        self, observaciones: list[Observacion]
+    ) -> list[dict[NivelRiesgo, float] | None]:
+        """D-21 para una linea base: la distribucion empirica de su celda.
+
+        Solo la climatologica sabe darla -es la tasa de cada clase en ese
+        distrito y mes-. La trivial no la tiene y no la necesita: por D-39
+        nunca escribe. Pedirsela es un error de programa, no un dato ausente.
+        """
+        if self._interno is None:
+            raise RuntimeError(f"{self.nombre} no fue ajustado")
+        if not hasattr(self._interno, "distribucion"):
+            raise TypeError(f"{self.nombre} no entrega probabilidades: no puede escribir riesgo")
+        return [self._interno.distribucion(o.codigo_distrito, o.fecha) for o in observaciones]
+
+    @property
+    def necesita_caracteristicas(self) -> bool:
+        """Una linea base predice con el calendario: puede escribir fechas sin matriz."""
+        return False
+
 
 # --------------------------------------------------------------------------- #
 # El registro                                                                   #
@@ -407,6 +427,58 @@ def comparar(
         )
 
     return sorted(resultados, key=lambda r: -r.media)
+
+
+#: Orden de simplicidad de D-39, del mas simple al mas complejo. La trivial no
+#: aparece porque nunca escribe: es el piso, no una estimacion.
+SIMPLICIDAD: tuple[str, ...] = ("climatologica", "regresion logistica", "random forest", "xgboost")
+
+#: El piso. Un estimador que no lo alcanza no escribe.
+PISO = "trivial"
+
+
+def elegir_escritor(resultados: list[Resultado]) -> tuple[str | None, str]:
+    """Quien escribe `analitico.riesgo` para este evento, por la regla de D-39.
+
+    Devuelve (nombre, motivo). `None` cuando nadie puede escribir, con el motivo
+    escrito, porque «sin fila» tambien es una decision y tiene que poder
+    leerse.
+
+    La regla, en el orden en que se aplica:
+
+      1. La trivial nunca escribe (D-07: «siempre BAJO» no es una estimacion).
+      2. Nadie escribe por debajo del piso: media < media de la trivial.
+      3. Si el primero elegible supera al segundo fuera del ruido -ventaja mayor
+         que su propio rango, la regla de CA-5-, escribe el primero.
+      4. Si no, escribe el mas simple de los elegibles que quedan dentro del
+         ruido del primero: media >= media del primero - rango del primero.
+
+    Lo que NO hace: mirar nombres para preferir modelos. Si un dia un modelo
+    gana fuera del ruido, sale de aca sin tocar nada.
+    """
+    if not resultados:
+        return None, "no hay resultados"
+    piso = next((r.media for r in resultados if r.nombre == PISO), None)
+    elegibles = [
+        r
+        for r in resultados
+        if r.nombre in SIMPLICIDAD and r.por_pliegue and (piso is None or r.media >= piso)
+    ]
+    if not elegibles:
+        detalle = f"; el piso trivial esta en {piso:.3f}" if piso is not None else ""
+        return None, f"ningun estimador elegible alcanza el piso{detalle}: el evento queda sin fila"
+
+    elegibles.sort(key=lambda r: -r.media)
+    primero = elegibles[0]
+    if len(elegibles) == 1 or (primero.media - elegibles[1].media) > primero.rango:
+        return primero.nombre, f"gana fuera del ruido: F1-macro {primero.media:.3f}"
+
+    dentro = [r for r in elegibles if r.media >= primero.media - primero.rango]
+    mas_simple = min(dentro, key=lambda r: SIMPLICIDAD.index(r.nombre))
+    return mas_simple.nombre, (
+        f"empate tecnico: {primero.nombre} le saca {primero.media - elegibles[1].media:+.3f} "
+        f"al siguiente con rango {primero.rango:.3f}; escribe el mas simple dentro del ruido"
+    )
 
 
 def veredicto(resultados: list[Resultado]) -> str:

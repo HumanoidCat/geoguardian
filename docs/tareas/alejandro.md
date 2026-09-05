@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 177 puntos · 272.5 horas · 27.3 h por semana en promedio
+**Total asignado:** 187 puntos · 288.1 horas · 28.8 h por semana en promedio
 
 ## Carga por sprint
 
@@ -37,7 +37,7 @@
 | S0 | semanas 2-3 | 35.9 | 36 | ajustado |
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
-| S3 | semanas 8-9 | 43.8 | 36 | SOBRECARGA +8 h |
+| S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
 | S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
@@ -369,7 +369,74 @@
   - Desbloquea H3.3 de Cesar, que la tiene en su Sprint 2.
 
 
-## Sprint 3 (semanas 8-9) — 43.8 h
+## Sprint 3 (semanas 8-9) — 59.4 h
+
+- [x] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado (2026-09-03)
+  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
+  - horas: estimada 7.8 . real 2.8
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.14-ingesta.md`; criterios en
+    `H1.14-criterios-aceptacion.md` (PR #257). **D-40**: el preliminar que sirve
+    ClimateSERV llega despues que el final; se carga el final, con la latencia
+    medida declarada.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-38**. Cesar la declino por
+    escrito -no cabe en su calendario- y el PM la tomo. Su contenido queda tal
+    como estaba escrito.
+  - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
+    **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
+    una vez, asi que el sistema era una foto y no un servicio.
+  - **La cadencia no es una sola.** Incendio a diario, porque FIRMS llega en 3 h.
+    Sequia semanal como mucho: el final de CHIRPS tarda de 21 a 51 dias, y ademas
+    el SPI-3 mira 90 dias de los que 83 ya se conocian ayer.
+  - Tiene que **declarar que producto cargo**: el preliminar de CHIRPS es "GTS and
+    Mexico only" y no es el mismo dato que el final. Mismo criterio que D-17 con
+    la precipitacion y que D-25 con la era de FIRMS.
+  - Idempotente: correrla dos veces el mismo dia no duplica filas. Es el defecto
+    que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
+  - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
+    Kubernetes son locales. La programacion queda declarada y sin destino.
+  - **RENOMBRADA el 2026-08-27**, de «Ingesta periodica de las tres fuentes». Lo
+    planteo Cesar y el PM lo acepto: *una ingesta programada contra una base que
+    solo existe cuando alguien levanta `docker compose` no es periodica, es un
+    guion con un `cron` escrito al lado.* La historia se cierra con lo que si
+    demuestra -cadencia, producto declarado, idempotencia- y **donde corre sale a
+    la historia de alojamiento**, todavia sin abrir.
+  - **Y por D-31, esta historia NO regenera el manifiesto de H1.7.** Emite su
+    recibo de carga en la base y termina. El manifiesto es una version que se
+    corta a mano; perseguir con el a un dataset que se mueve destruiria la
+    propiedad que lo hace util.
+
+- [x] **H8.2** · ETL concurrente con medicion secuencial contra paralelo (2026-09-03)
+  - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
+  - horas: estimada 7.8 . real 2.5
+  - Evidencia: `docs/evidencias/sistemas-operativos/H8.2-concurrencia.md`;
+    criterios en `H8.2-criterios-aceptacion.md`, escritos antes del codigo.
+    **D-41** y las incidencias **I-31** e **I-32**.
+  - **Traspasada desde Cesar el 2026-09-03** por **D-38**. Cesar la declino por
+    escrito -no cabe en su calendario- y el PM la tomo. Su contenido queda tal
+    como estaba escrito.
+  - **Se paraleliza la descarga, no la escritura.** La transaccion por lote es
+    lo que sostiene la idempotencia de H1.1 y H1.14; repartirla entre hilos
+    seria cambiar una garantia por segundos. Ningun hilo toca PostgreSQL y el
+    verificador lo comprueba anotando de que hilo sale cada sentencia.
+  - **Cada fuente admite lo que se midio, y no es lo mismo para las dos.** FIRMS
+    x2.49 con cuatro trabajadores y **cada tarea sigue tardando 0.19 s**: se
+    reparte de verdad. CHIRPS x1.11, pero **cada tarea pasa de 6.18 s a
+    20.27 s**: el servicio encola, asi que la precipitacion va de a una aunque
+    se pida mas. La mitad de la optimizacion no se aplico porque la medicion
+    dijo que no.
+  - **Lo que no acelera tambien se midio**: el trabajo de CPU da x1.00 con
+    cuatro hilos y cada tarea tarda 3,75 veces mas. Es el GIL, medido en vez de
+    citado.
+  - Encontro un defecto de H1.14: **descargaba dentro de la transaccion**, 244
+    peticiones con la escritura abierta. Se separo en `descargar_focos` y
+    `escribir_focos`, y el verificador comprueba con reloj que la ultima
+    peticion ocurre antes de abrir la transaccion.
+  - El control se probo rompiendolo, ocho veces. **Dos sabotajes pasaron en
+    verde** y ese fue el hallazgo: tragarse el error en un solo sitio no rompe
+    nada porque hay dos mecanismos para la misma garantia. Se dejaron los dos,
+    con el motivo escrito.
+  - La primera medicion se **descarto**: con tres repeticiones el secuencial
+    tuvo un pico de 8.13 s y produjo un x2.28 superlineal. Se repitio con siete.
 
 - [x] **H3.4** · Entrenar y evaluar Random Forest (2026-09-03)
   - `E3` · 6 pts · 9.4 h · rubrica: OE2 · depende de: H3.2
@@ -408,8 +475,21 @@
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
 
-- [ ] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento
+- [x] **H3.6** · Tabla comparativa de tres algoritmos contra la linea base, por evento (2026-09-03)
   - `E3` · 10 pts · 15.6 h · rubrica: OE2 · depende de: H3.5 · **bloquea a: H3.7, H3.8, H4.1, H4.4**
+  - horas: estimada 8.0 . real 1.8
+  - Evidencia: `docs/evidencias/objetivos/H3.6-cierre-tuberia.md` (y la primera
+    parte, `H3.6-tabla-comparativa.md`, del 2026-08-27).
+  - **Cerrada con los tres algoritmos en la tabla y D-39**: ningun modelo supera
+    a la climatologica fuera del ruido, asi que escribe la climatologica en
+    lluvia e incendio y nadie en sequia. La regla (`elegir_escritor`) se
+    recalcula en cada corrida; no hay un nombre de algoritmo en el guion.
+  - Tuberia: tres metodos de `repositorio_postgres.py` bajo excepcion,
+    `estimar_riesgo.py`, **143 407 filas reales** en `analitico.riesgo`, dos
+    corridas identicas sin auditoria, y **la API en modo `postgres` con
+    `modo: real`**. 21 criterios en `verificar_h36_tuberia.py`.
+  - Hallazgo: `/salud` dice `base_datos_conectada: false` mientras sirve filas de
+    PostgreSQL; escrito a mano desde H6.1. Es **I-30**, de Cesar.
   - **Entregado el arnes y el contrato, el 2026-08-27. NO se marca `[x]`**: la
     historia dice «tres algoritmos» y los tres -H3.3, H3.4 y H3.5, de Cesar- no
     existen. Cerrarla con dos lineas base seria declarar hecho el contraste de

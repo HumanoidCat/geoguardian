@@ -237,7 +237,7 @@ Lo que la historia SI entrega, y vale por si solo:
 Lo que sale a la historia de alojamiento, todavia sin abrir: donde corre.
 
 Y por D-31, esta historia NO regenera el manifiesto de H1.7. Emite su
-recibo de carga en la base y termina.","E1,S3,BD-1,cesar",S3,cesar,5,7.8
+recibo de carga en la base y termina.","E1,S3,BD-1,alejandro",S3,alejandro,5,7.8
 H1.15,H1.15 Crear analitico.riesgo con sus restricciones,"Epica E1 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: BD-2
@@ -746,7 +746,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E8,S3,SO-1,cesar",S3,cesar,5,7.8
+- [ ] Funciona desde docker compose up en maquina limpia","E8,S3,SO-1,alejandro",S3,alejandro,5,7.8
 H8.3,H8.3 Cache en memoria con politica de expiracion y consumo medido,"Epica E8 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: SO-1

@@ -4090,3 +4090,475 @@ de que la carga se movio de un cuello a otro.
 Las cifras salen de `verificar_estado.py` y `verificar_backlog.py`, que fallan
 si backlog, archivos de tareas y matriz discrepan. Se corrieron despues del
 cambio y coinciden.
+---
+
+## D-38 · El alcance de Cesar se acota por escrito: dos historias pasan al PM, dos se difieren, tres se comprometen
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM), sobre la respuesta escrita de Cesar · **Estado.** Aceptada
+**Continua.** D-37, D-27 · **Afecta.** H1.14, H8.2 (al PM); H2.6, H8.3 (diferidas); H12.3, H6.3, H8.4, H3.7 (comprometidas); H1.10
+
+### Contexto
+
+D-37 le pidio a Cesar una respuesta escrita antes del viernes, historia por
+historia, diciendo cual entregaba y en que semana. **Respondio el mismo dia**,
+con esto:
+
+- **H1.10 entregada**: PR #250, ocho criterios en verde, pruebas contra
+  PostgreSQL en verde. Con ella **BD-4 pasa de 0 de 1 a cubierta**, el unico
+  criterio del proyecto que dependia de una sola historia.
+- **H1.14 y H8.2 no las hace** (15,6 h): BD-1 va 4 de 7, SO-1 ya salio del
+  cero, y ninguna bloquea a nadie.
+- De su Sprint 4, **se compromete a H12.3, H6.3 y H8.4 en la semana 10** (15,5 h,
+  13 pts) y **suelta H2.6 y H8.3** (15,6 h). Con razon: si la semana 11 es de
+  pruebas, su Sprint 4 tiene una sola semana y 34 h no entran en 18.
+- **H3.7 la toma si H3.6 cierra en la semana 10**; si no, se cae sola.
+- Pide dos cosas: dos lineas en `.gitignore` para `basedatos/respaldos/`, y que
+  la fila de H1.10 en `trazabilidad.csv` apunte a lo entregado.
+- Y reporta un hallazgo sobre el registro de migraciones, que va como **I-29**.
+
+Es exactamente la respuesta que D-37 pedia, y la primera vez desde D-33 que el
+plan de Cesar esta escrito por Cesar.
+
+### Decision
+
+**Se acepta la respuesta de Cesar en todo lo que dice de si mismo. Lo que
+suelta del Sprint 3 lo toma el PM; lo que suelta del Sprint 4 se difiere.**
+
+| Historia | Queda | Como |
+|---|---|---|
+| **H1.10** | Entregada por Cesar | Entra por el PR #250 en cuanto regenere la matriz (es lo unico que le falla al CI) |
+| **H1.14, H8.2** (S3) | **Pasan al PM** | Cesar pidio «reasignar» y el PM las toma, con nota de origen en `docs/tareas/alejandro.md` y excepcion de propiedad en `docs/07` para `backend/etl` |
+| **H2.6, H8.3** (S4) | **Diferidas** | Siguen a nombre de Cesar y sin marcar, con la nota en su archivo de tareas y condicion de reactivacion abajo |
+| **H12.3, H6.3, H8.4** (S4) | Comprometidas, semana 10 | A nombre de Cesar, como estaban |
+| **H3.7** (S4) | Condicionada | Cesar la toma si H3.6 cierra en la semana 10 |
+
+**Por que las dos de S3 se toman y las dos de S4 se difieren.** El objetivo
+fijado en D-37 es cerrar el Sprint 3 entero; H1.14 y H8.2 son las unicas dos
+que, sin dueno, lo dejaban en 16 de 18. El PM decidio tomarlas sabiendo lo
+que cuestan: 15,6 h mas sobre un Sprint 3 que ya iba en 43,8. Las de S4 no
+sostienen ningun criterio en cero ni ningun objetivo fijado, y ahi si aplica
+D-27: alcance diferido con condicion.
+
+Las dos peticiones se conceden en el mismo PR que esta decision: `.gitignore`
+ignora `basedatos/respaldos/` entera, y la fila de H1.10 en `trazabilidad.csv`
+nombra `respaldar.py`, `restaurar.py` y `verificar_h1_10.py`.
+
+### Justificacion
+
+Lo que D-33 y D-37 buscaban era saber con que contar, y ahora se sabe. Una
+persona que dice por escrito «estas tres si, estas cuatro no, y esta si se
+cumple tal condicion» vale mas que una asignacion de 47 h que nadie va a
+cumplir: se puede planificar contra ella y se puede medir.
+
+Ninguna de las cuatro que Cesar suelta deja un criterio de rubrica en cero
+-es su argumento y se comprobo contra `docs/08-backlog.md`: BD-1 tiene otras
+cuatro historias cerradas, SO-1 tiene H8.1 cerrada y H8.4 comprometida, y OE2
+tiene el eje E3 entero- y ninguna bloquea a otra persona. Por eso las de S4
+se pueden diferir sin costo de rubrica. Las de S3 se toman por otra razon:
+**el Sprint 3 es el objetivo declarado**, y el PM prefiere cargarlas a cerrar
+el sprint con dos huecos que nadie intento. Es una apuesta sobre su
+capacidad, y se escribe como tal.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Diferir tambien H1.14 y H8.2 | Era la recomendacion inicial: no bloquean a nadie y el PM ya carga 288 h contra 180. Se descarto porque deja el Sprint 3 en 16 de 18 sin que nadie lo intente, y el objetivo de D-37 es cerrarlo. Si el PM no llega, la retrospectiva lo dira con nombre y no con un hueco |
+| Reasignar H1.14 y H8.2 a Luna | Luna ya paso de 20,3 a 40,5 h en S3 por D-37 |
+| Exigir el Sprint 4 completo a Cesar | 34 h en una semana de 18. Es la apuesta que fallo cinco semanas seguidas, y esta vez el mismo Cesar la nombro antes de que fallara |
+| Borrar las diferidas del backlog | D-27 decidio que el alcance diferido se registra con condicion, no se borra. El backlog sigue en 89 historias y el avance se mide contra ese numero |
+
+### Consecuencias
+
+Lo que queda del Sprint 3 despues de esta decision: H1.10 (Cesar, en PR), H3.6,
+H3.8, **H1.14 y H8.2** (PM), H4.1 y H4.2 (Luna, detras de H3.6), H5.5 (Avril) y
+H12.1 (Luna). Todas tienen dueno; el Sprint 3 puede cerrar en 18 de 18, y el
+que decide si cierra es el PM.
+
+Carga del PM en S3 despues de esto: **59,4 h** contra un compromiso de 36, con
+total de 288,1 h y 187 puntos. Se registra el numero para que nadie diga que se
+decidio sin conocerlo. El orden de trabajo del PM es la cadena que desbloquea a
+otros -H3.6 y la tuberia- y despues H1.14, H8.2 y H3.8; si algo se cae, se cae
+de atras hacia adelante.
+
+Lo que Cesar deja de cargar en S4, 15,6 h, no lo carga nadie: es alcance
+diferido. Lo que Cesar si carga, 15,5 h en la semana 10, es la primera cifra
+suya contra la que se puede medir.
+
+**Condicion de reactivacion de H2.6 y H8.3**, una sola y evaluada en un momento
+fijo: se reabren **solo si al cierre de la semana 10 estan cerradas H3.6,
+H12.1, H12.3, H6.3 y H8.4**. Si se cumple, se reabre **una** y se estima antes
+de comprometerla.
+
+### Medicion
+
+Se da por buena si al cierre de la semana 10 `verificar_estado.py` muestra
+**H12.3, H6.3 y H8.4 cerradas**. Es la unica cifra que esta decision agrega, y
+es de Cesar.
+
+Se revisa si al cierre de la semana 10 esta cerrada una o ninguna de las tres:
+en ese caso la decision siguiente no es otro reparto, es declarar el Sprint 4
+de Cesar como diferido entero. Y se revisa tambien del lado del PM: si al
+cierre de la semana 10 H1.14 y H8.2 siguen abiertas, vuelven a diferidas por
+este mismo registro, sin decision nueva.
+
+`verificar_estado.py` y `verificar_backlog.py` se corrieron despues de escribir
+esto y coinciden: las diferidas siguen contadas como abiertas.
+
+---
+
+## D-39 · Que estimador escribe `analitico.riesgo` cuando ninguno gana fuera del ruido
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Se apoya en.** D-07, D-09, D-10, D-21, D-34, CA-5 de H3.6 · **Afecta.** H3.6, H3.8, H4.1, H4.2, H4.4
+
+### Contexto
+
+Con H3.4 y H3.5 la tabla de H3.6 tiene los tres algoritmos de D-09 y las dos
+lineas base, sobre las 102 272 filas reales y los cinco pliegues de H3.2. Las
+cifras del 2026-09-03, con hiperparametros de fabrica:
+
+    lluvia_intensa   xgboost 0.371 · climatologica 0.346 · random forest 0.312 · trivial 0.309 · regresion 0.306
+                     veredicto: empate tecnico, xgboost +0.025 sobre climatologica con rango 0.031
+    incendio         regresion 0.535 · xgboost 0.528 · climatologica 0.500 · trivial 0.494 · random forest 0.494
+                     veredicto: empate tecnico, regresion +0.007 sobre xgboost con rango 0.072
+    sequia           no modelable (D-34); solo lineas base: trivial 0.333 · climatologica 0.272
+
+**Ningun algoritmo supera a la linea base climatologica fuera del ruido.** La
+regla que lo dice no se invento hoy: es CA-5 de H3.6, fijada el 2026-08-27
+antes de que existiera un solo modelo: «no se declara ganador cuando la
+ventaja es menor que la dispersion entre pliegues».
+
+Y la tuberia hacia `analitico.riesgo` -tres metodos del repositorio y un guion-
+necesita saber **que estimador escribe cada evento**. Nadie ha escrito nunca
+una fila; el visor sigue en `simulado` por eso.
+
+### Decision
+
+**1. Escribe el estimador que la tabla elige con una regla fija, no uno que se
+elige a mano.** La regla, en `comparar.elegir_escritor()`:
+
+  a. Se ordenan los estimadores por F1-macro, como la tabla.
+  b. Si el primero supera al segundo **fuera del ruido** (ventaja mayor que su
+     propio rango entre pliegues, la regla de CA-5), escribe el primero.
+  c. Si no, escribe **el mas simple** de los que quedan **dentro del ruido del
+     primero** (media ≥ media del primero − rango del primero). El orden de
+     simplicidad es fijo: climatologica < regresion logistica < random forest
+     < xgboost.
+  d. **La trivial nunca escribe.** Es el piso absoluto contra el que se mide,
+     no una estimacion: «siempre BAJO» convertiria la ausencia de senal en
+     riesgo bajo, que es exactamente lo que D-07 prohibe.
+  e. **Nadie escribe por debajo del piso.** Un estimador cuya media no alcanza
+     a la trivial no escribe. Si ninguno la alcanza, el evento queda **sin
+     fila** y el visor lo muestra como «sin estimacion».
+
+**2. Con las cifras de hoy, la regla da:**
+
+| Evento | Escribe | Por que |
+|---|---|---|
+| lluvia intensa | **climatologica** | xgboost no gana fuera del ruido (+0,025 < 0,031); dentro del ruido, la climatologica es la mas simple |
+| incendio | **climatologica** | regresion no gana fuera del ruido (rango 0,072 cubre a xgboost y a la climatologica); la mas simple dentro del ruido |
+| sequia | **nadie** | D-34; y la climatologica (0,272) esta por debajo del piso (0,333) |
+
+**3. La regla se recalcula en cada corrida.** El guion corre la tabla completa
+y elige con ella; no hay un nombre de algoritmo escrito en el guion. El dia
+que H3.8 ajuste hiperparametros y un modelo gane fuera del ruido, la misma
+corrida lo pone a escribir sin tocar una linea. Es lo contrario del `== 3` de
+`verificar_h66`: la decision sigue al dato.
+
+**4. Cada fila declara quien la escribio y por que.** `algoritmo` lleva el
+estimador y `version_modelo` lleva la fecha de la corrida, el F1-macro del
+escritor y el veredicto de la tabla (`climatologica@2026-09-03 f1=0.346
+empate-tecnico`). Una fila de `analitico.riesgo` se puede reproducir y se puede
+retirar.
+
+**5. `probabilidad` es P(nivel = alto) por D-21, tambien para la climatologica**:
+la tasa de ALTO en ese distrito y ese mes calendario en el entrenamiento. Es una
+probabilidad empirica legitima y la unica que la climatologica puede dar.
+
+### Justificacion
+
+**La alternativa era declarar ganador al de mayor media aunque cayera dentro
+del ruido.** Habria puesto a xgboost en lluvia y a la regresion en incendio, y
+el visor mostraria «aprendizaje automatico». Se descarto porque **cambiaria la
+regla despues de ver el dato**, que es lo unico que la metodologia del proyecto
+prohibe sin excepcion: CA-5 se fijo antes, y si hoy se relaja para que gane un
+modelo, la tabla deja de significar lo que dice.
+
+Lo que se gana con esta regla es que el visor muestre **riesgo real** desde
+hoy: la climatologica es el almanaque de 35 anios por distrito y mes, se
+explica en una frase, y esta medida como no peor que cualquier modelo. Y lo
+que se pierde -que el mapa no lleve un modelo de aprendizaje- se pierde por una
+razon medida, no por una omision.
+
+Y hay un segundo motivo, mas importante para H3.8: **una regla que puede dar
+«climatologica» es una regla que puede decir que no.** Si la regla siempre
+eligiera un modelo, ajustar hiperparametros no tendria nada que demostrar.
+
+### Alternativas descartadas
+
+| Alternativa | Por que no se eligio |
+|---|---|
+| Empate tecnico → el de mayor media | Cambia CA-5 despues de ver el dato. Y con rango 0,072 en incendio, la «mayor media» es ruido con nombre |
+| Escribir los tres modelos y que el visor elija | Tres filas por terna rompen la clave natural de `analitico.riesgo` (una estimacion por distrito, dia y evento, D-21) y trasladan al visor una decision de modelado |
+| Que la trivial escriba en sequia | «Siempre BAJO» presentado como estimacion es la ausencia disfrazada de riesgo bajo: D-07 |
+| Elegir a mano y escribirlo en el guion | Es el `== 3` de verificar_h66: la proxima tabla lo deja obsoleto sin que nadie lo note |
+
+### Consecuencias
+
+El visor con `GEOGUARDIAN_REPOSITORIO=postgres` muestra riesgo climatologico
+real para lluvia intensa e incendio, «sin estimacion» para sequia, y «sin
+estimacion» para cualquier fecha sin caracteristicas -hoy, todo lo posterior
+al ultimo dia ingerido-. Que haya fila para hoy depende de la ingesta con
+cadencia, **H1.14**, que ahora es del PM por D-38.
+
+`explicacion` (SHAP, H4.2) queda NULL: la climatologica no tiene variables que
+explicar. H4.1 y H4.2 siguen siendo sobre los modelos, no sobre el escritor,
+y su valor esta en explicar **por que los modelos no ganan**, que es tan
+resultado como lo contrario.
+
+`guardar_metricas` y `listar_metricas` **no entran en H3.6**: la tabla
+`analitico.metrica` no existe y crearla es DDL de `basedatos/`, de Cesar. Pasan a
+**H3.7** (versionar modelos con metricas), que Cesar toma si H3.6 cierra a
+tiempo. La excepcion de `docs/07` se acota a los tres metodos de riesgo.
+
+### Medicion
+
+Se da por buena si `python -m backend.modelado.estimar_riesgo` escribe filas
+en `analitico.riesgo` con `algoritmo` y `version_modelo` declarados, y
+`GET /riesgos?fecha=<ultimo dia con datos>&tipo_evento=incendio` devuelve los
+ocho distritos con nivel y probabilidad, con la API en modo `postgres` y sin
+que `Salud.modo` diga `simulado`.
+
+La regla se prueba sin base en `verificar_h36_tuberia.py`, con tablas
+construidas a mano para cada rama: ganador fuera del ruido, empate con mas
+simple, piso, y nadie. Se sabotea cada rama y se comprueba que cae el
+criterio correcto.
+
+
+---
+
+## D-40 · La ingesta de precipitacion carga el CHIRPS final; el "preliminar" de ClimateSERV llega despues que el final
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Revisa.** D-26 (cadencia de lluvia intensa) · **Se apoya en.** D-07, D-15, D-17 · **Afecta.** H1.14, H4.4, `/salud.ultima_ingesta`
+
+### Contexto
+
+D-26 dejo la cadencia de lluvia intensa como «diaria, con preliminar
+declarado», porque el CHIRPS final llega entre 21 y 51 dias despues y existe
+un producto preliminar de 2 dias. Los criterios de H1.14 obligaron a
+**comprobar contra el catalogo real** que producto sirve ClimateSERV antes de
+escribir el extractor, y a medir su latencia. Tres hechos del 2026-09-03:
+
+1. El catalogo de ClimateSERV (pagina de la API) **no ofrece el CHIRPS
+   preliminar**. Ofrece `0 = UCSB CHIRPS Rainfall` (final) y `90 = UCSB CHIRP
+   Rainfall`, la estimacion satelital sin la correccion por estaciones. El
+   preliminar de D-26 lo publica CHC como GeoTIFF global diario, fuera de este
+   servicio.
+2. Medido con `docs/herramientas/medir_productos_ingesta.py` sobre la celda de
+   Tilaran: el **final llega hasta el 2026-07-31**, 33 dias de latencia, dentro
+   de lo que D-26 documento. El **CHIRP (90) llega solo hasta principios de
+   junio** -156 dias con dato desde el 1 de enero en la corrida de prueba de la
+   ingesta- y sobre una ventana sin datos el servicio **no responde**: dos
+   peticiones encoladas, 120 s y 450 s de espera, sin resultado.
+3. POWER, que aporta el resto de las variables, llega con 3 dias.
+
+Un producto que llega despues que el final no es un preliminar. Cargarlo a
+diario y reemplazarlo cada semana seria trabajo de la maquina para no ganar
+un solo dia, y una columna `fuente_precipitacion = 'chirp'` que nunca tendria
+el dato mas nuevo.
+
+### Decision
+
+1. **Lluvia intensa y sequia cargan el CHIRPS final** (`chirps`, tipo 0), cada
+   una con su cadencia de D-26: lluvia intensa a diario, sequia semanal como
+   mucho. La ventana de cada corrida empieza el dia siguiente al **ultimo dia
+   con dato** y termina ayer, asi que la corrida diaria trae lo que el
+   servicio haya publicado desde la anterior.
+2. **La latencia declarada de lluvia intensa pasa a ser la del final**: la
+   ultima medida, 33 dias, y la que `control.bitacora_etl` deje escrita en
+   cada corrida (`ventana_hasta` contra el ultimo dia con dato). El visor y
+   `/salud` deben mostrar esa fecha, no prometer dos dias.
+3. **La regla de reemplazo se queda**, implementada y probada contra la base:
+   el final reemplaza al preliminar, el preliminar nunca pisa un valor del
+   final, un nulo nunca pisa un valor. El codigo `chirp` sigue en
+   `crudo.fuente` (migracion 013) y `ExtractorChirps` acepta el tipo 90. Es lo
+   que hace falta el dia que un preliminar de verdad -el GeoTIFF de CHC, o un
+   CHIRP que adelante- se conecte: cambiar `PRODUCTO["lluvia_intensa"]` y nada
+   mas.
+4. **FIRMS si tiene un preliminar que llega antes**, y la misma regla se le
+   aplica: NRT (`modis-nrt`, `viirs-snpp-nrt`) declarado por fila, reemplazado
+   por SP por dia y producto cuando el servicio declara que el SP cubre el dia.
+   Medido el 2026-09-03: el SP de MODIS llega al 2026-04-30 y el de VIIRS S-NPP
+   al 2026-04-27; el NRT cubre desde ahi hasta hoy sin hueco.
+
+### Justificacion
+
+El criterio de H1.14 decia que el producto se comprueba contra el catalogo y
+no se supone, y que si el preliminar no esta, «lluvia intensa se declara con
+el producto que si hay y la cadencia diaria queda con la latencia real de ese
+producto, escrita». Esto es aplicar ese criterio con las cifras medidas. Es
+la forma de D-17 y D-25: el producto que se carga se declara, y una latencia
+se mide antes de prometerla.
+
+### Alternativas descartadas
+
+- **Cargar el CHIRP igual, como preliminar.** Llega despues que el final;
+  seria declarar como «mas nuevo» un dato mas viejo y sin correccion por
+  estaciones. Descartada por la medicion.
+- **Bajar el GeoTIFF preliminar de CHC.** Es el unico preliminar real, pero
+  cuesta `rasterio`, recorte por poligono y un archivo global por dia, y no
+  hay medicion de que para Costa Rica llegue antes que el final. Queda como
+  trabajo futuro, con esa medicion como condicion.
+- **Quitar el codigo `chirp` y el tipo 90.** Dejaria la regla de reemplazo sin
+  nada que reemplazar y sin prueba. Se conservan: son cincuenta lineas y la
+  prueba contra la base ya existe.
+
+### Consecuencias
+
+- D-26 sigue en pie en todo menos en la palabra «preliminar» para lluvia
+  intensa: la cadencia diaria se mantiene, el dato que trae es el final.
+- La migracion 013 dice en su comentario que el CHIRP «sale antes»; era lo que
+  el catalogo daba a entender y la medicion lo desmintio el mismo dia. **Una
+  migracion aplicada no se edita** (`aplicar_migraciones.py` lo impide); la
+  correccion vive aqui y en la evidencia de H1.14.
+- Queda como trabajo futuro, fuera de H1.14: un extractor del GeoTIFF de CHC,
+  que necesitaria `rasterio` y recorte por poligono. Solo tiene sentido si
+  se mide primero que ese producto llega antes que el final para Costa Rica.
+
+### Medicion
+
+`docs/herramientas/medir_productos_ingesta.py` (repetible) y la corrida real
+de H1.14 en `docs/evidencias/bases-de-datos/H1.14-ingesta.md`. La cifra que
+debe seguirse: el ultimo dia con dato de `chirps` en `crudo.medicion_diaria`
+contra la fecha de la corrida, que `contar_ingesta.py` imprime. Si alguna vez
+el CHIRP (tipo 90) adelanta al final, `medir_productos_ingesta.py --solo chirp`
+lo mostrara y esta decision se revisa.
+
+---
+
+## D-41 · La concurrencia del ETL va en la descarga, con hilos, y cada fuente admite lo que se midio
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Se apoya en.** D-15, D-26, D-40, H1.1 (CA-12), H1.14 · **Afecta.** H8.2, H1.14, H8.3
+
+### Contexto
+
+El ETL hace dos cosas que no se parecen: **espera por la red** y **escribe en
+PostgreSQL**. Hasta hoy hacia las dos de a una por vez.
+
+Las corridas reales de H1.14, en `control.bitacora_etl`, dicen donde esta el
+tiempo: la de incendio son **244 peticiones** de cinco dias a FIRMS, y la de
+lluvia **ocho consultas a ClimateSERV que el servicio encola** y hay que
+sondear cada tres segundos. La escritura de esas mismas corridas son dos
+`executemany`. El reloj se va esperando, no escribiendo.
+
+Y H1.14 dejo un defecto que esta historia encontro al medir: **descargaba
+dentro de la transaccion**. La cabecera de `cargar_mediciones.py` ya advertia
+que eso mantiene la tabla tomada mientras el proceso espera por la red, y se
+habia colado igual en `ingestar.py`.
+
+### Decision
+
+**1. Se paraleliza la descarga, y solo la descarga.** Un pool acotado de hilos
+para las peticiones; la escritura sigue en una transaccion por lote, en el hilo
+principal. Ningun hilo toca PostgreSQL, y el verificador lo comprueba anotando
+de que hilo sale cada sentencia.
+
+**2. Primero la red, despues la escritura.** `descargar_focos` y
+`escribir_focos` son dos funciones: la transaccion se abre cuando ya no queda
+nada que esperar.
+
+**3. Hilos, no `asyncio`.** Un trabajo que espera por la red no necesita
+corrutinas para dejar de esperar. El GIL no estorba ahi porque un hilo
+bloqueado en la red lo suelta.
+
+**4. Cada fuente admite lo que la medicion dice que aprovecha**, no un numero
+igual para todas:
+
+| Fuente | En vuelo | Por que |
+|---|---|---|
+| FIRMS por area | **4** | x2.49 con cuatro, y cada tarea sigue tardando lo mismo |
+| ClimateSERV (lluvia y sequia) | **1** | x1.11 con cuatro, y cada tarea tarda 3,3 veces mas: el servicio las encola |
+
+**5. El tope general es 4 y sale de la escalera**, no de subir hasta que algo
+se rompa. FIRMS publica su limite -5 000 transacciones cada diez minutos- y las
+244 peticiones no lo rozan; ClimateSERV **no publica ninguno**, y ante una
+fuente publica y gratuita que no dice cuanto aguanta, el equipo no lo averigua
+a la fuerza.
+
+**6. El estado compartido se protege, y el defecto se demuestra antes de
+arreglarlo**: la cache de POWER por celda y la bitacora de la corrida.
+
+### Justificacion
+
+La medicion de CA-9, sobre el trabajo real y no sobre un banco de pruebas
+inventado, midio **el reloj de la tanda y cuanto tardo cada tarea**. Esa
+segunda columna es la que decide, porque distingue tres situaciones que el
+reloj solo no distingue:
+
+| Trabajo | Reloj, 1 -> 4 trabajadores | Cada tarea | Que pasa |
+|---|---|---|---|
+| FIRMS por area | 3.18 -> 1.11 s (**x2.86**) | 0.19 -> **0.19 s** | se reparte de verdad |
+| Lectura de CSV (CPU) | 2.96 -> 3.25 s (x0.91) | 0.40 -> **1.50 s** | el GIL serializa |
+| CHIRPS por distrito | 53.69 -> 48.34 s (x1.11) | 6.18 -> **20.27 s** | el servidor encola |
+
+CHIRPS tiene **la misma firma que el GIL**: cada tarea se vuelve tres veces mas
+lenta, asi que el reloj no se mueve. El 11 % que igual se gana es solape del
+sondeo, no trabajo en paralelo. Pedirle cuatro peticiones a la vez a un
+servicio gratuito que las pone en fila es cuadruplicar la carga a cambio de
+nada, y por eso la precipitacion va de a una **aunque se pida mas**.
+
+Sobre el tope de FIRMS, la escalera de siete repeticiones:
+
+    1 trabajador    2.77 s   x1.00     eficiencia por trabajador
+    2 trabajadores  1.69 s   x1.64     0.82
+    4 trabajadores  1.11 s   x2.49     0.62
+    8 trabajadores  0.87 s   x3.18     0.40
+
+Cada trabajador despues del cuarto compra menos de medio trabajador. Sobre la
+corrida completa de 244 tramos son unos segundos al dia, y no se pagan
+duplicando la presion sobre el servicio.
+
+### Alternativas descartadas
+
+- **Paralelizar la escritura.** Repartir el lote entre transacciones gana menos
+  de un segundo y cuesta la garantia de H1.1: o entran todas las filas o no
+  entra ninguna. Cambiar una garantia por un segundo es un trato que este
+  proyecto no hace.
+- **`asyncio`.** Reescribiria `chirps.py`, `power.py`, `firms.py`,
+  `firms_area.py`, sus pruebas y los dos cargadores para ganar lo mismo: el
+  cuello es la espera, no el costo de un hilo.
+- **Procesos en vez de hilos.** Sirven cuando el cuello es CPU. Se midio que no
+  lo es, y traerian que serializar resultados entre procesos.
+- **Un solo tope para todo el ETL.** Es lo que estaba escrito antes de medir.
+  La medicion mostro que las dos fuentes no se parecen, y un numero unico
+  habria significado hostigar a ClimateSERV para no ganar nada.
+- **Subir el tope hasta que rinda.** Es medir contra un servicio ajeno hasta
+  molestarlo. Se mide una escalera corta y se elige dentro de ella.
+
+### Consecuencias
+
+- La bitacora de una corrida de incendio sale **en orden de terminacion**, no
+  de lectura. Las lineas van enteras -con candado-, pero los tramos aparecen
+  desordenados en el archivo de evidencia. Es el precio y queda dicho.
+- `--secuencial` se queda en el guion para siempre: es el tiempo base de
+  cualquier medicion futura, y sin el la comparacion no se puede repetir.
+- **H8.3** (cache con expiracion, de Cesar) hereda un ETL donde varias
+  peticiones ocurren a la vez: su cache va a necesitar la misma proteccion que
+  la de POWER, y el candado de `hibrido.py` es el ejemplo.
+- Esto **no** mejora la latencia del dato. CHIRPS sigue llegando con 33 dias de
+  retraso (D-40): la corrida tarda menos, el dato no llega antes.
+- Si algun dia ClimateSERV deja de encolar, `EN_VUELO["lluvia_intensa"]`
+  vuelve a `None` y la ingesta aprovecha el pool sin tocar nada mas. La
+  medicion que lo justificaria es la misma que ya existe.
+
+### Medicion
+
+`python -m backend.etl.medir_concurrencia`, repetible, no escribe en la base.
+Las corridas de esta decision estan en `gestion/medicion-h82-b.txt` (escalera
+de FIRMS, siete repeticiones) y `gestion/medicion-h82-c.txt` (tiempos por tarea
+y CHIRPS). La cifra a seguir es **el tiempo por tarea**: si al subir los
+trabajadores cada tarea empieza a tardar proporcionalmente mas, del otro lado
+no hay paralelismo que aprovechar.

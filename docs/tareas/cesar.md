@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 79 puntos · 100.6 horas · 10.1 h por semana en promedio
+**Total asignado:** 69 puntos · 85.0 horas · 8.5 h por semana en promedio
 
 ## Carga por sprint
 
@@ -37,7 +37,7 @@
 | S0 | semanas 2-3 | 18.3 | 36 | holgado |
 | S1 | semanas 4-5 | 24.9 | 36 | holgado |
 | S2 | semanas 6-7 | 0.0 | 36 | holgado |
-| S3 | semanas 8-9 | 23.4 | 36 | holgado |
+| S3 | semanas 8-9 | 7.8 | 36 | holgado |
 | S4 | semanas 10-11 | 34.0 | 36 | ajustado |
 
 ## Sprint 0 (semanas 2-3) — 18.3 h
@@ -97,62 +97,48 @@
 
 ## Sprint 2 (semanas 6-7) — 0.0 h
 
-## Sprint 3 (semanas 8-9) — 23.4 h
+## Sprint 3 (semanas 8-9) — 7.8 h
 
-> **Actualizado el 2026-09-03 por D-37.** H3.4, H3.5 y H12.1 salieron de esta
-> lista: las dos primeras a Alejandro y la tercera a Luna. Son las tres que
-> bloqueaban a otras personas. Lo que queda aqui no bloquea a nadie.
+> **Actualizado el 2026-09-03 por D-37 y D-38.** H3.4, H3.5 y H12.1 salieron de
+> esta lista por D-37 (las dos primeras a Alejandro, la tercera a Luna). H1.14 y
+> H8.2 salieron por D-38: Cesar las declino por escrito y el PM las tomo. Queda
+> H1.10, entregada en el PR #250.
 
-- [ ] **H1.14** · Ingesta reejecutable con cadencia declarada por evento y producto declarado
-  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H1.2
-  - Agregada el 2026-08-23 por **D-26**. Hueco del backlog: de las 86 historias,
-    **ninguna volvia a consultar las fuentes**. H1.1 es una descarga historica de
-    una vez, asi que el sistema era una foto y no un servicio.
-  - **La cadencia no es una sola.** Incendio a diario, porque FIRMS llega en 3 h.
-    Sequia semanal como mucho: el final de CHIRPS tarda de 21 a 51 dias, y ademas
-    el SPI-3 mira 90 dias de los que 83 ya se conocian ayer.
-  - Tiene que **declarar que producto cargo**: el preliminar de CHIRPS es "GTS and
-    Mexico only" y no es el mismo dato que el final. Mismo criterio que D-17 con
-    la precipitacion y que D-25 con la era de FIRMS.
-  - Idempotente: correrla dos veces el mismo dia no duplica filas. Es el defecto
-    que Luna encontro en H1.5, donde una fila repetida escondia un dia ausente.
-  - **No resuelve donde se ejecuta.** No hay entorno alojado: los overlays de
-    Kubernetes son locales. La programacion queda declarada y sin destino.
-  - **RENOMBRADA el 2026-08-27**, de «Ingesta periodica de las tres fuentes». Lo
-    planteo Cesar y el PM lo acepto: *una ingesta programada contra una base que
-    solo existe cuando alguien levanta `docker compose` no es periodica, es un
-    guion con un `cron` escrito al lado.* La historia se cierra con lo que si
-    demuestra -cadencia, producto declarado, idempotencia- y **donde corre sale a
-    la historia de alojamiento**, todavia sin abrir.
-  - **Y por D-31, esta historia NO regenera el manifiesto de H1.7.** Emite su
-    recibo de carga en la base y termina. El manifiesto es una version que se
-    corta a mano; perseguir con el a un dataset que se mueve destruiria la
-    propiedad que lo hace util.
-
-
-- [ ] **H1.10** · Estrategia de respaldo definida y restauracion probada
+- [x] **H1.10** · Estrategia de respaldo definida y restauracion probada (2026-09-03)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-4 · depende de: H1.9
-
-- [ ] **H8.2** · ETL concurrente con medicion secuencial contra paralelo
-  - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H1.1
-
+  - horas: estimada 7.8 . real 8.0
+  - Evidencia: `docs/evidencias/bases-de-datos/H1.10-criterios-aceptacion.md`, `docs/evidencias/bases-de-datos/H1.10-respaldo-restauracion.md`. PR #250.
 
 ## Sprint 4 (semanas 10-11) — 34.0 h
+
+> **Compromiso escrito de Cesar, 2026-09-03 (D-38):** H12.3, H6.3 y H8.4 en la
+> semana 10 (15,5 h, 13 pts). H3.7 si H3.6 cierra a tiempo. **H2.6 y H8.3
+> quedan diferidas** por D-38.
 
 - [ ] **H12.3** · Alertas automaticas ante fallo de pipeline o despliegue
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H11.2
 
 - [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
   - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
+  - **Diferida el 2026-09-03 por D-38.**
 
 - [ ] **H3.7** · Versionar modelos con metricas y fecha asociadas
   - `E3` · 3 pts · 2.9 h · rubrica: Arq · depende de: H3.6
 
 - [ ] **H6.3** · Strategy y Factory: agregar una fuente sin tocar el orquestador
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.2
+  - Entregada el 2026-09-03 y esperando fila en `docs/trazabilidad.csv`, que es de
+    Alejandro. Se marca `[x]` cuando la fila exista: `generar_matriz.py` falla si una
+    historia cerrada no la tiene, y `verificar_horas.py` rechaza declarar horas de
+    algo que sigue abierto. Al marcarla va la linea `estimada 4.8 . real 5.0`.
+  - Evidencia: `docs/evidencias/arquitectura-software/H6.3-strategy-y-factory.md`
+  - Construye la Factory, **no** el orquestador: no existe. Los criterios daban por
+    hecho cuatro implementaciones y son dos: `ExtractorChirps` y `ExtractorPower` no
+    cumplen `ExtractorClima` -no tienen `extraer()`-. Correccion anotada en los criterios.
 
 - [ ] **H8.3** · Cache en memoria con politica de expiracion y consumo medido
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1
+  - **Diferida el 2026-09-03 por D-38.**
 
 - [ ] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1 · depende de: H1.6

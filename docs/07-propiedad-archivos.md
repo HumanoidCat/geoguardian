@@ -491,12 +491,19 @@ de Alejandro: `guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`,
 
 | Quien | Donde | Para que |
 |---|---|---|
-| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los cinco metodos que el encabezado asigna a H3.6, y el guion que corre el modelo y escribe `analitico.riesgo` |
+| Alejandro | `backend/api/repositorio_postgres.py` | **solo** los tres metodos de riesgo (`guardar_riesgos`, `obtener_riesgo`, `obtener_riesgos_por_fecha`) y su SQL, y el guion que corre el modelo y escribe `analitico.riesgo` |
+| Alejandro | `backend/api/test_repositorio_postgres.py`, `backend/api/verificar_h62.py` | **solo** lo que deja de ser cierto al implementar esos tres: la prueba que decia «exactamente diez pendientes» con el numero escrito a mano, y el nombre con que `verificar_h62` la busca. Se cambian a derivar de `PENDIENTES`, no a otro numero |
+
+> **Acotada el 2026-09-03 por D-39.** `guardar_metricas` y `listar_metricas`
+> **salen** de esta excepcion: necesitan la tabla `analitico.metrica`, que no
+> existe y es DDL de `basedatos/`, de Cesar. Pasan a **H3.7**. El encabezado de
+> `repositorio_postgres.py` se corrige en el mismo PR.
 
 Lo que **no** cubre: el resto del archivo (`guardar_indices`, `obtener_indices`,
-`listar_eventos`, los reportes de calidad), el contrato `contratos/`, ni
-`docker-compose.yml`. Cambiar la variable de entorno del despliegue es
-`infra/`, que ya es de Alejandro.
+`listar_eventos`, los reportes de calidad, las metricas), el contrato
+`contratos/`, ni `docker-compose.yml` -que ya lee `GEOGUARDIAN_REPOSITORIO`
+del entorno y no hace falta tocar-. La variable en el despliegue es `infra/`,
+que ya es de Alejandro.
 
 Es la misma regla de siempre: **la propiedad sigue al trabajo asignado.** Los
 metodos llevan el nombre de H3.6 escrito en el archivo desde que se creo.
@@ -513,3 +520,37 @@ Cesar, asi que la excepcion se escribe aqui, estrecha:
 
 Si Cesar retoma H12.1, la fila vuelve a su nombre por la clausula de D-33, sin
 pedir permiso.
+
+## Excepcion: H1.14 y H8.2, para Alejandro
+
+**Declarada el 2026-09-03 por D-38.** Cesar declino por escrito H1.14 (ingesta
+reejecutable con cadencia) y H8.2 (ETL concurrente medido) y el PM las tomo.
+Las dos viven en `backend/etl`, carpeta de Cesar, asi que la excepcion se
+escribe aqui, estrecha:
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Alejandro | `backend/etl`, `basedatos` | **solo** lo que H1.14 y H8.2 necesiten; dos historias, y se cierra con ellas |
+
+Si Cesar retoma cualquiera de las dos, la fila vuelve a su nombre por la
+clausula de D-33, sin pedir permiso.
+
+## Excepcion: `.github/workflows/alerta.yml`, para H12.3 de Cesar
+
+**Declarada el 2026-09-03, a peticion escrita de Cesar y antes de que exista el
+archivo.** `.github/workflows/` es de Alejandro y ademas esta en la lista de
+archivos compartidos; el dueno y el aprobador son la misma persona, y aprueba.
+
+| Quien | Donde | Para que |
+|---|---|---|
+| Cesar | `.github/workflows/alerta.yml` (**nuevo**) | **H12.3, y nada mas**: un flujo que escucha con `workflow_run` cuando CI o CD terminan en `dev` o `main` y abre o cierra una issue de alerta. La logica va en un guion de Python en carpeta de Cesar |
+
+Lo que la excepcion **no** cubre: `ci.yml` y `cd.yml`. No se tocan, y H12.3 lo
+convierte en criterio (su CA-1 compara los dos por hash). Permisos del flujo:
+`issues: write` y `actions: read`, los minimos que necesita.
+
+Sobre la prueba: un `workflow_run` solo corre desde la rama por omision, asi
+que Cesar lo prueba corriendo el guion a mano contra una corrida que fallo de
+verdad. Eso abre una issue de alerta real, etiquetada `alerta`, que queda
+cerrada y **no se borra**: es la evidencia.
+

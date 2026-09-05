@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -165,6 +166,11 @@ class ExtractorHibrido:
         # Una celda de POWER cubre varios distritos y devuelve lo mismo para
         # todos. Se guarda por celda y rango para no repetir la peticion.
         self._cache_power: dict[tuple, dict[str, dict[date, float | None]]] = {}
+        # H8.2: con varios distritos en vuelo, dos hilos miran la cache antes de
+        # que ninguno la haya llenado y descargan la misma celda dos veces. Se
+        # midio: con ocho distritos concurrentes y sin candado, POWER recibe
+        # ocho peticiones donde debia recibir una.
+        self._candado_power = threading.Lock()
 
     def cerrar(self) -> None:
         self._power.cerrar()
@@ -190,20 +196,27 @@ class ExtractorHibrido:
         longitud, latitud = celda_power(territorio.longitud, territorio.latitud)
         clave = (longitud, latitud, desde, hasta)
 
-        if clave in self._cache_power:
-            self._registrar(
-                f"{territorio.nombre}: POWER reutiliza la celda "
-                f"({longitud}, {latitud}), ya descargada"
-            )
-            return self._cache_power[clave]
+        # El candado cubre mirar la cache y llenarla, no solo escribirla: si
+        # cubriera menos, dos hilos podrian mirar a la vez, ver que falta y
+        # descargar los dos. Serializa las descargas de POWER, y aqui eso no
+        # cuesta nada: por D-15 los ocho distritos caen en la MISMA celda, asi
+        # que hay una sola descarga y las demas son aciertos de cache. El dia
+        # que haya varias celdas, este candado deberia ser uno por clave.
+        with self._candado_power:
+            if clave in self._cache_power:
+                self._registrar(
+                    f"{territorio.nombre}: POWER reutiliza la celda "
+                    f"({longitud}, {latitud}), ya descargada"
+                )
+                return self._cache_power[clave]
 
-        respuesta = self._power.consultar(territorio.longitud, territorio.latitud, desde, hasta)
-        self._registrar(
-            f"{territorio.nombre}: POWER {respuesta.dias} dias, "
-            f"elevacion {respuesta.elevacion} m, api {respuesta.version_api}"
-        )
-        self._cache_power[clave] = respuesta.series
-        return respuesta.series
+            respuesta = self._power.consultar(territorio.longitud, territorio.latitud, desde, hasta)
+            self._registrar(
+                f"{territorio.nombre}: POWER {respuesta.dias} dias, "
+                f"elevacion {respuesta.elevacion} m, api {respuesta.version_api}"
+            )
+            self._cache_power[clave] = respuesta.series
+            return respuesta.series
 
     def extraer(
         self,
