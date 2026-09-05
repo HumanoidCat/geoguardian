@@ -147,6 +147,28 @@ PERMITIDAS = [
     ("etl", "leer control.migracion", "SELECT count(*) FROM control.migracion"),
     ("etl", "escribir en control.migracion", None),
     ("api", "leer geo.distrito", "SELECT count(*) FROM geo.distrito"),
+    # LLAMAR A UNA FUNCION, NO SOLO LEER UNA TABLA.
+    #
+    # Hasta la 015, de lo PERMITIDO esta lista solo probaba `SELECT` sobre
+    # tablas. Ningun caso llamaba a una funcion, y PostGIS vive en el esquema
+    # `public`, que la 003 cierra. Resultado: los roles leian las tablas
+    # perfectamente y **ninguna funcion espacial se resolvia**.
+    #
+    #     function st_asgeojson(public.geometry) does not exist
+    #
+    # `/api/distritos` hace ese `ST_AsGeoJSON`, asi que devolvia 500 con la
+    # tabla legible, la conexion sana y `/salud` diciendo `real`. Se descubrio
+    # publicando, el 2026-09-05, no aca. Es la incidencia I-40.
+    #
+    # Un permiso concedido y no probado no esta concedido: sin estos dos casos,
+    # la migracion 015 no tendria quien la sostenga.
+    ("api", "llamar a postgis_version()", "SELECT postgis_version()"),
+    (
+        "api",
+        "ST_AsGeoJSON sobre geo.distrito",
+        "SELECT ST_AsGeoJSON(geometria) FROM geo.distrito LIMIT 1",
+    ),
+    ("etl", "llamar a postgis_version()", "SELECT postgis_version()"),
 ]
 
 
