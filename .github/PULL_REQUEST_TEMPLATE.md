@@ -19,7 +19,9 @@ el comando y su salida, para que otro pueda repetirlo.
 
 ## Definition of Done
 
-- [ ] Solo toqué archivos de **mi carpeta** (o es una solicitud de cambio compartida aprobada)
+- [ ] Solo toqué archivos de **mi carpeta**; si toqué alguno ajeno, está **listado abajo con el motivo**
+      (Avril, César y Luna necesitan además la solicitud aprobada. Alejandro no: declara y el dueño revisa.
+      Ver la excepción permanente en `docs/07-propiedad-archivos.md`)
 - [ ] **Verifiqué ejecutando**, no leyendo. Los números de arriba salieron de correrlo
 - [ ] **No inventé datos**: lo que no se puede calcular todavía va nulo o vacío, con comentario de qué depende
 - [ ] CI en verde: `contratos`, `calidad` y `pruebas`

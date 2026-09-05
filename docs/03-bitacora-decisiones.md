@@ -4650,3 +4650,84 @@ fabrica y afinada, sobre los mismos pliegues- y los dos veredictos de D-39 en
 cada corrida, asi que la decision se puede volver a comprobar entera con un
 comando. `python -m backend.modelado.verificar_h38` da 38 de 38 sin base ni red.
 Evidencia en `docs/evidencias/objetivos/H3.8-afinado.md`.
+
+---
+
+## D-43 · El despliegue publico se construye desde el repositorio, no desde las imagenes de ghcr.io
+
+**Fecha.** 2026-09-04. **Historia.** H11.6. **Quien decide.** Alejandro.
+**Estado.** Aceptada.
+
+### Contexto
+
+D-05 fue precisada el 2026-08-20 y dejo escrito que «produccion» era un espacio
+de nombres en una laptop, que eso contradice el proposito del producto, y cual
+era el trabajo pendiente: publicar la API y la base, automatizar la ingesta, y
+recien entonces retirar el aviso de datos simulados. La precondicion -que exista
+un modelo entrenado escribiendo estimaciones- se cumple desde H3.6 y H3.8.
+
+H11.1 construye las dos imagenes en el CI y las publica en `ghcr.io`. H11.2 las
+consume **por SHA exacto**, que es lo correcto: se despliega el artefacto que el
+CI construyo y probo, no una reconstruccion.
+
+Los paquetes de `ghcr.io` de un repositorio privado son privados. Para que un
+proveedor externo los baje hay que abrirlos al publico o darle un credencial.
+
+### Decision
+
+El despliegue publico de H11.6 se construye **desde el repositorio de GitHub**,
+con el proveedor leyendo `infra/docker/api.Dockerfile` y `frontend/Dockerfile`.
+No se abren los paquetes de `ghcr.io` ni se guarda un token de lectura en el
+proveedor.
+
+**H11.2, H11.3 y H11.4 no cambian.** Siguen desplegando a k3d desde `ghcr.io`
+por SHA, que es lo que evalua la rubrica de Arquitectura. Esta decision alcanza
+unicamente al despliegue publico.
+
+### Justificacion
+
+**Lo que se pierde esta escrito y no se disimula:** el binario que corre en el
+sitio publico **no es** el que el CI construyo y probo. Es otra construccion del
+mismo arbol, y nadie garantiza que salga idéntica. Para un despliegue de verdad
+eso seria inaceptable.
+
+Se acepta aqui por tres razones concretas:
+
+  1. **Las alternativas cuestan mas de lo que arreglan.** Abrir los paquetes
+     publica el codigo construido de un repositorio que es privado. Guardar un
+     token agrega un credencial que hay que rotar y que vive fuera del control
+     del equipo. Reconstruir no agrega ninguna superficie nueva.
+  2. **El sitio publico es una demostracion, no la infraestructura evaluada.**
+     Lo que la rubrica mide es el pipeline a k3d, que sigue consumiendo por SHA.
+  3. **La perdida es acotable y se acota.** `/salud` publica la version de la
+     API y la de los contratos; comprobarlas contra lo que declara el repositorio
+     detecta que se desplego otro arbol, que es el error que importa.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Hacer publicos los paquetes de `ghcr.io` | Publica el codigo construido de un repositorio privado. El repositorio es privado por decision del equipo, y esto lo abriria por una puerta lateral |
+| Guardar un token de lectura de `ghcr.io` en el proveedor | Mantiene la propiedad de H11.2 -se despliega lo que el CI probo- pero agrega un credencial de larga vida fuera del repositorio, que hay que rotar y que nadie va a rotar |
+| Publicar tambien desde k3d, con un tunel | No hay servidor donde dejar el cluster encendido, y un tunel desde una laptop no es un sistema publicado: es la misma limitacion de D-05 con otro nombre |
+| No publicar nada y quedarse con el visor estatico | Es el estado actual, y es exactamente lo que D-05 declaro insuficiente |
+
+### Consecuencias
+
+  * El sitio publico se actualiza al empujar a `main`, sin pasar por `ghcr.io`.
+  * **El binario publicado no esta cubierto por la prueba del CI**, aunque el
+    arbol si. Si algun dia esto pasa a ser un despliegue de verdad, se vuelve a
+    `ghcr.io` por SHA y esta ADR se sustituye.
+  * Se agregan dos guiones a `infra/`: `preparar_base.py`, porque el arranque de
+    la base solo existia dentro de docker-compose, y `cargar_datos.py`, porque
+    copiar los datos exige no pisar `control.migracion` y comprobar las cuentas.
+  * El visor de GitHub Pages **no se retira**: es el respaldo si el proveedor se
+    cae o se acaba el credito, y sigue declarando sus datos como simulados.
+
+### Medicion
+
+`/salud` del sitio publico responde `modo`, `version_api` y `version_contratos`;
+las dos ultimas se comparan contra `contratos.VERSION_CONTRATOS` y
+`backend/api/rutas.VERSION_API` del arbol desplegado. `infra/verificar_h116.py`
+comprueba lo que no necesita el despliegue levantado, y la evidencia de la
+historia trae la salida de los dos.
