@@ -2814,3 +2814,200 @@ deriva que ese registro existe para evitar-. Se cierra al aplicar la 015.
 medias, y la mitad que falta no avisa: **no falla, simplemente no mira**. H1.8
 pregunta «que esta prohibido» con rigor y «que esta permitido» con una muestra, y
 la muestra no incluia la operacion mas comun del sistema.
+
+---
+
+## I-41 · `/api/salud` declaraba que no tenia base mientras servia datos de la base
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro y Claude, revisando el sitio publicado despues de
+promover a `main`. Nadie lo buscaba: se abrio `/api/salud` de paso.
+
+**Que paso.** Dos endpoints del mismo proceso, en la misma peticion de red,
+contestando cosas incompatibles:
+
+```
+GET /api/distritos  ->  los 8 distritos con su geometria real, leidos de PostgreSQL
+GET /api/salud      ->  {"modo": "real",
+                         "base_datos_conectada": false,
+                         "ultima_ingesta": null}
+```
+
+`modo` decia la verdad. Los otros dos campos no. La base estaba conectada -lo
+demuestra el endpoint de al lado- y la ingesta habia corrido ocho veces.
+
+**Causa raiz.** Los dos campos eran constantes escritas a mano en `rutas.py`:
+
+```python
+# Esta historia no abre conexion a PostgreSQL: eso es H6.2. Declararlo
+# falso es la respuesta honesta, no un valor pendiente.
+base_datos_conectada=False,
+ultima_ingesta=None,
+```
+
+**El comentario era cierto el dia que se escribio.** H6.1 servia el simulado y no
+abria ninguna conexion; declarar `false` era mas honesto que dejar el campo a
+medias. **H6.2 cerro el 2026-08-27** y trajo el repositorio contra PostgreSQL.
+Nadie volvio a esas dos lineas. La API sirvio datos reales durante nueve dias
+declarando que no tenia base de datos.
+
+Es la clase de defecto que no nace de un descuido sino de una verdad que caduca:
+nadie escribio nada falso, y sin embargo quedo escrito algo falso.
+
+**El campo de al lado hacia lo correcto, y esa es la parte incomoda.** En el mismo
+`Salud`, `modo` se calcula preguntandole a la implementacion que efectivamente
+contesto, y `dependencias.py` explica por que con todas las letras:
+
+> «Se pregunta por la implementacion y no por una variable de entorno **para que
+> la respuesta de /salud no pueda mentir**.»
+
+El criterio estaba escrito, argumentado y aplicado a un campo de tres.
+
+**Por que no lo vio ningun control, y esta es la incidencia de verdad.**
+
+`verificar_h61.py` si preguntaba por `base_datos_conectada`. En **CA-8**, que
+corre contra el **simulado**, donde `False` es la respuesta correcta: no hay
+ninguna base detras. Ese criterio estuvo en verde todo el tiempo y seguia
+teniendo razon.
+
+**CA-7** es el que sustituye la implementacion por una real -es su unico
+proposito- y de `/salud` miraba **solo `modo`**. Nadie, en ningun momento, le
+pregunto a la API que decia de su base **cuando si tenia una**.
+
+Los dos criterios existian, los dos pasaban, y entre los dos quedaba un hueco del
+tamano exacto del defecto.
+
+**Y la intencion estaba escrita en la base de datos.** La migracion 013, de
+H1.14, dejo este comentario sobre su indice:
+
+```sql
+-- «La ultima corrida exitosa de este proceso» es la consulta que decide la
+-- ventana de cada corrida y la que /salud va a hacer.
+```
+
+El indice se creo el 2026-08-27. La consulta que iba a usarlo no se escribio
+nunca. Un comentario en futuro, en un archivo aplicado, sin nada que comprobara
+que ese futuro llegara.
+
+**Accion tomada.**
+
+  1. `dependencias.py` gana `base_conectada()` y `ultima_ingesta_de()`, **al lado
+     de `modo_de` y con el mismo criterio**: se le preguntan a la implementacion.
+     Es el unico archivo del proyecto autorizado a saber cual esta activa.
+  2. `repositorio_postgres.py` gana `esta_viva()` y `ultima_ingesta()`.
+  3. `rutas.py` deja de escribir constantes: los **tres** campos se preguntan.
+  4. **CA-7 pregunta por los tres.** El doble de prueba declara `CONECTADA = True`
+     y una fecha concreta, elegidas distintas de las constantes viejas: con
+     `False` y `None` puestos, el criterio se pone rojo.
+
+**Las dos consultas son dos y no una, a proposito.** Si la de la ingesta hiciera
+tambien de sonda de conexion, un `permission denied` sobre `control.bitacora_etl`
+se reportaria como «base no conectada»: otra respuesta falsa, en lugar de la que
+se estaba arreglando.
+
+**El filtro por `ingesta.%` no es adorno, y esta medido.** H12.1 va a escribir
+filas con `proceso = 'api'` (D-44). Sobre un PostgreSQL 16.15 con la tabla de la
+013, insertando una fila de la API despues de las ocho de ingesta:
+
+```
+con    LIKE 'ingesta.%'   ->  2026-09-04 09:07   la ultima ingesta de verdad
+sin el filtro             ->  2026-09-05 21:00   la ultima vez que la API se anoto
+```
+
+Sin el filtro, el dia que D-44 entre, `ultima_ingesta` cambiaria de significado
+**sin que nadie tocara el contrato ni esta funcion**.
+
+**Sobre el indice de la 013, medido y no supuesto.** Sobre 200 000 filas:
+
+```
+WHERE proceso = 'ingesta.sequia'   Index Scan          0.08 ms
+WHERE proceso LIKE 'ingesta.%'     Parallel Seq Scan  16.6 ms
+WHERE proceso IN (los tres)        Parallel Seq Scan  17.3 ms
+```
+
+El indice sirve la pregunta del ETL -«la ultima corrida de **este** proceso»-,
+que es igualdad. La de `/salud` es «la ultima de **cualquier** ingesta», y ni el
+`LIKE` ni la lista explicita la vuelven indexable. Se deja el recorrido
+secuencial y se dice: son 17 ms sobre doscientas mil filas, la tabla tiene ocho,
+y la consulta se hace una vez al cargar la pagina.
+
+**Probado contra un PostgreSQL 16 de verdad**, tambien con la base caida:
+
+```
+  esta_viva()      -> True
+  ultima_ingesta() -> 2026-09-05 21:52:50+00:00
+
+  -- se cierra la conexion por debajo --
+  esta_viva()      -> False              no lanza: /salud tiene que poder decir que no
+  ultima_ingesta() -> OperationalError   no finge None
+```
+
+`ultima_ingesta()` **propaga** el error en vez de devolver `None` porque el
+contrato define `None` como «nunca se ejecuto». Devolverlo ante un fallo seria
+volver a poner la mentira, con otra forma.
+
+**Los tres sabotajes, y ninguno paso en verde** (`gestion/sabotear_i41.py`):
+
+```
+1. base_datos_conectada vuelve a la constante False   -> CA-7 NO CUMPLE
+2. ultima_ingesta vuelve a la constante None          -> CA-7 NO CUMPLE
+3. base_conectada contesta True sin preguntar         -> CA-8 NO CUMPLE
+```
+
+El tercero hace falta tanto como los dos primeros: contestar `True` siempre
+tambien es no preguntar, y lo atrapa el criterio del **simulado**, no el de la
+implementacion real. Un arreglo probado solo por el lado que se rompio se puede
+«arreglar» con la constante contraria.
+
+**Lo que confirma.** Un comentario que explica por que algo es cierto **hoy** es
+una fecha de caducidad sin escribir. El de `rutas.py` nombraba a H6.2 -la
+historia que lo iba a invalidar- y aun asi sobrevivio nueve dias a que H6.2
+cerrara. La unica defensa que funciona no es el comentario: es que un criterio
+pregunte por el valor en el escenario donde la respuesta cambia. CA-8 preguntaba
+en el escenario donde no cambiaba.
+
+**Un permiso que este arreglo da por dado, y que ahora se prueba.** `/salud`
+pasa a leer `control.bitacora_etl`. El `GRANT SELECT` lo pone la migracion 013,
+**dentro de un `DO $$` con guarda por rol**: si esa guarda no se cumplio en alguna
+base, el permiso no esta. Y el sintoma seria caro: `/salud` devolviendo 500 y el
+visor cayendo **en silencio** al respaldo de datos simulados, porque
+`cliente.js` trata cualquier respuesta no-OK como «la API no esta».
+
+Es I-40 otra vez, un paso antes. Asi que el permiso no se supone: entra como caso
+en la lista de PERMITIDAS de `verificar_h18.py`, que corre contra las dos bases
+con el rol de la aplicacion.
+
+**Comprobado sobre una base construida desde cero**, PostgreSQL 16.15 con PostGIS
+3.4: las **catorce** migraciones aplicadas en orden -lo que de paso vuelve a
+probar la 015 de I-40 en una cadena limpia-, los usuarios creados con
+`crear_usuarios.py`, y el verificador corrido como los roles de aplicacion:
+
+```
+Aplicando 001 ... ok   (las catorce, en orden)
+Aplicadas 14 migraciones.
+
+CA-3/4 · Lo permitido funciona ... CUMPLE
+  [ok ] api  leer control.bitacora_etl, que es lo que /salud consulta
+```
+
+**Y el control sabe decir que no.** Quitando el `GRANT` que pone la 013:
+
+```
+REVOKE SELECT ON control.bitacora_etl FROM geoguardian_api;
+
+CA-3/4 · Lo permitido funciona ... NO CUMPLE
+  [MAL] api  leer control.bitacora_etl: permission denied for table bitacora_etl
+CA-5 · Toda operacion prohibida es rechazada ... CUMPLE
+```
+
+CA-5 sigue en verde en las dos corridas: el caso nuevo no abre nada, solo mira.
+
+**Lo que queda.** Aplicar esto a la nube es un despliegue, no una migracion: no
+toca el esquema. Antes de desplegarlo hay que correr `verificar_h18.py` contra
+Railway: si ese caso nuevo sale rojo, el `GRANT` de la 013 no llego a la nube y
+esto **no se despliega** hasta arreglarlo. Y queda un limite dicho: **que el filtro `ingesta.%` siga siendo
+el correcto no lo comprueba ningun criterio automatico**, porque hacen falta filas
+de dos procesos distintos y `verificar_h61.py` corre sin base a proposito. La
+historia que introduce el segundo proceso es H12.1, asi que la comprobacion
+corresponde a la **Medicion de D-44**, y va avisado en el mensaje a Luna.
