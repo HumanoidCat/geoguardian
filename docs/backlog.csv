@@ -1103,6 +1103,39 @@ Definition of Done:
 - [ ] El aviso de datos simulados y de origen estatico se ve sin desplazar
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado","E11,S3,CICD,alejandro",S3,alejandro,3,4.7
+H11.6,H11.6 Publicar la API y la base en la nube y que el visor sirva dato real,"Epica E11 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H11.1, H11.5, H6.2, H3.6, H3.8
+Sprint: S4 (semanas 10-11)
+
+Ejecuta el paso 1 de los tres que D-05 dejo declarados el 2026-08-20: publicar la
+API y la base para que el sistema sea consultable por quien no tiene el
+repositorio. Tres servicios en Railway -base con PostGIS, API sin dominio publico,
+visor con el unico dominio- y un solo origen, como manda D-23: el visor reenvia
+/api por la red interna y por eso no hace falta CORS.
+
+La precondicion se cumple desde H3.6 y H3.8: hay un modelo entrenado escribiendo
+estimaciones. Publicar antes seria publicar un mapa que no estima nada.
+
+Lo que NO es: no automatiza la ingesta -ese es el paso 3 de D-05 y va aparte- ni
+retira los JSON de frontend/public/simulados/, que son la degradacion que exige la
+Definition of Done de H6.6. Los manifiestos de Kubernetes de H11.2 a H11.4 no se
+tocan: siguen siendo el despliegue que evalua Arquitectura.
+
+Decision nueva: Railway construye las imagenes desde el repositorio en vez de
+bajarlas de ghcr.io por SHA. Queda como D-43, con la perdida escrita y no
+disimulada.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] La URL abre desde una maquina que no es la del equipo y /api/salud dice real
+- [ ] El rol de la API se probo intentando escribir, y no pudo
+- [ ] El costo medido a las 48 h, no supuesto
+- [ ] Ningun secreto en el repositorio
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado","E11,S4,CICD,alejandro",S4,alejandro,5,7.8
 H12.1,H12.1 Centralizar los logs de pipeline y aplicacion en control.bitacora_etl,"Epica E12 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: Troubleshoot
