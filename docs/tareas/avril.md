@@ -136,6 +136,12 @@
 
 - [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
+  - **Entregada el 2026-09-04, sin cerrar todavia**: falta su fila en
+    `docs/trazabilidad.csv`, que es archivo compartido y requiere aprobacion del
+    PM. La fila propuesta esta en la evidencia. Al aprobarse se marca `[x]` con
+    `estimada n/d (no se estimo al arrancar) . real 2.5`.
+  - Desbloqueada el 2026-09-03 al cerrar **H1.6**. Las 2,5 h incluyen el alta de
+    la cuenta de Copernicus y la descarga de la escena, no solo el visor.
 
 - [x] **H6.5** · Diagrama de componentes y de secuencia del flujo principal (2026-09-03)
   - `E6` · 3 pts · 4.7 h · rubrica: Arq · depende de: H6.1

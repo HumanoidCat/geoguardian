@@ -62,6 +62,27 @@ const RUTA_API = import.meta.env.VITE_API_URL ?? '/api'
  */
 const BASE = import.meta.env.BASE_URL
 
+/**
+ * Los indices NDVI y NDWI de H5.5.
+ *
+ * **No pasan por la API y no son un respaldo.** Son un producto que se genera
+ * con `frontend/herramientas/generar_indices.py` a partir de una escena de
+ * Sentinel-2 y queda versionado en `public/`, para que el visor funcione desde
+ * `docker compose up` sin credenciales de Copernicus.
+ *
+ * Si el archivo no esta, la capa simplemente no se ofrece. No es un error: quien
+ * no corrio el guion no tiene los PNG, y eso es distinto de una falla.
+ */
+export async function obtenerIndices() {
+  try {
+    const respuesta = await fetch(`${BASE}indices/indices.json`)
+    if (!respuesta.ok) return null
+    return await respuesta.json()
+  } catch {
+    return null
+  }
+}
+
 const RESPALDO = {
   salud: `${BASE}simulados/salud.json`,
   distritos: `${BASE}simulados/distritos.geojson`,

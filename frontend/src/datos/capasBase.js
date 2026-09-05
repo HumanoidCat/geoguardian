@@ -70,6 +70,18 @@ export const CAPAS_SUPERPUESTAS = [
     conExponente: true,
   },
   {
+    id: 'ndvi',
+    nombre: 'Vegetacion (NDVI)',
+    descripcion: 'Indice por pixel de 20 m, de una fecha concreta',
+    conOpacidad: true,
+  },
+  {
+    id: 'ndwi',
+    nombre: 'Humedad y agua (NDWI)',
+    descripcion: 'Indice por pixel de 20 m, de una fecha concreta',
+    conOpacidad: true,
+  },
+  {
     id: 'limites',
     nombre: 'Limites distritales',
     descripcion: 'Solo el contorno, sin relleno',
@@ -86,6 +98,12 @@ export const CAPAS_SUPERPUESTAS = [
 export const CAPAS_INICIALES = {
   riesgo: true,
   mapaCalor: false,
+  // Los indices arrancan apagados a proposito. Son de **una fecha concreta** -la
+  // de la escena de satelite- y el resto del visor muestra la fecha que se pide
+  // en el selector. Encendidos por omision, el mapa mezclaria dos fechas sin
+  // que nadie lo notara.
+  ndvi: false,
+  ndwi: false,
   limites: false,
   etiquetas: false,
 }
