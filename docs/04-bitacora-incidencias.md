@@ -3112,6 +3112,67 @@ verde probando algo que dejo de existir-. `kubectl` se reemplaza por un doble qu
 contesta que no un numero fijo de veces y despues que si: la carrera de arriba,
 reproducida sin cluster.
 
+**LA PRUEBA NO CORRIA EN WINDOWS, Y COSTO TRES VUELTAS AVERIGUARLO.** Se anota
+entero porque el patron importa mas que cada arreglo.
+
+  1. **El bit de ejecucion.** La primera version escribia un `kubectl` falso en
+     una carpeta temporal y la ponia al frente del PATH. `Path.chmod` no concede
+     el bit de ejecucion en NTFS: bash encontraba el archivo y no podia
+     ejecutarlo -codigo 126-. Se paso a declarar `kubectl` como **funcion de
+     bash** dentro del propio guion.
+  2. **El contador en un archivo.** Guardaba la cuenta de llamadas en un archivo
+     temporal, y eso metia una ruta de Windows -`C:/Users/...`- dentro de un
+     guion que en esa maquina ejecuta **WSL**, donde esa ruta no existe. Como la
+     funcion se invoca en el mismo shell que el bucle, se paso a una variable.
+  3. **El guion como argumento.** Aun asi no terminaba: `bash -c` con este
+     guion -decenas de lineas, con acentos y comillas angulares- se colgaba,
+     mientras `bash -c 'echo HOLA'` contestaba en 0,1 s. Se paso a `bash -s`,
+     por la **entrada estandar**, donde no hay traduccion de argumentos.
+  4. **El texto en vez de bytes.** Seguia fallando, ahora con **codigo 2**. Con
+     `text=True`, Python codifica con la codificacion local -cp1252 en Windows,
+     no UTF-8- y **traduce cada salto de linea a CRLF**. bash recibia el guion en
+     CRLF y lo rechazaba como error de sintaxis. Se codifica a UTF-8 a mano.
+
+     Este si se reprodujo, mandando el mismo guion de las dos formas:
+
+     ```
+     LF   (lo que manda ahora)     -> salida 0
+     CRLF (lo que mandaba antes)   -> salida 2
+     ```
+
+Las cuatro son la misma: **lo que se le pasa a otro proceso cruza una frontera, y
+cada frontera tiene sus reglas** -y la forma de no tropezar con ellas es no dejar
+que nadie traduzca por uno-. Ninguna de las cuatro la habria visto el CI,
+que corre en `ubuntu-latest` y habria salido verde. Es la linea «funciona desde
+`docker compose up` en maquina limpia» de la Definition of Done, aplicada a una
+herramienta en vez de a una historia.
+
+**EL SABOTAJE DEJO EL REPOSITORIO SABOTEADO, Y ESO ES LO MAS GRAVE DE LA NOCHE.**
+
+Durante la segunda vuelta el guion de sabotaje se interrumpio con Ctrl-C mientras
+un caso estaba puesto. El `finally` de cada caso no corre si el proceso muere
+entre medio, asi que **`action.yml` quedo con `exit 0` escrito**: exactamente el
+defecto que este arreglo desmiente, dentro del arreglo.
+
+Se descubrio por casualidad, mirando el guion generado. Estuvo a un `git add` de
+viajar al PR. Un sabotaje que no se limpia solo no es una herramienta de
+verificacion: es una forma nueva de romper el repositorio.
+
+Los dos guiones de sabotaje -este y el de I-41- pasan a registrar el contenido
+original con `atexit`, que cubre la salida normal, la excepcion **y el Ctrl-C**,
+y a decir en voz alta si aun asi algo quedara distinto. Comprobado matando el
+proceso a proposito a mitad de un caso:
+
+```
+interrumpido con Ctrl-C a los 6 s
+el archivo quedo IGUAL que antes: True
+```
+
+Y de paso, un defecto en el mensaje final del sabotaje: decia «el archivo no
+quedo restaurado» cada vez que la prueba limpia fallaba, que era **una causa
+afirmada sin comprobar** -las dos veces que aparecio, la causa era otra-. Ahora
+dice que hay dos posibilidades y cual comando las distingue.
+
 **Corre en el CI, no en el CD, y es deliberado.** El defecto vive en una accion
 del CD, pero **el CD solo corre despues de fusionar a `main`**. Un control que
 solo se ejecuta despues de fusionar no protege la fusion.

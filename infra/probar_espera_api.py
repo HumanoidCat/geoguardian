@@ -13,8 +13,17 @@ cluster de verdad en cada corrida del CI costaria dos minutos y no probaria nada
 de lo que esta prueba mira. Queda dicho aca para que nadie lea «se ejecuta el
 paso» como «se ejecuta entero».
 
-`kubectl` se reemplaza por un doble que contesta que no un numero fijo de veces
-y despues contesta que si. Es la carrera de I-42 reproducida sin cluster.
+POR QUE `kubectl` SE REEMPLAZA CON UNA FUNCION DE BASH Y NO CON UN ARCHIVO
+
+La primera version escribia un `kubectl` falso en una carpeta y la ponia al
+frente del PATH. **En Windows no funciona**, y fallo en la maquina del PM:
+`Path.chmod` no concede el bit de ejecucion en NTFS, asi que bash encontraba el
+archivo y no podia ejecutarlo -codigo 126-, y el bucle se quedaba dando vueltas
+hasta el limite del subproceso.
+
+Una funcion de bash declarada antes del bloque hace lo mismo sin depender del
+bit de ejecucion, del PATH ni de que las variables de entorno crucen a bash.
+Todo lo que la prueba necesita viaja dentro del propio guion.
 
 LOS TRES CASOS, Y POR QUE EL TERCERO ES EL QUE IMPORTA
 
@@ -35,34 +44,54 @@ COMO SE CORRE
 
     python -m infra.probar_espera_api
 
-No necesita cluster, ni red, ni Docker.
+No necesita cluster, ni red, ni Docker. Necesita `bash`: en Windows, el de Git.
 """
 
 from __future__ import annotations
 
-import os
 import re
+import shutil
 import subprocess
-import tempfile
+import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 ACCION = RAIZ / ".github" / "acciones" / "preparar-cluster" / "action.yml"
 PASO = "Crear el cluster"
 
-# El doble de kubectl. Cuenta sus llamadas en un archivo y falla mientras el
-# contador no llegue a UMBRAL. Con UMBRAL enorme, no contesta nunca.
-DOBLE = """#!/usr/bin/env bash
-cuenta=$(cat "$CONTADOR" 2>/dev/null || echo 0)
-cuenta=$((cuenta + 1))
-echo "$cuenta" > "$CONTADOR"
-if [ "$cuenta" -ge "$UMBRAL" ]; then
-  echo "Kubernetes control plane is running at https://0.0.0.0:6443"
-  exit 0
-fi
-echo "E0000 memcache.go:381] \\"Couldn't get current server API group list\\"" >&2
-echo "Error from server (ServiceUnavailable): the server is currently unable to handle the request" >&2
-exit 1
+# Tope duro del subproceso. Es mayor que cualquier limite que usen los casos, y
+# esta para que un bucle que no sepa rendirse falle rapido y con un mensaje
+# claro, en vez de colgar la corrida.
+TOPE_SEGUNDOS = 60
+
+
+def preambulo(umbral: int, limite: int) -> str:
+    """
+    Declara el doble de `kubectl` y el limite, dentro del mismo guion.
+
+    `umbral` es en que llamada empieza a contestar que si. Con un numero enorme,
+    no contesta nunca.
+
+    EL CONTADOR VIVE EN UNA VARIABLE, NO EN UN ARCHIVO. La version anterior lo
+    guardaba en un archivo temporal, y eso metia la ruta de Windows dentro de un
+    guion que puede ejecutarse en WSL -donde `C:/Users/...` no existe-. Como la
+    funcion se invoca en el mismo shell que el bucle, una variable basta.
+    """
+    return f"""
+export ESPERA_MAXIMA_API={limite}
+UMBRAL={umbral}
+CUENTA=0
+
+kubectl() {{
+  CUENTA=$((CUENTA + 1))
+  if [ "$CUENTA" -ge "$UMBRAL" ]; then
+    echo "Kubernetes control plane is running at https://0.0.0.0:6443"
+    return 0
+  fi
+  echo "E0000 memcache.go:381] no server API group list" >&2
+  echo "Error from server (ServiceUnavailable): the server is unable to handle the request" >&2
+  return 1
+}}
 """
 
 
@@ -108,26 +137,42 @@ def neutralizar_k3d(bloque: str) -> str:
     )
 
 
-def correr(bloque: str, umbral: int, limite: int) -> subprocess.CompletedProcess:
-    with tempfile.TemporaryDirectory() as carpeta:
-        binarios = Path(carpeta) / "bin"
-        binarios.mkdir()
-        doble = binarios / "kubectl"
-        doble.write_text(DOBLE, encoding="utf-8")
-        doble.chmod(0o755)
+def guion_de(bloque: str, umbral: int, limite: int) -> str:
+    return preambulo(umbral, limite) + "\n" + bloque
 
-        entorno = dict(os.environ)
-        entorno.update(
-            {
-                "PATH": f"{binarios}{os.pathsep}{os.environ.get('PATH', '')}",
-                "CONTADOR": str(Path(carpeta) / "cuenta"),
-                "UMBRAL": str(umbral),
-                "ESPERA_MAXIMA_API": str(limite),
-            }
+
+def correr(bloque: str, umbral: int, limite: int) -> tuple[int, str]:
+    """
+    Ejecuta el guion por la entrada estandar, EN BYTES Y NO EN TEXTO.
+
+    Las dos decisiones estan medidas contra la maquina del PM, donde el `bash`
+    del PATH es el de WSL:
+
+      * **Por la entrada estandar y no como argumento.** Con `bash -c` este
+        guion -decenas de lineas, con acentos y comillas angulares- no terminaba
+        nunca, mientras `bash -c 'echo HOLA'` contestaba en 0,1 s.
+      * **En bytes y no en texto.** Con `text=True`, Python codifica con la
+        codificacion local -cp1252 en Windows, no UTF-8- y ademas traduce cada
+        salto de linea a CRLF. bash recibia un guion en CRLF y salia con
+        codigo 2: error de sintaxis. Codificando a UTF-8 a mano no hay
+        traduccion de ninguna clase.
+
+    Es la cuarta vuelta de la misma leccion: lo que se le pasa a otro proceso
+    cruza una frontera, y cada frontera tiene sus reglas. La forma de no
+    tropezar con ellas es no dejar que nadie traduzca por uno.
+    """
+    try:
+        proceso = subprocess.run(
+            ["bash", "-s"],
+            input=guion_de(bloque, umbral, limite).encode("utf-8"),
+            capture_output=True,
+            timeout=TOPE_SEGUNDOS,
         )
-        return subprocess.run(
-            ["bash", "-c", bloque], capture_output=True, text=True, env=entorno, timeout=180
-        )
+    except subprocess.TimeoutExpired:
+        # No es un fallo de la prueba: es el bucle que no supo rendirse.
+        return 124, f"El bloque no termino en {TOPE_SEGUNDOS}s."
+    salida = (proceso.stdout + proceso.stderr).decode("utf-8", errors="replace")
+    return proceso.returncode, salida
 
 
 def caso(
@@ -138,12 +183,11 @@ def caso(
     codigo_esperado: int,
     dice: str | None = None,
 ) -> bool:
-    proceso = correr(bloque, umbral, limite)
-    salida = proceso.stdout + proceso.stderr
+    codigo, salida = correr(bloque, umbral, limite)
 
     fallas = []
-    if proceso.returncode != codigo_esperado:
-        fallas.append(f"salio con {proceso.returncode}, se esperaba {codigo_esperado}")
+    if codigo != codigo_esperado:
+        fallas.append(f"salio con {codigo}, se esperaba {codigo_esperado}")
     if dice and dice not in salida:
         fallas.append(f"la salida NO dice {dice!r}")
 
@@ -157,8 +201,20 @@ def main() -> int:
     if not ACCION.exists():
         print(f"No encuentro {ACCION}. Corre esto desde la raiz del repositorio.")
         return 2
+    if shutil.which("bash") is None:
+        print("No encuentro `bash`. En Windows lo trae Git. Sin el, esta prueba no puede correr,")
+        print("y no da por buenos los criterios que no pudo ejecutar.")
+        return 2
 
     bloque = neutralizar_k3d(bloque_del_paso())
+
+    # Para diagnosticar cuando la prueba falla por el entorno y no por el guion:
+    # deja el texto exacto que se ejecuta, para poder correrlo a mano.
+    if "--guardar" in sys.argv:
+        destino = RAIZ / "guion-generado.sh"
+        destino.write_text(guion_de(bloque, 1, 30), encoding="utf-8", newline="\n")
+        print(f"Escrito {destino}. Corrrelo con:  bash {destino.name}")
+        return 0
 
     print("Espera a la API de Kubernetes · I-42")
     print(f"Bloque leido de {ACCION.relative_to(RAIZ)}, paso «{PASO}»\n")
