@@ -575,8 +575,13 @@
 - [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
 
-- [ ] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono
+- [x] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono (2026-09-06)
   - `E5` · 13 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3, H5.7, H5.8, H7.1, H3.4
+  - horas: estimada 12.5 . real HORAS_REALES
+  - Evidencia: `docs/evidencias/computacion-grafica/H5.9-rediseno-visor.md`, contra los
+    nueve criterios; capturas en `H5.9-rediseno-visor/`. Dos defectos ajenos encontrados
+    midiendo: el `tabindex` de los distritos nunca se aplicaba (H5.8) y `fitBounds`
+    animado dejaba el canton cortado a 390 px.
   - Agregada el 2026-09-06 desde la revision del sitio publicado. Criterios en
     `docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md` (PR #270), antes del codigo.
   - `frontend/` es de Avril: los archivos tocados se declaran en el PR y ella lo revisa.

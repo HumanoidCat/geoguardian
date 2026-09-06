@@ -402,6 +402,35 @@ body {
   line-height: 1.4;
 }
 
+/* La version plegada del umbral solo existe en telefono; ver la consulta de
+   medios de 600 px. */
+.selector-evento-umbral-plegable {
+  display: none;
+  flex-basis: 100%;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.selector-evento-umbral-plegable > summary {
+  cursor: pointer;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  color: var(--foco);
+  font-weight: 600;
+}
+
+.selector-evento-umbral-plegable > summary:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+  border-radius: var(--radio);
+}
+
+.selector-evento-umbral-plegable > p {
+  margin: 0 0 var(--espacio-2);
+  line-height: 1.4;
+}
+
 /* -------------------------------------------------------------------------- *
  * Mapa
  * -------------------------------------------------------------------------- */
@@ -588,6 +617,15 @@ body {
 
 .selector-fecha-hoy:hover {
   border-color: var(--texto-suave);
+}
+
+/* Foco visible con el mismo color en todos los controles del visor (H5.9,
+   CA-6). El navegador ya dibuja un anillo por omision; se declara igual para
+   que no dependa de cada navegador y para que verificar_escala lo mida. */
+.selector-fecha input[type='date']:focus-visible,
+.selector-fecha-hoy:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
 }
 
 .selector-fecha-nota {
@@ -1406,6 +1444,14 @@ button.marca-semaforo:focus-visible {
 
   .selector-evento-nombre {
     font-size: var(--texto-sm);
+  }
+
+  .selector-evento-umbral {
+    display: none;
+  }
+
+  .selector-evento-umbral-plegable {
+    display: block;
   }
 
   .contenedor-mapa {

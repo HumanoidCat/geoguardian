@@ -317,12 +317,22 @@ export default function MapaCanton({
     // Accesible por teclado. Un mapa que solo responde al mouse deja fuera a
     // quien navega con tabulador. La etiqueta dice el nivel en palabras: el
     // color no llega a un lector de pantalla.
-    const elemento = capa.getElement()
-    if (elemento) {
+    //
+    // Se marca cuando la capa entra al mapa, no aqui directamente: en
+    // `onEachFeature` el poligono todavia no esta dibujado, `getElement()`
+    // devuelve undefined y el `if` de la version anterior se saltaba en
+    // silencio. Los ocho distritos llevaban desde H5.8 sin `tabindex`; lo
+    // encontro la pasada de Tab de H5.9 (CA-6) el 2026-09-06: cero distritos
+    // enfocables. Un control que solo mira el codigo no lo habria visto.
+    const marcarAccesible = () => {
+      const elemento = capa.getElement()
+      if (!elemento) return
       elemento.setAttribute('tabindex', '0')
       elemento.setAttribute('role', 'button')
       elemento.setAttribute('aria-label', `Distrito ${nombre}, codigo ${codigo}, ${descripcion}`)
     }
+    marcarAccesible()
+    capa.on('add', marcarAccesible)
   }
 
   return (

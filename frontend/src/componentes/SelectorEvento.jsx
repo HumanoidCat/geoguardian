@@ -53,7 +53,18 @@ export default function SelectorEvento({ seleccionado, alCambiar, resumenes = nu
         ))}
       </div>
 
+      {/* El umbral, siempre a la vista: es lo que permite entender que significa
+          "alto". En pantalla ancha va como parrafo junto a los botones; en
+          telefono (H5.9), donde ocupaba cinco lineas antes del mapa, va plegado
+          bajo un resumen y se abre con un toque. Cual de los dos se ve lo
+          decide el CSS; el texto es el mismo. */}
       {activo && <p className="selector-evento-umbral">{activo.umbral}</p>}
+      {activo && (
+        <details className="selector-evento-umbral-plegable">
+          <summary>Que significa «alto» en {activo.nombre.toLowerCase()}</summary>
+          <p>{activo.umbral}</p>
+        </details>
+      )}
     </div>
   )
 }
