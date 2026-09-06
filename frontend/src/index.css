@@ -35,19 +35,130 @@ body {
 .cabecera {
   background: var(--superficie);
   border-bottom: 1px solid var(--borde);
-  padding: var(--espacio-4) var(--espacio-6);
+  padding: var(--espacio-2) var(--espacio-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
 }
 
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.logo-geoguardian {
+  display: block;
+  flex: none;
+}
+
+/* El titulo baja de xl a lg (H5.9, CA-9): el texto mas grande de la pagina es el
+   titular con el riesgo de hoy, no el nombre del producto. */
 .cabecera h1 {
   margin: 0;
-  font-size: var(--texto-xl);
-  font-weight: 600;
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .subtitulo {
-  margin: var(--espacio-1) 0 0;
+  margin: 0;
   color: var(--texto-suave);
   font-size: var(--texto-sm);
+}
+
+/* La pastilla de estado: que son los datos y por donde llegaron (D-23). */
+.estado-datos {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  white-space: nowrap;
+}
+
+.estado-punto {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--texto-tenue);
+  flex: none;
+}
+
+.estado-datos-real .estado-punto {
+  background: #2e7d32;
+}
+
+.estado-datos-aviso {
+  background: var(--aviso-fondo);
+}
+
+.estado-datos-aviso .estado-punto {
+  background: var(--riesgo-medio);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Titular: el riesgo de hoy, en palabras (H5.9, CA-8)
+ * -------------------------------------------------------------------------- */
+
+.titular {
+  background: var(--superficie);
+  padding: var(--espacio-3) var(--espacio-6) var(--espacio-2);
+}
+
+.titular-fecha {
+  margin: 0;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+/* xl y no mas: a 2,25 rem partia en dos lineas a 1280 px y empujaba el mapa
+   bajo el pliegue. Medido en el mockup v1 el 2026-09-06. */
+.titular-texto {
+  margin: var(--espacio-1) 0 0;
+  font-size: var(--texto-xl);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.titular-texto strong {
+  font-weight: 800;
+}
+
+.titular-detalle {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-md);
+  color: var(--texto-suave);
+}
+
+.titular-otros {
+  color: var(--texto-sobre-sin-dato);
+}
+
+.marca-nivel-titular {
+  display: inline-block;
+  padding: 0.05em 0.5em;
+  border-radius: var(--radio);
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Controles: evento y fecha, en una fila
+ * -------------------------------------------------------------------------- */
+
+.controles {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  padding: var(--espacio-2) var(--espacio-6) var(--espacio-3);
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borde);
 }
 
 /* -------------------------------------------------------------------------- *
@@ -56,11 +167,11 @@ body {
 
 .aviso-simulado {
   color: var(--simulado-texto);
-  padding: var(--espacio-3) var(--espacio-6);
+  padding: var(--espacio-2) var(--espacio-6);
   display: flex;
   align-items: center;
   gap: var(--espacio-3);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 .aviso-simulado strong {
@@ -91,7 +202,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--espacio-3);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 .aviso-respaldo strong {
@@ -138,7 +249,7 @@ body {
 .error p {
   margin: var(--espacio-2) 0 0;
   color: var(--texto-suave);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 /* -------------------------------------------------------------------------- *
@@ -148,16 +259,11 @@ body {
 .contenido {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 20rem;
+  grid-template-columns: 1fr 26rem;
   gap: var(--espacio-4);
   padding: var(--espacio-4) var(--espacio-6) var(--espacio-6);
   min-height: 0;
-}
-
-@media (max-width: 900px) {
-  .contenido {
-    grid-template-columns: 1fr;
-  }
+  align-items: start;
 }
 
 .columna-mapa {
@@ -165,7 +271,27 @@ body {
   flex-direction: column;
   gap: var(--espacio-3);
   min-height: 0;
+  position: relative;
 }
+
+/* La leyenda flota sobre el mapa, abajo a la izquierda, donde Leaflet no pone
+   nada. Por encima del mapa (z-mapa) y al nivel de sus controles. En pantalla
+   angosta vuelve al flujo, debajo del mapa: ver la consulta de medios. */
+.leyenda-flotante {
+  position: absolute;
+  left: var(--espacio-3);
+  bottom: var(--espacio-3);
+  z-index: var(--z-controles);
+  max-width: 17rem;
+}
+
+.leyenda-flotante .leyenda {
+  padding: var(--espacio-3);
+}
+
+/* Cuando hay leyendas de otras capas debajo del mapa, la flotante ya no esta
+   pegada al borde inferior del mapa sino de la columna. Se acepta: esas capas
+   son opcionales y se activan a mano. */
 
 .columna-panel {
   display: flex;
@@ -178,12 +304,15 @@ body {
  * Selector de evento
  * -------------------------------------------------------------------------- */
 
+/* Botones y umbral en la misma fila cuando cabe: el umbral sigue a la vista y
+   la fila mide lo que miden los botones. En angosto, el umbral baja de linea. */
 .selector-evento {
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio-lg);
-  padding: var(--espacio-3);
-  box-shadow: var(--sombra);
+  flex: 1 1 30rem;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-4);
 }
 
 .selector-evento-grupo {
@@ -194,14 +323,54 @@ body {
 
 .selector-evento-boton {
   font-family: inherit;
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 2.75rem;
   padding: var(--espacio-2) var(--espacio-4);
   border: 1px solid var(--borde-fuerte);
-  border-radius: var(--radio);
+  border-radius: var(--radio-lg);
   background: var(--superficie);
-  color: var(--texto-suave);
+  color: var(--texto);
   cursor: pointer;
+  text-align: left;
   transition: background 0.12s ease, color 0.12s ease;
+}
+
+.selector-evento-nombre {
+  font-weight: 600;
+}
+
+/* Que tiene cada evento antes de hacer clic (CA-1). */
+.selector-evento-estado {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  font-weight: 400;
+}
+
+.punto-nivel {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 1px solid var(--distrito-borde);
+  flex: none;
+}
+
+.punto-riesgo-alto {
+  background: var(--riesgo-alto);
+}
+
+.punto-riesgo-medio {
+  background: var(--riesgo-medio);
+}
+
+.punto-riesgo-bajo {
+  background: var(--riesgo-bajo);
 }
 
 .selector-evento-boton:hover {
@@ -214,18 +383,22 @@ body {
 }
 
 .selector-evento-boton-activo {
-  background: var(--texto);
   border-color: var(--texto);
-  color: var(--superficie);
-  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--texto);
+}
+
+.selector-evento-boton-activo .selector-evento-estado {
+  color: var(--texto);
 }
 
 /* El umbral no es una nota al pie: es lo que permite entender que significa
    "alto" sin salir de la pantalla. */
 .selector-evento-umbral {
-  margin: var(--espacio-3) 0 0;
+  margin: 0;
+  flex: 1 1 22rem;
+  min-width: 0;
   color: var(--texto-suave);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   line-height: 1.4;
 }
 
@@ -235,12 +408,18 @@ body {
 
 .contenedor-mapa {
   position: relative;
-  flex: 1;
+  flex: none;
   border: 1px solid var(--borde);
   border-radius: var(--radio-lg);
   overflow: hidden;
   box-shadow: var(--sombra);
-  min-height: 28rem;
+  /* El alto se ata a la ventana (H5.9, CA-7). Con `min-height: 28rem` a secas el
+     mapa era una franja de 1290 x 400 en la que el canton, que es mas alto que
+     ancho, ocupaba un cuarto del ancho. El mapa sigue a ancho completo con el
+     contexto regional -no se le da la forma del canton, ver I-14-: lo que
+     cambia es que el alto acompana a la pantalla. Minimos medidos en el mockup
+     v1: 58 % del alto a 1280 x 800, 52 % a 768 x 1024, 48 % a 390 x 844. */
+  height: clamp(20rem, 58vh, 52rem);
 }
 
 /* El mapa llena su contenedor, sin relacion de aspecto impuesta.
@@ -258,7 +437,6 @@ body {
 .mapa {
   width: 100%;
   height: 100%;
-  min-height: 28rem;
   z-index: var(--z-mapa);
 }
 
@@ -327,7 +505,7 @@ body {
 .panel-ubicacion-sistema {
   margin: var(--espacio-4) 0 var(--espacio-2);
   font-size: var(--texto-xs);
-  color: var(--texto-tenue);
+  color: var(--texto-suave);
 }
 
 .panel-ubicacion {
@@ -366,11 +544,8 @@ body {
  * -------------------------------------------------------------------------- */
 
 .selector-fecha {
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio-lg);
-  box-shadow: var(--sombra);
-  padding: var(--espacio-3) var(--espacio-4);
+  flex: 0 1 24rem;
+  min-width: 0;
 }
 
 .selector-fecha-etiqueta {
@@ -402,7 +577,7 @@ body {
 
 .selector-fecha-hoy {
   font: inherit;
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
   padding: var(--espacio-2) var(--espacio-3);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
@@ -417,8 +592,8 @@ body {
 
 .selector-fecha-nota {
   margin: var(--espacio-2) 0 0;
-  font-size: var(--texto-xs);
-  color: var(--texto-tenue);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
   line-height: 1.35;
 }
 
@@ -431,7 +606,7 @@ body {
   background: var(--aviso-fondo);
   border-left: 3px solid var(--riesgo-medio);
   border-radius: 0 var(--radio) var(--radio) 0;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   line-height: 1.5;
   color: var(--texto);
 }
@@ -460,7 +635,7 @@ body {
    "hoy" sin haberlo comprobado. */
 .leyenda-fecha {
   margin: 0 0 var(--espacio-3);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   color: var(--texto-suave);
   font-variant-numeric: tabular-nums;
 }
@@ -486,7 +661,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--espacio-2);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
   padding: var(--espacio-1) 0;
 }
 
@@ -497,7 +672,7 @@ body {
 .leyenda-conteo {
   color: var(--texto-suave);
   font-variant-numeric: tabular-nums;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
 }
 
 .cuadro-leyenda {
@@ -537,9 +712,46 @@ body {
   margin: var(--espacio-3) 0 0;
   padding-top: var(--espacio-2);
   border-top: 1px solid var(--borde);
-  color: var(--texto-tenue);
-  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
   font-style: italic;
+}
+
+/* -------------------------------------------------------------------------- *
+ * Capas del mapa, plegadas (H5.9)
+ * -------------------------------------------------------------------------- */
+
+.capas-plegable {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+}
+
+.capas-plegable > summary {
+  cursor: pointer;
+  padding: var(--espacio-3) var(--espacio-4);
+  font-weight: 700;
+  font-size: var(--texto-md);
+  list-style-position: inside;
+}
+
+.capas-plegable > summary:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: -2px;
+  border-radius: var(--radio-lg);
+}
+
+.capas-plegable[open] > summary {
+  border-bottom: 1px solid var(--borde);
+}
+
+/* El control ya trae su propia tarjeta; dentro del plegable no hace falta una
+   segunda. */
+.capas-plegable .control-capas {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 /* -------------------------------------------------------------------------- *
@@ -555,8 +767,8 @@ body {
 }
 
 .panel-vacio {
-  color: var(--texto-tenue);
-  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  font-size: var(--texto-md);
   margin: 0;
 }
 
@@ -568,7 +780,7 @@ body {
 
 .panel-codigo {
   margin: var(--espacio-1) 0 var(--espacio-4);
-  color: var(--texto-tenue);
+  color: var(--texto-suave);
   font-size: var(--texto-xs);
   letter-spacing: 0.05em;
 }
@@ -602,7 +814,7 @@ body {
 .unidad {
   font-weight: 400;
   color: var(--texto-suave);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 /* Un dato ausente se ve distinto de un dato presente. Si se vieran igual, no
@@ -610,8 +822,8 @@ body {
 .valor-ausente {
   font-weight: 400;
   font-style: italic;
-  color: var(--texto-tenue);
-  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  font-size: var(--texto-md);
 }
 
 .panel-estimacion {
@@ -630,13 +842,13 @@ body {
 .panel-estimacion-titulo {
   margin: 0 0 var(--espacio-1);
   font-weight: 600;
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 .panel-estimacion-detalle {
   margin: 0;
   color: var(--texto-suave);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
 }
 
 .panel-riesgo-datos {
@@ -652,13 +864,13 @@ body {
 
 .panel-riesgo-datos .dato dt,
 .panel-riesgo-datos .dato dd {
-  font-size: var(--texto-xs);
+  font-size: var(--texto-md);
 }
 
 .panel-nota {
   margin: var(--espacio-3) 0 0;
-  color: var(--texto-tenue);
-  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
   font-style: italic;
 }
 
@@ -714,14 +926,14 @@ body {
 }
 
 .control-capas-nombre {
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 /* Cada capa dice para que sirve. Un visor que obliga a probar capas a ciegas
    para descubrir cual se necesita esta mal explicado. */
 .control-capas-descripcion {
-  font-size: var(--texto-xs);
-  color: var(--texto-tenue);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
   line-height: 1.3;
 }
 
@@ -735,7 +947,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   color: var(--texto-suave);
   margin-bottom: var(--espacio-1);
 }
@@ -756,7 +968,7 @@ body {
    dos seria el mismo error que pintar de rojo la banda de modo simulado. */
 .control-opacidad-aviso {
   margin: var(--espacio-2) 0 0;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   line-height: 1.35;
   color: var(--texto-suave);
   background: var(--superficie-alterna);
@@ -844,15 +1056,15 @@ body {
 
 .leyenda-nota {
   margin: var(--espacio-2) 0 0;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   color: var(--texto-suave);
   line-height: 1.35;
 }
 
 .control-nota {
   margin: var(--espacio-2) 0 0;
-  font-size: var(--texto-xs);
-  color: var(--texto-tenue);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
   line-height: 1.35;
 }
 
@@ -861,7 +1073,7 @@ body {
  * -------------------------------------------------------------------------- */
 
 .tablero {
-  margin: 0 var(--espacio-6) var(--espacio-6);
+  margin: 0;
   background: var(--superficie);
   border: 1px solid var(--borde);
   border-radius: var(--radio-lg);
@@ -871,14 +1083,14 @@ body {
 
 .tablero-titulo {
   margin: 0;
-  font-size: var(--texto-lg);
-  font-weight: 600;
+  font-size: var(--texto-md);
+  font-weight: 700;
 }
 
 .tablero-subtitulo {
   margin: var(--espacio-1) 0 var(--espacio-4);
   color: var(--texto-suave);
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
 }
 
 /* Cuando las tres columnas no son de la misma fecha, la tabla ya no compara lo
@@ -938,7 +1150,7 @@ body {
 .codigo-distrito {
   display: block;
   font-size: var(--texto-xs);
-  color: var(--texto-tenue);
+  color: var(--texto-suave);
   font-variant-numeric: tabular-nums;
 }
 
@@ -953,12 +1165,36 @@ body {
   display: block;
   font-size: var(--texto-xs);
   font-weight: 400;
-  color: var(--texto-tenue);
+  color: var(--texto-suave);
   cursor: help;
 }
 
+/* En el panel lateral (H5.9) la tabla vive en 24 rem: la celda no reserva ancho,
+   la marca va en una linea -nivel y probabilidad, lado a lado- y el codigo del
+   distrito y el umbral de la cabecera se quitan; el umbral sigue en el selector
+   de evento y en el `title` de la columna. La probabilidad NO se quita: es lo
+   que distingue dos altos que no son iguales. */
 .celda-semaforo {
-  min-width: 7rem;
+  min-width: 0;
+}
+
+.columna-panel .tabla-semaforo th,
+.columna-panel .tabla-semaforo td {
+  padding: 0.3rem 0.25rem;
+}
+
+.columna-panel .codigo-distrito,
+.columna-panel .columna-umbral {
+  display: none;
+}
+
+.columna-panel .marca-semaforo {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.25rem 0.4rem;
+  white-space: nowrap;
 }
 
 .marca-semaforo {
@@ -970,7 +1206,7 @@ body {
   border: 1px solid var(--distrito-borde);
   border-radius: var(--radio);
   font-family: inherit;
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
   text-align: left;
 }
 
@@ -1018,8 +1254,8 @@ button.marca-semaforo:focus-visible {
   margin: var(--espacio-3) 0 0;
   padding-top: var(--espacio-2);
   border-top: 1px solid var(--borde);
-  color: var(--texto-tenue);
-  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
   font-style: italic;
 }
 
@@ -1061,7 +1297,7 @@ button.marca-semaforo:focus-visible {
   display: flex;
   justify-content: space-between;
   gap: var(--espacio-2);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-sm);
 }
 
 .indice-datos dt {
@@ -1077,5 +1313,112 @@ button.marca-semaforo:focus-visible {
 .indice-formula {
   font-family: var(--fuente-datos);
   font-weight: 400;
-  font-size: 0.8em;
+  font-size: var(--texto-sm);
+}
+
+/* -------------------------------------------------------------------------- *
+ * Anchos angostos (H5.9, CA-4)
+ *
+ * Hasta el 2026-09-06 la unica consulta de medios del visor colapsaba la
+ * rejilla a una columna y nada mas se adaptaba. Medido a 390 px: el mapa era un
+ * buzon, el semaforo desbordaba y la leyenda tapaba el canton.
+ * -------------------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .contenido {
+    grid-template-columns: 1fr;
+  }
+
+  .contenedor-mapa {
+    height: clamp(18rem, 52vh, 40rem);
+  }
+
+  .controles {
+    flex-wrap: wrap;
+  }
+
+  .selector-fecha {
+    flex-basis: 100%;
+  }
+
+  /* Ningun hijo de la rejilla impone su ancho minimo: lo que no cabe se
+     desplaza dentro de su propio contenedor, nunca ensancha la pagina. */
+  .contenido > *,
+  .columna-panel > * {
+    min-width: 0;
+  }
+
+  /* La leyenda vuelve al flujo, debajo del mapa: sobre un mapa angosto tapaba
+     el canton. */
+  .leyenda-flotante {
+    position: static;
+    max-width: none;
+  }
+
+  /* El semaforo y la ficha, lado a lado; las capas debajo, a todo el ancho. */
+  .columna-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .capas-plegable {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .cabecera,
+  .titular,
+  .controles,
+  .contenido {
+    padding-left: var(--espacio-4);
+    padding-right: var(--espacio-4);
+  }
+
+  .cabecera {
+    align-items: flex-start;
+  }
+
+  .subtitulo,
+  .estado-datos-detalle {
+    display: none;
+  }
+
+  .titular-texto {
+    font-size: var(--texto-lg);
+  }
+
+  .titular-detalle {
+    font-size: var(--texto-sm);
+  }
+
+  .selector-evento-grupo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--espacio-1);
+  }
+
+  .selector-evento-boton {
+    padding: var(--espacio-2);
+    min-height: 3.25rem;
+  }
+
+  .selector-evento-nombre {
+    font-size: var(--texto-sm);
+  }
+
+  .contenedor-mapa {
+    height: clamp(16rem, 48vh, 30rem);
+  }
+
+  .columna-panel {
+    grid-template-columns: 1fr;
+  }
+
+  /* El nombre del distrito en el semaforo no se parte: la tabla se desplaza
+     dentro de su contenedor si hace falta, nunca la pagina. */
+  .columna-panel .tabla-semaforo {
+    font-size: var(--texto-sm);
+  }
 }

@@ -24,8 +24,8 @@
  *    eventos, que son exactamente las tres propiedades que una interpolacion
  *    necesita para significar algo.
  *
- *    Consecuencia: cuando no haya modelo entrenado, `probabilidad` viene en null
- *    y NO hay mapa de calor. La pantalla lo dice; no se dibuja una superficie
+ *    Consecuencia: cuando no hay estimacion para el evento y la fecha,
+ *    `probabilidad` viene en null y NO hay mapa de calor. La pantalla lo dice; no se dibuja una superficie
  *    plana que parezca un resultado.
  *
  * 2. La paleta es distinta de la escala de riesgo, a proposito.

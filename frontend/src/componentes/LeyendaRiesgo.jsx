@@ -71,8 +71,8 @@ export default function LeyendaRiesgo({ nombreEvento, riesgos, simulado, fecha }
 
       {simulado && (
         <p className="leyenda-aviso">
-          Niveles simulados. No hay modelo entrenado: estos valores no
-          representan riesgo real.
+          Niveles simulados: estos valores no salen de un modelo ni de
+          observaciones y no representan riesgo real.
         </p>
       )}
     </div>

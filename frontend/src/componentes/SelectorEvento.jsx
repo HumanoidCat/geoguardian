@@ -1,12 +1,30 @@
 import { EVENTOS } from '../datos/eventos'
 
+function EstadoEvento({ resumen }) {
+  if (resumen.nivelMaximo === null) {
+    return (
+      <span className="selector-evento-estado">
+        <span className="punto-nivel trama-sin-dato" aria-hidden="true" />
+        sin estimacion
+      </span>
+    )
+  }
+  const cuantos = resumen.porNivel[resumen.nivelMaximo].length
+  return (
+    <span className="selector-evento-estado">
+      <span className={`punto-nivel punto-riesgo-${resumen.nivelMaximo}`} aria-hidden="true" />
+      {resumen.nivelMaximo} en {cuantos} de {resumen.total}
+    </span>
+  )
+}
+
 /**
  * Selector del tipo de evento que colorea el mapa.
  *
  * Los tres eventos y sus umbrales viven en src/datos/eventos.js, no aca: este
  * archivo solo exporta el componente.
  */
-export default function SelectorEvento({ seleccionado, alCambiar }) {
+export default function SelectorEvento({ seleccionado, alCambiar, resumenes = null }) {
   const activo = EVENTOS.find((evento) => evento.id === seleccionado)
 
   return (
@@ -25,7 +43,12 @@ export default function SelectorEvento({ seleccionado, alCambiar }) {
             }
             onClick={() => alCambiar(evento.id)}
           >
-            {evento.nombre}
+            <span className="selector-evento-nombre">{evento.nombre}</span>
+            {/* Que tiene cada evento ANTES de hacer clic (H5.9, CA-1). Sequia no
+                tiene estimaciones nunca por D-34; sin esta linea, elegirla era
+                la unica forma de enterarse, y la pantalla vacia se leia como un
+                fallo. Se deriva del resumen; si no llego, no se afirma nada. */}
+            {resumenes?.[evento.id] && <EstadoEvento resumen={resumenes[evento.id]} />}
           </button>
         ))}
       </div>

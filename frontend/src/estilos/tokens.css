@@ -63,7 +63,10 @@
    * el visor: se usa igual en la banda de modo simulado.
    * ---------------------------------------------------------------------- */
   --sin-dato-fondo: #ffffff;
-  --sin-dato-trama: #9e9e9e;
+  /* La trama era #9e9e9e: 2.68:1 sobre blanco, por debajo del 3:1 que WCAG pide
+     a un elemento grafico. Medido el 2026-09-06 (H5.9, CA-5); verificar_escala
+     ahora lo comprueba. Toma el gris del borde punteado, que si cumple. */
+  --sin-dato-trama: #757575;
   --sin-dato-borde: #757575;
   --texto-sobre-sin-dato: #424242;
 
@@ -102,6 +105,8 @@
   --borde-fuerte: #bdbdbd;
   --texto: #212121;
   --texto-suave: #616161;
+  /* 2.68:1 sobre blanco: NO sirve para texto (H5.9, CA-5). Solo para adornos
+     que no se leen -el punto de estado, una linea-; verificar_escala lo anota. */
   --texto-tenue: #9e9e9e;
   --foco: #1565c0;
 

@@ -146,7 +146,19 @@ function AjustarEncuadre({ coleccion }) {
       // y el margen que decide cuanto se acerca es el vertical: a 16 px el
       // canton llega casi al borde de arriba y de abajo, y se pierde la
       // referencia de que hay algo mas alla del limite.
-      mapa.fitBounds(limites, { padding: [32, 32] })
+      //
+      // En un telefono (H5.9, CA-7) el margen baja a 16 px: 32 por lado en 343
+      // px de ancho son un 19 % del mapa, y el canton quedaba en el 79 % del
+      // ancho cuando el criterio pide 80. Medido el 2026-09-06.
+      const margen = contenedor.clientWidth < 600 ? 16 : 32
+      // Sin animacion (H5.9). Con la animada, si un segundo encuadre llegaba
+      // mientras el primero todavia animaba -pasa al aparecer la barra de
+      // desplazamiento, y en desarrollo con el doble efecto de StrictMode-,
+      // Leaflet lo descartaba en `_tryAnimatedZoom` y el mapa se quedaba en el
+      // zoom provisional, con el canton cortado. Reproducido a 390 px el
+      // 2026-09-06: `fitBounds` corria, y el zoom seguia en 11. Ademas, un
+      // encuadre que no anima no muestra medio pais durante el primer cuadro.
+      mapa.fitBounds(limites, { padding: [margen, margen], animate: false })
     }
 
     const reencuadrarPronto = () => {
