@@ -3,6 +3,41 @@
 Un archivo, un dueno. Nadie modifica la carpeta de otra persona. Si necesitas un
 cambio fuera de tu carpeta, se pide, no se hace.
 
+## La excepcion permanente: Alejandro escribe en todo el repositorio
+
+**Decidido el 2026-09-05 por Alejandro.** La regla de un dueno por carpeta sigue
+en pie **entre Avril, Cesar y Luna**. Alejandro queda fuera de ella: puede
+modificar cualquier archivo del repositorio sin abrir una solicitud de cambio y
+sin escribir una excepcion por historia.
+
+**Lo que cambia.** Se terminan las excepciones por historia y por archivo para
+Alejandro. Las que ya estan escritas mas abajo se quedan: son el registro de por
+que se toco cada cosa y cuando, y borrarlas no aclararia nada.
+
+**Lo que NO cambia, y es lo que sostiene la regla.**
+
+  1. **Se sigue declarando.** Todo archivo tocado fuera de la carpeta propia se
+     lista en el Pull Request, con el motivo. Lo que se elimina es el permiso
+     previo, no el aviso posterior.
+  2. **El dueno de la carpeta revisa el Pull Request.** Si Alejandro toca
+     `basedatos/`, Cesar lo revisa. La revision es el control, y es el que
+     importa: un permiso pedido de antemano no mira el codigo, y una revision si.
+  3. **El resto del equipo sigue pidiendo.** Esta excepcion es de una persona, no
+     una derogacion de la regla.
+
+**Por que.** El bloqueo era real y se repitio: H1.6, H6.6, H7.2, I-10, H11.6.
+Cinco veces se escribio una excepcion antes de tocar un archivo, siempre para el
+mismo, siempre aprobada, y siempre por trabajo que la persona no origino. En
+H11.6 el caso llego al extremo: el visor publico llevaba dos horas caido por
+cinco lineas de un guion de Avril (**I-39**), y la regla exigia escribir una
+excepcion antes de arreglarlo.
+
+**El costo, dicho.** Un dueno de carpeta puede encontrarse su archivo cambiado
+sin haberlo sabido de antemano. Eso es peor que el estado anterior y se acepta a
+cambio de no frenar arreglos; **el precio de que sea aceptable es que la
+declaracion en el Pull Request sea completa y que la revision la haga el dueno de
+verdad, no de tramite**. Si eso se afloja, la regla vuelve.
+
 ## Carpetas con dueno unico
 
 | Carpeta | Dueno | Contenido |
@@ -49,6 +84,79 @@ libre no significa que lo que hay dentro sea compartido: **cada quien tiene su
 propia copia y hoy nadie puede decir si son la misma.** Eso lo resuelve **H1.7**,
 versionar el dataset consolidado, que sigue abierta. Mientras tanto, un resultado
 calculado sobre `datos/` no es reproducible por otra persona.
+
+## Excepcion: el reintento de conexion y `.env.example`, para H11.6
+
+**Escrita el 2026-09-05, ANTES de tocar nada.** `basedatos/` es de Cesar y
+`.env.example` es archivo compartido. Alejandro los toca por H11.6 y por nada
+mas.
+
+| Quien | Donde | Para que historia |
+|---|---|---|
+| Alejandro | `basedatos/conexion.py`, **solo `conectar()` y las constantes que esa funcion use** | H11.6, y nada mas |
+| Alejandro | `.env.example`, **solo agregar `POSTGRES_HOST_LOCAL` con su comentario** | H11.6, y nada mas |
+
+**«Solo `conectar()`» es literal.** No se toca `cadena_conexion()`, ni los valores
+por omision, ni `ErrorConexion`, ni el docstring del modulo salvo para reflejar lo
+que cambia. Si hiciera falta otra cosa, se pide.
+
+### Que se cambia y por que sale de esta historia
+
+`conectar()` reintenta durante noventa segundos ante cualquier
+`OperationalError`, con el argumento -correcto- de que «una contrasena equivocada
+no mejora esperando». El filtro **no logra separar esos dos casos**: en un fallo
+de conexion psycopg no expone el `sqlstate` -ni `error.sqlstate` ni
+`error.diag.sqlstate`-, asi que todo cae en la misma clase. Medido contra
+PostgreSQL 16 con psycopg 3.3.5, en seis situaciones distintas.
+
+H11.6 lo choco de frente: apuntando a Railway con la base todavia sin crear,
+`conectar()` espero noventa segundos por `database "geoguardian" does not exist`
+-un error que el servidor ya habia contestado- y despues mando a mirar
+`docker compose ps`, que no existe cuando la base esta en otro continente.
+
+`.env.example` va en la misma excepcion porque es el otro extremo del mismo
+defecto: documenta `POSTGRES_HOST` -que solo consume docker-compose- y **omite
+`POSTGRES_HOST_LOCAL`, la unica que `conexion.py` lee**. La confusion ya esta
+explicada en `docker-compose.yml` y en `infra/k8s/base/api-deployment.yaml`, los
+dos con un comentario de Cesar: `.env.example` es el unico de los tres donde
+falta.
+
+### Por que se hace y no se pide
+
+Se escribio la solicitud de cambio completa -`gestion/solicitud-cesar-reintento-conexion-2026-09-05.md`,
+con la medicion y la correccion propuesta- y Alejandro decidio ejecutarla en vez
+de esperarla, por tiempo de sprint. **La solicitud se le manda igual a Cesar**,
+que revisa el Pull Request como dueno de la carpeta. Lo que cambia es el orden,
+no que se le consulte.
+
+**Cesar revisa el Pull Request**, como dueno de `basedatos/`.
+
+## Los archivos de raiz que tampoco figuran
+
+Lo encontro H11.6 el 2026-09-05, por el mismo camino que `datos/`: no se busco,
+se choco con el. **`.gitignore` no esta en ninguna de las dos listas** -ni en la
+tabla de carpetas, ni entre los archivos compartidos- y protege a los cuatro.
+Tenia el patron `.env` a secas, que es un nombre exacto: un `.env.railway` con
+contrasenas reales quedaba sin ignorar. Es la incidencia **I-35**.
+
+`README.md` esta en la misma situacion, y lo toca cualquiera que agregue una
+historia, porque lleva el conteo del backlog.
+
+| Archivo | Regla | Por que |
+|---|---|---|
+| `.gitignore` | **Archivo compartido**: se modifica por solicitud, salvo cuando el cambio **agrega** una exclusion que protege un secreto | Excluir de mas puede esconderle a alguien un archivo suyo; excluir de menos filtra credenciales. Lo primero se discute, lo segundo se arregla el mismo dia y se avisa |
+| `README.md` | **Escritura libre para las cifras que salen del backlog**; el resto, por solicitud | `verificar_documentacion.py` obliga a que el conteo coincida con `backlog.csv`. Pedir permiso para que un numero deje de estar mal no controla nada |
+
+**Por que la excepcion de `.gitignore` esta escrita asi y no "escritura libre".**
+Porque el riesgo no es simetrico. Una linea de mas deja de versionar algo que
+alguien necesitaba y nadie se entera hasta que falta; una linea de menos publica
+una contrasena. La regla se escribe en la direccion del dano.
+
+**Lo que lo comprueba.** `infra/verificar_h116.py` aplica los patrones de
+`.gitignore` a nombres concretos -`.env`, `.env.railway`, `.env.destino`- y
+ademas comprueba que `.env.example` **NO** quede ignorado. La version anterior
+del control preguntaba si el texto `.env` aparecia en el archivo, y respondia que
+si mientras el hueco existia.
 
 ## Excepcion: la descarga de Sentinel-2, para H1.6
 

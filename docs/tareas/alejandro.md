@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 187 puntos · 288.1 horas · 28.8 h por semana en promedio
+**Total asignado:** 192 puntos · 295.9 horas · 29.6 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 52.8 | 36 | SOBRECARGA +17 h |
+| S4 | semanas 10-11 | 60.6 | 36 | SOBRECARGA +25 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -561,7 +561,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 52.8 h
+## Sprint 4 (semanas 10-11) — 60.6 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -571,6 +571,9 @@
 
 - [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
+
+- [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
+  - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
 
 ## Regla: lo hecho no se borra
 

@@ -2328,3 +2328,489 @@ pasadas cambiarian.
 puede, en su implementacion, dejar que los decimales decidan en otro lugar. La
 regla se probo con tablas armadas a mano donde el borde estaba lejos; el primer
 dato real que puso un estimador a 0.0024 del borde fue el que lo mostro.
+
+---
+
+## I-35 · `.gitignore` filtraba `.env` exacto, y un archivo con credenciales reales no estaba ignorado
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, al preguntar por que su archivo de credenciales
+de Railway aparecia en `git status`.
+
+**Que paso.** El runbook de H11.6 -en su primera version, corregida despues por
+I-36- indicaba copiar `.env` a `.env.railway` y poner ahi los valores de la base
+de la nube. Alejandro lo hizo. El archivo quedo con la contrasena del
+superusuario de PostgreSQL, las de los tres roles de aplicacion, la clave de
+FIRMS y las credenciales de Copernicus.
+
+`.gitignore` tenia esta linea:
+
+```
+.env
+```
+
+Eso ignora **un archivo llamado exactamente `.env`**. `.env.railway` no coincide,
+asi que **no estaba ignorado**: salia en `git status` como archivo sin seguir, y
+un `git add -A` lo habria puesto en el indice sin que nadie lo notara.
+
+**Causa raiz.** La regla se escribio pensando en **el** archivo de entorno, en
+singular, cuando todavia habia uno solo. En cuanto aparecio un segundo entorno
+-la nube- la regla dejo de cubrir el caso sin que nada avisara. Un `.gitignore`
+que no cubre un archivo se comporta exactamente igual que uno que si lo cubre:
+en silencio.
+
+**Por que no lo encontro ninguna comprobacion.** No habia ninguna. `verificar_h116.py`
+busca cadenas de conexion y contrasenas **en los archivos versionados**; un
+archivo sin seguir no esta versionado todavia, que es justo el momento en el que
+hay que atraparlo.
+
+**Accion tomada.**
+
+  1. `.gitignore` pasa a:
+
+     ```
+     .env
+     .env.*
+     !.env.example
+     ```
+
+     con el motivo escrito en un comentario ahi mismo, para que el dia que
+     alguien quiera simplificarlo lea primero por que no.
+  2. El runbook **deja de pedir un archivo** para apuntar a la nube: el paso 4
+     usa variables de sesion de PowerShell, que no tocan el disco. El unico
+     archivo que queda es `.env.destino` del paso 5 -donde de verdad hacen falta
+     dos bases a la vez- y el runbook dice que se borra al terminar.
+  3. Las credenciales expuestas de servicios externos -Copernicus y FIRMS- se
+     rotan. Las de la base se rotan al quitar el TCP proxy.
+
+**Lo que esto no arregla, y queda anotado.** `.gitignore` **no tiene dueno
+declarado** en `docs/07-propiedad-archivos.md`: no esta en la tabla de carpetas
+ni en la lista de archivos compartidos. Es la misma clase de hueco que tenia
+`datos/` antes del 20 de agosto, y se anota igual: un archivo de raiz que
+protege a los cuatro y que nadie es responsable de revisar.
+
+**Lo que confirma.** Un control de seguridad se prueba con el caso que **no**
+cubre, no con el que cubre. `git check-ignore .env` respondia que si, y esa
+respuesta era cierta y no servia de nada.
+
+---
+
+## I-36 · Se purgo el volumen de PostgreSQL antes de desplegar la imagen nueva
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** La salida de `CREATE DATABASE`, al primer intento despues
+del purgado.
+
+**Que paso.** El servicio `postgis` de Railway se creo desde una plantilla que
+apunta a una etiqueta `-master` de la imagen `postgis/postgis`. Al preparar la
+base, `infra/preparar_base.py` informo:
+
+```
+postgis 3.7.0dev
+```
+
+`3.7.0dev` es una construccion de la rama de desarrollo de PostGIS: no tiene
+version publicada que citar en un documento tecnico. Se decidio fijar la imagen
+en `postgis/postgis:16-3.5` -version publicada, y misma version mayor de
+PostgreSQL que la base local del equipo-.
+
+Para que el cambio tomara efecto hay que reinicializar el directorio de datos,
+asi que se purgo el volumen. **Se purgo antes de que el cambio de imagen se
+hubiera desplegado.** El servicio reinicio, corrio `initdb` **con la imagen
+vieja**, y recien despues Railway aplico la imagen nueva:
+
+```
+psycopg.errors.InternalError_: template database "template1" has a collation
+version mismatch
+DETAIL: The template database was created using collation version 2.41, but the
+operating system provides version 2.31.
+```
+
+Y en cadena, el paso siguiente:
+
+```
+psycopg.errors.OperationalError: database "geoguardian" does not exist
+```
+
+**Causa raiz.** Un directorio de datos de PostgreSQL guarda la version de la
+biblioteca de intercalacion del sistema con la que se creo. Las dos imagenes se
+construyen sobre versiones distintas de Debian, con versiones distintas de esa
+biblioteca. Un directorio inicializado por una y servido por la otra queda
+inconsistente, y PostgreSQL lo detecta y se niega -correctamente- a crear bases
+a partir de una plantilla en ese estado.
+
+El error no fue de Railway ni de la imagen: fue **de orden**. Las dos operaciones
+-cambiar la imagen y purgar el volumen- son correctas cada una; hacerlas al reves
+no lo es.
+
+**Por que no estaba escrito.** Porque el runbook describia como armar los
+servicios desde cero, donde el volumen nace vacio con la imagen ya elegida y el
+problema no existe. **No cubria el caso de cambiar la imagen de un servicio que
+ya tiene datos**, que es exactamente el caso que se presento.
+
+**Accion tomada, y el segundo error dentro del primero.** El arreglo obvio era
+purgar otra vez, ahora con la imagen correcta desplegada. Antes de eso se probo
+la pista del propio servidor, `REFRESH COLLATION VERSION`, que sobre un cluster
+recien inicializado es segura: no hay ningun indice de texto que pueda quedar mal
+ordenado, solo catalogos del sistema, y la base nueva se crea **despues**,
+copiada de una `template1` ya corregida.
+
+El intento fallo con `ERROR: invalid collation version change`, y **eso se leyo
+como que el camino no servia**. No era eso. Los registros de despliegue de
+Railway traen la sentencia exacta:
+
+```
+2026-09-05 05:03:18.695 UTC [201] ERROR: invalid collation version change
+2026-09-05 05:03:18.695 UTC [201] STATEMENT: ALTER DATABASE template0 REFRESH COLLATION VERSION
+```
+
+**Fallo en `template0`, no en `template1`.** `template0` es la copia congelada de
+reserva de PostgreSQL: no acepta conexiones y no se modifica, por diseno. Y no
+hacia falta, porque `CREATE DATABASE` copia de `template1` -que en ese mismo
+intento **si** se habia refrescado, y dejo de aparecer en los avisos del log
+desde ese segundo-. Las cuatro sentencias iban en una sola linea, asi que la
+excepcion corto todo antes del `CREATE DATABASE`.
+
+Quitando `template0`, la base se crea y el purgado no hizo falta. El runbook
+recoge las dos cosas: la secuencia imagen → desplegar → purgar, y la salida sin
+purgar con su advertencia de que **solo vale para un cluster vacio**.
+
+**Lo que confirma.** Dos cosas, y la segunda importa mas.
+
+Un procedimiento escrito para el camino feliz -crear desde cero- no cubre el
+camino que de verdad se recorre, que casi siempre es corregir algo ya creado. El
+runbook existe para que otro pueda repetirlo, y lo que otro va a repetir incluye
+los cambios de opinion.
+
+Y: **un error de una sentencia se leyo como el veredicto de las cuatro.** Cuatro
+sentencias en una linea devuelven un solo mensaje, y ese mensaje no dice cual
+fallo. La respuesta no estaba en razonar mejor sobre el error, estaba en los
+registros del servidor, que traen la sentencia exacta. Cuando algo falla, el dato
+que falta casi siempre esta escrito en algun lado; la tentacion es deducirlo.
+
+---
+
+## I-37 · `analitico.riesgo` quedo con dos escritores para el mismo evento
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** `contar_riesgo.py`, al mirar la tabla despues de aplicar
+D-42 y antes de copiarla a la nube.
+
+**Que paso.** D-42 aplico los hiperparametros afinados de H3.8. En incendio eso
+cambio al escritor: la climatologica quedo fuera de la banda por 0.002 y paso a
+escribir la regresion logistica. Despues de correr la tuberia:
+
+```
+incendio  linea_base_climatologica    1962 filas  1991-01-01 .. 2026-09-10
+incendio  regresion_logistica        37149 filas  1991-01-30 .. 2024-12-24
+```
+
+**Dos escritores para el mismo evento.** Y no en cualquier parte: la regresion
+logistica llega hasta 2024-12-24, asi que **todas las fechas posteriores -hoy
+incluido, que es la que el visor muestra por omision- seguian servidas por un
+estimador que D-39 ya no elige.**
+
+**Causa raiz.** `estimar_riesgo.py` escribe con `ON CONFLICT` sobre la clave
+natural. Eso lo hace idempotente -correrlo dos veces no cambia nada, que es lo
+que CA-16 de H3.6 exige- pero **el escritor solo pisa sus propias filas: no borra
+las que ya no cubre**. Mientras el escritor de un evento no cambiara, el defecto
+no existia. Cambio por primera vez esta noche.
+
+El cambio de escritor tambien **acorta el horizonte**: la climatologica solo
+necesita el calendario y escribia hasta hoy mas siete; la regresion logistica
+necesita la matriz de caracteristicas y no puede escribir un dia sin ella. Eso
+esta en el encabezado del guion desde H3.6, pero **su consecuencia -que el mapa
+de incendios se queda sin dato reciente- no estaba escrita en ninguna parte**, ni
+en D-42 ni en I-34.
+
+**Accion tomada.** `estimar_riesgo.py` retira, despues de escribir un evento, las
+filas de ese evento que dejo otro escritor. Un evento, un escritor. Medido:
+
+```
+  retiradas               1962 de un escritor anterior
+  auditoria (H1.13): DELETE=1962, UPDATE=282898
+```
+
+El borrado dispara `riesgo_auditoria_tg`, que es `AFTER DELETE OR UPDATE`, asi
+que la historia guarda que esas filas existieron y cuando dejaron de existir. No
+se apaga: eso es lo que queremos.
+
+**Lo que NO hace, a proposito.** Cuando el veredicto es que **nadie** escribe -el
+caso de sequia por D-34- no borra nada: solo avisa si quedaron filas de una
+corrida anterior. Un borrado masivo disparado por un veredicto que puede moverse
+con el ruido seria peor que el problema que arregla.
+
+**Lo que confirma.** Un guion idempotente no es lo mismo que un guion correcto.
+`ON CONFLICT` garantiza que correr dos veces no cambie nada, y esa garantia se
+lee como si dijera que la tabla queda consistente. Dice menos: queda consistente
+**mientras nadie cambie de escritor**. La propiedad que faltaba -un evento, un
+escritor- nunca se habia escrito, asi que nada podia comprobarla.
+
+---
+
+## I-38 · Los guiones de conteo no decian a que base le preguntaban
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Un `KeyError` de un comando distinto, en el mismo bloque.
+Por casualidad.
+
+**Que paso.** El CA-4 de H11.6 se demuestra corriendo `contar_ingesta.py` y
+`contar_riesgo.py` **contra las dos puntas** -la base local y la publicada- y
+comparando. La segunda corrida se hizo en la ventana equivocada, sin las
+variables que apuntan a la nube, asi que `conectar()` cayo en `.env` y le
+pregunto **otra vez a la base local**.
+
+Las cifras coincidieron. Por supuesto que coincidieron: eran la misma base.
+
+La unica senal fue que un tercer comando del mismo bloque -uno que leia
+`os.environ['POSTGRES_HOST_LOCAL']` directamente- reventó con `KeyError`. Sin esa
+casualidad, esas dos salidas se archivaban como evidencia de que el origen y el
+destino cuadran.
+
+**Causa raiz.** Los dos guiones imprimen numeros y **no imprimen la fuente**. Una
+salida asi no puede sostener la afirmacion «las dos puntas coinciden»: dos
+corridas contra la misma base se ven exactamente igual que dos corridas contra
+bases distintas que cuadran. Y se ven **mejor**, porque cuadran siempre.
+
+Es la forma mas peligrosa de fallar que tiene una evidencia: **no falla**.
+
+**Accion tomada.**
+
+  1. Los dos guiones imprimen una primera linea con la base, el servidor, el
+     puerto y el usuario, **tomados de la conexion abierta** -`current_database()`,
+     `inet_server_addr()`- y no de las variables de entorno, que es justo lo que
+     estaba mal.
+  2. Los dos aceptan `--destino <archivo>`, que exige **las cinco** claves de
+     conexion. Si falta una **no se hereda de `.env`**: se planta y dice cual.
+     Heredar una sola es como se termina preguntandole a la base equivocada -host
+     de la nube con la base local, o al reves- sin enterarse.
+  3. La logica vive en `docs/herramientas/apuntar.py`, con este caso escrito en
+     su encabezado.
+
+**Lo que confirma.** Una comprobacion que compara dos cosas tiene que decir
+**cuales dos**. Si no lo dice, lo mas probable es que este comparando una con
+ella misma, porque esa es la configuracion mas facil de alcanzar por error: es la
+que se obtiene sin hacer nada.
+
+---
+
+## I-39 · El visor llevaba dos horas "Online" sin haber servido una sola peticion
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, pidiendo `/api/salud` por curiosidad. Nada lo
+vigilaba.
+
+**Que paso.** El servicio del visor en Railway mostraba **`Online`** y su
+despliegue **`Deployment successful`**. Al pedirle cualquier cosa, la respuesta
+era de la puerta de entrada de Railway, no del visor:
+
+```json
+{"status": "error", "code": 502, "message": "Application failed to respond"}
+```
+
+En los registros de despliegue, repetido **una vez por segundo durante dos
+horas**:
+
+```
+10-resolver.sh: resolver -> fd12::10
+nginx: [emerg] invalid port in resolver "fd12::10" in /etc/nginx/conf.d/resolver.conf:1
+```
+
+nginx arrancaba, moria, el contenedor reiniciaba, y otra vez.
+
+**Causa raiz.** `frontend/docker-entrypoint.d/10-resolver.sh` lee los
+`nameserver` de `/etc/resolv.conf` y escribe la directiva `resolver` de nginx.
+**El DNS interno de Railway es IPv6** (`fd12::10`), y nginx exige que una
+direccion IPv6 vaya **entre corchetes**: sin ellos lee los dos ultimos
+caracteres como un puerto y se niega a arrancar.
+
+En Docker el DNS es `127.0.0.11` y en k3d es una IP del cluster: **las dos
+IPv4**. El guion vivio un mes sin encontrarse nunca con el caso.
+
+Comprobado contra nginx de verdad, las cuatro formas:
+
+```
+resolver fd12::10               -> emerg: invalid port in resolver "fd12::10"
+resolver [fd12::10]             -> ARRANCA
+resolver 127.0.0.11             -> ARRANCA
+resolver [fd12::10] 127.0.0.11  -> ARRANCA
+```
+
+La primera reproduce el error de Railway; las otras tres muestran que el arreglo
+no rompe lo que ya funcionaba.
+
+**El comentario del guion tampoco ayudo.** Decia que se toman todas las
+direcciones «IPv4 e IPv6, sin filtrar ninguna: nginx acepta las dos familias».
+Es cierto y no alcanza: nginx acepta IPv6 **entre corchetes**. Una afirmacion a
+medias se lee igual que una entera, y esa frase venia de la revision de SC-07,
+que corrigio un comentario falso por otro incompleto.
+
+**Accion tomada.** El `awk` pone corchetes a cualquier direccion que contenga
+`:` y no los traiga ya. El error real y las cuatro formas quedan citados en el
+comentario, no descritos.
+
+**Lo que confirma, y es lo que importa de esta incidencia.**
+
+**«Deployment successful» y «Online» no son evidencia de que un servicio
+funcione.** Railway marca exito porque el contenedor **arranca**; que el proceso
+se muera un segundo despues no lo mira. Durante dos horas leimos ese `Online` en
+la consola como si dijera algo, y lo unico que decia era que el contenedor
+existia.
+
+Es el mismo error que I-25 -un flujo que declara un entorno y sale verde aunque
+el entorno no exista- y que I-30 -`/salud` afirmando que la base no esta
+conectada mientras servia 143 407 filas de ella-. Tres veces el mismo patron:
+**un indicador que informa sobre si mismo en vez de sobre el sistema.**
+
+La leccion operativa es corta: **la unica comprobacion de que un servicio
+publicado funciona es pedirle algo y mirar lo que contesta.** Es el CA-1 y el
+CA-5 de esta historia, y por eso estan escritos como peticiones y no como
+estados de la consola.
+
+### Segunda parte de I-39: nginx arrancaba y seguia sin contestar
+
+Con el resolver corregido y desplegado, los registros mostraban a nginx sano:
+
+```
+2026/09/05 07:48:15 [notice] 1#1: start worker process 34
+2026/09/05 07:48:15 [notice] 1#1: start worker process 37
+```
+
+Y el sitio seguia devolviendo el mismo 502 de la puerta de entrada de Railway.
+**Dos causas distintas, un solo sintoma.**
+
+`frontend/nginx.conf.template` declaraba `listen 80;` y nada mas. Eso escucha
+**solo en IPv4**. En Docker y en k3d alcanza, porque quien conecta llega por
+IPv4. La red de Railway es IPv6 -la misma propiedad que rompio el resolver-, asi
+que nginx aceptaba conexiones en una familia a la que nadie llamaba.
+
+**El aviso estaba en los registros desde el primer despliegue**, y lo dimos por
+ruido:
+
+```
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs
+from the packaged version
+```
+
+Ese guion de la imagen oficial existe para agregar `listen [::]:80;`, y **se
+abstiene cuando la configuracion no es la que ella empaqueta**. La nuestra sale
+de nuestra plantilla, asi que nunca la agrego. La linea decia exactamente eso,
+en nivel `info`, entre cuarenta lineas de arranque.
+
+**Accion tomada.** La plantilla declara las dos: `listen 80;` y
+`listen [::]:80;`, con el porque escrito arriba.
+
+**Lo que confirma.** Un mensaje de nivel `info` que explica por que un ajuste
+**no** se aplico es un aviso, no ruido. Y arreglar la primera causa de un
+sintoma no lo hace desaparecer: el 502 seguia igual, y la tentacion inmediata
+fue pensar que el arreglo del resolver no habia servido. Habia servido; faltaba
+la otra mitad.
+
+---
+
+## I-40 · El minimo privilegio dejo a la API sin poder llamar a PostGIS
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, abriendo el sitio recien publicado. El visor daba
+error y `/api/salud` decia `real`.
+
+**Que paso.** Con el visor por fin sirviendo, `/api/distritos` devolvia
+`Internal Server Error` mientras `/api/salud` respondia bien. Preguntando a la
+base **como el rol de la API**:
+
+```
+SELECT count(*) FROM geo.distrito                  -> 8
+SELECT count(*) FROM analitico.riesgo              -> 141461
+SELECT postgis_version()                           -> function postgis_version() does not exist
+SELECT ST_AsGeoJSON(geometria) FROM geo.distrito   -> function st_asgeojson(public.geometry) does not exist
+has_schema_privilege('api_geoguardian','public','USAGE') -> false
+```
+
+**Causa raiz.** La migracion 003 cierra el esquema `public` con
+`REVOKE ALL ... FROM PUBLIC`, que es correcto y necesario. Pero **PostGIS se
+instala en `public`**: ahi viven sus funciones y el tipo `geometry`. Sin `USAGE`
+sobre ese esquema, un rol lee las tablas perfectamente y no resuelve una sola
+funcion espacial.
+
+`SQL_DISTRITOS` hace `ST_AsGeoJSON(geometria)`. De ahi el 500 con la tabla
+legible, la conexion sana y `/salud` diciendo `real`.
+
+**Por que no lo vio ningun control, y esta es la incidencia de verdad.**
+
+`basedatos/seguridad/verificar_h18.py` comprueba **seis operaciones prohibidas**,
+todas rechazadas, con detalle. Y de lo **permitido**, cuatro casos: tres
+`SELECT count(*)` sobre tablas y una escritura.
+
+**Ninguno llamaba a una funcion.**
+
+El verificador estaba construido para responder «que no puede hacer este rol», y
+esa pregunta la contesta muy bien. La otra mitad -«que **si** puede hacer, de
+todo lo que necesita»- estaba cubierta por una muestra que no representaba el
+uso real: el endpoint mas visitado del sistema no hace un `count(*)`, hace una
+llamada a PostGIS.
+
+Un permiso concedido y no probado no esta concedido. Y un permiso **no**
+concedido y no probado tampoco se nota, que es lo que paso durante semanas.
+
+**Accion tomada.**
+
+  1. `basedatos/ddl/015_usage_public_para_postgis.sql` concede `USAGE` sobre
+     `public` a los tres roles de aplicacion, con guarda por si los roles todavia
+     no existen. **No devuelve nada a `PUBLIC` y no concede `CREATE`.**
+  2. `verificar_h18.py` gana tres casos en la lista de PERMITIDAS: la API llama a
+     `postgis_version()`, la API hace `ST_AsGeoJSON` sobre `geo.distrito`, y el
+     ETL llama a `postgis_version()`.
+
+Medido contra un PostgreSQL 16 real, provocando el estado de la nube:
+
+```
+antes de la 015   has_schema_privilege(api, public, USAGE)  -> f
+despues           has_schema_privilege(api, public, USAGE)  -> t
+PUBLIC sigue sin USAGE                                      -> f
+el rol sigue sin CREATE                                     -> f
+```
+
+Y aplicandola dos veces seguidas, sin error: la migracion es idempotente.
+
+**No era un accidente del despliegue: la base local tiene el mismo hueco.**
+
+Medido el 2026-09-05 contra el contenedor local, preguntando por los roles de
+grupo -que son donde viven los permisos y los unicos que existen en las dos
+bases-:
+
+```
+USAGE sobre los esquemas
+  NO  public     geoguardian_api
+  NO  public     geoguardian_etl
+  NO  public     geoguardian_lector
+```
+
+Los tres, en las dos bases. Asi que **015 no arregla la nube: arregla el
+proyecto**, y el defecto lleva ahi desde que la 003 cerro `public`.
+
+Por que nunca se noto en local: **todo lo que se corre en una maquina de
+desarrollo se conecta como `geoguardian`**, que es el dueno de la base. El ETL,
+los guiones de modelado, los verificadores. El unico que usa el rol de la
+aplicacion es la API, y la API en local tambien corria como `geoguardian` salvo
+que alguien pusiera `POSTGRES_USER` a mano.
+
+**El primer consumidor real del minimo privilegio fue el despliegue publico**, y
+por eso el defecto aparecio ahi. No porque la nube fuera distinta: porque fue la
+primera vez que alguien uso el rol para el que se diseno.
+
+**La deriva que esto deja, dicha.** El 2026-09-05 el `GRANT` se aplico **a mano**
+sobre la base publicada, porque el sitio estaba roto y el numero de migracion
+dependia de que entrara antes el PR #262. Durante ese rato la base de la nube
+tuvo un cambio que `control.migracion` no registraba -exactamente la clase de
+deriva que ese registro existe para evitar-. Se cierra al aplicar la 015.
+
+**Lo que confirma.** Un control que solo mira un lado de una regla la comprueba a
+medias, y la mitad que falta no avisa: **no falla, simplemente no mira**. H1.8
+pregunta «que esta prohibido» con rigor y «que esta permitido» con una muestra, y
+la muestra no incluia la operacion mas comun del sistema.

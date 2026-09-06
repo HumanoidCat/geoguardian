@@ -3,6 +3,7 @@ import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { CAPAS_BASE } from '../datos/capasBase'
 import CapaMapaCalor from './CapaMapaCalor'
+import CapaIndice from './CapaIndice'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
@@ -236,6 +237,7 @@ export default function MapaCanton({
   opacidad,
   exponente,
   centroides,
+  indices,
 }) {
   const base = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0]
 
@@ -316,7 +318,7 @@ export default function MapaCanton({
       className="contenedor-mapa"
       // La opacidad se inyecta como variable CSS. tokens.css sigue siendo el
       // dueno del valor por defecto; esto solo lo sobrescribe.
-      style={{ '--riesgo-opacidad': opacidad }}
+      style={{ '--riesgo-opacidad': opacidad.riesgo }}
     >
       {/* Trama de ausencia de dato. Va en el documento para que los poligonos de
           Leaflet puedan referenciarla con fill: url(#patron-sin-dato). */}
@@ -391,6 +393,18 @@ export default function MapaCanton({
                 style={{ className: 'distrito-limite' }}
                 interactive={false}
               />
+            )}
+
+            {/* Los indices van **despues** de la coropleta, o sea encima. Es lo
+                contrario del mapa de calor de arriba, y a proposito: una capa
+                que se enciende y queda tapada al 85 % de opacidad se lee como
+                que no funciona. Ver H5.5 y la nota del profesor del 2026-08-27
+                sobre el mapa de calor. */}
+            {superpuestas.ndvi && (
+              <CapaIndice id="ndvi" paquete={indices} opacidad={opacidad.ndvi} />
+            )}
+            {superpuestas.ndwi && (
+              <CapaIndice id="ndwi" paquete={indices} opacidad={opacidad.ndwi} />
             )}
 
             {superpuestas.etiquetas && <CapaEtiquetas coleccion={coleccion} />}

@@ -84,6 +84,55 @@ ALGORITMO_DE: dict[str, Algoritmo] = {
 }
 
 HORIZONTE_DIAS = 7
+
+
+def retirar_de_otros_escritores(evento: TipoEvento, algoritmo: Algoritmo) -> int:
+    """
+    Borra las filas del evento que dejo escritas un escritor anterior.
+
+    POR QUE HACE FALTA, Y POR QUE NO HIZO FALTA HASTA HOY
+
+    Las filas se escriben con `ON CONFLICT` sobre la clave natural, asi que
+    correr dos veces no cambia nada: el escritor pisa sus propias filas. Pero
+    **no pisa las que ya no cubre**. Mientras el escritor de un evento no
+    cambiara, eso no se notaba.
+
+    Cambio por primera vez el 2026-09-05, al aplicar D-42: en incendio la
+    climatologica quedo fuera de la banda por 0.002 y paso a escribir la
+    regresion logistica, que **necesita la matriz** y por lo tanto llega menos
+    lejos en el calendario. Resultado medido:
+
+        incendio  linea_base_climatologica   1962 filas  1991-01-01 .. 2026-09-10
+        incendio  regresion_logistica       37149 filas  1991-01-30 .. 2024-12-24
+
+    Dos escritores para el mismo evento, y las fechas recientes -incluida hoy,
+    que es la que el visor muestra por omision- servidas por un estimador que
+    D-39 ya no elige. Es la incidencia I-37.
+
+    El borrado dispara `riesgo_auditoria_tg`, que es `AFTER DELETE OR UPDATE`:
+    la historia de H1.13 guarda que estas filas existieron y cuando dejaron de
+    existir. Eso es deseable y por eso no se apaga.
+    """
+    from basedatos.conexion import conectar
+
+    with conectar(autocommit=True) as conexion, conexion.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM analitico.riesgo WHERE tipo_evento = %s AND algoritmo <> %s",
+            (evento.value, algoritmo.value),
+        )
+        return cursor.rowcount
+
+
+def contar_del_evento(evento: TipoEvento) -> int:
+    from basedatos.conexion import conectar
+
+    with conectar() as conexion, conexion.cursor() as cursor:
+        cursor.execute(
+            "SELECT count(*) FROM analitico.riesgo WHERE tipo_evento = %s", (evento.value,)
+        )
+        return cursor.fetchone()[0]
+
+
 TAMANIO_LOTE = 5000
 
 
@@ -224,6 +273,16 @@ def main() -> int:
         print(f"  veredicto de la tabla   {veredicto(decision.tabla)}")
         print(f"  escribe                 {decision.escritor or 'NADIE'}: {decision.motivo}")
         if decision.escritor is None:
+            # NADIE escribe. Las filas viejas NO se borran solas: un borrado
+            # masivo disparado por un veredicto que puede moverse con el ruido
+            # seria peor que el problema. Se avisa y lo decide una persona.
+            if not args.sin_escribir:
+                viejas = contar_del_evento(evento)
+                if viejas:
+                    print(
+                        f"  AVISO                   quedan {viejas} filas de una corrida anterior "
+                        f"y ningun estimador las respalda hoy. No se borran solas: decidilo a mano."
+                    )
             continue
         riesgos = filas_a_escribir(decision, filas, caracteristicas, hasta)
         print(f"  filas                   {len(riesgos)} ({resumen(riesgos)})")
@@ -237,6 +296,11 @@ def main() -> int:
         for i in range(0, len(riesgos), TAMANIO_LOTE):
             total += repositorio.guardar_riesgos(riesgos[i : i + TAMANIO_LOTE])
         print(f"  escritas                {len(riesgos)}")
+
+        # Un evento, un escritor. Ver `retirar_de_otros_escritores` e I-37.
+        retiradas = retirar_de_otros_escritores(evento, ALGORITMO_DE[decision.escritor])
+        if retiradas:
+            print(f"  retiradas               {retiradas} de un escritor anterior")
 
     if repositorio is not None:
         repositorio.cerrar()

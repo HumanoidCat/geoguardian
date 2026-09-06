@@ -1,0 +1,27 @@
+{
+  "escena": "S2C_MSIL2A_20250127T160601_N0511_R097_T16PGS_20250127T191211",
+  "fecha": "2025-01-27",
+  "limites": {
+    "oeste": -85.0468,
+    "sur": 10.32082,
+    "este": -84.76609,
+    "norte": 10.65175
+  },
+  "lado": 1600,
+  "indices": {
+    "ndvi": {
+      "archivo": "indices/ndvi.png",
+      "minimo": -0.1,
+      "maximo": 0.9,
+      "cobertura_canton": 75.3,
+      "sin_dato_canton": 24.7
+    },
+    "ndwi": {
+      "archivo": "indices/ndwi.png",
+      "minimo": -0.7,
+      "maximo": 0.7,
+      "cobertura_canton": 75.3,
+      "sin_dato_canton": 24.7
+    }
+  }
+}

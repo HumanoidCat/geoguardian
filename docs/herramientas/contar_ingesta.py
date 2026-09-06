@@ -12,12 +12,17 @@ Uso, con la base levantada:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from apuntar import ErrorDestino, agregar_argumento, apuntar_a, encabezado  # noqa: E402
 
 from basedatos.conexion import conectar  # noqa: E402
 
@@ -48,7 +53,21 @@ SQL_FALLOS = "SELECT corrida_id, count(*) FROM control.fallo GROUP BY 1 ORDER BY
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    agregar_argumento(parser)
+    opciones = parser.parse_args()
+    try:
+        apuntar_a(opciones.destino)
+    except ErrorDestino as error:
+        print(f"\n{error}\n")
+        return 1
+
     conexion = conectar(autocommit=True)
+    # Se imprime SIEMPRE, y sale de la conexion abierta, no de las
+    # variables de entorno: una salida que no dice a que base le
+    # pregunto no sirve como evidencia de que dos puntas coinciden.
+    # Ver docs/herramientas/apuntar.py e I-38.
+    print(f"\n>> {encabezado(conexion)}")
     try:
         with conexion.cursor() as cursor:
             print("crudo.medicion_diaria, por fuente de precipitacion")

@@ -1029,3 +1029,53 @@ button.marca-semaforo:focus-visible {
 .leaflet-bottom {
   z-index: var(--z-controles);
 }
+
+/* Leyenda de los indices NDVI y NDWI. Historia H5.5.
+
+   La rampa es continua y no una escala de clases, y eso es deliberado: el indice
+   es una magnitud continua medida por pixel. Partirla en tres cajones la haria
+   parecer la escala de riesgo, que si tiene niveles, y son cosas distintas. */
+.indice-rampa {
+  height: 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--borde);
+  margin-top: var(--espacio-3);
+}
+
+.indice-extremos {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-2);
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+}
+
+.indice-datos {
+  margin: var(--espacio-3) 0 0;
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.indice-datos > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  font-size: var(--texto-xs);
+}
+
+.indice-datos dt {
+  color: var(--texto-suave);
+}
+
+.indice-datos dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* La formula en monoespaciada: son nombres de banda, no prosa. */
+.indice-formula {
+  font-family: var(--fuente-datos);
+  font-weight: 400;
+  font-size: 0.8em;
+}
