@@ -146,7 +146,19 @@ function AjustarEncuadre({ coleccion }) {
       // y el margen que decide cuanto se acerca es el vertical: a 16 px el
       // canton llega casi al borde de arriba y de abajo, y se pierde la
       // referencia de que hay algo mas alla del limite.
-      mapa.fitBounds(limites, { padding: [32, 32] })
+      //
+      // En un telefono (H5.9, CA-7) el margen baja a 16 px: 32 por lado en 343
+      // px de ancho son un 19 % del mapa, y el canton quedaba en el 79 % del
+      // ancho cuando el criterio pide 80. Medido el 2026-09-06.
+      const margen = contenedor.clientWidth < 600 ? 16 : 32
+      // Sin animacion (H5.9). Con la animada, si un segundo encuadre llegaba
+      // mientras el primero todavia animaba -pasa al aparecer la barra de
+      // desplazamiento, y en desarrollo con el doble efecto de StrictMode-,
+      // Leaflet lo descartaba en `_tryAnimatedZoom` y el mapa se quedaba en el
+      // zoom provisional, con el canton cortado. Reproducido a 390 px el
+      // 2026-09-06: `fitBounds` corria, y el zoom seguia en 11. Ademas, un
+      // encuadre que no anima no muestra medio pais durante el primer cuadro.
+      mapa.fitBounds(limites, { padding: [margen, margen], animate: false })
     }
 
     const reencuadrarPronto = () => {
@@ -305,12 +317,22 @@ export default function MapaCanton({
     // Accesible por teclado. Un mapa que solo responde al mouse deja fuera a
     // quien navega con tabulador. La etiqueta dice el nivel en palabras: el
     // color no llega a un lector de pantalla.
-    const elemento = capa.getElement()
-    if (elemento) {
+    //
+    // Se marca cuando la capa entra al mapa, no aqui directamente: en
+    // `onEachFeature` el poligono todavia no esta dibujado, `getElement()`
+    // devuelve undefined y el `if` de la version anterior se saltaba en
+    // silencio. Los ocho distritos llevaban desde H5.8 sin `tabindex`; lo
+    // encontro la pasada de Tab de H5.9 (CA-6) el 2026-09-06: cero distritos
+    // enfocables. Un control que solo mira el codigo no lo habria visto.
+    const marcarAccesible = () => {
+      const elemento = capa.getElement()
+      if (!elemento) return
       elemento.setAttribute('tabindex', '0')
       elemento.setAttribute('role', 'button')
       elemento.setAttribute('aria-label', `Distrito ${nombre}, codigo ${codigo}, ${descripcion}`)
     }
+    marcarAccesible()
+    capa.on('add', marcarAccesible)
   }
 
   return (
