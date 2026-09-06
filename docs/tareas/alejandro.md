@@ -577,7 +577,7 @@
 
 - [x] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono (2026-09-06)
   - `E5` · 13 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3, H5.7, H5.8, H7.1, H3.4
-  - horas: estimada 12.5 . real HORAS_REALES
+  - horas: estimada 12.5 . real 6.0
   - Evidencia: `docs/evidencias/computacion-grafica/H5.9-rediseno-visor.md`, contra los
     nueve criterios; capturas en `H5.9-rediseno-visor/`. Dos defectos ajenos encontrados
     midiendo: el `tabindex` de los distritos nunca se aplicaba (H5.8) y `fitBounds`
