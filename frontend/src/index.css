@@ -26,6 +26,12 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* En pantallas muy anchas el contenido no se estira hasta los bordes: el
+     titular quedaba como una linea en un desierto y el mapa, una franja. Las
+     franjas siguen a todo el ancho -el fondo-, el contenido se centra a 105rem
+     (1680 px). Medido en una ventana de 2552 px el 2026-09-06 (H5.9). */
+  --ancho-maximo: 105rem;
+  --margen-lateral: max(var(--espacio-6), calc((100% - var(--ancho-maximo)) / 2));
 }
 
 /* -------------------------------------------------------------------------- *
@@ -35,7 +41,7 @@ body {
 .cabecera {
   background: var(--superficie);
   border-bottom: 1px solid var(--borde);
-  padding: var(--espacio-2) var(--espacio-6);
+  padding: var(--espacio-2) var(--margen-lateral);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -108,7 +114,7 @@ body {
 
 .titular {
   background: var(--superficie);
-  padding: var(--espacio-3) var(--espacio-6) var(--espacio-2);
+  padding: var(--espacio-3) var(--margen-lateral) var(--espacio-2);
 }
 
 .titular-fecha {
@@ -156,7 +162,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--espacio-4);
-  padding: var(--espacio-2) var(--espacio-6) var(--espacio-3);
+  padding: var(--espacio-2) var(--margen-lateral) var(--espacio-3);
   background: var(--superficie);
   border-bottom: 1px solid var(--borde);
 }
@@ -167,7 +173,7 @@ body {
 
 .aviso-simulado {
   color: var(--simulado-texto);
-  padding: var(--espacio-2) var(--espacio-6);
+  padding: var(--espacio-2) var(--margen-lateral);
   display: flex;
   align-items: center;
   gap: var(--espacio-3);
@@ -261,7 +267,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 26rem;
   gap: var(--espacio-4);
-  padding: var(--espacio-4) var(--espacio-6) var(--espacio-6);
+  padding: var(--espacio-4) var(--margen-lateral) var(--espacio-6);
   min-height: 0;
   align-items: start;
 }
