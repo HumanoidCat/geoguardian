@@ -46,20 +46,31 @@ export default function TitularRiesgo({ evento, resumenes, paquetes, fecha, nomb
   const descripcionDeOtros = otros
     .map((e) => {
       const r = resumenes[e.id]
-      if (!r || r.nivelMaximo === null) return `${e.nombre.toLowerCase()}: sin estimacion`
+      if (!r || r.nivelMaximo === null) {
+        // Un evento que no se estima por decision (D-34) se dice distinto de uno
+        // que no tiene dato para esta fecha: el primero es un resultado, el
+        // segundo una ausencia.
+        return e.ausencia
+          ? `${e.nombre.toLowerCase()}: no se estima (D-34)`
+          : `${e.nombre.toLowerCase()}: sin estimacion para esta fecha`
+      }
       const n = r.porNivel[r.nivelMaximo].length
       return `${e.nombre.toLowerCase()}: ${NOMBRE_NIVEL[r.nivelMaximo]} en ${n} de ${r.total}`
     })
     .join(' · ')
 
   if (resumen.nivelMaximo === null) {
+    const eventoActual = EVENTOS.find((e) => e.id === evento)
     return (
       <section className="titular titular-sin-dato" aria-labelledby="titular-texto">
         <p className="titular-fecha">{fechaEnPalabras(fechaDelDato)}</p>
         <h2 id="titular-texto" className="titular-texto" role="status">
-          Sin estimacion de {nombreEvento} para esta fecha.
+          {eventoActual?.ausencia
+            ? `La ${nombreEvento} no se estima.`
+            : `Sin estimacion de ${nombreEvento} para esta fecha.`}
         </h2>
         <p className="titular-detalle">
+          {eventoActual?.ausencia && <span>{eventoActual.ausencia} </span>}
           <span className="titular-otros">{capitalizar(descripcionDeOtros)}.</span>
         </p>
       </section>
