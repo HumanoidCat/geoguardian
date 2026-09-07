@@ -9,13 +9,20 @@ import { fechaDeHoy } from '../datos/cliente'
  * POR QUE EL TOPE SUPERIOR ES HOY
  * ---------------------------------------------------------------------------
  *
- * El sistema no estima a futuro: no hay modelo entrenado. Dejar elegir el mes que
- * viene ofreceria una consulta que solo puede devolver vacio, y una pantalla en
- * blanco sin explicacion se lee como un fallo del visor y no como lo que es.
+ * La estimacion de una fecha `t` describe los siete dias siguientes, `(t, t+7]`
+ * (H3.0, CA-4), y se calcula con lo observado hasta `t`. Pedir hoy ya es pedir la
+ * semana que viene; pedir manana exigiria observaciones que todavia no existen.
+ * Dejar elegir el mes que viene ofreceria una consulta que solo puede devolver
+ * vacio, y una pantalla en blanco sin explicacion se lee como un fallo del visor
+ * y no como lo que es.
  *
- * Cuando H3.4 entregue el clasificador con su horizonte de siete dias, el tope se
- * mueve a hoy mas siete y se declara aca. No antes: hoy seria afirmar una
- * capacidad que el sistema no tiene.
+ * Hasta el 2026-09-06 este comentario y la nota visible decian que el tope
+ * existia por falta de modelo, y que se moveria cuando H3.4
+ * entregara el clasificador. H3.4 cerro el 2026-09-03 y la frase sobrevivio
+ * tres dias en el sitio publicado (H5.9, CA-2): era cierta el dia que se
+ * escribio y nombraba la historia que la iba a invalidar, igual que I-41. Se
+ * corrige la razon; la regla no cambia, porque el modelo estima desde lo
+ * observado, no hacia adelante desde una fecha sin observaciones.
  *
  * ---------------------------------------------------------------------------
  * POR QUE NO HAY TOPE INFERIOR
@@ -79,8 +86,8 @@ export default function SelectorFecha({ fecha, alCambiar, bloqueado, fechaDelRes
         )}
       </div>
       <p className="selector-fecha-nota">
-        No se puede elegir una fecha futura: el sistema no estima a futuro
-        mientras no exista un modelo entrenado.
+        Hasta hoy: cada fecha estima los siete dias siguientes con lo observado
+        hasta ese dia.
       </p>
     </div>
   )

@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 192 puntos · 295.9 horas · 29.6 h por semana en promedio
+**Total asignado:** 205 puntos · 308.4 horas · 30.8 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 60.6 | 36 | SOBRECARGA +25 h |
+| S4 | semanas 10-11 | 73.1 | 36 | SOBRECARGA +37 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -137,8 +137,15 @@
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-- [ ] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo
+- [x] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo (2026-09-06)
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
+  - horas: estimada 4.8 . real 5.0
+  - Abierta desde el Sprint 1 a proposito: no se cerro con una autoverificacion. La
+    externa la hizo Fabrizio el 2026-09-02 (`docs/evidencias/entregables/H10.4-verificacion-externa-2026-09-02.md`):
+    16 pasos, 11 a la primera, 5 a medias, 7 cosas resueltas por fuera del manual.
+    Seis eran omisiones del manual y estan corregidas en `docs/10-manual-tecnico.md`
+    el 2026-09-06; la septima no era del manual sino de habersele mandado una copia
+    suelta de la hoja, y se corrige con una regla en la seccion 10.
 
 - [x] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io (2026-09-01)
   - `E11` · 5 pts · 4.8 h · rubrica: CICD · depende de: H6.0, H6.1 · **bloquea a: H11.2**
@@ -561,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 60.6 h
+## Sprint 4 (semanas 10-11) — 73.1 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -574,6 +581,17 @@
 
 - [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
+
+- [x] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono (2026-09-06)
+  - `E5` · 13 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3, H5.7, H5.8, H7.1, H3.4
+  - horas: estimada 12.5 . real 6.0
+  - Evidencia: `docs/evidencias/computacion-grafica/H5.9-rediseno-visor.md`, contra los
+    nueve criterios; capturas en `H5.9-rediseno-visor/`. Dos defectos ajenos encontrados
+    midiendo: el `tabindex` de los distritos nunca se aplicaba (H5.8) y `fitBounds`
+    animado dejaba el canton cortado a 390 px.
+  - Agregada el 2026-09-06 desde la revision del sitio publicado. Criterios en
+    `docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md` (PR #270), antes del codigo.
+  - `frontend/` es de Avril: los archivos tocados se declaran en el PR y ella lo revisa.
 
 ## Regla: lo hecho no se borra
 

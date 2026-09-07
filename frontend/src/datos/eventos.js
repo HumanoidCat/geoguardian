@@ -20,6 +20,14 @@ export const EVENTOS = [
     nombre: 'Sequia',
     umbral:
       'Indice SPI-3. Alto si el SPI es menor o igual a -1.5. Cortes de McKee et al. (1993), adoptados por la OMM.',
+    // Por que la sequia nunca trae nivel, dicho en la pantalla y no solo en la
+    // bitacora. D-34 (2026-09-01): contados a nivel canton, hay 13 episodios de
+    // sequia en toda la serie y el pliegue mas pobre entrena con 2; ningun
+    // modelo ni linea base supera el piso trivial, asi que nadie escribe
+    // analitico.riesgo para sequia. Un distrito en trama sin esta frase se lee
+    // como un fallo del sistema; con ella, como lo que es: un resultado.
+    ausencia:
+      'La sequia no se estima: en toda la serie historica hubo 13 episodios en el canton, muy pocos para entrenar o validar un modelo (D-34). Se muestra sin nivel a proposito.',
   },
   {
     id: 'incendio',

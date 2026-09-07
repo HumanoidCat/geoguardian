@@ -7,7 +7,9 @@
     "este": -84.76609,
     "norte": 10.65175
   },
-  "lado": 1600,
+  "ancho": 1600,
+  "alto": 1905,
+  "metros_por_pixel": 19.2,
   "indices": {
     "ndvi": {
       "archivo": "indices/ndvi.png",

@@ -201,6 +201,22 @@ PERMITIDAS = [
         "SELECT ST_AsGeoJSON(geometria) FROM geo.distrito LIMIT 1",
     ),
     ("etl", "llamar a postgis_version()", "SELECT postgis_version()"),
+    # LO QUE /salud NECESITA LEER, PROBADO ANTES DE DESPLEGARLO.
+    #
+    # Desde I-41, `/salud` responde `ultima_ingesta` con un `max(terminada_en)`
+    # sobre `control.bitacora_etl`. El `GRANT SELECT` esta en la migracion 013 y
+    # esta dentro de un `DO $$` con guarda por rol: si la guarda no se cumplio en
+    # alguna base, el permiso no esta y **nadie se entera hasta que /salud
+    # devuelve 500 en produccion**, con el visor cayendo en silencio al respaldo
+    # de datos simulados.
+    #
+    # Es I-40 otra vez, un paso antes: un permiso que el codigo da por dado. Aqui
+    # se prueba en las dos bases, con el rol de la aplicacion, antes de desplegar.
+    (
+        "api",
+        "leer control.bitacora_etl, que es lo que /salud consulta",
+        "SELECT max(terminada_en) FROM control.bitacora_etl WHERE estado = 'exitosa'",
+    ),
 ]
 
 
