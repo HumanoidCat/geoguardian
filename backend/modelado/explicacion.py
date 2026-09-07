@@ -309,7 +309,7 @@ def pliegues_de(
 
 
 def _valores_shap(
-    modelo_interno, columnas: list[str], filas: list[list[float]], fondo: list[list[float]]
+    funcion_probabilidad, columnas: list[str], filas: list[list[float]], fondo: list[list[float]]
 ):
     """Las atribuciones crudas de SHAP, con el valor base.
 
@@ -330,7 +330,8 @@ def _valores_shap(
     estan explicando: la referencia y lo referido saldrian del mismo lugar. Es la
     misma fuga que D-04 prohibe en la particion, por una puerta mas discreta.
 
-    Se explica sobre `predict_proba` y no sobre el objeto del modelo: asi los
+    Se explica sobre `probabilidades_crudas` del envoltorio y no sobre el objeto
+    de la biblioteca: asi los
     tres estimadores se tratan igual, la salida vive en el espacio de
     probabilidad -que es el que el resto del proyecto usa por D-21- y **existe una
     funcion que se puede evaluar aparte** para comprobar el cableado.
@@ -362,9 +363,9 @@ def _valores_shap(
 
     entrada = np.asarray(filas, dtype=float)
     explicador = shap.Explainer(
-        modelo_interno.predict_proba, np.asarray(fondo, dtype=float), feature_names=columnas
+        funcion_probabilidad, np.asarray(fondo, dtype=float), feature_names=columnas
     )
-    return explicador(entrada), np.asarray(modelo_interno.predict_proba(entrada))
+    return explicador(entrada), np.asarray(funcion_probabilidad(entrada))
 
 
 def fondo_de(observaciones: list[Observacion], columnas: list[str]) -> list[list[float]]:
@@ -396,9 +397,18 @@ def explicar(
     """
     import numpy as np
 
-    interno = modelo.modelo_interno
-    if interno is None:
-        raise ValueError("hay que ajustar el modelo antes de explicarlo")
+    # Se explica la FUNCION del envoltorio, no el modelo desnudo. Ver
+    # `probabilidades_crudas`: el objeto de la biblioteca es un objeto a medias
+    # cuando el estimador guarda un escalador aparte, y explicarlo produce una
+    # descomposicion impecable de un numero que no es la prediccion.
+    funcion = modelo.probabilidades_crudas
+
+    # EL ORDEN DE COLUMNAS LO MANDA EL MODELO, NO QUIEN LLAMA.
+    #
+    # Construir la matriz en otro orden no falla: entrena bien, predice bien y
+    # explica al reves, atribuyendo a `pp_acum30` lo que hizo `hr_media7`. Se
+    # toma de `columnas_ajustadas` para que no haya nada que adivinar.
+    columnas = modelo.columnas_ajustadas or columnas
     if not fondo:
         raise ValueError("hace falta un conjunto de fondo, y tiene que salir del entrenamiento")
 
@@ -406,7 +416,7 @@ def explicar(
     if not filas:
         return []
 
-    salida, salidas_modelo = _valores_shap(interno, columnas, filas, fondo)
+    salida, salidas_modelo = _valores_shap(funcion, columnas, filas, fondo)
 
     atribuciones = []
     for i, caso in enumerate(casos):
@@ -532,10 +542,17 @@ def main() -> int:
                     f"  verdad {c.verdad.value}  prediccion {c.prediccion.value}"
                     f"  P(alto) {c.probabilidad_alto:.3f}"
                 )
+                # La salida explicada tiene que ser la MISMA probabilidad que
+                # decidio la celda. Si no coinciden, se explico otra cosa: es lo
+                # que paso el 2026-09-07 con la regresion logistica, y lo que la
+                # aditividad no puede ver porque sus dos lados salen del mismo
+                # camino.
+                coincide = abs(a.salida - c.probabilidad_alto) <= 1e-6
                 emitir(
                     f"    valor base {a.valor_base:+.4f}   salida {a.salida:+.4f}"
                     f"   residuo {a.residuo:+.2e}"
                     f"   {'ADITIVA' if a.aditiva else 'NO ADITIVA — la atribucion esta mal'}"
+                    f"   {'' if coincide else '  ¡SALIDA != P(alto): se explico otra cosa!'}"
                 )
                 for columna, valor in a.ordenadas(args.columnas):
                     emitir(f"      {columna:24}{valor:+.4f}")

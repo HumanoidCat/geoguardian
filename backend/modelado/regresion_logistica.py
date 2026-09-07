@@ -228,27 +228,38 @@ class RegresionLogistica:
         return salida
 
     @property
-    def modelo_interno(self):
-        """El estimador de la biblioteca, **solo para explicabilidad** (H4.2).
+    def columnas_ajustadas(self) -> list[str]:
+        """Las columnas EN EL ORDEN en que este modelo las recibio al ajustarse.
 
-        SHAP necesita el objeto de scikit-learn o de XGBoost para calcular las
-        atribuciones; no le alcanza con `predecir()`. Esta propiedad existe para
-        eso y para nada mas.
-
-        **Por que se agrega en vez de leer `_modelo` desde afuera.** Lo segundo
-        funciona hoy y no toca este archivo, pero acopla H4.2 a un detalle
-        interno de esta historia: el dia que el atributo se renombre, la
-        explicacion se rompe y **ninguna prueba de aqui lo nota**. Un
-        acoplamiento declarado se ve en el diff; uno silencioso aparece cuando
-        algo ya fallo.
-
-        Quien la use NO debe llamar a `fit` ni `predict` sobre lo que devuelve:
-        para eso estan `ajustar`, `predecir` y `probabilidades`, que son las que
-        deciden que hacer con las filas incompletas.
-
-        Devuelve `None` si todavia no se ajusto.
+        Sin esto, quien construya una matriz por fuera tiene que adivinar el
+        orden, y adivinarlo mal no falla: entrena bien y explica al reves.
         """
-        return self._modelo
+        return list(self._columnas)
+
+    def probabilidades_crudas(self, matriz):
+        """De una matriz de caracteristicas crudas a probabilidades por clase.
+
+        **Existe para explicabilidad (H4.2) y hace falta que sea ESTO y no el
+        modelo desnudo.** La primera version de esta historia expuso
+        `modelo_interno`, el objeto de la biblioteca, y eso resulto ser un objeto
+        A MEDIAS: este estimador guarda el `StandardScaler` FUERA del
+        modelo, asi que `_modelo` esta entrenado sobre datos escalados y
+        pasarle los crudos produce probabilidades sin sentido.
+
+        El resultado fue una descomposicion de SHAP perfectamente aditiva sobre
+        un numero que no era la prediccion. **Ninguna comprobacion lo atrapo**
+        -los dos lados de la identidad salian del mismo camino equivocado- y se
+        vio poniendo la salida al lado de P(alto) en la corrida del 2026-09-07.
+
+        Las columnas de `matriz` van en el orden de `columnas_ajustadas`.
+        """
+        import numpy as np
+
+        if self._modelo is None:
+            raise ValueError("hay que llamar a ajustar() antes de probabilidades_crudas()")
+        X = np.asarray(matriz, dtype=float)
+        X = self._escalador.transform(X)
+        return self._modelo.predict_proba(X)
 
     @property
     def necesita_caracteristicas(self) -> bool:
