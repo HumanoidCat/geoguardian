@@ -3393,13 +3393,16 @@ nulos- se habria visto en el visor o en cualquier consulta desde enero. No
 funciono, y el hueco lo encontro un guion de diagnostico contra la base ocho
 meses despues.
 
-**Accion tomada.** Registrada. La correccion es una decision, no un parche, y va
-como ADR (D-45) con tres caminos posibles: una vista de solo lectura en
-`analitico` sobre `crudo.medicion_diaria`, concedida a la API, que mantiene
-cerrado `crudo` y cumple el contrato; conceder `SELECT` sobre esa unica tabla,
-que rompe la frase de la 003; o retirar la ruta del contrato. Mientras no se
-decida, la ruta sigue publicada y sigue fallando, y eso queda dicho aqui para
-que nadie lo lea como un incidente de Railway.
+**Accion tomada.** La correccion es una decision, no un parche: **D-45**, la
+misma noche. De tres caminos -una vista de solo lectura en `analitico` sobre
+`crudo.medicion_diaria` concedida a la API; conceder `SELECT` sobre esa unica
+tabla, que rompe la frase de la 003; o retirar la ruta del contrato- se tomo el
+primero. Migracion `017_vista_serie_climatica.sql`: `analitico.serie_climatica`
+corre con los privilegios de su duenio, la API la lee y `crudo` sigue cerrado
+letra por letra. `SQL_MEDICIONES` lee de la vista; `verificar_h18.py` gana la
+comprobacion de lo permitido (la vista contesta con el rol de la API) y conserva
+la de lo prohibido (`crudo` rechazado). Pendiente al registrar: aplicar la 017
+en Railway y anotar aqui, con fecha, el 200 de la ruta.
 
 **Aprendizaje.** Cada ruta del contrato necesita al menos una prueba **con los
 roles de produccion**, no solo con el repositorio en memoria. Lo que la API

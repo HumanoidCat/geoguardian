@@ -409,26 +409,41 @@ $env:POSTGRES_DB         = "geoguardian"
 python -m basedatos.aplicar_migraciones
 ```
 
-**Pendiente al 2026-09-06:** la base publicada tiene trece migraciones y el
-repositorio dieciseis. Faltan la **014** (H12.1, `control.bitacora_etl` con
-`filas_leidas`, que `ingestar.py` ya escribe desde I-43), la **015** (I-40,
-`USAGE` sobre `public` para PostGIS) y la **016** (I-45, `fuente_precipitacion`
-en NULL cuando no hay valor, con su restriccion). Hay que correr lo de arriba;
-si no, el ETL y la API publicados corren contra un esquema mas viejo que su
-codigo y el sintoma va a aparecer lejos de la causa: el cierre de una corrida
-del ETL fallaria por una columna que no existe.
+**Al 2026-09-06, 22:00:** la base publicada tiene dieciseis migraciones (la
+014, la 015 y la 016 se aplicaron esa noche; el rodeo de I-43 se corrio y no
+tenia nada que rellenar: ver la correccion de I-43). **Falta la 017** (D-45,
+`analitico.serie_climatica`): hasta que se aplique, `/api/distritos/{codigo}/mediciones`
+sigue en 500 aunque la API publicada ya lea de la vista. Es el mismo
+procedimiento de arriba, y despues se comprueba con
+`GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10` → 200.
 
-**Y despues de la 016, una sola vez,** el rodeo de I-43 con el proxy todavia
-abierto y las mismas variables:
+Si alguna vez una serie de precipitacion queda atascada -el ultimo dia con dato
+no avanza aunque la fuente publique-, el rodeo de I-43 es, con el proxy abierto
+y las mismas variables:
 
 ```powershell
 python -m backend.etl.ingestar --evento lluvia_intensa --desde 2025-12-01
 ```
 
-Pide desde el dia 1 del mes, que es lo que ClimateSERV devuelve completo, y
-desatasca la serie de precipitacion que quedo pegada en el 2025-12-31. Queda
+Pide desde el dia 1 de un mes, que es lo que ClimateSERV devuelve completo. Queda
 escrito en la bitacora (`mensaje`: «ventana fijada con --desde»). Las corridas
 siguientes vuelven a calcular su ventana solas.
+
+**Las variables de Railway se ponen en una terminal aparte, o se limpian al
+terminar.** `docker-compose.yml` lee `POSTGRES_PORT`, `POSTGRES_USER` y
+`POSTGRES_PASSWORD` del entorno. La noche del 2026-09-06, un `docker compose up
+-d db` corrido en la misma terminal donde seguian las variables del proxy
+recreo la base **local** escuchando en el puerto del proxy y con el healthcheck
+preguntando por el rol `postgres`, que ahi no existe: el aplicador fue a 5432 y
+no encontro a nadie, y los registros del contenedor se llenaron de `FATAL: role
+"postgres" does not exist` cada diez segundos. Los datos no se tocaron (el
+volumen es el mismo), pero costo tres vueltas entenderlo. Al terminar con
+Railway:
+
+```powershell
+Remove-Item Env:POSTGRES_HOST_LOCAL, Env:POSTGRES_PORT, Env:POSTGRES_USER, Env:POSTGRES_PASSWORD, Env:POSTGRES_DB
+docker compose up -d db      # recrea el contenedor con los valores del .env
+```
 
 Esto es trabajo manual y se nota. Es una de las razones por las que el paso 3 de
 D-05 -la automatizacion- existe como historia.
