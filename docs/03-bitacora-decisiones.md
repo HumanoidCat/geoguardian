@@ -4814,3 +4814,107 @@ falta**:
 El sabotaje que corresponde es quitar el `GRANT` y comprobar que la primera falla,
 y ampliarlo a `GRANT ALL` y comprobar que la segunda falla. Un control que solo
 mira el lado que se abrio no sabe decir que no.
+
+---
+
+## D-45 · La API lee la serie climatica a traves de una vista en `analitico`; `crudo` sigue cerrado
+
+**Fecha.** 2026-09-06. **Historia.** Ninguna; incidencia I-44 (afecta H1.1 y H1.8).
+**Quien decide.** Alejandro. **Estado.** Aceptada. **Revisa.** H1.1 (`obtener_mediciones`),
+H1.8 (minimo privilegio), la migracion 003 y D-44.
+
+### Contexto
+
+`GET /api/distritos/{codigo}/mediciones` existe desde H1.1 y esta en el contrato
+(`obtener_mediciones`). Su consulta, `SQL_MEDICIONES`, lee `crudo.medicion_diaria`.
+La migracion 003 le niega a `geoguardian_api` hasta el `USAGE` sobre `crudo`, y lo
+dice a proposito: «Esta ausencia es deliberada». Con ese rol la consulta solo puede
+fallar con `permission denied for schema crudo`, y en Railway la ruta responde 500
+(comprobado el 2026-09-06, I-44).
+
+Dos historias decidieron bien por separado y nadie las junto: H1.1 prometio una
+ruta y H1.8 le quito a la API lo que la ruta necesita. Ninguna prueba llama al
+endpoint con la base y los roles reales, asi que la contradiccion vivio en
+produccion sin que ningun control la viera. Y no fue gratis: es la unica ruta que
+muestra la precipitacion diaria; si hubiera funcionado, los ocho meses de nulos
+de I-43 se habrian visto desde enero.
+
+Hay que elegir entre cumplir el contrato o cumplir la 003, o encontrar la forma de
+cumplir las dos.
+
+### Decision
+
+Se crea la vista **`analitico.serie_climatica`** sobre `crudo.medicion_diaria`, con
+las columnas que la ruta ya devuelve (`codigo_distrito`, `fecha`, las seis de
+POWER, `precipitacion_mm`, `fuente_precipitacion`, `imputado`, `metodo_imputacion`),
+y `geoguardian_api` recibe **`SELECT` sobre esa vista y nada mas**.
+`SQL_MEDICIONES` pasa a leer de la vista. `crudo` sigue cerrado para la API,
+exactamente como dice la 003.
+
+Lo que lo hace posible sin tocar la 003: en PostgreSQL una vista se ejecuta con los
+privilegios de **quien la creo**, no de quien la consulta (`security_invoker`
+apagado, que es lo que trae por omision). El duenio del esquema puede leer
+`crudo`; la API solo puede leer la vista. Es el mismo mecanismo con el que
+`analitico` ya expone lo derivado sin exponer lo bruto.
+
+### Justificacion
+
+Es la unica opcion que cumple **las dos** afirmaciones que el proyecto ya tiene
+escritas: la ruta del contrato de H1.1 funciona, y la frase de la 003 sigue siendo
+cierta letra por letra. Las otras dos opciones obligan a reescribir una de las dos.
+
+Ademas deja la separacion en el lugar correcto: `crudo` es lo que las fuentes
+dijeron y `analitico` es lo que el sistema ofrece. Que la serie diaria salga por
+`analitico`, aunque hoy sea una copia columna por columna, dice que **la API
+consume una vista del dato, no el dato**; el dia que la serie servida deba
+diferir de la bruta -por ejemplo, ocultar `fuente_resto` o servir la imputada-,
+el cambio es en la vista y la API no se entera.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| `GRANT SELECT` sobre `crudo.medicion_diaria` a la API | Funciona en una linea, pero obliga a corregir la 003 («ni siquiera lectura»), los criterios de H1.8, el runbook y el verificador de H1.8. Es D-44 otra vez: una excepcion mas sobre un principio que se escribio para no tener excepciones. Y abre `USAGE` sobre el esquema entero, aunque la tabla sea una |
+| Retirar la ruta del contrato | Cumple la 003 y rompe H1.1: el contrato 1.4.0 la promete, el simulado la sirve, y es la ruta que habria hecho visible I-43. Quitar la unica ventana a la precipitacion diaria justo despues de descubrir que estuvo vacia ocho meses es esconder el problema |
+| Que el visor lea la serie desde el ETL, o por archivo estatico | Duplica la fuente de verdad y deja la ruta publicada fallando igual. No resuelve I-44, la rodea |
+| Vista con `security_invoker = on` | Haria que la vista corra con los permisos de la API, que no tiene `crudo`: fallaria igual que hoy. Es justamente el mecanismo que se quiere evitar |
+
+### Consecuencias
+
+  * Migracion **017** (`017_vista_serie_climatica.sql`): `CREATE OR REPLACE VIEW
+    analitico.serie_climatica WITH (security_invoker = false)`, `GRANT SELECT` a
+    `geoguardian_api` y a `geoguardian_lector`, con guarda de existencia del rol
+    como hace la 015. Sin `ALTER DEFAULT PRIVILEGES` nuevo: la 003 ya cubre
+    `analitico` para la API en lectura.
+  * `backend/api/repositorio_postgres.py`: `SQL_MEDICIONES` lee de
+    `analitico.serie_climatica`. La tabla de cabecera del archivo (metodo → tabla)
+    se corrige en la misma linea. `test_repositorio_postgres.py` fija que la
+    sentencia no vuelva a apuntar a `crudo`.
+  * `guardar_mediciones` del mismo repositorio inserta en `crudo.medicion_diaria`
+    y con el rol de la API **tampoco puede**. No lo usa ninguna ruta; lo usa el
+    contrato de repositorio para pruebas. Se deja como esta y se anota en su
+    docstring que solo funciona con el rol del ETL, para que nadie lo lea como una
+    ruta rota. Si algun dia una ruta lo necesita, es otra ADR.
+  * La 003 no cambia ni una palabra. La frase «la API no ve el dato bruto» de D-44
+    sigue siendo cierta: ve una vista.
+  * El contrato 1.4.0 no cambia: la ruta, sus parametros y su forma son los
+    mismos. El simulado tampoco.
+
+### Medicion
+
+  1. **Lo permitido funciona, con el rol de produccion:**
+     `basedatos/seguridad/verificar_h18.py` gana una comprobacion en PERMITIDAS:
+     con `geoguardian_api`, `SELECT count(*) FROM analitico.serie_climatica` devuelve
+     un numero. Es la comprobacion que I-40 enseno a poner: lo que la API **si**
+     puede hacer, probado, no supuesto.
+  2. **Lo prohibido sigue prohibido:** con el mismo rol,
+     `SELECT 1 FROM crudo.medicion_diaria LIMIT 1` es rechazado con
+     `permission denied for schema crudo`. Sin esta, no se distingue «abri una
+     vista» de «abri el esquema».
+  3. **La ruta contesta en produccion:**
+     `GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10`
+     devuelve 200 con diez filas -con `precipitacion_mm` en null hasta que el
+     rodeo de I-43 corra, y eso es lo correcto (D-07)-. Se anota en I-44 con fecha
+     al cerrarla.
+  4. **Sabotaje:** quitar el `GRANT` de la 017 y comprobar que la 1 y la 3 fallan;
+     conceder `USAGE` sobre `crudo` a la API y comprobar que la 2 falla.

@@ -157,6 +157,15 @@ PERMITIDAS = [
         True,
     ),
     ("api", "leer geo.distrito", "SELECT count(*) FROM geo.distrito"),
+    # D-45 (I-44): la API lee la serie climatica por una vista de `analitico`
+    # que corre con los privilegios de su duenio (017). Se prueba lo permitido
+    # -la vista contesta- y PROHIBIDAS sigue probando que `crudo` no: sin las
+    # dos no se distingue «abri una vista» de «abri el esquema».
+    (
+        "api",
+        "leer analitico.serie_climatica (D-45)",
+        "SELECT count(*) FROM analitico.serie_climatica",
+    ),
     # LO QUE LA MIGRACION 014 CONCEDIO, Y POR QUE SE PRUEBA (D-44).
     #
     # H12.1 le dio a `geoguardian_api` INSERT y UPDATE sobre

@@ -402,6 +402,19 @@ def test_el_sql_de_mediciones_genera_el_rango_y_une_por_la_izquierda():
     assert "left join" in sql
 
 
+def test_obtener_mediciones_lee_la_vista_y_no_crudo():
+    """
+    D-45 (I-44): la API no tiene acceso a `crudo` por la 003, asi que la ruta
+    respondia 500 en produccion. Lee de `analitico.serie_climatica` (017). Que
+    la vista exista y la API pueda leerla lo comprueba `verificar_h18.py` contra
+    la base con los roles reales; aqui se fija que la sentencia no vuelva a
+    apuntar a `crudo` sin que alguien lo note.
+    """
+    sql = SQL_MEDICIONES.lower()
+    assert "analitico.serie_climatica" in sql
+    assert "crudo." not in sql
+
+
 # --------------------------------------------------------------------------- #
 # Lecturas: mapeo y ausencia                                                   #
 # --------------------------------------------------------------------------- #
