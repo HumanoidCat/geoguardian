@@ -1136,6 +1136,30 @@ Definition of Done:
 - [ ] Ningun secreto en el repositorio
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado","E11,S4,CICD,alejandro",S4,alejandro,5,7.8
+H5.9,H5.9 Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono,"Epica E5 | 13 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.3, H5.7, H5.8, H7.1, H3.4
+Sprint: S4 (semanas 10-11)
+
+Sale de la revision del sitio publicado del 2026-09-05: el visor abre en sequia,
+que es el unico evento que por D-34 no tiene estimaciones nunca, y afirma debajo
+del selector de fecha que no existe un modelo entrenado, tres dias despues de que
+H3.4 cerrara. Los hallazgos estan medidos en gestion/H5.9-borrador-historia-uiux.md
+y los nueve criterios, escritos antes del codigo, en
+docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md (PR #270).
+
+La hace Alejandro; frontend/ es de Avril y ella revisa el Pull Request como
+duena de la carpeta. No reabre H5.1, H5.3, H5.7 ni H5.8, que estan cerradas y
+con evidencia. Antes de tocar React se decidio el diseno sobre un mockup
+(gestion/mockups/H5.9-mockup-v1.html) con dato real del 2026-09-06.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado por Avril
+- [ ] Funciona desde docker compose up en maquina limpia","E5,S4,CG-1,alejandro",S4,alejandro,13,12.5
 H12.1,H12.1 Centralizar los logs de pipeline y aplicacion en control.bitacora_etl,"Epica E12 | 5 puntos | 4.8 h estimadas
 
 Rubrica o objetivo: Troubleshoot

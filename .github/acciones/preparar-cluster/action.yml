@@ -40,6 +40,35 @@ runs:
       shell: bash
       run: |
         k3d cluster create geoguardian-ci --agents 0 --wait --timeout 180s
+
+        # EL `--wait` DE k3d NO ES EL QUE HACE FALTA. Ver I-42.
+        #
+        # `--wait` espera a que arranque el contenedor del servidor. La API de
+        # Kubernetes contesta despues. En CD #11 k3d dijo «Cluster created
+        # successfully!» y el `kubectl cluster-info` de la linea siguiente
+        # respondio `ServiceUnavailable` nueve milisegundos mas tarde. Desarrollo
+        # y pruebas pasaron ese mismo paso en la misma corrida: es una carrera,
+        # no una configuracion rota, y por eso aparecia una vez de cada tantas.
+        #
+        # Se pregunta hasta que conteste. Y si no contesta, el fallo dice cuanto
+        # se espero: un error que no da ese numero no distingue «tarda mas de lo
+        # previsto» de «no va a arrancar nunca», que piden cosas distintas.
+        #
+        # El limite es una variable para que `infra/probar_espera_api.py` pueda
+        # probar el caso que no contesta nunca sin tardar dos minutos.
+        limite="${ESPERA_MAXIMA_API:-120}"
+        espera=0
+        until kubectl cluster-info >/dev/null 2>&1; do
+          if [ "$espera" -ge "$limite" ]; then
+            echo "La API de Kubernetes no contesto en ${espera}s. El ultimo intento:"
+            kubectl cluster-info
+            exit 1
+          fi
+          sleep 3
+          espera=$((espera + 3))
+        done
+        echo "La API de Kubernetes contesto tras ${espera}s de espera."
+
         kubectl cluster-info
         kubectl get nodes
 

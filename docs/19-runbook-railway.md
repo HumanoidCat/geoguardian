@@ -420,6 +420,23 @@ D-05 -la automatizacion- existe como historia.
 
 ---
 
+## PostGIS vive en `public`, y los roles necesitan USAGE ahi
+
+La migracion **015** lo concede. Se dice aca porque el sintoma no se parece a un
+problema de permisos: la API lee las tablas perfectamente, `/salud` responde
+`real`, y **cualquier endpoint que llame a una funcion espacial devuelve 500**:
+
+    function st_asgeojson(public.geometry) does not exist
+
+El 2026-09-05 se aplico a mano sobre la base publicada, porque el sitio estaba
+roto. **Esa deriva se cierra al aplicar la 015**, que registra el cambio en
+`control.migracion` como corresponde. Si alguna vez se levanta la base de cero
+siguiendo este runbook, la 015 entra con las demas y nada de esto hace falta.
+
+Ver **I-40**.
+
+---
+
 ## Lo que hay que medir, no suponer
 
 **El plan Hobby son $5/mes que incluyen $5 de consumo**; pasarse se cobra

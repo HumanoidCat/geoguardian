@@ -191,6 +191,11 @@ jobs:
         run: python infra/verificar_cd.py --manifiestos
       - name: El guion de despliegue no tiene errores de sintaxis
         run: python -m py_compile infra/k8s/desplegar.py
+      # I-42. Corre aca y no en el CD a proposito: el defecto que atrapa vive en
+      # una accion del CD, pero el CD solo corre despues de fusionar a `main`.
+      # Un control que solo se ejecuta despues de fusionar no protege la fusion.
+      - name: La espera a la API de Kubernetes sabe rendirse y decirlo
+        run: python -m infra.probar_espera_api
 
   frontend:
     name: Frontend
@@ -243,6 +248,17 @@ jobs:
       - name: La escala de riesgo cumple los criterios de accesibilidad
         if: steps.existe.outputs.si == 'true'
         run: python frontend/herramientas/verificar_escala.py
+      # H5.9. El visor afirmo durante tres dias que no habia modelo entrenado
+      # despues de que H3.4 cerrara: una frase cierta el dia que se escribio y
+      # que nadie volvio a mirar, como I-41 en el frontend. Este control busca
+      # esa familia de frases en frontend/src, comentarios incluidos, y ademas
+      # mide que la jerarquia tipografica este en uso (CA-9), no solo declarada.
+      # Se prueba a si mismo antes de mirar el repositorio.
+      #
+      # Sin `--if-present`: si desaparece, sale en rojo.
+      - name: Ninguna frase falsa sobre el sistema y la tipografia esta en uso (H5.9)
+        if: steps.existe.outputs.si == 'true'
+        run: python frontend/herramientas/verificar_h59.py
       # El mapa de calor se pintaba sobre el rectangulo que encierra al canton:
       # 23,8 % de la superficie caia sobre los cantones vecinos y el 20,7 % del
       # canton quedaba sin pintar. Vivio cuatro dias en el sitio publico porque

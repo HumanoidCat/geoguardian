@@ -246,7 +246,7 @@ const ESTILOS = `
   color: var(--texto-suave);
   margin: var(--espacio-1, 0.25rem) 0 0;
 }
-.gs-ventana { color: var(--texto-tenue); }
+.gs-ventana { color: var(--texto-suave); }
 .gs-estado, .gs-error {
   font-size: var(--texto-sm, 0.8rem);
   color: var(--texto-suave);

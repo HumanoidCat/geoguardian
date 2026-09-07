@@ -147,6 +147,44 @@ PERMITIDAS = [
     ("etl", "leer control.migracion", "SELECT count(*) FROM control.migracion"),
     ("etl", "escribir en control.migracion", None),
     ("api", "leer geo.distrito", "SELECT count(*) FROM geo.distrito"),
+    # LLAMAR A UNA FUNCION, NO SOLO LEER UNA TABLA.
+    #
+    # Hasta la 015, de lo PERMITIDO esta lista solo probaba `SELECT` sobre
+    # tablas. Ningun caso llamaba a una funcion, y PostGIS vive en el esquema
+    # `public`, que la 003 cierra. Resultado: los roles leian las tablas
+    # perfectamente y **ninguna funcion espacial se resolvia**.
+    #
+    #     function st_asgeojson(public.geometry) does not exist
+    #
+    # `/api/distritos` hace ese `ST_AsGeoJSON`, asi que devolvia 500 con la
+    # tabla legible, la conexion sana y `/salud` diciendo `real`. Se descubrio
+    # publicando, el 2026-09-05, no aca. Es la incidencia I-40.
+    #
+    # Un permiso concedido y no probado no esta concedido: sin estos dos casos,
+    # la migracion 015 no tendria quien la sostenga.
+    ("api", "llamar a postgis_version()", "SELECT postgis_version()"),
+    (
+        "api",
+        "ST_AsGeoJSON sobre geo.distrito",
+        "SELECT ST_AsGeoJSON(geometria) FROM geo.distrito LIMIT 1",
+    ),
+    ("etl", "llamar a postgis_version()", "SELECT postgis_version()"),
+    # LO QUE /salud NECESITA LEER, PROBADO ANTES DE DESPLEGARLO.
+    #
+    # Desde I-41, `/salud` responde `ultima_ingesta` con un `max(terminada_en)`
+    # sobre `control.bitacora_etl`. El `GRANT SELECT` esta en la migracion 013 y
+    # esta dentro de un `DO $$` con guarda por rol: si la guarda no se cumplio en
+    # alguna base, el permiso no esta y **nadie se entera hasta que /salud
+    # devuelve 500 en produccion**, con el visor cayendo en silencio al respaldo
+    # de datos simulados.
+    #
+    # Es I-40 otra vez, un paso antes: un permiso que el codigo da por dado. Aqui
+    # se prueba en las dos bases, con el rol de la aplicacion, antes de desplegar.
+    (
+        "api",
+        "leer control.bitacora_etl, que es lo que /salud consulta",
+        "SELECT max(terminada_en) FROM control.bitacora_etl WHERE estado = 'exitosa'",
+    ),
 ]
 
 
