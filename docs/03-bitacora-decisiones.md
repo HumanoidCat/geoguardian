@@ -4731,3 +4731,86 @@ las dos ultimas se comparan contra `contratos.VERSION_CONTRATOS` y
 `backend/api/rutas.VERSION_API` del arbol desplegado. `infra/verificar_h116.py`
 comprueba lo que no necesita el despliegue levantado, y la evidencia de la
 historia trae la salida de los dos.
+
+---
+
+## D-44 · La API deja de ser de solo lectura, para exactamente una tabla
+
+**Fecha.** 2026-09-05. **Historia.** H12.1. **Quien decide.** Luna, con Alejandro.
+**Estado.** Aceptada. **Revisa.** H1.8, y la nota de D-05 sobre quien escribe.
+
+### Contexto
+
+H1.8 establecio el minimo privilegio: `geoguardian_api` lee y no escribe. Esa
+propiedad no vive solo en la base; **esta afirmada en tres documentos** -la nota
+de D-05 sobre que el ETL escribe con su propio rol y no por HTTP, los criterios
+de H1.8, y `docs/19-runbook-railway.md`- y **H11.6 la verifico el 2026-09-05
+contra la base publicada**, probando que un `INSERT` de la API es rechazado.
+
+H12.1 extiende `control.bitacora_etl` para el diagnostico. El titulo de la
+historia dice «logs de pipeline **y aplicacion**», y H1.14 ya habia anticipado el
+valor `proceso = 'api'` en el comentario de su migracion. Para que la aplicacion
+registre sus propias corridas tiene que poder escribir en esa tabla.
+
+Sin eso, la API queda **invisible en la bitacora que existe para diagnosticarla**:
+H12.2 -la pantalla de monitoreo- y H12.4 -el diagnostico guiado- verian la mitad
+del sistema y no sabrian que les falta la otra.
+
+### Decision
+
+`geoguardian_api` recibe **`INSERT` y `UPDATE` sobre `control.bitacora_etl`, y
+nada mas**.
+
+Lo que **no** cambia, y se enumera para que no se lea como una apertura general:
+
+  * **Sin `DELETE`**, ahi ni en ninguna parte. Un diagnostico que puede borrar
+    corridas puede borrar la evidencia de lo que diagnostica.
+  * **Sin acceso al esquema `crudo`.** La API no ve el dato bruto.
+  * **Sin escritura en `analitico`, `geo` ni en el resto de `control`.**
+  * El ETL sigue escribiendo con su propio rol y **no por HTTP**, que es lo que
+    D-05 decide y esto no toca.
+
+### Justificacion
+
+La alternativa honesta a conceder esto no es «que la API no escriba»: es «que la
+API no se registre», y eso cuesta mas de lo que ahorra. Una bitacora centralizada
+que omite a uno de los dos productores no esta centralizada.
+
+El permiso es **estrecho y nombrado**: una tabla, dos operaciones. No es una
+excepcion que se pueda estirar sin volver a abrir esta decision.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Que la API escriba con el rol del ETL | Le entrega escritura sobre todo el esquema `crudo` y `analitico` para poder anotar una fila. Cambia un permiso de una tabla por uno de dos esquemas |
+| Un tercer rol solo para que la API registre | Un credencial mas que crear, distribuir y rotar, para una sola tabla y dos operaciones. El costo de operacion supera al riesgo que evita |
+| Que la API no se registre | H12.2 y H12.4 diagnostican la mitad del sistema **sin decir que es la mitad**, que es peor que no diagnosticar |
+| Que la API escriba a un archivo | Queda fuera de la base, asi que el diagnostico no lo puede cruzar con `control.fallo` por `corrida_id`, que es lo que hace util a la bitacora |
+
+### Consecuencias
+
+  * **La frase «la API es de solo lectura» deja de ser cierta** y se corrige donde
+    esta escrita: la nota de D-05, los criterios de H1.8 y el runbook de
+    despliegue. Se corrige, no se matiza: una afirmacion a medias se lee igual
+    que una entera.
+  * **El CA-6 de H11.6 conserva su sentido y cambia su redaccion**: la API no
+    puede escribir **salvo** en `control.bitacora_etl`. Verificado contra la base
+    publicada, esa comprobacion hay que volver a correrla con el texto nuevo.
+  * Si alguna vez hace falta una segunda tabla, **esta ADR se sustituye**. La
+    excepcion no crece por costumbre.
+
+### Medicion
+
+`basedatos/seguridad/verificar_h18.py` gana **dos comprobaciones, y las dos hacen
+falta**:
+
+  1. **Lo permitido funciona:** la API inserta una fila en `control.bitacora_etl`
+     y la actualiza. Un permiso concedido y no probado no esta concedido.
+  2. **Lo prohibido sigue prohibido:** la API es rechazada al hacer `DELETE` en
+     esa misma tabla, y al insertar en `analitico.riesgo`. Sin el segundo caso, el
+     verificador no distingue «se abrio una tabla» de «se abrio la base».
+
+El sabotaje que corresponde es quitar el `GRANT` y comprobar que la primera falla,
+y ampliarlo a `GRANT ALL` y comprobar que la segunda falla. Un control que solo
+mira el lado que se abrio no sabe decir que no.
