@@ -1,0 +1,56 @@
+# Avisa cuando CI o CD terminan mal. Historia H12.3, issue #80. Dueno: Cesar.
+#
+# Este archivo existe por la excepcion de propiedad declarada en
+# `docs/07-propiedad-archivos.md` el 2026-09-03: `.github/workflows/` es de
+# Alejandro, y la excepcion cubre **este archivo y nada mas**.
+#
+# POR QUE workflow_run Y NO UN PASO DENTRO DE ci.yml
+#
+# Para no tocar `ci.yml` ni `cd.yml`, que no son mios. `workflow_run` escucha
+# desde afuera: cuando cualquiera de los dos termina, este flujo lee esa corrida
+# por la API y decide. Ninguno de los dos sabe que esto existe.
+#
+# POR QUE NO SE FILTRA LA RAMA AQUI
+#
+# Se podria poner `branches: [main, dev]` y ahorrar corridas. No se hace: la
+# regla de que solo se alerta en esas dos ramas vive en el guion, donde **se
+# puede probar sin fusionar nada a main**. Una regla que solo existe en el YAML
+# de un `workflow_run` no se puede demostrar hasta que este en la rama por
+# omision, y esta historia se entrega probada, no leida. El costo es una corrida
+# de medio minuto por cada CI de rama de trabajo, que termina diciendo que no
+# alerta.
+
+name: Alerta
+
+on:
+  workflow_run:
+    workflows: [CI, CD]
+    types: [completed]
+
+# Los minimos que necesita: escribir issues y leer la corrida que lo disparo.
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+# Dos corridas del mismo flujo y rama no deben pisarse: la segunda podria abrir
+# una issue mientras la primera todavia no la creo, y quedarian dos.
+concurrency:
+  group: alerta-${{ github.event.workflow_run.name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    name: Abrir o cerrar la alerta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Leer la corrida y decidir
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python -m backend.alertas.alertar --corrida ${{ github.event.workflow_run.id }}
