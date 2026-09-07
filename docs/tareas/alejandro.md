@@ -139,7 +139,7 @@
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
 - [x] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo (2026-09-06)
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
-  - horas: estimada 4.8 . real HORAS_REALES
+  - horas: estimada 4.8 . real 5.0
   - Abierta desde el Sprint 1 a proposito: no se cerro con una autoverificacion. La
     externa la hizo Fabrizio el 2026-09-02 (`docs/evidencias/entregables/H10.4-verificacion-externa-2026-09-02.md`):
     16 pasos, 11 a la primera, 5 a medias, 7 cosas resueltas por fuera del manual.
