@@ -49,7 +49,7 @@ from datetime import date, timedelta
 
 from contratos.esquemas import MedicionDiaria
 
-from .chirps import ExtractorChirps
+from .chirps import ExtractorChirps, comprobar_cobertura
 from .power import PARAMETROS, ExtractorPower
 
 log = logging.getLogger(__name__)
@@ -240,8 +240,12 @@ class ExtractorHibrido:
 
         series = self._series_power(territorio, desde, hasta)
         lluvia = self._chirps.consultar(territorio.geometria, desde, hasta)
+        # I-43: lo pedido contra lo devuelto, ANTES de mirar dia por dia. Una
+        # respuesta incompleta detiene la corrida aqui; lo unico que pasa es la
+        # serie completa o la truncada al final por la latencia de D-40.
+        cobertura = comprobar_cobertura(desde, hasta, lluvia)
         self._registrar(
-            f"{territorio.nombre}: CHIRPS {len(lluvia)} dias, "
+            f"{territorio.nombre}: CHIRPS {cobertura}, "
             f"{sum(1 for v in lluvia.values() if v is None)} sin dato"
         )
 
@@ -250,9 +254,11 @@ class ExtractorHibrido:
             valores = {
                 campo: series.get(parametro, {}).get(dia) for parametro, campo in PARAMETROS.items()
             }
-            # `lluvia.get(dia)` da None tanto si CHIRPS marco el dia sin dato como
-            # si no devolvio la fila. Las dos cosas son ausencia de dato y se
-            # representan igual: nulo. Nunca cero.
+            # `lluvia.get(dia)` da None si CHIRPS marco el dia sin dato o si el
+            # dia esta mas alla de lo que la fuente publico (latencia D-40).
+            # Las dos cosas son ausencia de dato y se representan igual: nulo.
+            # Nunca cero. Que una respuesta INCOMPLETA no llegue aca lo
+            # garantiza `comprobar_cobertura`, arriba (I-43).
             mediciones.append(
                 MedicionDiaria(
                     codigo_distrito=codigo_distrito,

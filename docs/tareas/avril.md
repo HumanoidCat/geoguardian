@@ -134,12 +134,13 @@
     De la restitucion:
     `docs/evidencias/computacion-grafica/D-30-restitucion-mapa-calor.md`.
 
-- [ ] **H5.5** · Indices NDVI y NDWI renderizados como capa
+- [x] **H5.5** · Indices NDVI y NDWI renderizados como capa (2026-09-05)
   - `E5` · 5 pts · 7.8 h · rubrica: CG-3 · depende de: H1.6
-  - **Entregada el 2026-09-04, sin cerrar todavia**: falta su fila en
-    `docs/trazabilidad.csv`, que es archivo compartido y requiere aprobacion del
-    PM. La fila propuesta esta en la evidencia. Al aprobarse se marca `[x]` con
-    `estimada n/d (no se estimo al arrancar) . real 2.5`.
+  - Evidencia: `docs/evidencias/computacion-grafica/H5.5-indices-ndvi-ndwi.md`
+  - horas: estimada n/d (no se estimo al arrancar) . real 2.5
+  - **Entregada el 2026-09-04 y cerrada el 2026-09-05.** Estuvo un dia sin cerrar
+    por su fila en `docs/trazabilidad.csv`, que es archivo compartido. El PM
+    autorizo agregarla el 2026-09-05, al aprobar el #265.
   - Desbloqueada el 2026-09-03 al cerrar **H1.6**. Las 2,5 h incluyen el alta de
     la cuenta de Copernicus y la descarga de la escena, no solo el visor.
 

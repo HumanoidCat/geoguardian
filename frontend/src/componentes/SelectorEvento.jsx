@@ -1,11 +1,11 @@
 import { EVENTOS } from '../datos/eventos'
 
-function EstadoEvento({ resumen }) {
+function EstadoEvento({ resumen, ausencia }) {
   if (resumen.nivelMaximo === null) {
     return (
-      <span className="selector-evento-estado">
+      <span className="selector-evento-estado" title={ausencia ?? undefined}>
         <span className="punto-nivel trama-sin-dato" aria-hidden="true" />
-        sin estimacion
+        {ausencia ? 'no se estima' : 'sin estimacion'}
       </span>
     )
   }
@@ -48,7 +48,9 @@ export default function SelectorEvento({ seleccionado, alCambiar, resumenes = nu
                 tiene estimaciones nunca por D-34; sin esta linea, elegirla era
                 la unica forma de enterarse, y la pantalla vacia se leia como un
                 fallo. Se deriva del resumen; si no llego, no se afirma nada. */}
-            {resumenes?.[evento.id] && <EstadoEvento resumen={resumenes[evento.id]} />}
+            {resumenes?.[evento.id] && (
+              <EstadoEvento resumen={resumenes[evento.id]} ausencia={evento.ausencia} />
+            )}
           </button>
         ))}
       </div>
@@ -58,11 +60,19 @@ export default function SelectorEvento({ seleccionado, alCambiar, resumenes = nu
           telefono (H5.9), donde ocupaba cinco lineas antes del mapa, va plegado
           bajo un resumen y se abre con un toque. Cual de los dos se ve lo
           decide el CSS; el texto es el mismo. */}
-      {activo && <p className="selector-evento-umbral">{activo.umbral}</p>}
+      {activo && (
+        <p className="selector-evento-umbral">
+          {activo.umbral}
+          {activo.ausencia && <> {activo.ausencia}</>}
+        </p>
+      )}
       {activo && (
         <details className="selector-evento-umbral-plegable">
           <summary>Que significa «alto» en {activo.nombre.toLowerCase()}</summary>
-          <p>{activo.umbral}</p>
+          <p>
+            {activo.umbral}
+            {activo.ausencia && <> {activo.ausencia}</>}
+          </p>
         </details>
       )}
     </div>

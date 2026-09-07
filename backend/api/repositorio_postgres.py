@@ -16,7 +16,7 @@ tablas que todavia no existen:
     listar_distritos       geo.distrito              H1.3
     obtener_distrito       geo.distrito              H1.3
     guardar_mediciones     crudo.medicion_diaria     H1.1
-    obtener_mediciones     crudo.medicion_diaria     H1.1
+    obtener_mediciones     analitico.serie_climatica H1.1; vista desde D-45 (I-44)
     guardar_focos          crudo.foco_calor          H1.2
     contar_focos           crudo.foco_calor          H1.2
     guardar_riesgos        analitico.riesgo          H3.6 (Alejandro, D-39)
@@ -171,13 +171,17 @@ SQL_DISTRITO = """
 # Una fila por dia del rango, incluidos los que no tienen medicion. El contrato lo
 # exige: «el consumidor necesita ver los huecos». Sin el generate_series, un dia
 # ausente seria indistinguible de un dia que no existe.
+# D-45 (I-44): la API no tiene acceso a `crudo` (003) y la ruta leia de ahi, asi
+# que respondia 500 en produccion. Lee de `analitico.serie_climatica`, una vista
+# que corre con los privilegios de su duenio (migracion 017). `crudo` sigue
+# cerrado para la API.
 SQL_MEDICIONES = """
     SELECT dia::date,
            m.temp_max_c, m.temp_min_c, m.temp_media_c,
            m.precipitacion_mm, m.humedad_relativa_pct, m.viento_ms, m.radiacion_mj_m2,
            m.imputado, m.metodo_imputacion
       FROM generate_series(%(desde)s::date, %(hasta)s::date, interval '1 day') AS dia
-      LEFT JOIN crudo.medicion_diaria m
+      LEFT JOIN analitico.serie_climatica m
              ON m.fecha = dia::date AND m.codigo_distrito = %(codigo)s
      ORDER BY dia
 """
@@ -374,6 +378,11 @@ class RepositorioPostgres:
 
         La transaccion envuelve el `executemany` completo, asi que una carga
         interrumpida no deja filas sueltas, que es lo que el contrato exige.
+
+        Escribe en `crudo.medicion_diaria`, asi que **solo funciona con el rol
+        del ETL**: la API no tiene acceso a `crudo` (003) y ninguna ruta llama a
+        este metodo. Existe por el contrato de repositorio (D-45 lo deja dicho
+        para que nadie lo lea como una ruta rota).
         """
         if not mediciones:
             return 0

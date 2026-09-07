@@ -4731,3 +4731,190 @@ las dos ultimas se comparan contra `contratos.VERSION_CONTRATOS` y
 `backend/api/rutas.VERSION_API` del arbol desplegado. `infra/verificar_h116.py`
 comprueba lo que no necesita el despliegue levantado, y la evidencia de la
 historia trae la salida de los dos.
+
+---
+
+## D-44 · La API deja de ser de solo lectura, para exactamente una tabla
+
+**Fecha.** 2026-09-05. **Historia.** H12.1. **Quien decide.** Luna, con Alejandro.
+**Estado.** Aceptada. **Revisa.** H1.8, y la nota de D-05 sobre quien escribe.
+
+### Contexto
+
+H1.8 establecio el minimo privilegio: `geoguardian_api` lee y no escribe. Esa
+propiedad no vive solo en la base; **esta afirmada en tres documentos** -la nota
+de D-05 sobre que el ETL escribe con su propio rol y no por HTTP, los criterios
+de H1.8, y `docs/19-runbook-railway.md`- y **H11.6 la verifico el 2026-09-05
+contra la base publicada**, probando que un `INSERT` de la API es rechazado.
+
+H12.1 extiende `control.bitacora_etl` para el diagnostico. El titulo de la
+historia dice «logs de pipeline **y aplicacion**», y H1.14 ya habia anticipado el
+valor `proceso = 'api'` en el comentario de su migracion. Para que la aplicacion
+registre sus propias corridas tiene que poder escribir en esa tabla.
+
+Sin eso, la API queda **invisible en la bitacora que existe para diagnosticarla**:
+H12.2 -la pantalla de monitoreo- y H12.4 -el diagnostico guiado- verian la mitad
+del sistema y no sabrian que les falta la otra.
+
+### Decision
+
+`geoguardian_api` recibe **`INSERT` y `UPDATE` sobre `control.bitacora_etl`, y
+nada mas**.
+
+Lo que **no** cambia, y se enumera para que no se lea como una apertura general:
+
+  * **Sin `DELETE`**, ahi ni en ninguna parte. Un diagnostico que puede borrar
+    corridas puede borrar la evidencia de lo que diagnostica.
+  * **Sin acceso al esquema `crudo`.** La API no ve el dato bruto.
+  * **Sin escritura en `analitico`, `geo` ni en el resto de `control`.**
+  * El ETL sigue escribiendo con su propio rol y **no por HTTP**, que es lo que
+    D-05 decide y esto no toca.
+
+### Justificacion
+
+La alternativa honesta a conceder esto no es «que la API no escriba»: es «que la
+API no se registre», y eso cuesta mas de lo que ahorra. Una bitacora centralizada
+que omite a uno de los dos productores no esta centralizada.
+
+El permiso es **estrecho y nombrado**: una tabla, dos operaciones. No es una
+excepcion que se pueda estirar sin volver a abrir esta decision.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Que la API escriba con el rol del ETL | Le entrega escritura sobre todo el esquema `crudo` y `analitico` para poder anotar una fila. Cambia un permiso de una tabla por uno de dos esquemas |
+| Un tercer rol solo para que la API registre | Un credencial mas que crear, distribuir y rotar, para una sola tabla y dos operaciones. El costo de operacion supera al riesgo que evita |
+| Que la API no se registre | H12.2 y H12.4 diagnostican la mitad del sistema **sin decir que es la mitad**, que es peor que no diagnosticar |
+| Que la API escriba a un archivo | Queda fuera de la base, asi que el diagnostico no lo puede cruzar con `control.fallo` por `corrida_id`, que es lo que hace util a la bitacora |
+
+### Consecuencias
+
+  * **La frase «la API es de solo lectura» deja de ser cierta** y se corrige donde
+    esta escrita: la nota de D-05, los criterios de H1.8 y el runbook de
+    despliegue. Se corrige, no se matiza: una afirmacion a medias se lee igual
+    que una entera.
+  * **El CA-6 de H11.6 conserva su sentido y cambia su redaccion**: la API no
+    puede escribir **salvo** en `control.bitacora_etl`. Verificado contra la base
+    publicada, esa comprobacion hay que volver a correrla con el texto nuevo.
+  * Si alguna vez hace falta una segunda tabla, **esta ADR se sustituye**. La
+    excepcion no crece por costumbre.
+
+### Medicion
+
+`basedatos/seguridad/verificar_h18.py` gana **dos comprobaciones, y las dos hacen
+falta**:
+
+  1. **Lo permitido funciona:** la API inserta una fila en `control.bitacora_etl`
+     y la actualiza. Un permiso concedido y no probado no esta concedido.
+  2. **Lo prohibido sigue prohibido:** la API es rechazada al hacer `DELETE` en
+     esa misma tabla, y al insertar en `analitico.riesgo`. Sin el segundo caso, el
+     verificador no distingue «se abrio una tabla» de «se abrio la base».
+
+El sabotaje que corresponde es quitar el `GRANT` y comprobar que la primera falla,
+y ampliarlo a `GRANT ALL` y comprobar que la segunda falla. Un control que solo
+mira el lado que se abrio no sabe decir que no.
+
+---
+
+## D-45 · La API lee la serie climatica a traves de una vista en `analitico`; `crudo` sigue cerrado
+
+**Fecha.** 2026-09-06. **Historia.** Ninguna; incidencia I-44 (afecta H1.1 y H1.8).
+**Quien decide.** Alejandro. **Estado.** Aceptada. **Revisa.** H1.1 (`obtener_mediciones`),
+H1.8 (minimo privilegio), la migracion 003 y D-44.
+
+### Contexto
+
+`GET /api/distritos/{codigo}/mediciones` existe desde H1.1 y esta en el contrato
+(`obtener_mediciones`). Su consulta, `SQL_MEDICIONES`, lee `crudo.medicion_diaria`.
+La migracion 003 le niega a `geoguardian_api` hasta el `USAGE` sobre `crudo`, y lo
+dice a proposito: «Esta ausencia es deliberada». Con ese rol la consulta solo puede
+fallar con `permission denied for schema crudo`, y en Railway la ruta responde 500
+(comprobado el 2026-09-06, I-44).
+
+Dos historias decidieron bien por separado y nadie las junto: H1.1 prometio una
+ruta y H1.8 le quito a la API lo que la ruta necesita. Ninguna prueba llama al
+endpoint con la base y los roles reales, asi que la contradiccion vivio en
+produccion sin que ningun control la viera. Y no fue gratis: es la unica ruta que
+muestra la precipitacion diaria; si hubiera funcionado, los ocho meses de nulos
+de I-43 se habrian visto desde enero.
+
+Hay que elegir entre cumplir el contrato o cumplir la 003, o encontrar la forma de
+cumplir las dos.
+
+### Decision
+
+Se crea la vista **`analitico.serie_climatica`** sobre `crudo.medicion_diaria`, con
+las columnas que la ruta ya devuelve (`codigo_distrito`, `fecha`, las seis de
+POWER, `precipitacion_mm`, `fuente_precipitacion`, `imputado`, `metodo_imputacion`),
+y `geoguardian_api` recibe **`SELECT` sobre esa vista y nada mas**.
+`SQL_MEDICIONES` pasa a leer de la vista. `crudo` sigue cerrado para la API,
+exactamente como dice la 003.
+
+Lo que lo hace posible sin tocar la 003: en PostgreSQL una vista se ejecuta con los
+privilegios de **quien la creo**, no de quien la consulta (`security_invoker`
+apagado, que es lo que trae por omision). El duenio del esquema puede leer
+`crudo`; la API solo puede leer la vista. Es el mismo mecanismo con el que
+`analitico` ya expone lo derivado sin exponer lo bruto.
+
+### Justificacion
+
+Es la unica opcion que cumple **las dos** afirmaciones que el proyecto ya tiene
+escritas: la ruta del contrato de H1.1 funciona, y la frase de la 003 sigue siendo
+cierta letra por letra. Las otras dos opciones obligan a reescribir una de las dos.
+
+Ademas deja la separacion en el lugar correcto: `crudo` es lo que las fuentes
+dijeron y `analitico` es lo que el sistema ofrece. Que la serie diaria salga por
+`analitico`, aunque hoy sea una copia columna por columna, dice que **la API
+consume una vista del dato, no el dato**; el dia que la serie servida deba
+diferir de la bruta -por ejemplo, ocultar `fuente_resto` o servir la imputada-,
+el cambio es en la vista y la API no se entera.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| `GRANT SELECT` sobre `crudo.medicion_diaria` a la API | Funciona en una linea, pero obliga a corregir la 003 («ni siquiera lectura»), los criterios de H1.8, el runbook y el verificador de H1.8. Es D-44 otra vez: una excepcion mas sobre un principio que se escribio para no tener excepciones. Y abre `USAGE` sobre el esquema entero, aunque la tabla sea una |
+| Retirar la ruta del contrato | Cumple la 003 y rompe H1.1: el contrato 1.4.0 la promete, el simulado la sirve, y es la ruta que habria hecho visible I-43. Quitar la unica ventana a la precipitacion diaria justo despues de descubrir que estuvo vacia ocho meses es esconder el problema |
+| Que el visor lea la serie desde el ETL, o por archivo estatico | Duplica la fuente de verdad y deja la ruta publicada fallando igual. No resuelve I-44, la rodea |
+| Vista con `security_invoker = on` | Haria que la vista corra con los permisos de la API, que no tiene `crudo`: fallaria igual que hoy. Es justamente el mecanismo que se quiere evitar |
+
+### Consecuencias
+
+  * Migracion **017** (`017_vista_serie_climatica.sql`): `CREATE OR REPLACE VIEW
+    analitico.serie_climatica WITH (security_invoker = false)`, `GRANT SELECT` a
+    `geoguardian_api` y a `geoguardian_lector`, con guarda de existencia del rol
+    como hace la 015. Sin `ALTER DEFAULT PRIVILEGES` nuevo: la 003 ya cubre
+    `analitico` para la API en lectura.
+  * `backend/api/repositorio_postgres.py`: `SQL_MEDICIONES` lee de
+    `analitico.serie_climatica`. La tabla de cabecera del archivo (metodo → tabla)
+    se corrige en la misma linea. `test_repositorio_postgres.py` fija que la
+    sentencia no vuelva a apuntar a `crudo`.
+  * `guardar_mediciones` del mismo repositorio inserta en `crudo.medicion_diaria`
+    y con el rol de la API **tampoco puede**. No lo usa ninguna ruta; lo usa el
+    contrato de repositorio para pruebas. Se deja como esta y se anota en su
+    docstring que solo funciona con el rol del ETL, para que nadie lo lea como una
+    ruta rota. Si algun dia una ruta lo necesita, es otra ADR.
+  * La 003 no cambia ni una palabra. La frase «la API no ve el dato bruto» de D-44
+    sigue siendo cierta: ve una vista.
+  * El contrato 1.4.0 no cambia: la ruta, sus parametros y su forma son los
+    mismos. El simulado tampoco.
+
+### Medicion
+
+  1. **Lo permitido funciona, con el rol de produccion:**
+     `basedatos/seguridad/verificar_h18.py` gana una comprobacion en PERMITIDAS:
+     con `geoguardian_api`, `SELECT count(*) FROM analitico.serie_climatica` devuelve
+     un numero. Es la comprobacion que I-40 enseno a poner: lo que la API **si**
+     puede hacer, probado, no supuesto.
+  2. **Lo prohibido sigue prohibido:** con el mismo rol,
+     `SELECT 1 FROM crudo.medicion_diaria LIMIT 1` es rechazado con
+     `permission denied for schema crudo`. Sin esta, no se distingue «abri una
+     vista» de «abri el esquema».
+  3. **La ruta contesta en produccion:**
+     `GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10`
+     devuelve 200 con diez filas -con `precipitacion_mm` en null hasta que el
+     rodeo de I-43 corra, y eso es lo correcto (D-07)-. Se anota en I-44 con fecha
+     al cerrarla.
+  4. **Sabotaje:** quitar el `GRANT` de la 017 y comprobar que la 1 y la 3 fallan;
+     conceder `USAGE` sobre `crudo` a la API y comprobar que la 2 falla.

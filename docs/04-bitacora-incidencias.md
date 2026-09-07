@@ -3195,3 +3195,268 @@ arranco. Que **sirva** lo dice el consumidor, preguntando, y una sola pregunta n
 alcanza cuando la respuesta cambia con el tiempo. Es la tercera vez que este
 proyecto lo escribe -I-39, I-28 y esta-, y las tres veces el sintoma fue el
 mismo: un paso que leyo la primera respuesta como si fuera la definitiva.
+
+---
+
+## I-43 · La ingesta pidio 215 dias, recibio 3 y se registro «exitosa»
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Luna, investigando una linea del registro de la corrida de
+H12.1. El informe completo, con los ocho sondeos que descartan hipotesis una por
+una, esta en la carpeta compartida (`hallazgochirps20260906.md`). Lo que sigue es
+lo que ese informe midio, mas lo que se comprobo en el repositorio al recibirlo.
+
+**Que paso.** `crudo.medicion_diaria` no tiene una sola fila con precipitacion en
+2026: cero de 1968. La ultima fecha con lluvia en toda la serie es el 2025-12-31.
+De 2019 a 2025 el 100 % de las filas tiene valor; el mismo periodo del anio
+anterior (2024-12-29 a 2025-09-03) esta al 100 %, 1992 de 1992.
+
+La corrida que lo produjo quedo asi en la bitacora:
+
+```
+id 39 · ingesta.lluvia_intensa · exitosa
+ventana 2025-12-29 a 2026-09-03 · producto chirps · filas 1968
+```
+
+Escribio 246 dias por 8 distritos, todos sin lluvia, y quedo como exito. En la
+bitacora no hay nada que permita notarlo: guarda cuantas filas se escribieron y
+no cuantas trajo la fuente.
+
+**Lo que NO es, medido.** No es que la fuente no publique 2026: ClimateSERV
+devuelve enero, junio y julio de 2026 con el producto final. No es la latencia
+de D-40: la cobertura llega al 2026-07-31, 33 dias antes del final pedido, dentro
+de lo documentado. No es cruzar el anio (610 dias con dos cruces devolvieron
+610), ni la longitud de la ventana (610 funciona y 216 falla), ni pedir mas alla
+de la cobertura (dos ventanas lo hacen y truncan limpio), ni que `_recoger` se
+quede con un resultado parcial (`data` aparece con 3 filas y sigue en 3 durante
+once consultas, con `errMsg` en None: el servicio da el trabajo por terminado).
+
+**Lo que si esta medido.** Con el mismo dia final y moviendo solo el inicio:
+
+| Inicio | Fin | Pedidos | Devueltos | Ultima |
+|---|---|---|---|---|
+| 2025-12-28 | 2026-07-31 | 216 | 4 | 2025-12-31 |
+| 2025-12-29 | 2026-07-31 | 215 | 3 | 2025-12-31 |
+| 2025-12-30 | 2026-07-31 | 214 | 2 | 2025-12-31 |
+| 2025-12-01 | 2026-07-31 | 243 | 243 | 2026-07-31 |
+
+No hay una regla que lo explique, y no se inventa una: Luna escribio la mejor
+que se le ocurrio como prediccion antes de correrla, y fallo. Hay un patron
+reproducible del lado del servicio y un rodeo que funciona: pedir desde el dia 1
+del mes.
+
+**Causa raiz.** La del servicio no se conoce. **La nuestra si, y es la que
+importa:** se pidieron 215 dias, llegaron 3, y nadie lo comparo.
+`backend/etl/fuentes/hibrido.py` hacia `lluvia.get(dia)` con un comentario
+correcto -una fecha ausente de la respuesta y un dia marcado sin dato se
+representan igual, nulo, nunca cero (D-07)- que tenia una consecuencia no
+escrita: **una respuesta incompleta era indistinguible de una fuente sin dato.**
+El ETL escribio 246 nulos, marco `exitosa`, y desde la base no habia forma de
+notarlo.
+
+**Por que el fallo se sostenia solo.** La ventana de precipitacion arranca
+`SOLAPE_DIAS` antes del ultimo dia con dato. Ese dato era el 2025-12-31, asi que
+la ventana siempre empezaba el 2025-12-29, siempre recibia tres dias, y el
+ultimo dato seguia siendo el 2025-12-31. **No se recuperaba solo, nunca.** Cada
+corrida futura habria escrito cero dias de lluvia y se habria registrado
+`exitosa`.
+
+**Lo que depende de esto.** La etiqueta de lluvia intensa, el SPI, las
+anomalias, los percentiles R95p y R99p, y cualquier estimacion de riesgo para
+2026. Y algo que hay que decir con todas las letras: el visor mostro riesgo de
+lluvia intensa durante ocho meses sobre una base sin una sola lluvia de 2026.
+Las estimaciones no se retiran, porque el escritor es la linea base
+climatologica, que solo usa distrito y fecha; pero la evidencia de que el dato
+de 2026 no existia queda aqui, y el documento IEEE la tiene que recoger en
+limitaciones.
+
+**Accion tomada.**
+
+1. `comprobar_cobertura`, en `backend/etl/fuentes/chirps.py`: compara lo pedido
+   con lo devuelto **antes** de mirar dia por dia, y detiene la corrida con
+   `ErrorChirps` si la respuesta esta vacia, tiene huecos, trae fechas fuera de
+   la ventana, o el ultimo dia devuelto queda mas de `LATENCIA_MAXIMA_DIAS` (60)
+   antes del final pedido. Lo unico que pasa, ademas de la serie completa, es la
+   truncada al final por la latencia que D-40 midio (21 a 51 dias). Es una
+   resta. Con ella, la corrida del 2026-09-04 habria terminado `fallida` con
+   «3 de 215 dias pedidos» el primer dia, y no `exitosa` ocho meses.
+2. La bitacora guarda `filas_leidas` (la columna que la 014 de H12.1 abrio para
+   esto y que quedaba en NULL): cuantas filas con precipitacion trajo la fuente,
+   aparte de cuantas se escribieron. La diferencia entre las dos ahora solo
+   puede ser latencia o dias que la fuente marco sin dato; cualquier otra cosa
+   detiene la corrida antes.
+3. `--desde AAAA-MM-DD` en `ingestar.py`: fija el inicio de la ventana de
+   precipitacion para UNA corrida y queda escrito en `mensaje` de la bitacora.
+   Es el rodeo para la serie atascada -pedir desde el 2025-12-01 devuelve los
+   243 dias completos- y no la correccion: la correccion es el punto 1.
+4. `backend/tests/test_cobertura_chirps.py`, catorce pruebas en el CI, entre
+   ellas el caso exacto que Luna midio (215 pedidos, 3 devueltos) en rojo, y la
+   latencia del 2026-09-04 (pedido hasta el 09-03, publicado hasta el 07-31) en
+   verde.
+
+**Lo que falta, y quien lo hace.** Aplicar en Railway la 014, la 015 y la 016
+(I-45), y correr una vez
+`python -m backend.etl.ingestar --evento lluvia_intensa --desde 2025-12-01`
+contra esa base. Despues la ventana diaria vuelve a ser corta. Luna vuelve a
+medir con sus guiones (`diagnostico_chirps.py`) que 2026 quedo al 100 %.
+
+**Aprendizaje.** Un extractor que devuelve «una medicion por dia del rango,
+huecos incluidos» cumple el contrato y a la vez puede estar escondiendo que la
+fuente no contesto. **Lo pedido y lo devuelto son dos numeros, y hay que
+restarlos siempre**, en cada fuente, antes de escribir. Es la misma leccion de
+I-06, I-39 e I-42 con otro sujeto: un paso que se salta en silencio se ve igual
+que un paso que funciono. La forma de no repetirla no es un comentario mas
+largo: es un numero en la bitacora y una prueba que lo exige.
+
+**Impacto.** Ver la correccion de abajo: el hueco de ocho meses esta en la base
+local donde se midio, no en la publicada. El defecto del ETL es real y
+reproducible en cualquier base cargada hasta 2025-12-31; el dato de produccion
+no lo sufrio. Las horas del diagnostico son de Luna y las de la correccion de
+Alejandro; cada quien las anota en su tarea, no aqui.
+
+**Correccion, la misma noche (2026-09-06, 21:55).** Al correr el rodeo contra la
+base publicada en Railway, con el proxy abierto y **antes** de dar nada por
+hecho, el contador de solo lectura (`gestion/contar_lluvia_2026.py`) dijo:
+
+```
+anio  filas  con_lluvia  fuente_sin_valor  ultima_con_lluvia
+2024   2928        2928                 0  2024-12-31
+2025   2920        2920                 0  2025-12-31
+2026   1984        1696                 0  2026-07-31
+
+bitacora: 9 lluvia_intensa exitosa 2025-12-01..2026-09-05  filas 24  leidas 1944  --desde
+          7 lluvia_intensa exitosa 2026-07-29..2026-09-02  filas 0
+          5 lluvia_intensa fallida 2026-08-01..2026-09-02  ClimateSERV no entrego el resultado
+```
+
+Tres cosas se leen ahi. **(a)** 2026 tiene 1696 filas con lluvia = 212 dias x 8
+distritos = del 1 de enero al 31 de julio, completo; las 288 sin lluvia son los
+36 dias de latencia (D-40) x 8. **(b)** La corrida 7, anterior a esta noche, ya
+pedia desde el 2026-07-29: su ultimo dia con dato era el 07-31. **La base
+publicada nunca tuvo el hueco.** **(c)** El rodeo cambio 24 filas: los tres
+dias nuevos (09-03 a 09-05) x 8. No habia nada que rellenar.
+
+La corrida `id 39 · 1968 filas` del informe es la de H12.1, criterio 10, del
+2026-09-04: una corrida real del ETL **sobre la base local de Luna**, cargada
+con `cargar_mediciones.py` hasta el 2025-12-31 y sin ninguna ingesta previa.
+Ahi la ventana arranco el 12-29, ClimateSERV devolvio 3 dias y quedo el hueco
+de ocho meses. Todo lo que el informe mide del ETL es cierto: el defecto existe,
+se reproduce en cualquier base en ese estado, y la corrida se registro exitosa
+sin serlo. Lo que **no** era cierto es la frase de impacto que esta incidencia
+escribio al recibirlo -«ausentes de la base publicada», «el visor mostro riesgo
+ocho meses sin lluvia de 2026»-: eso se afirmo sin medir la base publicada. El
+informe no decia contra que base media, y quien lo registro no lo pregunto.
+**Es I-38 otra vez:** un conteo que no dice a que base le pregunta se lee como si
+hablara de todas. Se deja escrito el error, no se borra.
+
+El comentario de la migracion 016 hereda la cifra («sobre la base publicada son
+las 1968 filas»); no se edita porque el aplicador verifica su suma SHA-256 y ya
+esta aplicada en produccion. Queda corregido aqui: en la base publicada la 016
+puso en NULL la fuente de las filas sin valor del tramo de latencia, no 1968.
+
+**Lo que si sigue pendiente:** la base local de Luna (y la de quien haya cargado
+la historia y corrido la ingesta una vez) tiene el hueco y se desatasca con el
+mismo rodeo, `--desde 2025-12-01`, contra esa base. Y `filas_leidas` ya se
+escribe: la corrida 9 registro 1944 leidas contra 24 escritas, que es
+exactamente la diferencia que esta incidencia queria poder ver.
+
+---
+
+## I-44 · `/api/distritos/{codigo}/mediciones` devuelve 500 en produccion, por diseno
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Alejandro, al comprobar el informe de I-43 contra la API
+publicada: `GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10`
+responde `500 Internal Server Error` en Railway.
+
+**Que paso.** El endpoint existe desde H1.1 y esta en el contrato
+(`obtener_mediciones`, `SQL_MEDICIONES` en `repositorio_postgres.py`). Lee
+`crudo.medicion_diaria`. La migracion 003 dice, y lo dice a proposito:
+«crudo: el ETL y el lector si, la API no. Esta ausencia es deliberada.» El rol
+`geoguardian_api` no tiene ni `USAGE` sobre el esquema. Con ese rol la consulta
+solo puede fallar con `permission denied for schema crudo`, y en Railway la ruta
+responde 500 (comprobado el 2026-09-06).
+
+**Causa raiz.** Dos decisiones correctas por separado que nadie junto: H1.1
+publico una ruta que lee de `crudo`, y H1.8 le nego a la API el acceso a
+`crudo`. El verificador de H1.8 comprueba con detalle lo que la API **no** puede
+hacer, y lo hace bien; ninguna prueba llama al endpoint con la base y los roles
+reales. Es I-40 con signo contrario: alli el minimo privilegio dejo fuera algo
+que se necesitaba; aqui dejo fuera algo que el contrato prometia, y las dos
+veces ningun control miraba ahi.
+
+**Por que importa mas de lo que parece.** Es la unica ruta de la API que muestra
+la precipitacion diaria. Si hubiera funcionado, el hueco de I-43 -ocho meses de
+nulos- se habria visto en el visor o en cualquier consulta desde enero. No
+funciono, y el hueco lo encontro un guion de diagnostico contra la base ocho
+meses despues.
+
+**Accion tomada.** La correccion es una decision, no un parche: **D-45**, la
+misma noche. De tres caminos -una vista de solo lectura en `analitico` sobre
+`crudo.medicion_diaria` concedida a la API; conceder `SELECT` sobre esa unica
+tabla, que rompe la frase de la 003; o retirar la ruta del contrato- se tomo el
+primero. Migracion `017_vista_serie_climatica.sql`: `analitico.serie_climatica`
+corre con los privilegios de su duenio, la API la lee y `crudo` sigue cerrado
+letra por letra. `SQL_MEDICIONES` lee de la vista; `verificar_h18.py` gana la
+comprobacion de lo permitido (la vista contesta con el rol de la API) y conserva
+la de lo prohibido (`crudo` rechazado). Pendiente al registrar: aplicar la 017
+en Railway y anotar aqui, con fecha, el 200 de la ruta.
+
+**Aprendizaje.** Cada ruta del contrato necesita al menos una prueba **con los
+roles de produccion**, no solo con el repositorio en memoria. Lo que la API
+promete y lo que la API puede leer lo decidieron dos historias distintas, y la
+unica forma de que coincidan es una prueba que las junte.
+
+**Impacto.** El endpoint no sirve en produccion. Ninguna persona bloqueada
+hoy, porque el visor no lo consume; pero el contrato publicado afirma algo que
+no es cierto, y eso es I-04 en otra capa.
+
+---
+
+## I-45 · 1968 filas declaran `fuente_precipitacion = 'chirps'` sobre una precipitacion que no existe
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Luna, en el mismo informe de I-43 («un tercer detalle, mas
+chico y tambien nuestro»).
+
+**Que paso.** Las 1968 filas de 2026 en `crudo.medicion_diaria` tienen
+`precipitacion_mm` en NULL y `fuente_precipitacion = 'chirps'`. Estan declarando
+el origen de un valor que no existe. Quien audite la tabla lee que CHIRPS aporto
+esos dias.
+
+**Causa raiz.** La columna es `NOT NULL` desde la 004, y los dos escritores
+-`ingestar.py` y `cargar_mediciones.py`- la llenaban con el producto de la
+corrida, hubiera valor o no. La regla de D-07 (ausencia es nulo, nunca cero) se
+aplico a la medida y no a la columna que dice de donde vino. Mientras la fuente
+devolvio siempre valor, nadie lo noto; I-43 lo hizo visible en 1968 filas de
+golpe.
+
+**Accion tomada.**
+
+1. Migracion `016_fuente_precipitacion_solo_con_valor.sql`: quita el `NOT NULL`,
+   pone en NULL la fuente de toda fila sin precipitacion (en la base local donde
+   se midio, las 1968; en la publicada, las del tramo de latencia: ver la
+   correccion de I-43), y deja la regla como restriccion:
+   `CHECK ((precipitacion_mm IS NULL) = (fuente_precipitacion IS NULL))`. Con
+   ella el defecto no puede volver por ningun escritor: falla al escribir, que
+   es donde se corrige.
+2. Los dos escritores declaran la fuente solo cuando hay valor
+   (`producto if m.precipitacion_mm is not None else None`). La regla de
+   reemplazo de la 013 no cambia: un nulo nunca pisa un valor, asi que una
+   fuente en NULL tampoco.
+3. Prueba en `test_cobertura_chirps.py`: un dia con valor sale con `'chirps'` y
+   el dia siguiente, sin valor, sale con `None`.
+
+**Aprendizaje.** Una columna que describe a otra hereda su nulidad. Si el dato
+puede faltar, su procedencia tambien, y la base tiene que poder decir «no se» en
+las dos. Un `NOT NULL` puesto por prolijidad obligo a escribir algo, y lo que se
+escribio fue falso.
+
+**Impacto.** Ninguna hora perdida directa; el costo es de confianza: la tabla
+afirmaba una procedencia falsa en toda fila sin valor -1968 en la base local
+medida, las del tramo de latencia en la publicada-, y esa tabla es la fuente del
+documento IEEE. Corregido en Railway con la 016 el 2026-09-06: `fuente_sin_valor`
+quedo en 0 en todos los anios.

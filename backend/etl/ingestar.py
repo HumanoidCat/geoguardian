@@ -29,6 +29,15 @@ Cada corrida decide su ventana a partir de lo que ya hay:
     entrego (120 s; el medidor esperó 450 s con el mismo resultado). Pedir
     desde unos dias antes del ultimo dato hace que la peticion siempre tenga
     algo que devolver; las filas repetidas no cambian nada (CA-4).
+  - **excepcion, `--desde`** (I-43): fija a mano el inicio de la ventana de
+    precipitacion para UNA corrida y queda escrito en `mensaje` de la
+    bitacora. Existe porque la regla anterior se puede quedar pegada: si la
+    fuente devuelve una respuesta incompleta, el ultimo dia con dato no
+    avanza y la ventana siguiente vuelve a empezar en el mismo sitio. Hoy
+    esa respuesta incompleta ya detiene la corrida (`comprobar_cobertura`),
+    pero la serie que quedo atascada hay que desatascarla una vez, pidiendo
+    desde el dia 1 del mes, que es lo que Luna midio que ClimateSERV si
+    devuelve completo.
   - **incendio** empieza el dia siguiente a la **ventana de la ultima corrida
     exitosa** en la bitacora. Aqui un dia sin filas es un dia sin fuegos, que si
     es un dato, asi que no hace falta volver a pedirlo.
@@ -173,9 +182,13 @@ SQL_ABRIR_CORRIDA = """
     VALUES (%s, now(), 'en_curso', %s, %s, %s)
     RETURNING id
 """
+# `filas_leidas` es de la 014 (H12.1): cuantas trajo la fuente, aparte de
+# cuantas se escribieron. Con la comprobacion de cobertura de I-43, la diferencia
+# entre las dos solo puede ser latencia (D-40) o dias que la fuente marco sin
+# dato; cualquier otra cosa detiene la corrida antes de llegar aqui.
 SQL_CERRAR_CORRIDA = """
     UPDATE control.bitacora_etl
-       SET terminada_en = now(), estado = %s, filas = %s, mensaje = %s
+       SET terminada_en = now(), estado = %s, filas = %s, filas_leidas = %s, mensaje = %s
      WHERE id = %s
 """
 # `set_config(..., true)` es SET LOCAL con parametros: muere con la transaccion
@@ -296,6 +309,7 @@ class Corrida:
     estado: str
     ventana: tuple[date, date] | None = None
     filas: int = 0
+    filas_leidas: int | None = None
     mensaje: str = ""
     id: int | None = None
 
@@ -328,7 +342,13 @@ class Bitacora:
         with self._conexion.cursor() as cursor:
             cursor.execute(
                 SQL_CERRAR_CORRIDA,
-                (corrida.estado, corrida.filas, corrida.mensaje or None, corrida.id),
+                (
+                    corrida.estado,
+                    corrida.filas,
+                    corrida.filas_leidas,
+                    corrida.mensaje or None,
+                    corrida.id,
+                ),
             )
 
     def declarar(self, cursor, corrida: Corrida) -> None:
@@ -424,7 +444,10 @@ def escribir_mediciones(
             "viento_ms": m.viento_ms,
             "radiacion_mj_m2": m.radiacion_mj_m2,
             "precipitacion_mm": m.precipitacion_mm,
-            "fuente_precipitacion": producto,
+            # I-45: la fuente declara el origen de un VALOR. Un dia sin
+            # precipitacion no tiene fuente que declarar; decir 'chirps' ahi
+            # es afirmar que CHIRPS aporto algo que no existe (migracion 016).
+            "fuente_precipitacion": producto if m.precipitacion_mm is not None else None,
         }
         for m in mediciones
     ]
@@ -607,9 +630,14 @@ def correr(
     territorios: list[Territorio] | None = None,
     escribir: bool = True,
     trabajadores: int = 1,
+    desde: date | None = None,
 ) -> Corrida:
     """
     Una corrida de un evento, de principio a fin, registrada.
+
+    `desde` (I-43) fija el inicio de la ventana de precipitacion en vez de
+    calcularlo desde el ultimo dato. Es el rodeo para una serie atascada y
+    queda escrito en la bitacora; para incendio no aplica y se dice.
 
     `extractor` y `territorios` se inyectan para probar sin red ni base; en
     produccion salen de la fabrica y de `geo.distrito`. Con `escribir=False`
@@ -641,8 +669,16 @@ def correr(
 
     if evento == "incendio":
         corrida.ventana = ventana_incendio(ultima, hoy)
+        if desde is not None:
+            registrar("  --desde no aplica a incendio: su ventana sale de la bitacora")
+    elif desde is not None:
+        corrida.ventana = (desde, hoy - timedelta(days=1))
+        corrida.mensaje = f"ventana fijada con --desde {desde} (I-43)"
+        registrar(f"  {corrida.mensaje}")
     else:
         corrida.ventana = ventana_precipitacion(conexion, evento, hoy)
+    if corrida.ventana is not None and corrida.ventana[0] > corrida.ventana[1]:
+        raise ErrorIngesta(f"La ventana {corrida.ventana} termina antes de empezar")
     if corrida.ventana is None:
         return _omitir(libro, corrida, "al dia: no hay dias nuevos que pedir", registrar, escribir)
 
@@ -688,7 +724,11 @@ def correr(
             mediciones: list[MedicionDiaria] = [m for lista in por_distrito for m in lista]
             registrar(f"  {medicion}")
             sin_dato = sum(1 for m in mediciones if m.precipitacion_mm is None)
-            registrar(f"  {len(mediciones)} mediciones, {sin_dato} sin precipitacion")
+            corrida.filas_leidas = len(mediciones) - sin_dato
+            registrar(
+                f"  {len(mediciones)} mediciones, {corrida.filas_leidas} con precipitacion, "
+                f"{sin_dato} sin"
+            )
             if escribir:
                 corrida.filas = escribir_mediciones(conexion, corrida, mediciones, corrida.producto)
             else:
@@ -754,6 +794,16 @@ def analizador() -> argparse.ArgumentParser:
         action="store_true",
         help="Equivale a --trabajadores 1. Es el tiempo base de la medicion de H8.2.",
     )
+    partes.add_argument(
+        "--desde",
+        type=date.fromisoformat,
+        default=None,
+        metavar="AAAA-MM-DD",
+        help=(
+            "Fija el inicio de la ventana de precipitacion para esta corrida (I-43). "
+            "Queda escrito en la bitacora. No aplica a incendio."
+        ),
+    )
     return partes
 
 
@@ -800,6 +850,7 @@ def _principal(opciones, registrar) -> int:
                     registrar,
                     escribir=not opciones.sin_escribir,
                     trabajadores=trabajadores,
+                    desde=opciones.desde,
                 )
                 fallidas += corrida.estado == FALLIDA
     except ErrorConexion as error:
