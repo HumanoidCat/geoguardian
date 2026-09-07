@@ -3309,10 +3309,57 @@ I-06, I-39 e I-42 con otro sujeto: un paso que se salta en silencio se ve igual
 que un paso que funciono. La forma de no repetirla no es un comentario mas
 largo: es un numero en la bitacora y una prueba que lo exige.
 
-**Impacto.** Ocho meses de precipitacion ausentes de la base publicada (2026-01
-a 2026-07, 1968 filas). Toda estimacion de lluvia intensa de 2026 salio sin el
-dato que la justifica. Las horas del diagnostico son de Luna y las de la
-correccion de Alejandro; cada quien las anota en su tarea, no aqui.
+**Impacto.** Ver la correccion de abajo: el hueco de ocho meses esta en la base
+local donde se midio, no en la publicada. El defecto del ETL es real y
+reproducible en cualquier base cargada hasta 2025-12-31; el dato de produccion
+no lo sufrio. Las horas del diagnostico son de Luna y las de la correccion de
+Alejandro; cada quien las anota en su tarea, no aqui.
+
+**Correccion, la misma noche (2026-09-06, 21:55).** Al correr el rodeo contra la
+base publicada en Railway, con el proxy abierto y **antes** de dar nada por
+hecho, el contador de solo lectura (`gestion/contar_lluvia_2026.py`) dijo:
+
+```
+anio  filas  con_lluvia  fuente_sin_valor  ultima_con_lluvia
+2024   2928        2928                 0  2024-12-31
+2025   2920        2920                 0  2025-12-31
+2026   1984        1696                 0  2026-07-31
+
+bitacora: 9 lluvia_intensa exitosa 2025-12-01..2026-09-05  filas 24  leidas 1944  --desde
+          7 lluvia_intensa exitosa 2026-07-29..2026-09-02  filas 0
+          5 lluvia_intensa fallida 2026-08-01..2026-09-02  ClimateSERV no entrego el resultado
+```
+
+Tres cosas se leen ahi. **(a)** 2026 tiene 1696 filas con lluvia = 212 dias x 8
+distritos = del 1 de enero al 31 de julio, completo; las 288 sin lluvia son los
+36 dias de latencia (D-40) x 8. **(b)** La corrida 7, anterior a esta noche, ya
+pedia desde el 2026-07-29: su ultimo dia con dato era el 07-31. **La base
+publicada nunca tuvo el hueco.** **(c)** El rodeo cambio 24 filas: los tres
+dias nuevos (09-03 a 09-05) x 8. No habia nada que rellenar.
+
+La corrida `id 39 · 1968 filas` del informe es la de H12.1, criterio 10, del
+2026-09-04: una corrida real del ETL **sobre la base local de Luna**, cargada
+con `cargar_mediciones.py` hasta el 2025-12-31 y sin ninguna ingesta previa.
+Ahi la ventana arranco el 12-29, ClimateSERV devolvio 3 dias y quedo el hueco
+de ocho meses. Todo lo que el informe mide del ETL es cierto: el defecto existe,
+se reproduce en cualquier base en ese estado, y la corrida se registro exitosa
+sin serlo. Lo que **no** era cierto es la frase de impacto que esta incidencia
+escribio al recibirlo -«ausentes de la base publicada», «el visor mostro riesgo
+ocho meses sin lluvia de 2026»-: eso se afirmo sin medir la base publicada. El
+informe no decia contra que base media, y quien lo registro no lo pregunto.
+**Es I-38 otra vez:** un conteo que no dice a que base le pregunta se lee como si
+hablara de todas. Se deja escrito el error, no se borra.
+
+El comentario de la migracion 016 hereda la cifra («sobre la base publicada son
+las 1968 filas»); no se edita porque el aplicador verifica su suma SHA-256 y ya
+esta aplicada en produccion. Queda corregido aqui: en la base publicada la 016
+puso en NULL la fuente de las filas sin valor del tramo de latencia, no 1968.
+
+**Lo que si sigue pendiente:** la base local de Luna (y la de quien haya cargado
+la historia y corrido la ingesta una vez) tiene el hueco y se desatasca con el
+mismo rodeo, `--desde 2025-12-01`, contra esa base. Y `filas_leidas` ya se
+escribe: la corrida 9 registro 1944 leidas contra 24 escritas, que es
+exactamente la diferencia que esta incidencia queria poder ver.
 
 ---
 
@@ -3387,8 +3434,9 @@ golpe.
 **Accion tomada.**
 
 1. Migracion `016_fuente_precipitacion_solo_con_valor.sql`: quita el `NOT NULL`,
-   pone en NULL la fuente de toda fila sin precipitacion (sobre la base
-   publicada, las 1968), y deja la regla como restriccion:
+   pone en NULL la fuente de toda fila sin precipitacion (en la base local donde
+   se midio, las 1968; en la publicada, las del tramo de latencia: ver la
+   correccion de I-43), y deja la regla como restriccion:
    `CHECK ((precipitacion_mm IS NULL) = (fuente_precipitacion IS NULL))`. Con
    ella el defecto no puede volver por ningun escritor: falla al escribir, que
    es donde se corrige.
@@ -3405,5 +3453,7 @@ las dos. Un `NOT NULL` puesto por prolijidad obligo a escribir algo, y lo que se
 escribio fue falso.
 
 **Impacto.** Ninguna hora perdida directa; el costo es de confianza: la tabla
-afirmaba una procedencia falsa en 1968 filas, y esa tabla es la fuente del
-documento IEEE. Se corrige con la 016 al aplicarla en Railway.
+afirmaba una procedencia falsa en toda fila sin valor -1968 en la base local
+medida, las del tramo de latencia en la publicada-, y esa tabla es la fuente del
+documento IEEE. Corregido en Railway con la 016 el 2026-09-06: `fuente_sin_valor`
+quedo en 0 en todos los anios.
