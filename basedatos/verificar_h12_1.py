@@ -431,6 +431,66 @@ def verificar(conexion, r: Resultado) -> None:
         f"quedo {fila}",
     )
 
+    # ------------------------------------------------------------------ 9b
+    #
+    # QUE EL SEGUNDO PROCESO NO LE CAMBIE EL SIGNIFICADO A UN CAMPO DEL CONTRATO.
+    #
+    # Es la tercera medicion de **D-44**, y es la que menos se ve venir. `/salud`
+    # responde `ultima_ingesta` con esta consulta, y el `LIKE 'ingesta.%'` esta
+    # ahi por esta historia: el dia que la API escriba con `proceso = 'api'`, sin
+    # ese filtro el campo pasaria a significar «la ultima vez que la API se anoto
+    # a si misma» **sin que nadie tocara el contrato**.
+    #
+    # `verificar_h61.py` no puede probarlo: corre sin base a proposito, y hacen
+    # falta filas de DOS procesos distintos, con la de la API mas nueva. Por eso
+    # vive aca, donde ya hay corridas escritas dentro del SAVEPOINT.
+    #
+    # Se comprueban las dos mitades. Que el filtro devuelva la ingesta es la
+    # mitad facil; **la que vale es que SIN el filtro devuelva otra cosa**, porque
+    # si las dos dieran igual la prueba estaria pasando sin ejercer nada.
+    ultima_ingesta = corrida(proceso="ingesta.lluvia_intensa")
+    # Se mueven las DOS fechas hacia atras, no solo el fin.
+    #
+    # La primera version solo retrasaba `terminada_en`, y
+    # `bitacora_etl_orden_temporal_ck` -de esta misma migracion- la rechazo por
+    # duracion negativa. La restriccion hizo exactamente su trabajo: atrapo una
+    # corrida imposible, aunque la hubiera escrito su propio verificador.
+    cur.execute(
+        "UPDATE control.bitacora_etl SET estado = 'exitosa', "
+        "iniciada_en  = now() - interval '2 days', "
+        "terminada_en = now() - interval '2 days' + interval '1 hour' "
+        "WHERE id = %s",
+        (ultima_ingesta,),
+    )
+    mas_nueva_de_la_api = corrida(proceso="api")
+    cur.execute(
+        "UPDATE control.bitacora_etl SET estado = 'exitosa', terminada_en = now() WHERE id = %s",
+        (mas_nueva_de_la_api,),
+    )
+
+    consulta_salud = (
+        "SELECT max(terminada_en) FROM control.bitacora_etl "
+        "WHERE estado = 'exitosa' AND proceso LIKE 'ingesta.%%'"
+    )
+    cur.execute(consulta_salud)
+    con_filtro = cur.fetchone()[0]
+    cur.execute("SELECT max(terminada_en) FROM control.bitacora_etl WHERE estado = 'exitosa'")
+    sin_filtro = cur.fetchone()[0]
+
+    cur.execute("SELECT terminada_en FROM control.bitacora_etl WHERE id = %s", (ultima_ingesta,))
+    esperado = cur.fetchone()[0]
+
+    r.comprobar(
+        "9b. ultima_ingesta ignora las corridas de la API (D-44)",
+        con_filtro == esperado,
+        "con el filtro devuelve la ingesta y no la fila mas nueva",
+    )
+    r.comprobar(
+        "    y SIN el filtro devolveria la de la API, que es el error que evita",
+        sin_filtro != con_filtro,
+        f"sin filtro {sin_filtro}, con filtro {con_filtro}",
+    )
+
     # ------------------------------------------------------------------ 11 y 12
     cur.execute(
         "SELECT count(*) FROM control.fallo WHERE corrida_id = %s",

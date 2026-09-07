@@ -4731,3 +4731,154 @@ las dos ultimas se comparan contra `contratos.VERSION_CONTRATOS` y
 `backend/api/rutas.VERSION_API` del arbol desplegado. `infra/verificar_h116.py`
 comprueba lo que no necesita el despliegue levantado, y la evidencia de la
 historia trae la salida de los dos.
+
+## D-44 · La API escribe en control.bitacora_etl, y deja de ser un rol de solo lectura
+
+**Fecha.** 2026-09-06. **Historia.** H12.1. **Quien decide.** Luna.
+**Estado.** Aceptada.
+
+> **Sobre la autoria de este texto.** Alejandro ofrecio dejar un borrador en
+> `gestion/D-44-borrador.md`. Ese archivo **no existe en ninguna rama ni en
+> ningun commit del repositorio** —comprobado con `git log --all -- gestion/`, que
+> no devuelve nada— y `gestion/` tampoco. Es la segunda ruta de esa carpeta que
+> se cita y no se encuentra; la primera fue
+> `gestion/nota-luna-h114-y-h121-2026-09-03.md`, referida desde la migracion 013
+> y desde los criterios de H1.14.
+>
+> Para no frenar el Pull Request, la ADR se redacto de nuevo desde los hechos
+> medidos. La decision era de Luna en cualquier caso; el borrador era una
+> comodidad, no la fuente. **Queda pendiente, y es de Alejandro:** o `gestion/`
+> entra al repositorio, o las referencias a ella dicen donde esta de verdad.
+
+### Contexto
+
+**H1.8 dejo a `geoguardian_api` como un rol de lectura.** Esa propiedad no vive
+solo en el DDL: esta afirmada por escrito en tres lugares del repositorio, y en
+cada uno significa algo un poco distinto.
+
+| Donde | Que afirma |
+|---|---|
+| `docs/19-runbook-railway.md` | «`api_geoguardian` es el rol de **solo lectura** de H1.8, a proposito» |
+| `docs/evidencias/arquitectura-software/H6.1-api-rest-openapi.md` | «Una API REST de **solo lectura** sobre los esquemas del contrato» |
+| `docs/evidencias/sistemas-operativos/H11.6-criterios-aceptacion.md`, CA-6 | «La API en la nube usa el rol de solo lectura de H1.8, y **se prueba que no puede escribir**» |
+
+H12.1 centraliza los logs de **pipeline y aplicacion** en `control.bitacora_etl`.
+La segunda mitad de ese titulo -la aplicacion- exige que la API pueda anotar sus
+propias corridas con `proceso = 'api'`, valor que H1.14 ya anticipo en el
+comentario de su migracion. La migracion `014` concede
+`INSERT, UPDATE ON control.bitacora_etl TO geoguardian_api`.
+
+**El GRANT vuelve falsa la primera frase**, matiza la segunda y deja intacta la
+tercera. Esa mezcla es justamente el problema: no es un cambio que se pueda
+resolver corrigiendo una linea de documentacion.
+
+### Decision
+
+Se concede a `geoguardian_api` **`INSERT` y `UPDATE`, y solo esos dos verbos,
+sobre `control.bitacora_etl` y solo sobre esa tabla.**
+
+**`geoguardian_api` deja de ser un rol de solo lectura**, y eso se dice asi en
+vez de conservar la frase con una excepcion al pie. Un rol descrito como de
+lectura que escribe en una tabla es peor que un rol descrito como acotado: el
+primero invita a no revisar, el segundo obliga a preguntar hasta donde.
+
+Lo que **no** se concede, y se comprueba:
+
+  - **`DELETE` no.** Un proceso que registra lo que hace no tiene por que poder
+    borrar lo que hizo. Es la misma razon por la que la 014 no se lo dio a nadie:
+    un diagnostico que puede borrar corridas puede borrar la evidencia de lo que
+    diagnostica.
+  - **Ninguna otra tabla.** En particular `analitico.riesgo` sigue cerrada a la
+    API, que es lo que CA-6 de H11.6 prueba.
+
+### Justificacion
+
+**Lo que se pierde esta escrito y no se disimula:** el rol de la aplicacion
+publica pasa a tener escritura sobre una tabla del esquema `control`. Antes no
+tenia ninguna. Esa superficie no existia ayer y existe hoy.
+
+Se acepta por tres razones:
+
+  1. **Sin esto, la mitad de H12.1 no se puede hacer.** El titulo dice «pipeline
+     y aplicacion». Registrar solo el pipeline y llamarlo centralizacion seria
+     declarar hecho algo que se hizo a medias.
+  2. **La alternativa realista es peor.** Que la API le pida al ETL que anote por
+     ella exige un canal entre los dos procesos que hoy no existe, y lo que se
+     ganaria en permisos se perderia en una dependencia nueva entre componentes
+     que hoy solo comparten la base.
+  3. **La superficie es del tamano exacto del uso.** Dos verbos, una tabla. La
+     corrida se abre con `INSERT` y se cierra con `UPDATE`; no hace falta nada
+     mas y no se concede nada mas.
+
+**El motivo por el que esta ADR existe, y no es el GRANT.** Las tres afirmaciones
+del contexto tienen controles automaticos detras, y **los tres siguen en verde
+despues de la 014**, porque cada uno prueba una tabla distinta de la que se
+abrio. CA-6 de H11.6 intenta un `INSERT` en `analitico.riesgo`; el caso de H1.8
+intenta un `UPDATE` en `control.migracion`. Ninguno mira `bitacora_etl`.
+
+Es decir: **la frase quedo falsa y el conjunto de controles no se entera.** Sin
+una decision escrita y sin comprobaciones nuevas, el repositorio seguiria
+afirmando indefinidamente que la API no escribe, con todo en verde.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| No conceder nada y que la API no registre sus corridas | Deja H12.1 a medias y contradice su propio titulo. La aplicacion seguiria sin bitacora, que es lo que H12.4 va a necesitar |
+| Conceder `INSERT` y no `UPDATE` | La corrida se abre con uno y se cierra con el otro. Concediendo solo el primero, cada corrida de la API quedaria en `en_curso` para siempre **y nada fallaria al abrirla**: el sintoma aparece en el diagnostico, semanas despues |
+| Conceder escritura sobre `control` entero | Amplia la superficie sin ninguna necesidad medida. La API necesita una tabla |
+| Que el ETL anote en nombre de la API | Exige un canal entre procesos que hoy no existe. Se cambian permisos por acoplamiento, y el acoplamiento es mas caro de revertir |
+| Conservar la frase «solo lectura» con una excepcion al pie | Una descripcion que hay que leer con nota al pie deja de describir. Quien la lea rapido va a leer «no escribe» |
+
+### Consecuencias
+
+**Cambia lo que dicen tres documentos.** `19-runbook-railway.md` afirma algo
+falso desde la 014 y hay que corregirlo. `H6.1-api-rest-openapi.md` sigue siendo
+cierto **sobre los endpoints** —la API no expone ninguno de escritura— y hay que
+separar esa afirmacion de la del rol, que son dos cosas distintas que hoy se
+escriben con las mismas palabras. `H11.6` CA-6 no cambia: lo que prueba sigue
+siendo verdad.
+
+**Esos tres ajustes no se hacen en esta historia.** Tocan carpetas de evidencia
+de H11.6 y H6.1 y no son de H12.1. Se declaran aca para que quien las lea sepa
+que ya estan identificadas, y se avisan en el Pull Request.
+
+**H12.4 hereda una tabla escrita por dos procesos.** Cualquier consulta que
+resuma «la ingesta» tiene que filtrar por proceso; sin filtro, una fila de la API
+se cuenta como si fuera una corrida del ETL.
+
+**`geoguardian_etl` no cambia.** La 013 le dio `SELECT, INSERT, UPDATE` sobre la
+misma tabla y nunca `DELETE`. Esta decision no lo amplia.
+
+### Medicion
+
+Tres comprobaciones, y las tres tienen que estar: **las dos primeras solas
+probarian que se concedio un permiso, y nada mas.**
+
+**1. Que la API puede escribir lo que necesita.** En
+`basedatos/seguridad/verificar_h18.py`, lista `PERMITIDAS`: abrir una corrida con
+`INSERT` y cerrarla con `UPDATE`, como dos casos separados por el motivo de la
+tabla de alternativas. Escrituras reales revertidas al salir, porque PostgreSQL
+comprueba el permiso al ejecutar y una escritura simulada daria verde con el
+`GRANT` ausente.
+
+**2. Que sigue sin poder lo demas.** En la lista `PROHIBIDAS`: `DELETE` sobre
+`control.bitacora_etl` e `INSERT` sobre `analitico.riesgo`, los dos con
+`permission denied`. **Sin este par, el control no distingue «se abrio una tabla»
+de «se abrio la base».** Se agrega ademas el mismo caso para `geoguardian_etl`,
+cuyo `DELETE` la 013 nunca concedio y nadie comprobaba.
+
+Corrida del 2026-09-06: los cinco casos en verde, con el motivo correcto
+—`permission denied for table bitacora_etl` y `permission denied for table
+riesgo`— y no por un error distinto que los dejara pasar.
+
+**3. Que el segundo proceso no cambia el significado de un campo del contrato.**
+`/salud` responde `ultima_ingesta` con
+`max(terminada_en) ... WHERE estado = 'exitosa' AND proceso LIKE 'ingesta.%'`.
+**Ese filtro existe por esta decision.** El dia que la API escriba con
+`proceso = 'api'`, sin el, el campo pasaria a significar «la ultima vez que la
+API se anoto a si misma» **sin que nadie tocara el contrato**.
+
+`verificar_h61.py` no puede probarlo: corre sin base a proposito, y hacen falta
+filas de dos procesos distintos. La comprobacion vive en
+`basedatos/verificar_h12_1.py`, que ya escribe corridas dentro de un `SAVEPOINT`.
