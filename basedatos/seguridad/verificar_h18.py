@@ -145,8 +145,40 @@ def ca2_pertenencia(cursor: psycopg.Cursor, cred: dict) -> Resultado:
 PERMITIDAS = [
     ("etl", "leer geo.distrito", "SELECT count(*) FROM geo.distrito"),
     ("etl", "leer control.migracion", "SELECT count(*) FROM control.migracion"),
-    ("etl", "escribir en control.migracion", None),
+    # El cuarto elemento dice si la sentencia ESCRIBE. Antes esto se expresaba
+    # poniendo `None` en la consulta, y el probador tenia dentro, escrito a mano,
+    # el unico INSERT que sabia hacer. **Un centinela que solo puede significar
+    # una cosa deja de servir en cuanto hay dos**, que es lo que pasa con la 014.
+    (
+        "etl",
+        "escribir en control.migracion",
+        "INSERT INTO control.migracion (numero, archivo, suma_sha256) "
+        "VALUES (999, 'prueba_h18.sql', repeat('a', 64))",
+        True,
+    ),
     ("api", "leer geo.distrito", "SELECT count(*) FROM geo.distrito"),
+    # LO QUE LA MIGRACION 014 CONCEDIO, Y POR QUE SE PRUEBA (D-44).
+    #
+    # H12.1 le dio a `geoguardian_api` INSERT y UPDATE sobre
+    # `control.bitacora_etl`, porque el titulo de la historia dice «pipeline **y
+    # aplicacion**» y la aplicacion registra con `proceso = 'api'`.
+    #
+    # Se prueban los DOS verbos y no uno: la corrida se abre con INSERT y se
+    # cierra con UPDATE, asi que conceder solo el primero dejaria corridas
+    # eternamente `en_curso` sin que nada fallara al abrirlas.
+    (
+        "api",
+        "abrir una corrida en control.bitacora_etl",
+        "INSERT INTO control.bitacora_etl (proceso, estado) VALUES ('api', 'en_curso')",
+        True,
+    ),
+    (
+        "api",
+        "cerrar una corrida en control.bitacora_etl",
+        "UPDATE control.bitacora_etl SET estado = 'exitosa', terminada_en = now() "
+        "WHERE estado = 'en_curso'",
+        True,
+    ),
     # LLAMAR A UNA FUNCION, NO SOLO LEER UNA TABLA.
     #
     # Hasta la 015, de lo PERMITIDO esta lista solo probaba `SELECT` sobre
@@ -191,22 +223,24 @@ PERMITIDAS = [
 def _probar_permitidas(cred: dict) -> Resultado:
     detalle = []
     ok = True
-    for quien, que, consulta in PERMITIDAS:
+    for entrada in PERMITIDAS:
+        quien, que, consulta = entrada[0], entrada[1], entrada[2]
+        escribe = len(entrada) > 3 and entrada[3]
         usuario, contrasena = cred[quien]
         try:
             with (
                 psycopg.connect(_conexion_de(usuario, contrasena)) as cn,
                 cn.cursor() as cur,
             ):
-                if consulta is None:
+                cur.execute(consulta)
+                if escribe:
                     # Escritura real, revertida al salir: no deja rastro.
-                    cur.execute(
-                        "INSERT INTO control.migracion (numero, archivo, suma_sha256) "
-                        "VALUES (999, 'prueba_h18.sql', repeat('a', 64))"
-                    )
+                    #
+                    # Tiene que ser real y no un `EXPLAIN`: PostgreSQL comprueba
+                    # el permiso al ejecutar, asi que una escritura simulada
+                    # daria verde con el GRANT ausente.
                     cn.rollback()
                 else:
-                    cur.execute(consulta)
                     cur.fetchone()
             detalle.append(f"  [ok ] {quien:<4} {que}")
         except psycopg.Error as error:
@@ -236,6 +270,40 @@ PROHIBIDAS = [
     ),
     ("etl", "DROP TABLE en control", "DROP TABLE control.migracion", "owner"),
     ("etl", "DELETE en control.migracion", "DELETE FROM control.migracion", "denied"),
+    # LO QUE LA 014 **NO** CONCEDIO, Y ES LA MITAD QUE SOSTIENE A LA OTRA (D-44).
+    #
+    # Sin estos casos, la seccion de arriba prueba que la API gano un permiso, y
+    # nada mas. **No distingue «se abrio una tabla» de «se abrio la base».**
+    #
+    # No es una preocupacion teorica: el 2026-09-05 la API recibio DOS
+    # ampliaciones el mismo dia, cada una correcta por separado -el USAGE sobre
+    # `public` de la 015, por I-40, y el INSERT/UPDATE sobre la bitacora de la
+    # 014-. Ninguna de las dos revisiones podia responder cuanto se habia abierto
+    # en total, porque esa pregunta no se le hace a un permiso: se le hace al
+    # conjunto.
+    (
+        "api",
+        "DELETE en control.bitacora_etl",
+        "DELETE FROM control.bitacora_etl",
+        "denied",
+    ),
+    (
+        "api",
+        "INSERT en analitico.riesgo",
+        "INSERT INTO analitico.riesgo (codigo_distrito, fecha, tipo_evento) "
+        "VALUES ('50801', DATE '2024-01-01', 'sequia')",
+        "denied",
+    ),
+    # El mismo control, al otro rol. La 013 le dio al ETL SELECT, INSERT y UPDATE
+    # sobre la bitacora, y **nunca DELETE**: la propiedad ya existe y hasta hoy
+    # nadie la comprobaba. Un diagnostico que puede borrar corridas puede borrar
+    # la evidencia de lo que diagnostica.
+    (
+        "etl",
+        "DELETE en control.bitacora_etl",
+        "DELETE FROM control.bitacora_etl",
+        "denied",
+    ),
 ]
 
 
