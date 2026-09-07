@@ -146,11 +146,46 @@
     H3.8 no se reproducen siguiendo el README**. Se recupero con
     `cargar_focos` (494 filas, `verificar_h12` en verde).
 
-- [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
+- [x] **H4.2** · Aplicar SHAP para explicar predicciones individuales (2026-09-07)
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1
+  - horas: estimada n/d (llego por traspaso el 2026-09-03 y nadie pidio una
+    estimacion antes de arrancar) . real 7.0
   - **Traspasada desde Alejandro el 2026-09-03** por **D-37**. No es un cambio de
     alcance: se movio para repartir la carga del Sprint 3, y su contenido
     queda tal como estaba escrito.
+  - **RESULTADO: la explicacion de un acierto y la de un error son
+    indistinguibles.** Bosque aleatorio sobre lluvia intensa, distrito 50808,
+    cuatro dias de diferencia: las mismas ocho columnas, en el mismo orden, con
+    los mismos valores hasta el tercer decimal (`hr_media7` +0.0575 contra
+    +0.0571). Se repite en los tres estimadores y en los dos eventos. Es la
+    confirmacion local de lo que H4.1 midio globalmente.
+  - **Solo se ve porque la regla de seleccion obligaba a incluir el error.** Las
+    figuras de los aciertos, solas, se ven convincentes. La regla se fijo en los
+    criterios **antes de mirar ninguna prediccion** y las dos celdas de error
+    eran obligatorias; eligiendo despues de ver, esto no estaria escrito.
+  - Responde CA-12, la pregunta que H4.1 dejo abierta: xgboost **si** usa la
+    precipitacion en incendio (SHAP da +0.0888 a `pp_acum30`), pero no lo
+    suficiente para cambiar ninguna clase, y por eso su importancia por
+    permutacion era cero exacto. Se escribe como **hipotesis** consistente con
+    las dos mediciones, no como hecho: comprobarla exige medir cuantas clases
+    cambian al permutar, y eso no es de esta historia.
+  - Los tres estimadores coinciden localmente (humedad a corto plazo en lluvia,
+    30 dias en incendio) mientras H4.1 midio que ordenaban las columnas distinto.
+    **No es contradiccion**: permutacion mide efecto sobre el F1, SHAP mide
+    desplazamiento de la probabilidad de una fila. Se registra porque tener dos
+    medidas que no coinciden es informacion sobre las dos.
+  - **Cuatro defectos propios, ninguno encontrado leyendo el codigo.** El tercero
+    es el que deja leccion: `modelo_interno` entregaba `_modelo` desnudo y
+    `RegresionLogistica` guarda su escalador afuera, asi que se descomponia
+    perfectamente un numero que no era la prediccion (`salida +0.0000` con
+    `P(alto) 0.922`). **CA-4 no lo detecto y no podia**: los dos lados de la
+    identidad salian del mismo camino equivocado. Lo delato poner `salida` al
+    lado de `P(alto)`, un tercer numero de otra procedencia. Los otros tres:
+    SHAP sin conjunto de fondo (paso a ser **CA-13**), el residuo que daba cero
+    por construccion, y el orden de columnas decidido por quien llama.
+  - CA-11: esta historia toco `regresion_logistica`, `random_forest` y
+    `xgboost_`, que son de H3.3, H3.4 y H3.5. Sus tres verificadores siguen en
+    verde (17, 20 y 21 criterios).
 
 - [x] **H10.2** · Pruebas automatizadas del backend, cobertura de dominio (2026-08-30)
   - `E10` · 5 pts · 4.8 h · rubrica: QA · depende de: H6.2
