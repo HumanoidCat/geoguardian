@@ -252,6 +252,29 @@ class BosqueAleatorio:
 
     # ----------------------------------------------------------------- #
     @property
+    def modelo_interno(self):
+        """El estimador de la biblioteca, **solo para explicabilidad** (H4.2).
+
+        SHAP necesita el objeto de scikit-learn o de XGBoost para calcular las
+        atribuciones; no le alcanza con `predecir()`. Esta propiedad existe para
+        eso y para nada mas.
+
+        **Por que se agrega en vez de leer `_modelo` desde afuera.** Lo segundo
+        funciona hoy y no toca este archivo, pero acopla H4.2 a un detalle
+        interno de esta historia: el dia que el atributo se renombre, la
+        explicacion se rompe y **ninguna prueba de aqui lo nota**. Un
+        acoplamiento declarado se ve en el diff; uno silencioso aparece cuando
+        algo ya fallo.
+
+        Quien la use NO debe llamar a `fit` ni `predict` sobre lo que devuelve:
+        para eso estan `ajustar`, `predecir` y `probabilidades`, que son las que
+        deciden que hacer con las filas incompletas.
+
+        Devuelve `None` si todavia no se ajusto.
+        """
+        return self._modelo
+
+    @property
     def necesita_caracteristicas(self) -> bool:
         return True
 
