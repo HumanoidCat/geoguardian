@@ -2117,3 +2117,1346 @@ no la declara. Si un valor puede cambiar por una historia futura, o se deriva
 o se vigila; escribirlo con un comentario que explica por que hoy es cierto
 es dejarle una trampa a quien cierre esa historia.
 
+
+---
+
+## I-31 · Los verificadores que corremos antes de cerrar no son los que corre el CI
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** El Pull Request #258 de H1.14, que fallo en el trabajo
+*Backlog y documentacion* despues de haber pasado en verde los siete
+verificadores de la lista de cierre, `pytest` completo y `ruff` en la maquina
+del PM.
+
+**Que paso.** La migracion 013 agrego `control.bitacora_etl` con diez columnas.
+`verificar_diagramas.py` exige que **cada tabla y cada columna del DDL**
+aparezcan en `docs/diagramas/entidad-relacion.svg`, y el diagrama versionado no
+las tenia. El CI lo vio; la lista de cierre, no.
+
+**Causa raiz.** `docs/15-cerrar-una-historia.md` manda correr tres
+verificadores antes de pedir revision -`verificar_estado`, `verificar_horas`,
+`verificar_documentacion`- y dice, textual: «si alguno falla, el CI tambien va
+a fallar». La frase es cierta al reves y **falsa en la direccion que importa**:
+que esos pasen no dice nada del CI, porque el trabajo *Backlog y documentacion*
+corre ademas `verificar_diagramas.py`, `verificar_cobertura_evidencias.py` y
+`verificar_issues.py`. La lista se escribio cuando esos tres no existian y
+nadie la actualizo al agregarlos.
+
+Es la forma de I-06 otra vez -el CI corriendo algo que ninguna persona corre-
+pero al reves: la persona corriendo **menos** de lo que corre el CI.
+
+**Y hay una segunda mitad.** `verificar_diagramas.py` **no se puede correr
+entero en la maquina del PM**: necesita Graphviz para regenerar y comparar
+(CA-4), y ahi no esta instalado. O sea que aunque la lista lo hubiera incluido,
+habria fallado por falta de herramienta y no por un defecto. Un verificador que
+no corre donde se hace el trabajo solo avisa cuando ya es tarde.
+
+**Accion tomada.**
+
+  1. `docs/15` corregido: la seccion «comprobar antes de pedir revision» lista
+     ahora **los seis** verificadores del trabajo de documentacion del CI, y
+     dice cual necesita Graphviz y como se instala.
+  2. El diagrama se regenero y entro en el mismo PR.
+  3. Queda pendiente, y se declara: **nadie ha medido** cuanto tarda correr los
+     seis en local. Si resultara caro, la respuesta no es sacarlos de la lista
+     sino separarlos en «los que corro siempre» y «los que corro cuando toque
+     el DDL o el backlog», con esa regla escrita.
+
+---
+
+## I-32 · El diagrama entidad-relacion no muestra las columnas que agrega un `ALTER TABLE`
+
+**Fecha.** 2026-09-03.
+
+**Quien lo detecto.** Alejandro, mirando el `entidad-relacion.png` regenerado
+para arreglar I-31: `control.fallo` sale con ocho columnas y en la base tiene
+nueve.
+
+**Que paso.** La migracion 012 agrego `control.fallo.corrida_id` con
+`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`. `leer_ddl()` de
+`generar_diagramas.py` extrae las columnas del texto de los `CREATE TABLE`, asi
+que esa columna no existe para el generador. El dibujo la omite desde el
+2026-09-02 y **nadie lo noto durante un dia**.
+
+**Causa raiz.** El verificador y el generador leen el DDL **de la misma
+manera**. `verificar_diagramas.py` compara el diagrama contra lo que
+`leer_ddl()` sabe leer, no contra lo que la base tiene: una columna invisible
+para el lector es invisible para el control. Un control que comparte el punto
+ciego de lo que vigila da verde sobre el defecto que existe para vigilar.
+
+Es la misma familia que I-21 y que el CA-8 de I-30: el control conoce solo el
+caso con el que nacio.
+
+**Accion tomada.** Registrar. **No se arregla en H8.2**: tocar `leer_ddl()` es
+cambiar el generador de diagramas, que es de H6.5, y hacerlo dentro de una
+historia de concurrencia seria exactamente lo que `docs/07` existe para
+impedir. Lo que corresponde, y queda propuesto para quien tome esa historia:
+
+  1. Que `leer_ddl()` aplique tambien los `ALTER TABLE ... ADD COLUMN` del DDL,
+     que es donde el proyecto agrega columnas desde la 007.
+  2. O, mejor, que el control compare contra **la base levantada**
+     (`information_schema.columns`) en vez de contra el texto del DDL: ahi no
+     hay punto ciego posible. Cuesta que el trabajo del CI necesite PostgreSQL,
+     que ya lo tiene el trabajo de pruebas.
+  3. Mientras tanto, el diagrama dice de menos y esta declarado aca. Decir de
+     menos es menos grave que decir de mas, pero no es correcto.
+
+---
+
+## I-33 · La particion interna de H3.8 buscaba hiperparametros sobre 7 752 dias de prueba
+
+**Fecha.** 2026-09-04.
+
+**Quien lo detecto.** El criterio CA-2 de la propia historia, al correrlo por
+primera vez, antes de que existiera ningun resultado que defender.
+
+**Que paso.** H3.8 busca hiperparametros en una particion **interna** para no
+elegirlos mirando los pliegues sobre los que despues informa. La primera
+implementacion construyo esa particion interna con la ventana de entrenamiento
+del **ultimo** pliegue externo, razonando que es la mas larga y la que mas se
+parece a lo que el modelo vera en produccion.
+
+CA-2 compara los dos conjuntos de fechas de prueba y fallo:
+
+```
+lluvia_intensa: ninguna fecha de prueba interna cae en una de prueba externa: 7752 dias compartidos
+incendio:       ninguna fecha de prueba interna cae en una de prueba externa: 5472 dias compartidos
+```
+
+**Causa raiz.** La particion de H3.2 es de **ventana expansiva**: el
+entrenamiento de cada pliegue incluye todo lo anterior. El entrenamiento del
+ultimo pliegue **contiene los bloques de prueba de los cuatro anteriores**.
+Buscar ahi es elegir hiperparametros sobre cuatro quintos del conjunto con el
+que despues se informa el resultado.
+
+El razonamiento "la ventana mas larga es la mejor" es correcto **para entrenar**
+y falso **para buscar**. Son dos usos de la misma ventana y solo uno de ellos
+tiene prohibido ver la prueba.
+
+**Por que no lo habria encontrado nadie despues.** Esta fuga no rompe nada: no
+lanza excepciones, no deja filas de mas, no pone el CI en rojo. Lo unico que
+hace es **subir el numero**. Un F1 inflado por buscar sobre la prueba se ve
+igual que un F1 alto, y se defiende igual de bien en una presentacion.
+
+**Accion tomada.** La particion interna se construye con la ventana de
+entrenamiento del **primer** pliegue externo, que es la unica enteramente
+anterior a todos los bloques de prueba. El solape quedo en 0 dias para los dos
+eventos.
+
+**Lo que esto cuesta, dicho y no escondido.** La ventana del primer pliegue son
+unos cinco anios y medio, mientras que el modelo final se ajusta con treinta y
+cuatro. Unos hiperparametros elegidos sobre una muestra chica pueden no ser los
+mejores para la grande, y es esperable que pidan mas regularizacion de la
+necesaria. Lo correcto seria una validacion anidada -buscar dentro del
+entrenamiento de **cada** pliegue-, que cuesta cinco veces mas y deja un juego
+de parametros por pliegue que D-39 no sabe usar. Queda declarado como trabajo
+futuro en el docstring de `pliegues_internos` y en la evidencia de la historia,
+no como algo que se paso por alto.
+
+**Lo que confirma.** Un criterio de aceptacion escrito **antes** del codigo, y
+redactado como una comprobacion ejecutable en vez de como una intencion, es lo
+unico que separo a este proyecto de publicar un numero inflado. El criterio
+tambien fallaba contra la version escrita del propio CA-2, que decia "ultimo":
+la correccion esta fechada al pie de
+`docs/evidencias/objetivos/H3.8-criterios-aceptacion.md`, sin reescribir el
+texto original.
+
+---
+
+## I-34 · Quien escribe en incendio se decidio por 0.0024 de F1-macro
+
+**Fecha.** 2026-09-04.
+
+**Quien lo detecto.** Alejandro, leyendo la tabla externa de H3.8 despues de
+aplicar los hiperparametros afinados.
+
+**Que paso.** En incendio, D-39 cambio de escritor: escribia la climatologica y
+pasa a escribir la regresion logistica. El cambio no viene de que la regresion
+logistica haya demostrado nada -paso de 0.5351 a 0.5299, o sea empeoro- sino de
+donde quedo el borde de la banda de ruido:
+
+| estimador | media | rango | banda ≥ 0.5020 |
+|---|---|---|---|
+| random forest afinado | 0.5567 | 0.0547 | dentro |
+| xgboost afinado | 0.5440 | 0.0567 | dentro |
+| regresion logistica afinada | 0.5299 | 0.0607 | dentro, **escribe** |
+| **climatologica** | **0.4996** | 0.1383 | **fuera por 0.0024** |
+| trivial | 0.4938 | 0.0085 | piso |
+
+**Causa raiz.** `elegir_escritor` arma la banda con el rango **del primero**:
+`media_del_primero - rango_del_primero`. La pertenencia a la banda es un umbral
+duro, y el rango del candidato excluido no interviene. Entonces:
+
+  1. **Un estimador que no escribe puede cambiar quien escribe.** Lo que movio
+     el techo fue el bosque afinado, que no escribe -no es el mas simple dentro
+     de la banda-. Su mejora saco a la climatologica de la banda y ascendio a un
+     tercero.
+  2. **La exclusion puede descansar en menos de lo que se mueve el excluido.**
+     La climatologica quedo fuera por 0.0024 y se mueve 0.1383 entre pliegues:
+     cincuenta y siete veces el margen que la excluyo.
+  3. Es la misma objecion que el proyecto ya tiene escrita -«un tercer decimal
+     no justifica un modelo mas grande»- aplicada del otro lado de la regla. El
+     desempate por simplicidad se escribio para que los decimales no decidieran,
+     y el borde de la banda los deja decidir igual, un paso antes.
+
+**Accion tomada.** Registrar, y **no arreglarlo en H3.8**. La regla se cambiaria
+con el resultado que incomoda a la vista, que es el error que D-42 y CA-2 de esa
+misma historia existen para impedir. D-42 decide aplicar D-39 tal como esta.
+
+**Lo que queda propuesto**, para decidirse por sus propios meritos:
+
+  1. Que la exclusion de la banda tenga que superar **la dispersion del
+     excluido**, no solo la del primero: un candidato queda fuera cuando
+     `media < primero.media - primero.rango` **y** ademas
+     `primero.media - candidato.media > candidato.rango`. Aplicada a mano a las
+     **cuatro** tablas de la corrida de H3.8 -de fabrica y afinada, para los dos
+     eventos- la climatologica vuelve a escribir en incendio y las otras tres
+     decisiones no cambian. **No esta comprobado contra las tablas anteriores**
+     ni contra la primera de H3.6, del 2026-08-27: eso es parte de lo que
+     tendria que hacer la historia que lo tome.
+  2. O declarar un margen minimo absoluto por debajo del cual dos estimadores se
+     consideran iguales, en la escala de F1-macro de este problema.
+
+La primera es preferible porque no agrega un numero magico: usa la dispersion
+que ya se mide. Cualquiera de las dos toca `elegir_escritor`, que es el corazon
+de D-39, asi que **necesita su propia historia, su ADR y su ronda de sabotaje**,
+y hay que correrla contra todas las tablas ya publicadas para ver que decisiones
+pasadas cambiarian.
+
+**Lo que confirma.** Un desempate escrito para que los decimales no decidan
+puede, en su implementacion, dejar que los decimales decidan en otro lugar. La
+regla se probo con tablas armadas a mano donde el borde estaba lejos; el primer
+dato real que puso un estimador a 0.0024 del borde fue el que lo mostro.
+
+---
+
+## I-35 · `.gitignore` filtraba `.env` exacto, y un archivo con credenciales reales no estaba ignorado
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, al preguntar por que su archivo de credenciales
+de Railway aparecia en `git status`.
+
+**Que paso.** El runbook de H11.6 -en su primera version, corregida despues por
+I-36- indicaba copiar `.env` a `.env.railway` y poner ahi los valores de la base
+de la nube. Alejandro lo hizo. El archivo quedo con la contrasena del
+superusuario de PostgreSQL, las de los tres roles de aplicacion, la clave de
+FIRMS y las credenciales de Copernicus.
+
+`.gitignore` tenia esta linea:
+
+```
+.env
+```
+
+Eso ignora **un archivo llamado exactamente `.env`**. `.env.railway` no coincide,
+asi que **no estaba ignorado**: salia en `git status` como archivo sin seguir, y
+un `git add -A` lo habria puesto en el indice sin que nadie lo notara.
+
+**Causa raiz.** La regla se escribio pensando en **el** archivo de entorno, en
+singular, cuando todavia habia uno solo. En cuanto aparecio un segundo entorno
+-la nube- la regla dejo de cubrir el caso sin que nada avisara. Un `.gitignore`
+que no cubre un archivo se comporta exactamente igual que uno que si lo cubre:
+en silencio.
+
+**Por que no lo encontro ninguna comprobacion.** No habia ninguna. `verificar_h116.py`
+busca cadenas de conexion y contrasenas **en los archivos versionados**; un
+archivo sin seguir no esta versionado todavia, que es justo el momento en el que
+hay que atraparlo.
+
+**Accion tomada.**
+
+  1. `.gitignore` pasa a:
+
+     ```
+     .env
+     .env.*
+     !.env.example
+     ```
+
+     con el motivo escrito en un comentario ahi mismo, para que el dia que
+     alguien quiera simplificarlo lea primero por que no.
+  2. El runbook **deja de pedir un archivo** para apuntar a la nube: el paso 4
+     usa variables de sesion de PowerShell, que no tocan el disco. El unico
+     archivo que queda es `.env.destino` del paso 5 -donde de verdad hacen falta
+     dos bases a la vez- y el runbook dice que se borra al terminar.
+  3. Las credenciales expuestas de servicios externos -Copernicus y FIRMS- se
+     rotan. Las de la base se rotan al quitar el TCP proxy.
+
+**Lo que esto no arregla, y queda anotado.** `.gitignore` **no tiene dueno
+declarado** en `docs/07-propiedad-archivos.md`: no esta en la tabla de carpetas
+ni en la lista de archivos compartidos. Es la misma clase de hueco que tenia
+`datos/` antes del 20 de agosto, y se anota igual: un archivo de raiz que
+protege a los cuatro y que nadie es responsable de revisar.
+
+**Lo que confirma.** Un control de seguridad se prueba con el caso que **no**
+cubre, no con el que cubre. `git check-ignore .env` respondia que si, y esa
+respuesta era cierta y no servia de nada.
+
+---
+
+## I-36 · Se purgo el volumen de PostgreSQL antes de desplegar la imagen nueva
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** La salida de `CREATE DATABASE`, al primer intento despues
+del purgado.
+
+**Que paso.** El servicio `postgis` de Railway se creo desde una plantilla que
+apunta a una etiqueta `-master` de la imagen `postgis/postgis`. Al preparar la
+base, `infra/preparar_base.py` informo:
+
+```
+postgis 3.7.0dev
+```
+
+`3.7.0dev` es una construccion de la rama de desarrollo de PostGIS: no tiene
+version publicada que citar en un documento tecnico. Se decidio fijar la imagen
+en `postgis/postgis:16-3.5` -version publicada, y misma version mayor de
+PostgreSQL que la base local del equipo-.
+
+Para que el cambio tomara efecto hay que reinicializar el directorio de datos,
+asi que se purgo el volumen. **Se purgo antes de que el cambio de imagen se
+hubiera desplegado.** El servicio reinicio, corrio `initdb` **con la imagen
+vieja**, y recien despues Railway aplico la imagen nueva:
+
+```
+psycopg.errors.InternalError_: template database "template1" has a collation
+version mismatch
+DETAIL: The template database was created using collation version 2.41, but the
+operating system provides version 2.31.
+```
+
+Y en cadena, el paso siguiente:
+
+```
+psycopg.errors.OperationalError: database "geoguardian" does not exist
+```
+
+**Causa raiz.** Un directorio de datos de PostgreSQL guarda la version de la
+biblioteca de intercalacion del sistema con la que se creo. Las dos imagenes se
+construyen sobre versiones distintas de Debian, con versiones distintas de esa
+biblioteca. Un directorio inicializado por una y servido por la otra queda
+inconsistente, y PostgreSQL lo detecta y se niega -correctamente- a crear bases
+a partir de una plantilla en ese estado.
+
+El error no fue de Railway ni de la imagen: fue **de orden**. Las dos operaciones
+-cambiar la imagen y purgar el volumen- son correctas cada una; hacerlas al reves
+no lo es.
+
+**Por que no estaba escrito.** Porque el runbook describia como armar los
+servicios desde cero, donde el volumen nace vacio con la imagen ya elegida y el
+problema no existe. **No cubria el caso de cambiar la imagen de un servicio que
+ya tiene datos**, que es exactamente el caso que se presento.
+
+**Accion tomada, y el segundo error dentro del primero.** El arreglo obvio era
+purgar otra vez, ahora con la imagen correcta desplegada. Antes de eso se probo
+la pista del propio servidor, `REFRESH COLLATION VERSION`, que sobre un cluster
+recien inicializado es segura: no hay ningun indice de texto que pueda quedar mal
+ordenado, solo catalogos del sistema, y la base nueva se crea **despues**,
+copiada de una `template1` ya corregida.
+
+El intento fallo con `ERROR: invalid collation version change`, y **eso se leyo
+como que el camino no servia**. No era eso. Los registros de despliegue de
+Railway traen la sentencia exacta:
+
+```
+2026-09-05 05:03:18.695 UTC [201] ERROR: invalid collation version change
+2026-09-05 05:03:18.695 UTC [201] STATEMENT: ALTER DATABASE template0 REFRESH COLLATION VERSION
+```
+
+**Fallo en `template0`, no en `template1`.** `template0` es la copia congelada de
+reserva de PostgreSQL: no acepta conexiones y no se modifica, por diseno. Y no
+hacia falta, porque `CREATE DATABASE` copia de `template1` -que en ese mismo
+intento **si** se habia refrescado, y dejo de aparecer en los avisos del log
+desde ese segundo-. Las cuatro sentencias iban en una sola linea, asi que la
+excepcion corto todo antes del `CREATE DATABASE`.
+
+Quitando `template0`, la base se crea y el purgado no hizo falta. El runbook
+recoge las dos cosas: la secuencia imagen → desplegar → purgar, y la salida sin
+purgar con su advertencia de que **solo vale para un cluster vacio**.
+
+**Lo que confirma.** Dos cosas, y la segunda importa mas.
+
+Un procedimiento escrito para el camino feliz -crear desde cero- no cubre el
+camino que de verdad se recorre, que casi siempre es corregir algo ya creado. El
+runbook existe para que otro pueda repetirlo, y lo que otro va a repetir incluye
+los cambios de opinion.
+
+Y: **un error de una sentencia se leyo como el veredicto de las cuatro.** Cuatro
+sentencias en una linea devuelven un solo mensaje, y ese mensaje no dice cual
+fallo. La respuesta no estaba en razonar mejor sobre el error, estaba en los
+registros del servidor, que traen la sentencia exacta. Cuando algo falla, el dato
+que falta casi siempre esta escrito en algun lado; la tentacion es deducirlo.
+
+---
+
+## I-37 · `analitico.riesgo` quedo con dos escritores para el mismo evento
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** `contar_riesgo.py`, al mirar la tabla despues de aplicar
+D-42 y antes de copiarla a la nube.
+
+**Que paso.** D-42 aplico los hiperparametros afinados de H3.8. En incendio eso
+cambio al escritor: la climatologica quedo fuera de la banda por 0.002 y paso a
+escribir la regresion logistica. Despues de correr la tuberia:
+
+```
+incendio  linea_base_climatologica    1962 filas  1991-01-01 .. 2026-09-10
+incendio  regresion_logistica        37149 filas  1991-01-30 .. 2024-12-24
+```
+
+**Dos escritores para el mismo evento.** Y no en cualquier parte: la regresion
+logistica llega hasta 2024-12-24, asi que **todas las fechas posteriores -hoy
+incluido, que es la que el visor muestra por omision- seguian servidas por un
+estimador que D-39 ya no elige.**
+
+**Causa raiz.** `estimar_riesgo.py` escribe con `ON CONFLICT` sobre la clave
+natural. Eso lo hace idempotente -correrlo dos veces no cambia nada, que es lo
+que CA-16 de H3.6 exige- pero **el escritor solo pisa sus propias filas: no borra
+las que ya no cubre**. Mientras el escritor de un evento no cambiara, el defecto
+no existia. Cambio por primera vez esta noche.
+
+El cambio de escritor tambien **acorta el horizonte**: la climatologica solo
+necesita el calendario y escribia hasta hoy mas siete; la regresion logistica
+necesita la matriz de caracteristicas y no puede escribir un dia sin ella. Eso
+esta en el encabezado del guion desde H3.6, pero **su consecuencia -que el mapa
+de incendios se queda sin dato reciente- no estaba escrita en ninguna parte**, ni
+en D-42 ni en I-34.
+
+**Accion tomada.** `estimar_riesgo.py` retira, despues de escribir un evento, las
+filas de ese evento que dejo otro escritor. Un evento, un escritor. Medido:
+
+```
+  retiradas               1962 de un escritor anterior
+  auditoria (H1.13): DELETE=1962, UPDATE=282898
+```
+
+El borrado dispara `riesgo_auditoria_tg`, que es `AFTER DELETE OR UPDATE`, asi
+que la historia guarda que esas filas existieron y cuando dejaron de existir. No
+se apaga: eso es lo que queremos.
+
+**Lo que NO hace, a proposito.** Cuando el veredicto es que **nadie** escribe -el
+caso de sequia por D-34- no borra nada: solo avisa si quedaron filas de una
+corrida anterior. Un borrado masivo disparado por un veredicto que puede moverse
+con el ruido seria peor que el problema que arregla.
+
+**Lo que confirma.** Un guion idempotente no es lo mismo que un guion correcto.
+`ON CONFLICT` garantiza que correr dos veces no cambie nada, y esa garantia se
+lee como si dijera que la tabla queda consistente. Dice menos: queda consistente
+**mientras nadie cambie de escritor**. La propiedad que faltaba -un evento, un
+escritor- nunca se habia escrito, asi que nada podia comprobarla.
+
+---
+
+## I-38 · Los guiones de conteo no decian a que base le preguntaban
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Un `KeyError` de un comando distinto, en el mismo bloque.
+Por casualidad.
+
+**Que paso.** El CA-4 de H11.6 se demuestra corriendo `contar_ingesta.py` y
+`contar_riesgo.py` **contra las dos puntas** -la base local y la publicada- y
+comparando. La segunda corrida se hizo en la ventana equivocada, sin las
+variables que apuntan a la nube, asi que `conectar()` cayo en `.env` y le
+pregunto **otra vez a la base local**.
+
+Las cifras coincidieron. Por supuesto que coincidieron: eran la misma base.
+
+La unica senal fue que un tercer comando del mismo bloque -uno que leia
+`os.environ['POSTGRES_HOST_LOCAL']` directamente- reventó con `KeyError`. Sin esa
+casualidad, esas dos salidas se archivaban como evidencia de que el origen y el
+destino cuadran.
+
+**Causa raiz.** Los dos guiones imprimen numeros y **no imprimen la fuente**. Una
+salida asi no puede sostener la afirmacion «las dos puntas coinciden»: dos
+corridas contra la misma base se ven exactamente igual que dos corridas contra
+bases distintas que cuadran. Y se ven **mejor**, porque cuadran siempre.
+
+Es la forma mas peligrosa de fallar que tiene una evidencia: **no falla**.
+
+**Accion tomada.**
+
+  1. Los dos guiones imprimen una primera linea con la base, el servidor, el
+     puerto y el usuario, **tomados de la conexion abierta** -`current_database()`,
+     `inet_server_addr()`- y no de las variables de entorno, que es justo lo que
+     estaba mal.
+  2. Los dos aceptan `--destino <archivo>`, que exige **las cinco** claves de
+     conexion. Si falta una **no se hereda de `.env`**: se planta y dice cual.
+     Heredar una sola es como se termina preguntandole a la base equivocada -host
+     de la nube con la base local, o al reves- sin enterarse.
+  3. La logica vive en `docs/herramientas/apuntar.py`, con este caso escrito en
+     su encabezado.
+
+**Lo que confirma.** Una comprobacion que compara dos cosas tiene que decir
+**cuales dos**. Si no lo dice, lo mas probable es que este comparando una con
+ella misma, porque esa es la configuracion mas facil de alcanzar por error: es la
+que se obtiene sin hacer nada.
+
+---
+
+## I-39 · El visor llevaba dos horas "Online" sin haber servido una sola peticion
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, pidiendo `/api/salud` por curiosidad. Nada lo
+vigilaba.
+
+**Que paso.** El servicio del visor en Railway mostraba **`Online`** y su
+despliegue **`Deployment successful`**. Al pedirle cualquier cosa, la respuesta
+era de la puerta de entrada de Railway, no del visor:
+
+```json
+{"status": "error", "code": 502, "message": "Application failed to respond"}
+```
+
+En los registros de despliegue, repetido **una vez por segundo durante dos
+horas**:
+
+```
+10-resolver.sh: resolver -> fd12::10
+nginx: [emerg] invalid port in resolver "fd12::10" in /etc/nginx/conf.d/resolver.conf:1
+```
+
+nginx arrancaba, moria, el contenedor reiniciaba, y otra vez.
+
+**Causa raiz.** `frontend/docker-entrypoint.d/10-resolver.sh` lee los
+`nameserver` de `/etc/resolv.conf` y escribe la directiva `resolver` de nginx.
+**El DNS interno de Railway es IPv6** (`fd12::10`), y nginx exige que una
+direccion IPv6 vaya **entre corchetes**: sin ellos lee los dos ultimos
+caracteres como un puerto y se niega a arrancar.
+
+En Docker el DNS es `127.0.0.11` y en k3d es una IP del cluster: **las dos
+IPv4**. El guion vivio un mes sin encontrarse nunca con el caso.
+
+Comprobado contra nginx de verdad, las cuatro formas:
+
+```
+resolver fd12::10               -> emerg: invalid port in resolver "fd12::10"
+resolver [fd12::10]             -> ARRANCA
+resolver 127.0.0.11             -> ARRANCA
+resolver [fd12::10] 127.0.0.11  -> ARRANCA
+```
+
+La primera reproduce el error de Railway; las otras tres muestran que el arreglo
+no rompe lo que ya funcionaba.
+
+**El comentario del guion tampoco ayudo.** Decia que se toman todas las
+direcciones «IPv4 e IPv6, sin filtrar ninguna: nginx acepta las dos familias».
+Es cierto y no alcanza: nginx acepta IPv6 **entre corchetes**. Una afirmacion a
+medias se lee igual que una entera, y esa frase venia de la revision de SC-07,
+que corrigio un comentario falso por otro incompleto.
+
+**Accion tomada.** El `awk` pone corchetes a cualquier direccion que contenga
+`:` y no los traiga ya. El error real y las cuatro formas quedan citados en el
+comentario, no descritos.
+
+**Lo que confirma, y es lo que importa de esta incidencia.**
+
+**«Deployment successful» y «Online» no son evidencia de que un servicio
+funcione.** Railway marca exito porque el contenedor **arranca**; que el proceso
+se muera un segundo despues no lo mira. Durante dos horas leimos ese `Online` en
+la consola como si dijera algo, y lo unico que decia era que el contenedor
+existia.
+
+Es el mismo error que I-25 -un flujo que declara un entorno y sale verde aunque
+el entorno no exista- y que I-30 -`/salud` afirmando que la base no esta
+conectada mientras servia 143 407 filas de ella-. Tres veces el mismo patron:
+**un indicador que informa sobre si mismo en vez de sobre el sistema.**
+
+La leccion operativa es corta: **la unica comprobacion de que un servicio
+publicado funciona es pedirle algo y mirar lo que contesta.** Es el CA-1 y el
+CA-5 de esta historia, y por eso estan escritos como peticiones y no como
+estados de la consola.
+
+### Segunda parte de I-39: nginx arrancaba y seguia sin contestar
+
+Con el resolver corregido y desplegado, los registros mostraban a nginx sano:
+
+```
+2026/09/05 07:48:15 [notice] 1#1: start worker process 34
+2026/09/05 07:48:15 [notice] 1#1: start worker process 37
+```
+
+Y el sitio seguia devolviendo el mismo 502 de la puerta de entrada de Railway.
+**Dos causas distintas, un solo sintoma.**
+
+`frontend/nginx.conf.template` declaraba `listen 80;` y nada mas. Eso escucha
+**solo en IPv4**. En Docker y en k3d alcanza, porque quien conecta llega por
+IPv4. La red de Railway es IPv6 -la misma propiedad que rompio el resolver-, asi
+que nginx aceptaba conexiones en una familia a la que nadie llamaba.
+
+**El aviso estaba en los registros desde el primer despliegue**, y lo dimos por
+ruido:
+
+```
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs
+from the packaged version
+```
+
+Ese guion de la imagen oficial existe para agregar `listen [::]:80;`, y **se
+abstiene cuando la configuracion no es la que ella empaqueta**. La nuestra sale
+de nuestra plantilla, asi que nunca la agrego. La linea decia exactamente eso,
+en nivel `info`, entre cuarenta lineas de arranque.
+
+**Accion tomada.** La plantilla declara las dos: `listen 80;` y
+`listen [::]:80;`, con el porque escrito arriba.
+
+**Lo que confirma.** Un mensaje de nivel `info` que explica por que un ajuste
+**no** se aplico es un aviso, no ruido. Y arreglar la primera causa de un
+sintoma no lo hace desaparecer: el 502 seguia igual, y la tentacion inmediata
+fue pensar que el arreglo del resolver no habia servido. Habia servido; faltaba
+la otra mitad.
+
+---
+
+## I-40 · El minimo privilegio dejo a la API sin poder llamar a PostGIS
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, abriendo el sitio recien publicado. El visor daba
+error y `/api/salud` decia `real`.
+
+**Que paso.** Con el visor por fin sirviendo, `/api/distritos` devolvia
+`Internal Server Error` mientras `/api/salud` respondia bien. Preguntando a la
+base **como el rol de la API**:
+
+```
+SELECT count(*) FROM geo.distrito                  -> 8
+SELECT count(*) FROM analitico.riesgo              -> 141461
+SELECT postgis_version()                           -> function postgis_version() does not exist
+SELECT ST_AsGeoJSON(geometria) FROM geo.distrito   -> function st_asgeojson(public.geometry) does not exist
+has_schema_privilege('api_geoguardian','public','USAGE') -> false
+```
+
+**Causa raiz.** La migracion 003 cierra el esquema `public` con
+`REVOKE ALL ... FROM PUBLIC`, que es correcto y necesario. Pero **PostGIS se
+instala en `public`**: ahi viven sus funciones y el tipo `geometry`. Sin `USAGE`
+sobre ese esquema, un rol lee las tablas perfectamente y no resuelve una sola
+funcion espacial.
+
+`SQL_DISTRITOS` hace `ST_AsGeoJSON(geometria)`. De ahi el 500 con la tabla
+legible, la conexion sana y `/salud` diciendo `real`.
+
+**Por que no lo vio ningun control, y esta es la incidencia de verdad.**
+
+`basedatos/seguridad/verificar_h18.py` comprueba **seis operaciones prohibidas**,
+todas rechazadas, con detalle. Y de lo **permitido**, cuatro casos: tres
+`SELECT count(*)` sobre tablas y una escritura.
+
+**Ninguno llamaba a una funcion.**
+
+El verificador estaba construido para responder «que no puede hacer este rol», y
+esa pregunta la contesta muy bien. La otra mitad -«que **si** puede hacer, de
+todo lo que necesita»- estaba cubierta por una muestra que no representaba el
+uso real: el endpoint mas visitado del sistema no hace un `count(*)`, hace una
+llamada a PostGIS.
+
+Un permiso concedido y no probado no esta concedido. Y un permiso **no**
+concedido y no probado tampoco se nota, que es lo que paso durante semanas.
+
+**Accion tomada.**
+
+  1. `basedatos/ddl/015_usage_public_para_postgis.sql` concede `USAGE` sobre
+     `public` a los tres roles de aplicacion, con guarda por si los roles todavia
+     no existen. **No devuelve nada a `PUBLIC` y no concede `CREATE`.**
+  2. `verificar_h18.py` gana tres casos en la lista de PERMITIDAS: la API llama a
+     `postgis_version()`, la API hace `ST_AsGeoJSON` sobre `geo.distrito`, y el
+     ETL llama a `postgis_version()`.
+
+Medido contra un PostgreSQL 16 real, provocando el estado de la nube:
+
+```
+antes de la 015   has_schema_privilege(api, public, USAGE)  -> f
+despues           has_schema_privilege(api, public, USAGE)  -> t
+PUBLIC sigue sin USAGE                                      -> f
+el rol sigue sin CREATE                                     -> f
+```
+
+Y aplicandola dos veces seguidas, sin error: la migracion es idempotente.
+
+**No era un accidente del despliegue: la base local tiene el mismo hueco.**
+
+Medido el 2026-09-05 contra el contenedor local, preguntando por los roles de
+grupo -que son donde viven los permisos y los unicos que existen en las dos
+bases-:
+
+```
+USAGE sobre los esquemas
+  NO  public     geoguardian_api
+  NO  public     geoguardian_etl
+  NO  public     geoguardian_lector
+```
+
+Los tres, en las dos bases. Asi que **015 no arregla la nube: arregla el
+proyecto**, y el defecto lleva ahi desde que la 003 cerro `public`.
+
+Por que nunca se noto en local: **todo lo que se corre en una maquina de
+desarrollo se conecta como `geoguardian`**, que es el dueno de la base. El ETL,
+los guiones de modelado, los verificadores. El unico que usa el rol de la
+aplicacion es la API, y la API en local tambien corria como `geoguardian` salvo
+que alguien pusiera `POSTGRES_USER` a mano.
+
+**El primer consumidor real del minimo privilegio fue el despliegue publico**, y
+por eso el defecto aparecio ahi. No porque la nube fuera distinta: porque fue la
+primera vez que alguien uso el rol para el que se diseno.
+
+**La deriva que esto deja, dicha.** El 2026-09-05 el `GRANT` se aplico **a mano**
+sobre la base publicada, porque el sitio estaba roto y el numero de migracion
+dependia de que entrara antes el PR #262. Durante ese rato la base de la nube
+tuvo un cambio que `control.migracion` no registraba -exactamente la clase de
+deriva que ese registro existe para evitar-. Se cierra al aplicar la 015.
+
+**Lo que confirma.** Un control que solo mira un lado de una regla la comprueba a
+medias, y la mitad que falta no avisa: **no falla, simplemente no mira**. H1.8
+pregunta «que esta prohibido» con rigor y «que esta permitido» con una muestra, y
+la muestra no incluia la operacion mas comun del sistema.
+
+---
+
+## I-41 · `/api/salud` declaraba que no tenia base mientras servia datos de la base
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro y Claude, revisando el sitio publicado despues de
+promover a `main`. Nadie lo buscaba: se abrio `/api/salud` de paso.
+
+**Que paso.** Dos endpoints del mismo proceso, en la misma peticion de red,
+contestando cosas incompatibles:
+
+```
+GET /api/distritos  ->  los 8 distritos con su geometria real, leidos de PostgreSQL
+GET /api/salud      ->  {"modo": "real",
+                         "base_datos_conectada": false,
+                         "ultima_ingesta": null}
+```
+
+`modo` decia la verdad. Los otros dos campos no. La base estaba conectada -lo
+demuestra el endpoint de al lado- y la ingesta habia corrido ocho veces.
+
+**Causa raiz.** Los dos campos eran constantes escritas a mano en `rutas.py`:
+
+```python
+# Esta historia no abre conexion a PostgreSQL: eso es H6.2. Declararlo
+# falso es la respuesta honesta, no un valor pendiente.
+base_datos_conectada=False,
+ultima_ingesta=None,
+```
+
+**El comentario era cierto el dia que se escribio.** H6.1 servia el simulado y no
+abria ninguna conexion; declarar `false` era mas honesto que dejar el campo a
+medias. **H6.2 cerro el 2026-08-27** y trajo el repositorio contra PostgreSQL.
+Nadie volvio a esas dos lineas. La API sirvio datos reales durante nueve dias
+declarando que no tenia base de datos.
+
+Es la clase de defecto que no nace de un descuido sino de una verdad que caduca:
+nadie escribio nada falso, y sin embargo quedo escrito algo falso.
+
+**El campo de al lado hacia lo correcto, y esa es la parte incomoda.** En el mismo
+`Salud`, `modo` se calcula preguntandole a la implementacion que efectivamente
+contesto, y `dependencias.py` explica por que con todas las letras:
+
+> «Se pregunta por la implementacion y no por una variable de entorno **para que
+> la respuesta de /salud no pueda mentir**.»
+
+El criterio estaba escrito, argumentado y aplicado a un campo de tres.
+
+**Por que no lo vio ningun control, y esta es la incidencia de verdad.**
+
+`verificar_h61.py` si preguntaba por `base_datos_conectada`. En **CA-8**, que
+corre contra el **simulado**, donde `False` es la respuesta correcta: no hay
+ninguna base detras. Ese criterio estuvo en verde todo el tiempo y seguia
+teniendo razon.
+
+**CA-7** es el que sustituye la implementacion por una real -es su unico
+proposito- y de `/salud` miraba **solo `modo`**. Nadie, en ningun momento, le
+pregunto a la API que decia de su base **cuando si tenia una**.
+
+Los dos criterios existian, los dos pasaban, y entre los dos quedaba un hueco del
+tamano exacto del defecto.
+
+**Y la intencion estaba escrita en la base de datos.** La migracion 013, de
+H1.14, dejo este comentario sobre su indice:
+
+```sql
+-- «La ultima corrida exitosa de este proceso» es la consulta que decide la
+-- ventana de cada corrida y la que /salud va a hacer.
+```
+
+El indice se creo el 2026-08-27. La consulta que iba a usarlo no se escribio
+nunca. Un comentario en futuro, en un archivo aplicado, sin nada que comprobara
+que ese futuro llegara.
+
+**Accion tomada.**
+
+  1. `dependencias.py` gana `base_conectada()` y `ultima_ingesta_de()`, **al lado
+     de `modo_de` y con el mismo criterio**: se le preguntan a la implementacion.
+     Es el unico archivo del proyecto autorizado a saber cual esta activa.
+  2. `repositorio_postgres.py` gana `esta_viva()` y `ultima_ingesta()`.
+  3. `rutas.py` deja de escribir constantes: los **tres** campos se preguntan.
+  4. **CA-7 pregunta por los tres.** El doble de prueba declara `CONECTADA = True`
+     y una fecha concreta, elegidas distintas de las constantes viejas: con
+     `False` y `None` puestos, el criterio se pone rojo.
+
+**Las dos consultas son dos y no una, a proposito.** Si la de la ingesta hiciera
+tambien de sonda de conexion, un `permission denied` sobre `control.bitacora_etl`
+se reportaria como «base no conectada»: otra respuesta falsa, en lugar de la que
+se estaba arreglando.
+
+**El filtro por `ingesta.%` no es adorno, y esta medido.** H12.1 va a escribir
+filas con `proceso = 'api'` (D-44). Sobre un PostgreSQL 16.15 con la tabla de la
+013, insertando una fila de la API despues de las ocho de ingesta:
+
+```
+con    LIKE 'ingesta.%'   ->  2026-09-04 09:07   la ultima ingesta de verdad
+sin el filtro             ->  2026-09-05 21:00   la ultima vez que la API se anoto
+```
+
+Sin el filtro, el dia que D-44 entre, `ultima_ingesta` cambiaria de significado
+**sin que nadie tocara el contrato ni esta funcion**.
+
+**Sobre el indice de la 013, medido y no supuesto.** Sobre 200 000 filas:
+
+```
+WHERE proceso = 'ingesta.sequia'   Index Scan          0.08 ms
+WHERE proceso LIKE 'ingesta.%'     Parallel Seq Scan  16.6 ms
+WHERE proceso IN (los tres)        Parallel Seq Scan  17.3 ms
+```
+
+El indice sirve la pregunta del ETL -«la ultima corrida de **este** proceso»-,
+que es igualdad. La de `/salud` es «la ultima de **cualquier** ingesta», y ni el
+`LIKE` ni la lista explicita la vuelven indexable. Se deja el recorrido
+secuencial y se dice: son 17 ms sobre doscientas mil filas, la tabla tiene ocho,
+y la consulta se hace una vez al cargar la pagina.
+
+**Probado contra un PostgreSQL 16 de verdad**, tambien con la base caida:
+
+```
+  esta_viva()      -> True
+  ultima_ingesta() -> 2026-09-05 21:52:50+00:00
+
+  -- se cierra la conexion por debajo --
+  esta_viva()      -> False              no lanza: /salud tiene que poder decir que no
+  ultima_ingesta() -> OperationalError   no finge None
+```
+
+`ultima_ingesta()` **propaga** el error en vez de devolver `None` porque el
+contrato define `None` como «nunca se ejecuto». Devolverlo ante un fallo seria
+volver a poner la mentira, con otra forma.
+
+**Los tres sabotajes, y ninguno paso en verde** (`gestion/sabotear_i41.py`):
+
+```
+1. base_datos_conectada vuelve a la constante False   -> CA-7 NO CUMPLE
+2. ultima_ingesta vuelve a la constante None          -> CA-7 NO CUMPLE
+3. base_conectada contesta True sin preguntar         -> CA-8 NO CUMPLE
+```
+
+El tercero hace falta tanto como los dos primeros: contestar `True` siempre
+tambien es no preguntar, y lo atrapa el criterio del **simulado**, no el de la
+implementacion real. Un arreglo probado solo por el lado que se rompio se puede
+«arreglar» con la constante contraria.
+
+**Lo que confirma.** Un comentario que explica por que algo es cierto **hoy** es
+una fecha de caducidad sin escribir. El de `rutas.py` nombraba a H6.2 -la
+historia que lo iba a invalidar- y aun asi sobrevivio nueve dias a que H6.2
+cerrara. La unica defensa que funciona no es el comentario: es que un criterio
+pregunte por el valor en el escenario donde la respuesta cambia. CA-8 preguntaba
+en el escenario donde no cambiaba.
+
+**Un permiso que este arreglo da por dado, y que ahora se prueba.** `/salud`
+pasa a leer `control.bitacora_etl`. El `GRANT SELECT` lo pone la migracion 013,
+**dentro de un `DO $$` con guarda por rol**: si esa guarda no se cumplio en alguna
+base, el permiso no esta. Y el sintoma seria caro: `/salud` devolviendo 500 y el
+visor cayendo **en silencio** al respaldo de datos simulados, porque
+`cliente.js` trata cualquier respuesta no-OK como «la API no esta».
+
+Es I-40 otra vez, un paso antes. Asi que el permiso no se supone: entra como caso
+en la lista de PERMITIDAS de `verificar_h18.py`, que corre contra las dos bases
+con el rol de la aplicacion.
+
+**Comprobado sobre una base construida desde cero**, PostgreSQL 16.15 con PostGIS
+3.4: las **catorce** migraciones aplicadas en orden -lo que de paso vuelve a
+probar la 015 de I-40 en una cadena limpia-, los usuarios creados con
+`crear_usuarios.py`, y el verificador corrido como los roles de aplicacion:
+
+```
+Aplicando 001 ... ok   (las catorce, en orden)
+Aplicadas 14 migraciones.
+
+CA-3/4 · Lo permitido funciona ... CUMPLE
+  [ok ] api  leer control.bitacora_etl, que es lo que /salud consulta
+```
+
+**Y el control sabe decir que no.** Quitando el `GRANT` que pone la 013:
+
+```
+REVOKE SELECT ON control.bitacora_etl FROM geoguardian_api;
+
+CA-3/4 · Lo permitido funciona ... NO CUMPLE
+  [MAL] api  leer control.bitacora_etl: permission denied for table bitacora_etl
+CA-5 · Toda operacion prohibida es rechazada ... CUMPLE
+```
+
+CA-5 sigue en verde en las dos corridas: el caso nuevo no abre nada, solo mira.
+
+**Lo que queda.** Aplicar esto a la nube es un despliegue, no una migracion: no
+toca el esquema. Antes de desplegarlo hay que correr `verificar_h18.py` contra
+Railway: si ese caso nuevo sale rojo, el `GRANT` de la 013 no llego a la nube y
+esto **no se despliega** hasta arreglarlo. Y queda un limite dicho: **que el filtro `ingesta.%` siga siendo
+el correcto no lo comprueba ningun criterio automatico**, porque hacen falta filas
+de dos procesos distintos y `verificar_h61.py` corre sin base a proposito. La
+historia que introduce el segundo proceso es H12.1, asi que la comprobacion
+corresponde a la **Medicion de D-44**, y va avisado en el mensaje a Luna.
+
+---
+
+## I-42 · «Cluster created successfully» no significa que la API conteste
+
+**Fecha.** 2026-09-05.
+
+**Quien lo detecto.** Alejandro, al aprobar los entornos de la corrida `CD #11`
+(33993914209). Produccion salio en rojo a los 27 segundos.
+
+**Que paso.** El paso «Crear el cluster», de la accion compuesta
+`preparar-cluster`, era:
+
+```bash
+k3d cluster create geoguardian-ci --agents 0 --wait --timeout 180s
+kubectl cluster-info
+kubectl get nodes
+```
+
+Y el registro:
+
+```
+INFO[0019] Cluster 'geoguardian-ci' created successfully!
+INFO[0019] You can now use it like this:
+kubectl cluster-info
+E0905 22:44:28.545593  memcache.go:381] "Couldn't get current server API group list"
+                       err="the server is currently unable to handle the request"
+Error from server (ServiceUnavailable): the server is currently unable to handle the request
+Error: Process completed with exit code 1.
+```
+
+**Causa raiz.** El `--wait` de k3d espera a que **arranque el contenedor del
+servidor**. La API de Kubernetes empieza a contestar despues. El
+`kubectl cluster-info` de la linea siguiente pregunto nueve milisegundos mas
+tarde, recibio `ServiceUnavailable`, y **esa respuesta unica se tomo como
+veredicto**.
+
+**Que lo confirma como carrera y no como configuracion rota.** En la misma
+corrida, con la misma accion compuesta y el mismo runner:
+
+```
+Desplegar a desarrollo (H11.2)   2m  2s   ok
+Desplegar a pruebas (H11.3)      2m  9s   ok
+Desplegar a produccion (H11.4)      27s   FALLA
+```
+
+Los tres hacen exactamente lo mismo -para eso la accion es compuesta y no esta
+copiada tres veces, que es I-21-. Dos pasaron y uno no. Por eso aparecia una vez
+de cada tantas y por eso no se habia visto antes.
+
+**Lo que esta corrida NO dice.** Todos los pasos posteriores figuran en **0 s**:
+`Establecer la revision anterior`, `Desplegar la version nueva`, `Revertir si no
+convergio`, `Comprobar lo que el despliegue promete`. **No se desplego nada y la
+reversion no se ejercito: se salto.** Asi que la corrida no dice nada sobre
+H11.4, ni a favor ni en contra. Y el cluster es efimero (D-36), asi que el sitio
+publicado en Railway no se toco: construye desde `main` por su cuenta.
+
+Se anota porque leer un CD rojo como «la reversion fallo» seria justo el error
+que este registro existe para evitar.
+
+**Es I-39 con otra cara.** Alli, Railway decia «Deployment successful» y «Online»
+mientras nginx llevaba dos horas en ciclo de reinicio sin servir una peticion.
+Aqui, k3d dice «created successfully» y la API todavia no contesta. **La misma
+frase, otro sistema**: el que arranca algo informa de que arranco, no de que
+sirve, y solo el consumidor puede decir lo segundo.
+
+**Los otros CD rojos NO son este, y conviene dejarlo escrito.**
+
+```
+CD #1  2026-09-02   manifest unknown          la era del `on: push`, cerrada en la cabecera de cd.yml
+CD #2  2026-09-02   idem, en desarrollo       misma era
+CD #5  2026-09-03   pod que se apagaba        I-28, cerrada el mismo dia
+CD #11 2026-09-05   la API no contestaba      esta
+```
+
+Se busco el patron -cuatro rojos en once corridas invita a buscarlo- y **no lo
+hay**: son cuatro causas y tres ya estaban cerradas. La primera lectura fue que
+#5 y #11 eran la misma familia; leer I-28 lo desmintio. Queda anotado porque la
+proxima persona que mire ese historial va a hacer la misma cuenta.
+
+**Accion tomada.**
+
+  1. El paso pregunta hasta que la API conteste, y si no contesta **falla
+     diciendo cuanto espero**. Un error que no trae ese numero no distingue
+     «tarda mas de lo previsto» de «no va a arrancar nunca», y las dos cosas
+     piden acciones distintas.
+  2. El limite es la variable `ESPERA_MAXIMA_API`, con 120 s por omision. No es
+     configuracion: existe para que la prueba pueda ejercitar el caso que no
+     contesta nunca sin tardar dos minutos. Es el mismo motivo por el que
+     `conectar()` recibe `espera_maxima`.
+  3. `infra/probar_espera_api.py`, tres comprobaciones, sin cluster ni red.
+
+**La prueba no ejecuta una copia del guion: lee el bloque `run:` del paso del
+`action.yml` y lo ejecuta.** Una copia se desincroniza en silencio, que es
+exactamente el motivo por el que esa accion es compuesta en vez de estar repetida
+tres veces en `cd.yml`. Lo unico que neutraliza es la linea de
+`k3d cluster create` -y falla si esa linea ya no esta, para que la prueba no siga
+verde probando algo que dejo de existir-. `kubectl` se reemplaza por un doble que
+contesta que no un numero fijo de veces y despues que si: la carrera de arriba,
+reproducida sin cluster.
+
+**LA PRUEBA NO CORRIA EN WINDOWS, Y COSTO TRES VUELTAS AVERIGUARLO.** Se anota
+entero porque el patron importa mas que cada arreglo.
+
+  1. **El bit de ejecucion.** La primera version escribia un `kubectl` falso en
+     una carpeta temporal y la ponia al frente del PATH. `Path.chmod` no concede
+     el bit de ejecucion en NTFS: bash encontraba el archivo y no podia
+     ejecutarlo -codigo 126-. Se paso a declarar `kubectl` como **funcion de
+     bash** dentro del propio guion.
+  2. **El contador en un archivo.** Guardaba la cuenta de llamadas en un archivo
+     temporal, y eso metia una ruta de Windows -`C:/Users/...`- dentro de un
+     guion que en esa maquina ejecuta **WSL**, donde esa ruta no existe. Como la
+     funcion se invoca en el mismo shell que el bucle, se paso a una variable.
+  3. **El guion como argumento.** Aun asi no terminaba: `bash -c` con este
+     guion -decenas de lineas, con acentos y comillas angulares- se colgaba,
+     mientras `bash -c 'echo HOLA'` contestaba en 0,1 s. Se paso a `bash -s`,
+     por la **entrada estandar**, donde no hay traduccion de argumentos.
+  4. **El texto en vez de bytes.** Seguia fallando, ahora con **codigo 2**. Con
+     `text=True`, Python codifica con la codificacion local -cp1252 en Windows,
+     no UTF-8- y **traduce cada salto de linea a CRLF**. bash recibia el guion en
+     CRLF y lo rechazaba como error de sintaxis. Se codifica a UTF-8 a mano.
+
+     Este si se reprodujo, mandando el mismo guion de las dos formas:
+
+     ```
+     LF   (lo que manda ahora)     -> salida 0
+     CRLF (lo que mandaba antes)   -> salida 2
+     ```
+
+Las cuatro son la misma: **lo que se le pasa a otro proceso cruza una frontera, y
+cada frontera tiene sus reglas** -y la forma de no tropezar con ellas es no dejar
+que nadie traduzca por uno-. Ninguna de las cuatro la habria visto el CI,
+que corre en `ubuntu-latest` y habria salido verde. Es la linea «funciona desde
+`docker compose up` en maquina limpia» de la Definition of Done, aplicada a una
+herramienta en vez de a una historia.
+
+**EL SABOTAJE DEJO EL REPOSITORIO SABOTEADO, Y ESO ES LO MAS GRAVE DE LA NOCHE.**
+
+Durante la segunda vuelta el guion de sabotaje se interrumpio con Ctrl-C mientras
+un caso estaba puesto. El `finally` de cada caso no corre si el proceso muere
+entre medio, asi que **`action.yml` quedo con `exit 0` escrito**: exactamente el
+defecto que este arreglo desmiente, dentro del arreglo.
+
+Se descubrio por casualidad, mirando el guion generado. Estuvo a un `git add` de
+viajar al PR. Un sabotaje que no se limpia solo no es una herramienta de
+verificacion: es una forma nueva de romper el repositorio.
+
+Los dos guiones de sabotaje -este y el de I-41- pasan a registrar el contenido
+original con `atexit`, que cubre la salida normal, la excepcion **y el Ctrl-C**,
+y a decir en voz alta si aun asi algo quedara distinto. Comprobado matando el
+proceso a proposito a mitad de un caso:
+
+```
+interrumpido con Ctrl-C a los 6 s
+el archivo quedo IGUAL que antes: True
+```
+
+Y de paso, un defecto en el mensaje final del sabotaje: decia «el archivo no
+quedo restaurado» cada vez que la prueba limpia fallaba, que era **una causa
+afirmada sin comprobar** -las dos veces que aparecio, la causa era otra-. Ahora
+dice que hay dos posibilidades y cual comando las distingue.
+
+**Corre en el CI, no en el CD, y es deliberado.** El defecto vive en una accion
+del CD, pero **el CD solo corre despues de fusionar a `main`**. Un control que
+solo se ejecuta despues de fusionar no protege la fusion.
+
+**Los tres sabotajes, y ninguno paso en verde** (`gestion/sabotear_i42.py`):
+
+```
+1. sin bucle: el codigo con el que fallo CD #11    -> 3 de 3 comprobaciones en rojo
+2. al agotar el limite sale con codigo 0           -> el tercer caso en rojo
+3. el mensaje de exito no dice cuanto se espero    -> el primero y el segundo en rojo
+```
+
+El segundo es el que justifica el tercer caso de la prueba. Un bucle que espera y
+despues **se rinde con codigo 0** pasa los dos primeros casos sin despeinarse: la
+API contesta, el paso sale bien, todo verde. Esperar y rendirse en silencio no es
+esperar, es un adorno que tarda.
+
+**Lo que confirma.** Un programa que arranca otro solo puede informar de que lo
+arranco. Que **sirva** lo dice el consumidor, preguntando, y una sola pregunta no
+alcanza cuando la respuesta cambia con el tiempo. Es la tercera vez que este
+proyecto lo escribe -I-39, I-28 y esta-, y las tres veces el sintoma fue el
+mismo: un paso que leyo la primera respuesta como si fuera la definitiva.
+
+---
+
+## I-43 · La ingesta pidio 215 dias, recibio 3 y se registro «exitosa»
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Luna, investigando una linea del registro de la corrida de
+H12.1. El informe completo, con los ocho sondeos que descartan hipotesis una por
+una, esta en la carpeta compartida (`hallazgochirps20260906.md`). Lo que sigue es
+lo que ese informe midio, mas lo que se comprobo en el repositorio al recibirlo.
+
+**Que paso.** `crudo.medicion_diaria` no tiene una sola fila con precipitacion en
+2026: cero de 1968. La ultima fecha con lluvia en toda la serie es el 2025-12-31.
+De 2019 a 2025 el 100 % de las filas tiene valor; el mismo periodo del anio
+anterior (2024-12-29 a 2025-09-03) esta al 100 %, 1992 de 1992.
+
+La corrida que lo produjo quedo asi en la bitacora:
+
+```
+id 39 · ingesta.lluvia_intensa · exitosa
+ventana 2025-12-29 a 2026-09-03 · producto chirps · filas 1968
+```
+
+Escribio 246 dias por 8 distritos, todos sin lluvia, y quedo como exito. En la
+bitacora no hay nada que permita notarlo: guarda cuantas filas se escribieron y
+no cuantas trajo la fuente.
+
+**Lo que NO es, medido.** No es que la fuente no publique 2026: ClimateSERV
+devuelve enero, junio y julio de 2026 con el producto final. No es la latencia
+de D-40: la cobertura llega al 2026-07-31, 33 dias antes del final pedido, dentro
+de lo documentado. No es cruzar el anio (610 dias con dos cruces devolvieron
+610), ni la longitud de la ventana (610 funciona y 216 falla), ni pedir mas alla
+de la cobertura (dos ventanas lo hacen y truncan limpio), ni que `_recoger` se
+quede con un resultado parcial (`data` aparece con 3 filas y sigue en 3 durante
+once consultas, con `errMsg` en None: el servicio da el trabajo por terminado).
+
+**Lo que si esta medido.** Con el mismo dia final y moviendo solo el inicio:
+
+| Inicio | Fin | Pedidos | Devueltos | Ultima |
+|---|---|---|---|---|
+| 2025-12-28 | 2026-07-31 | 216 | 4 | 2025-12-31 |
+| 2025-12-29 | 2026-07-31 | 215 | 3 | 2025-12-31 |
+| 2025-12-30 | 2026-07-31 | 214 | 2 | 2025-12-31 |
+| 2025-12-01 | 2026-07-31 | 243 | 243 | 2026-07-31 |
+
+No hay una regla que lo explique, y no se inventa una: Luna escribio la mejor
+que se le ocurrio como prediccion antes de correrla, y fallo. Hay un patron
+reproducible del lado del servicio y un rodeo que funciona: pedir desde el dia 1
+del mes.
+
+**Causa raiz.** La del servicio no se conoce. **La nuestra si, y es la que
+importa:** se pidieron 215 dias, llegaron 3, y nadie lo comparo.
+`backend/etl/fuentes/hibrido.py` hacia `lluvia.get(dia)` con un comentario
+correcto -una fecha ausente de la respuesta y un dia marcado sin dato se
+representan igual, nulo, nunca cero (D-07)- que tenia una consecuencia no
+escrita: **una respuesta incompleta era indistinguible de una fuente sin dato.**
+El ETL escribio 246 nulos, marco `exitosa`, y desde la base no habia forma de
+notarlo.
+
+**Por que el fallo se sostenia solo.** La ventana de precipitacion arranca
+`SOLAPE_DIAS` antes del ultimo dia con dato. Ese dato era el 2025-12-31, asi que
+la ventana siempre empezaba el 2025-12-29, siempre recibia tres dias, y el
+ultimo dato seguia siendo el 2025-12-31. **No se recuperaba solo, nunca.** Cada
+corrida futura habria escrito cero dias de lluvia y se habria registrado
+`exitosa`.
+
+**Lo que depende de esto.** La etiqueta de lluvia intensa, el SPI, las
+anomalias, los percentiles R95p y R99p, y cualquier estimacion de riesgo para
+2026. Y algo que hay que decir con todas las letras: el visor mostro riesgo de
+lluvia intensa durante ocho meses sobre una base sin una sola lluvia de 2026.
+Las estimaciones no se retiran, porque el escritor es la linea base
+climatologica, que solo usa distrito y fecha; pero la evidencia de que el dato
+de 2026 no existia queda aqui, y el documento IEEE la tiene que recoger en
+limitaciones.
+
+**Accion tomada.**
+
+1. `comprobar_cobertura`, en `backend/etl/fuentes/chirps.py`: compara lo pedido
+   con lo devuelto **antes** de mirar dia por dia, y detiene la corrida con
+   `ErrorChirps` si la respuesta esta vacia, tiene huecos, trae fechas fuera de
+   la ventana, o el ultimo dia devuelto queda mas de `LATENCIA_MAXIMA_DIAS` (60)
+   antes del final pedido. Lo unico que pasa, ademas de la serie completa, es la
+   truncada al final por la latencia que D-40 midio (21 a 51 dias). Es una
+   resta. Con ella, la corrida del 2026-09-04 habria terminado `fallida` con
+   «3 de 215 dias pedidos» el primer dia, y no `exitosa` ocho meses.
+2. La bitacora guarda `filas_leidas` (la columna que la 014 de H12.1 abrio para
+   esto y que quedaba en NULL): cuantas filas con precipitacion trajo la fuente,
+   aparte de cuantas se escribieron. La diferencia entre las dos ahora solo
+   puede ser latencia o dias que la fuente marco sin dato; cualquier otra cosa
+   detiene la corrida antes.
+3. `--desde AAAA-MM-DD` en `ingestar.py`: fija el inicio de la ventana de
+   precipitacion para UNA corrida y queda escrito en `mensaje` de la bitacora.
+   Es el rodeo para la serie atascada -pedir desde el 2025-12-01 devuelve los
+   243 dias completos- y no la correccion: la correccion es el punto 1.
+4. `backend/tests/test_cobertura_chirps.py`, catorce pruebas en el CI, entre
+   ellas el caso exacto que Luna midio (215 pedidos, 3 devueltos) en rojo, y la
+   latencia del 2026-09-04 (pedido hasta el 09-03, publicado hasta el 07-31) en
+   verde.
+
+**Lo que falta, y quien lo hace.** Aplicar en Railway la 014, la 015 y la 016
+(I-45), y correr una vez
+`python -m backend.etl.ingestar --evento lluvia_intensa --desde 2025-12-01`
+contra esa base. Despues la ventana diaria vuelve a ser corta. Luna vuelve a
+medir con sus guiones (`diagnostico_chirps.py`) que 2026 quedo al 100 %.
+
+**Aprendizaje.** Un extractor que devuelve «una medicion por dia del rango,
+huecos incluidos» cumple el contrato y a la vez puede estar escondiendo que la
+fuente no contesto. **Lo pedido y lo devuelto son dos numeros, y hay que
+restarlos siempre**, en cada fuente, antes de escribir. Es la misma leccion de
+I-06, I-39 e I-42 con otro sujeto: un paso que se salta en silencio se ve igual
+que un paso que funciono. La forma de no repetirla no es un comentario mas
+largo: es un numero en la bitacora y una prueba que lo exige.
+
+**Impacto.** Ver la correccion de abajo: el hueco de ocho meses esta en la base
+local donde se midio, no en la publicada. El defecto del ETL es real y
+reproducible en cualquier base cargada hasta 2025-12-31; el dato de produccion
+no lo sufrio. Las horas del diagnostico son de Luna y las de la correccion de
+Alejandro; cada quien las anota en su tarea, no aqui.
+
+**Correccion, la misma noche (2026-09-06, 21:55).** Al correr el rodeo contra la
+base publicada en Railway, con el proxy abierto y **antes** de dar nada por
+hecho, el contador de solo lectura (`gestion/contar_lluvia_2026.py`) dijo:
+
+```
+anio  filas  con_lluvia  fuente_sin_valor  ultima_con_lluvia
+2024   2928        2928                 0  2024-12-31
+2025   2920        2920                 0  2025-12-31
+2026   1984        1696                 0  2026-07-31
+
+bitacora: 9 lluvia_intensa exitosa 2025-12-01..2026-09-05  filas 24  leidas 1944  --desde
+          7 lluvia_intensa exitosa 2026-07-29..2026-09-02  filas 0
+          5 lluvia_intensa fallida 2026-08-01..2026-09-02  ClimateSERV no entrego el resultado
+```
+
+Tres cosas se leen ahi. **(a)** 2026 tiene 1696 filas con lluvia = 212 dias x 8
+distritos = del 1 de enero al 31 de julio, completo; las 288 sin lluvia son los
+36 dias de latencia (D-40) x 8. **(b)** La corrida 7, anterior a esta noche, ya
+pedia desde el 2026-07-29: su ultimo dia con dato era el 07-31. **La base
+publicada nunca tuvo el hueco.** **(c)** El rodeo cambio 24 filas: los tres
+dias nuevos (09-03 a 09-05) x 8. No habia nada que rellenar.
+
+La corrida `id 39 · 1968 filas` del informe es la de H12.1, criterio 10, del
+2026-09-04: una corrida real del ETL **sobre la base local de Luna**, cargada
+con `cargar_mediciones.py` hasta el 2025-12-31 y sin ninguna ingesta previa.
+Ahi la ventana arranco el 12-29, ClimateSERV devolvio 3 dias y quedo el hueco
+de ocho meses. Todo lo que el informe mide del ETL es cierto: el defecto existe,
+se reproduce en cualquier base en ese estado, y la corrida se registro exitosa
+sin serlo. Lo que **no** era cierto es la frase de impacto que esta incidencia
+escribio al recibirlo -«ausentes de la base publicada», «el visor mostro riesgo
+ocho meses sin lluvia de 2026»-: eso se afirmo sin medir la base publicada. El
+informe no decia contra que base media, y quien lo registro no lo pregunto.
+**Es I-38 otra vez:** un conteo que no dice a que base le pregunta se lee como si
+hablara de todas. Se deja escrito el error, no se borra.
+
+El comentario de la migracion 016 hereda la cifra («sobre la base publicada son
+las 1968 filas»); no se edita porque el aplicador verifica su suma SHA-256 y ya
+esta aplicada en produccion. Queda corregido aqui: en la base publicada la 016
+puso en NULL la fuente de las filas sin valor del tramo de latencia, no 1968.
+
+**Lo que si sigue pendiente:** la base local de Luna (y la de quien haya cargado
+la historia y corrido la ingesta una vez) tiene el hueco y se desatasca con el
+mismo rodeo, `--desde 2025-12-01`, contra esa base. Y `filas_leidas` ya se
+escribe: la corrida 9 registro 1944 leidas contra 24 escritas, que es
+exactamente la diferencia que esta incidencia queria poder ver.
+
+---
+
+## I-44 · `/api/distritos/{codigo}/mediciones` devuelve 500 en produccion, por diseno
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Alejandro, al comprobar el informe de I-43 contra la API
+publicada: `GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10`
+responde `500 Internal Server Error` en Railway.
+
+**Que paso.** El endpoint existe desde H1.1 y esta en el contrato
+(`obtener_mediciones`, `SQL_MEDICIONES` en `repositorio_postgres.py`). Lee
+`crudo.medicion_diaria`. La migracion 003 dice, y lo dice a proposito:
+«crudo: el ETL y el lector si, la API no. Esta ausencia es deliberada.» El rol
+`geoguardian_api` no tiene ni `USAGE` sobre el esquema. Con ese rol la consulta
+solo puede fallar con `permission denied for schema crudo`, y en Railway la ruta
+responde 500 (comprobado el 2026-09-06).
+
+**Causa raiz.** Dos decisiones correctas por separado que nadie junto: H1.1
+publico una ruta que lee de `crudo`, y H1.8 le nego a la API el acceso a
+`crudo`. El verificador de H1.8 comprueba con detalle lo que la API **no** puede
+hacer, y lo hace bien; ninguna prueba llama al endpoint con la base y los roles
+reales. Es I-40 con signo contrario: alli el minimo privilegio dejo fuera algo
+que se necesitaba; aqui dejo fuera algo que el contrato prometia, y las dos
+veces ningun control miraba ahi.
+
+**Por que importa mas de lo que parece.** Es la unica ruta de la API que muestra
+la precipitacion diaria. Si hubiera funcionado, el hueco de I-43 -ocho meses de
+nulos- se habria visto en el visor o en cualquier consulta desde enero. No
+funciono, y el hueco lo encontro un guion de diagnostico contra la base ocho
+meses despues.
+
+**Accion tomada.** La correccion es una decision, no un parche: **D-45**, la
+misma noche. De tres caminos -una vista de solo lectura en `analitico` sobre
+`crudo.medicion_diaria` concedida a la API; conceder `SELECT` sobre esa unica
+tabla, que rompe la frase de la 003; o retirar la ruta del contrato- se tomo el
+primero. Migracion `017_vista_serie_climatica.sql`: `analitico.serie_climatica`
+corre con los privilegios de su duenio, la API la lee y `crudo` sigue cerrado
+letra por letra. `SQL_MEDICIONES` lee de la vista; `verificar_h18.py` gana la
+comprobacion de lo permitido (la vista contesta con el rol de la API) y conserva
+la de lo prohibido (`crudo` rechazado). Pendiente al registrar: aplicar la 017
+en Railway y anotar aqui, con fecha, el 200 de la ruta.
+
+**Aprendizaje.** Cada ruta del contrato necesita al menos una prueba **con los
+roles de produccion**, no solo con el repositorio en memoria. Lo que la API
+promete y lo que la API puede leer lo decidieron dos historias distintas, y la
+unica forma de que coincidan es una prueba que las junte.
+
+**Impacto.** El endpoint no sirve en produccion. Ninguna persona bloqueada
+hoy, porque el visor no lo consume; pero el contrato publicado afirma algo que
+no es cierto, y eso es I-04 en otra capa.
+
+---
+
+## I-45 · 1968 filas declaran `fuente_precipitacion = 'chirps'` sobre una precipitacion que no existe
+
+**Fecha.** 2026-09-06.
+
+**Quien lo detecto.** Luna, en el mismo informe de I-43 («un tercer detalle, mas
+chico y tambien nuestro»).
+
+**Que paso.** Las 1968 filas de 2026 en `crudo.medicion_diaria` tienen
+`precipitacion_mm` en NULL y `fuente_precipitacion = 'chirps'`. Estan declarando
+el origen de un valor que no existe. Quien audite la tabla lee que CHIRPS aporto
+esos dias.
+
+**Causa raiz.** La columna es `NOT NULL` desde la 004, y los dos escritores
+-`ingestar.py` y `cargar_mediciones.py`- la llenaban con el producto de la
+corrida, hubiera valor o no. La regla de D-07 (ausencia es nulo, nunca cero) se
+aplico a la medida y no a la columna que dice de donde vino. Mientras la fuente
+devolvio siempre valor, nadie lo noto; I-43 lo hizo visible en 1968 filas de
+golpe.
+
+**Accion tomada.**
+
+1. Migracion `016_fuente_precipitacion_solo_con_valor.sql`: quita el `NOT NULL`,
+   pone en NULL la fuente de toda fila sin precipitacion (en la base local donde
+   se midio, las 1968; en la publicada, las del tramo de latencia: ver la
+   correccion de I-43), y deja la regla como restriccion:
+   `CHECK ((precipitacion_mm IS NULL) = (fuente_precipitacion IS NULL))`. Con
+   ella el defecto no puede volver por ningun escritor: falla al escribir, que
+   es donde se corrige.
+2. Los dos escritores declaran la fuente solo cuando hay valor
+   (`producto if m.precipitacion_mm is not None else None`). La regla de
+   reemplazo de la 013 no cambia: un nulo nunca pisa un valor, asi que una
+   fuente en NULL tampoco.
+3. Prueba en `test_cobertura_chirps.py`: un dia con valor sale con `'chirps'` y
+   el dia siguiente, sin valor, sale con `None`.
+
+**Aprendizaje.** Una columna que describe a otra hereda su nulidad. Si el dato
+puede faltar, su procedencia tambien, y la base tiene que poder decir «no se» en
+las dos. Un `NOT NULL` puesto por prolijidad obligo a escribir algo, y lo que se
+escribio fue falso.
+
+**Impacto.** Ninguna hora perdida directa; el costo es de confianza: la tabla
+afirmaba una procedencia falsa en toda fila sin valor -1968 en la base local
+medida, las del tramo de latencia en la publicada-, y esa tabla es la fuente del
+documento IEEE. Corregido en Railway con la 016 el 2026-09-06: `fuente_sin_valor`
+quedo en 0 en todos los anios.

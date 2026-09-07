@@ -24,7 +24,25 @@
 # entorno.
 
 server {
+    # LAS DOS LINEAS SON UNA SOLA COSA: IPv4 e IPv6.
+    #
+    # `listen 80;` escucha SOLO en IPv4. En Docker y en k3d alcanza, porque quien
+    # conecta llega por IPv4. **En Railway no**: su red es IPv6, asi que nginx
+    # arrancaba perfecto y nadie podia conectarse. El sintoma no era un error de
+    # nginx -sus registros decian `start worker process`- sino un 502 de la
+    # puerta de entrada de Railway: "Application failed to respond".
+    #
+    # La imagen oficial trae `10-listen-on-ipv6-by-default.sh`, que agrega esta
+    # linea sola... **pero solo si la configuracion es la que ella empaqueta**.
+    # La nuestra sale de esta plantilla, asi que el guion se abstiene y lo dice:
+    #
+    #     10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf
+    #     differs from the packaged version
+    #
+    # Esa linea de "info" era el aviso, y estaba en los registros desde el primer
+    # despliegue. Ver I-39.
     listen 80;
+    listen [::]:80;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;

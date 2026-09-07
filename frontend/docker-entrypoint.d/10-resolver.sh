@@ -23,18 +23,35 @@ set -eu
 
 DESTINO=/etc/nginx/conf.d/resolver.conf
 
-# Los `nameserver` de resolv.conf, en una linea. **Se toman todos, IPv4 e IPv6,
-# sin filtrar ninguno**: nginx acepta las dos familias, y si el primer servidor no
-# responde pasa al siguiente.
+# Los `nameserver` de resolv.conf, en una linea. Se toman todos, IPv4 e IPv6:
+# nginx acepta las dos familias, y si el primer servidor no responde pasa al
+# siguiente.
 #
-# El comentario anterior decia que se ignoraban las direcciones IPv6 mal formadas.
-# El `awk` de abajo no filtra nada, asi que esa frase describia una comprobacion
-# que no existia. Corregido por la revision de SC-07: un comentario que describe
-# un comportamiento es una afirmacion, y las afirmaciones se sostienen o se
-# borran.
+# **PERO UNA DIRECCION IPv6 VA ENTRE CORCHETES.** Sin ellos nginx lee los dos
+# ultimos caracteres como un puerto y se niega a arrancar:
+#
+#     10-resolver.sh: resolver -> fd12::10
+#     nginx: [emerg] invalid port in resolver "fd12::10" in
+#            /etc/nginx/conf.d/resolver.conf:1
+#
+# Eso es de los registros de Railway del 2026-09-05, donde el DNS interno es
+# **IPv6** (`fd12::10`). En Docker es 127.0.0.11 y en k3d es una IP del cluster,
+# las dos IPv4, asi que este guion funciono un mes sin encontrarse nunca con el
+# caso. El contenedor entraba en un ciclo de reinicio y Railway igual mostraba
+# "Deployment successful" y "Online". Es la incidencia I-39.
+#
+# El comentario anterior decia que nginx "acepta las dos familias". Es cierto y
+# no alcanzaba: acepta IPv6 **en corchetes**. Una afirmacion a medias se lee
+# igual que una entera.
 #
 # El `printf` termina en espacio a proposito. Ver el `echo` del final.
-SERVIDORES=$(awk '/^nameserver/ { printf "%s ", $2 }' /etc/resolv.conf)
+SERVIDORES=$(awk '/^nameserver/ {
+    direccion = $2
+    if (index(direccion, ":") > 0 && substr(direccion, 1, 1) != "[") {
+        direccion = "[" direccion "]"
+    }
+    printf "%s ", direccion
+}' /etc/resolv.conf)
 
 if [ -z "$SERVIDORES" ]; then
     # Sin resolver, `proxy_pass` con variable falla en cada peticion con

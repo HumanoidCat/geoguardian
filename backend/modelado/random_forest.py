@@ -110,6 +110,10 @@ class BosqueAleatorio:
 
     nombre: str = "random_forest"
     balancear: bool = True
+    #: Hiperparametros que sobreescriben los de fabrica (H3.8). Vacio deja los
+    #: que H3.4 fijo y midio. Lo que no aparezca aca no cambia: la semilla y
+    #: `n_jobs=1` no son afinables, son lo que hace reproducible al bosque.
+    parametros: dict = field(default_factory=dict)
 
     _columnas: list[str] = field(default_factory=list, init=False)
     _modelo: RandomForestClassifier | None = field(default=None, init=False)
@@ -162,12 +166,19 @@ class BosqueAleatorio:
                 "comparable con la linea base"
             )
 
-        self._modelo = RandomForestClassifier(
-            n_estimators=ARBOLES,
-            class_weight="balanced" if self.balancear else None,
-            random_state=SEMILLA,
-            n_jobs=1,  # ver la cabecera: con -1 predict_proba no es reproducible
-        ).fit(np.asarray(filas, dtype=float), objetivo)
+        ajustes = {
+            "n_estimators": ARBOLES,
+            "class_weight": "balanced" if self.balancear else None,
+            **self.parametros,
+            # Estos dos van despues del desempaquetado a proposito: no se
+            # afinan. La semilla y el hilo unico son lo que hace que dos
+            # corridas den el mismo bosque (H3.4).
+            "random_state": SEMILLA,
+            "n_jobs": 1,
+        }
+        self._modelo = RandomForestClassifier(**ajustes).fit(
+            np.asarray(filas, dtype=float), objetivo
+        )
         return self
 
     # ----------------------------------------------------------------- #

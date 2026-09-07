@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from functools import lru_cache
 
 from contratos.enums import ModoOperacion
@@ -91,3 +92,34 @@ def modo_de(repositorio: Repositorio) -> ModoOperacion:
     if isinstance(repositorio, RepositorioSimulado):
         return ModoOperacion.SIMULADO
     return ModoOperacion.REAL
+
+
+def base_conectada(repositorio: Repositorio) -> bool:
+    """
+    Si hay una base de datos contestando detras de este repositorio.
+
+    **Se pregunta a la implementacion, por la misma razon que `modo_de`.** Hasta
+    el 2026-09-05 este valor era la constante `False` escrita en `rutas.py`, con
+    un comentario que decia que era la respuesta honesta porque H6.1 no abria
+    conexion. Lo era. H6.2 cerro el 2026-08-27 y nadie volvio a la constante: la
+    API sirvio datos reales de PostgreSQL durante nueve dias declarando que no
+    tenia base. Ver I-41.
+
+    El simulado responde `False` y es cierto: no hay ninguna base detras.
+    """
+    if isinstance(repositorio, RepositorioSimulado):
+        return False
+    return repositorio.esta_viva()
+
+
+def ultima_ingesta_de(repositorio: Repositorio) -> datetime | None:
+    """
+    Cuando termino la ultima ingesta exitosa, o None si nunca corrio.
+
+    Con el simulado devuelve None, y tambien es cierto: no hay ETL detras. El
+    contrato define None como «nunca se ejecuto», asi que las dos respuestas
+    dicen lo mismo por razones distintas y las dos son verdad.
+    """
+    if isinstance(repositorio, RepositorioSimulado):
+        return None
+    return repositorio.ultima_ingesta()

@@ -349,6 +349,7 @@ def comparar(
     filas: list,
     estimadores: dict[str, callable] | None = None,
     caracteristicas: dict[tuple[str, date], dict[str, float]] | None = None,
+    pliegues: list | None = None,
 ) -> list[Resultado]:
     """Corre todos los estimadores sobre **los mismos** pliegues del mismo evento.
 
@@ -360,6 +361,14 @@ def comparar(
     descartan y solo quedan las lineas base. No se lanza una excepcion porque la
     tabla tiene que poder mostrar la fila con su motivo, y una excepcion la
     dejaria vacia.
+
+    `pliegues` existe para H3.8 y **solo para eso**: la busqueda de
+    hiperparametros necesita evaluar candidatos sobre una particion **interna**,
+    hecha con la ventana de entrenamiento, sin mirar los pliegues de prueba de
+    H3.2. Por omision se usan los de siempre, asi que ninguna llamada anterior
+    cambia de comportamiento. Reusar esta funcion en vez de escribir un segundo
+    bucle de evaluacion es deliberado: dos implementaciones de la misma medida
+    terminan midiendo cosas distintas.
     """
     estimadores = estimadores if estimadores is not None else DISPONIBLES
     if evento in NO_MODELABLES:
@@ -378,7 +387,7 @@ def comparar(
     huecos: dict[str, int] = {n: 0 for n in estimadores}
     saltados: dict[str, list[str]] = {n: [] for n in estimadores}
 
-    for pliegue in particionar(evento):
+    for pliegue in pliegues if pliegues is not None else particionar(evento):
         ent = [
             (observacion(c, f), n[columna])
             for c, f, n in filas

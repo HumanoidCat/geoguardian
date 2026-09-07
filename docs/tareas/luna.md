@@ -79,17 +79,72 @@
 
 ## Sprint 3 (semanas 8-9) — 40.5 h
 
-- [ ] **H12.1** · Centralizar los logs de pipeline y aplicacion en control.bitacora_etl
+- [x] **H12.1** · Centralizar los logs de pipeline y aplicacion en control.bitacora_etl (2026-09-04)
   - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H1.9 · **bloquea a: H12.2, H12.4**
+  - horas: estimada n/d (llego por traspaso el 2026-09-03 y nadie pidio una
+    estimacion antes de arrancar) . real 2.0
   - **Traspasada desde Cesar el 2026-09-03** por **D-37**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el Sprint 3, y su contenido queda tal como estaba escrito.
+  - **El alcance paso de crear la tabla a extenderla.** H1.14 la creo primero,
+    en la migracion 013, el mismo dia. Los criterios se reescribieron por eso;
+    la version anterior queda en el commit `fbdf21e` para poder contrastarlas.
+  - Migracion `014` mas `basedatos/verificar_h12_1.py`: 22 comprobaciones sobre
+    once de los doce criterios. El criterio 10 es la corrida real del ETL de
+    H1.14 despues de la extension: 8 distritos, 1968 filas, 0 fallidos.
+  - Hallazgo: **la migracion no era idempotente y el aplicador lo tapaba.**
+    Guarda la suma SHA-256 y nunca reaplica, asi que correrlo dos veces prueba
+    que el aplicador es idempotente, no que el archivo lo sea. Al ejecutar el
+    contenido dos veces de verdad aparecio un `ADD CONSTRAINT` sin su
+    `DROP ... IF EXISTS`. Una herramienta que protege contra un error tambien
+    puede esconderlo.
+  - Hallazgo: **las tres restricciones NOT VALID no se ejercieron.** La base
+    estaba vacia, asi que no encontraron violaciones porque no habia filas que
+    las violaran. No es lo mismo que «los datos estan limpios».
+  - Hallazgo: **el plan del criterio 8 se midio sobre 2 filas** y no es
+    evidencia de rendimiento en ninguna de las dos direcciones. El verificador
+    avisaba solo en el caso desfavorable; se corrigio para que avise en ambos.
+  - Queda dicho para H12.4: `filas_leidas`, `sqlstate`, `version_codigo` y
+    `reportado_por` existen pero **nadie las llena todavia**. Las llenaria
+    `ingestar.py`, que es de H1.14 y esta historia no toca.
 
-- [ ] **H4.1** · Importancia de variables global del mejor modelo
+- [x] **H4.1** · Importancia de variables global del mejor modelo (2026-09-05)
   - `E4` · 3 pts · 2.9 h · rubrica: OE3 · depende de: H3.6 · **bloquea a: H4.2**
+  - horas: estimada n/d (llego por traspaso el 2026-09-03 y nadie pidio una
+    estimacion antes de arrancar) . real 2.5
   - **Traspasada desde Alejandro el 2026-09-03** por **D-37**. No es un cambio de
     alcance: se movio para repartir la carga del Sprint 3, y su contenido
     queda tal como estaba escrito.
+  - **RESULTADO NEGATIVO, y es el resultado.** De seis combinaciones de estimador
+    y evento, cinco no tienen **ninguna** columna cuya caida supere su propio
+    rango entre pliegues. Los tres modelos ordenan las 27 columnas distinto entre
+    si y ningun primer puesto es distinguible: **no hay una explicacion estable
+    que dar**. Coherente con H3.6 y H3.8 desde un lado independiente: ninguno le
+    gana a la climatologica, y ninguno se apoya en ninguna variable.
+  - El titulo dice «del mejor modelo» y **no hay un mejor modelo**: en lluvia el
+    primero es la climatologica, que no pondera columnas; en incendio el que mas
+    puntua no es el que escribe. Se calculan los tres y se declara que ninguno
+    gano el titulo, en vez de repartirlo.
+  - Hallazgo: la unica columna distinguible de las 162 evaluadas es **negativa**.
+    `tmax_media3` mejora el F1 de la regresion logistica al permutarla, en los
+    cinco pliegues, y esa es la que **escribe** `analitico.riesgo` en incendio por
+    D-42. Con 162 columnas, una cruzando su banda es lo esperable por azar: se
+    reporta como pista, no como conclusion.
+  - Hallazgo: **xgboost en incendio no usa ninguna columna de precipitacion.**
+    Cero exacto en media y en rango, o sea que no corta por ellas en ningun
+    arbol. Queda anotado para H4.2.
+  - Defecto propio, encontrado en la primera corrida real y corregido el mismo
+    dia: la tabla ordenaba por media descendente e imprimia diez, asi que la
+    unica distinguible -por negativa- caia al fondo y **no se veia**. Lo delato
+    una contradiccion en la salida. Comprobacion 12b agregada al verificador.
+  - Error propio, corregido sin borrarlo: los criterios afirmaban que
+    `crudo.medicion_diaria` tenia 1968 filas. **Nunca se consulto**; tenia
+    104 240. Era una inferencia presentada como una medicion.
+  - Hallazgo que no es de esta historia: `crudo.foco_calor` estaba en 0 filas, asi
+    que incendio salia NO MODELABLE con cero episodios. El respaldo que circula
+    trae mediciones y no focos, y por eso **los resultados de incendio de H3.6 y
+    H3.8 no se reproducen siguiendo el README**. Se recupero con
+    `cargar_focos` (494 filas, `verificar_h12` en verde).
 
 - [ ] **H4.2** · Aplicar SHAP para explicar predicciones individuales
   - `E4` · 8 pts · 12.5 h · rubrica: OE3 · depende de: H4.1

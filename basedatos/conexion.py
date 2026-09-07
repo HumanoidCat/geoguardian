@@ -34,6 +34,58 @@ from dotenv import load_dotenv
 ESPERA_MAXIMA = 90.0
 INTERVALO = 2.0
 
+# Fallos en los que el servidor CONTESTO. No mejoran esperando: reintentar solo
+# agrega noventa segundos antes de decir lo mismo.
+#
+# Se comparan por TEXTO porque en un fallo de conexion psycopg no expone el
+# sqlstate: ni `error.sqlstate` ni `error.diag.sqlstate` traen nada, porque no
+# hay conexion todavia y no hay diagnostico estructurado que leer. Medido contra
+# PostgreSQL 16 con psycopg 3.3.5, en seis situaciones distintas. Por eso
+# `except OperationalError` a secas no puede separar "el servidor no esta" de
+# "el servidor contesto que no": los mete a los dos en la misma clase.
+#
+# LA LISTA ES DE PERMANENTES A PROPOSITO. Lo que no este aca sigue reintentando,
+# que es el comportamiento historico. Un olvido cuesta espera de mas; la regla
+# al reves -reintentar solo lo que este en una lista de transitorios- convertiria
+# cualquier olvido en un fallo inmediato sobre algo que si se iba a resolver
+# solo. En particular `FATAL: the database system is starting up`, que es
+# exactamente lo que este reintento existe para cubrir, no esta en la lista y por
+# lo tanto se reintenta.
+PERMANENTES = (
+    "does not exist",  # la base o el rol
+    "password authentication failed",
+    "no password supplied",
+    "no pg_hba.conf entry",
+)
+
+# Hosts que significan "la base corre en esta maquina, probablemente en
+# docker compose". Sirven para no mandar a mirar `docker compose ps` cuando la
+# base esta en otro continente.
+HOSTS_LOCALES = frozenset({"localhost", "127.0.0.1", "::1", "db"})
+
+
+def _contesto_el_servidor(error: psycopg.OperationalError) -> bool:
+    """Un mensaje con FATAL -o fe_sendauth- viene del servidor, no de la red."""
+    texto = str(error)
+    return "FATAL" in texto or "fe_sendauth" in texto
+
+
+def _es_permanente(error: psycopg.OperationalError) -> bool:
+    return _contesto_el_servidor(error) and any(m in str(error) for m in PERMANENTES)
+
+
+def _base_local() -> bool:
+    return os.getenv("POSTGRES_HOST_LOCAL", "localhost") in HOSTS_LOCALES
+
+
+def _pista_de_disponibilidad() -> str:
+    if _base_local():
+        return "Comproba el estado del contenedor: docker compose ps"
+    return (
+        "La base no es local: comproba que el servicio este arriba donde lo "
+        "publicaste y que el puerto siga abierto."
+    )
+
 
 class ErrorConexion(Exception):
     """No se pudo construir la cadena o alcanzar la base."""
@@ -97,6 +149,20 @@ def conectar(
         try:
             conexion = psycopg.connect(cadena, autocommit=autocommit)
         except psycopg.OperationalError as error:
+            # El servidor esta arriba y contesto que no. Esperar no lo arregla.
+            #
+            # Se envuelve en ErrorConexion y no se deja salir el OperationalError
+            # crudo: los seis modulos que llaman a conectar() capturan
+            # ErrorConexion y nada mas, asi que propagar otra clase les cambiaria
+            # un mensaje limpio por un rastro de pila.
+            if _es_permanente(error):
+                if aviso_mostrado:
+                    print()
+                raise ErrorConexion(
+                    "El servidor respondio y rechazo la conexion; esperar no lo arregla.\n"
+                    f"{error}\n"
+                    "Revisa el nombre de la base, el usuario y la contrasena."
+                ) from error
             ultimo = error
         else:
             # Cierra la linea de puntos para que la salida siguiente no quede
@@ -111,9 +177,13 @@ def conectar(
         if aviso_mostrado:
             print(".", end="", flush=True)
         else:
+            razon = (
+                "Es normal justo despues de 'docker compose up' sobre un volumen vacio."
+                if _base_local()
+                else "El servidor todavia no responde."
+            )
             print(
-                "La base todavia no acepta conexiones. Es normal justo despues "
-                "de 'docker compose up' sobre un volumen vacio.\n"
+                f"La base todavia no acepta conexiones. {razon}\n"
                 f"Reintentando hasta {espera_maxima:.0f} segundos",
                 end="",
                 flush=True,
@@ -128,5 +198,5 @@ def conectar(
     raise ErrorConexion(
         f"No se pudo conectar a la base despues de {espera_maxima:.0f} segundos.\n"
         f"{ultimo}\n"
-        "Comproba el estado del contenedor: docker compose ps"
+        f"{_pista_de_disponibilidad()}"
     )

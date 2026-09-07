@@ -254,6 +254,59 @@ def main() -> None:
         linea,
     )
 
+    # ----------------------------------------------------------------------- #
+    # H5.9, CA-5: los pares que faltaban.
+    #
+    # Hasta el 2026-09-06 este guion no miraba la trama de ausencia, el foco ni
+    # el texto de la pagina, y la trama fallaba: #9e9e9e sobre blanco da 2.68:1,
+    # por debajo del 3:1 grafico. Un control que solo mira lo que se arreglo no
+    # sabe decir que no; estos pares se listan aca, no se deducen.
+    # ----------------------------------------------------------------------- #
+    print("\nLa ausencia de dato, el foco y el texto de la pagina cumplen (H5.9, CA-5):")
+    fondo_sin_dato = tokens["--sin-dato-fondo"]
+    pares_graficos = {
+        "la trama de ausencia sobre su fondo": (tokens["--sin-dato-trama"], fondo_sin_dato),
+        "el borde de ausencia sobre su fondo": (tokens["--sin-dato-borde"], fondo_sin_dato),
+        "el foco sobre la superficie": (tokens["--foco"], tokens["--superficie"]),
+        "el foco sobre la superficie alterna": (tokens["--foco"], tokens["--superficie-alterna"]),
+        "el borde del distrito sobre riesgo bajo": (tokens["--distrito-borde"], rampa["bajo"]),
+    }
+    for descripcion, (figura, fondo) in pares_graficos.items():
+        razon = contraste(figura, fondo)
+        exigir(
+            razon >= CONTRASTE_MINIMO_GRAFICO,
+            descripcion,
+            f"{razon:.2f}:1  (minimo {CONTRASTE_MINIMO_GRAFICO})",
+        )
+
+    pares_texto = {
+        "el texto sobre la superficie": (tokens["--texto"], tokens["--superficie"]),
+        "el texto suave sobre la superficie": (tokens["--texto-suave"], tokens["--superficie"]),
+        "el texto suave sobre la superficie alterna": (
+            tokens["--texto-suave"],
+            tokens["--superficie-alterna"],
+        ),
+        "el texto sobre la ausencia de dato": (tokens["--texto-sobre-sin-dato"], fondo_sin_dato),
+        "el texto sobre el fondo de aviso": (tokens["--texto"], tokens["--aviso-fondo"]),
+        "el texto del modo simulado sobre su banda": (
+            tokens["--simulado-texto"],
+            tokens["--simulado-fondo"],
+        ),
+    }
+    for descripcion, (texto, fondo) in pares_texto.items():
+        razon = contraste(texto, fondo)
+        exigir(
+            razon >= CONTRASTE_MINIMO_AA,
+            descripcion,
+            f"{razon:.2f}:1  (minimo {CONTRASTE_MINIMO_AA})",
+        )
+
+    # `--texto-tenue` (#9e9e9e) NO se exige: da 2.68:1 y solo se usa para
+    # metadatos decorativos que ya estan dichos en otro lado. Se deja anotado
+    # para que nadie lo use como texto de lectura.
+    razon = contraste(tokens["--texto-tenue"], tokens["--superficie"])
+    print(f"  nota  el texto tenue sobre la superficie da {razon:.2f}:1: no sirve para leer")
+
     if fallos:
         print(f"\n{len(fallos)} verificaciones fallaron:")
         for fallo in fallos:

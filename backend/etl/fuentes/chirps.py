@@ -47,8 +47,16 @@ BASE = "https://climateserv.servirglobal.net/chirps"
 ENVIAR = f"{BASE}/submitDataRequest/"
 RECOGER = f"{BASE}/getDataFromRequest/"
 
-# Catalogo de ClimateSERV: 0 es CHIRPS de precipitacion.
+# Catalogo de ClimateSERV, comprobado en la pagina de la API el 2026-09-03:
+# 0 es "UCSB CHIRPS Rainfall", el producto final con estaciones; 90 es
+# "UCSB CHIRP Rainfall", el mismo algoritmo SIN la correccion por estaciones.
+# El catalogo NO ofrece el "CHIRPS preliminar" del que habla D-26 (ese lo
+# publica CHC en GeoTIFF). Y medido ese mismo dia, el 90 llega DESPUES que el
+# 0 (junio contra julio), asi que no sirve como preliminar: la ingesta carga
+# el 0 (D-40). El 90 queda disponible, declarado, por si algun dia adelanta.
 TIPO_DATO = "0"
+TIPO_DATO_CHIRP = "90"
+PRODUCTOS = {TIPO_DATO: "chirps", TIPO_DATO_CHIRP: "chirp"}
 # Operacion 5: promedio sobre el poligono. Es lo que representa a un distrito que
 # abarca varias celdas.
 OPERACION_PROMEDIO = "5"
@@ -75,6 +83,76 @@ class TramoChirps:
     identificador: str
     valores: dict[date, float | None]
     nulos: int
+
+
+# Cuanto puede quedarse atras el CHIRPS final sin que sea un error. D-40 lo midio
+# entre 21 y 51 dias; se deja margen. Mas atraso que esto ya no es latencia: es
+# una respuesta incompleta o una fuente detenida, y las dos tienen que verse.
+LATENCIA_MAXIMA_DIAS = 60
+
+
+def comprobar_cobertura(
+    desde: date,
+    hasta: date,
+    devueltos: dict[date, float | None],
+    latencia_maxima: int = LATENCIA_MAXIMA_DIAS,
+) -> str:
+    """
+    Compara lo que se pidio con lo que ClimateSERV devolvio (incidencia I-43).
+
+    Devuelve una frase para el registro cuando la respuesta es aceptable, y lanza
+    `ErrorChirps` cuando no lo es. Lo unico aceptable, aparte de la respuesta
+    completa, es que la serie quede **truncada al final** por la latencia
+    documentada en D-40: la fuente todavia no publico los ultimos dias.
+
+    POR QUE EXISTE. El 2026-09-04 la ingesta pidio 215 dias (2025-12-29 a
+    2026-07-31), ClimateSERV devolvio 3 con `errMsg` en None, y la corrida quedo
+    `exitosa` con 1968 filas sin precipitacion. Nadie habia comparado lo pedido
+    con lo devuelto: una fila ausente y un dia marcado sin dato se escribian
+    igual, nulo, y desde la base no habia forma de distinguirlos. Luna lo midio
+    (`hallazgochirps20260906.md`). Esta funcion es esa resta.
+    """
+    pedidos = (hasta - desde).days + 1
+    fechas = sorted(devueltos)
+    rango = f"{desde}..{hasta}"
+
+    if not fechas:
+        raise ErrorChirps(
+            f"ClimateSERV devolvio 0 de {pedidos} dias pedidos ({rango}). "
+            "No se escribe nada: cero filas no es una fuente sin dato, es una "
+            "respuesta vacia (I-43)."
+        )
+
+    fuera = [d for d in fechas if d < desde or d > hasta]
+    if fuera:
+        raise ErrorChirps(
+            f"ClimateSERV devolvio {len(fuera)} dias fuera de la ventana {rango} "
+            f"(primero {fuera[0]}). La respuesta no corresponde a lo pedido."
+        )
+
+    contiguos = (fechas[-1] - fechas[0]).days + 1
+    if fechas[0] != desde or contiguos != len(fechas):
+        raise ErrorChirps(
+            f"ClimateSERV devolvio {len(fechas)} de {pedidos} dias pedidos ({rango}) "
+            f"con huecos: van de {fechas[0]} a {fechas[-1]}, que son {contiguos} dias. "
+            "Una serie con huecos no es latencia; no se escribe nada (I-43)."
+        )
+
+    if fechas[-1] == hasta:
+        return f"{pedidos} de {pedidos} dias"
+
+    atraso = (hasta - fechas[-1]).days
+    if atraso > latencia_maxima:
+        raise ErrorChirps(
+            f"ClimateSERV devolvio {len(fechas)} de {pedidos} dias pedidos ({rango}): "
+            f"el ultimo es {fechas[-1]}, {atraso} dias antes del final pedido. "
+            f"D-40 mide la latencia entre 21 y 51 dias y el tope es {latencia_maxima}; "
+            "esto no es latencia, es una respuesta incompleta. No se escribe nada (I-43)."
+        )
+    return (
+        f"{len(fechas)} de {pedidos} dias; el final publicado llega hasta "
+        f"{fechas[-1]} ({atraso} dias de latencia, D-40)"
+    )
 
 
 def trocear(desde: date, hasta: date) -> list[tuple[date, date]]:
@@ -110,7 +188,16 @@ class ExtractorChirps:
 
     nombre = "CHIRPS 2.0 via ClimateSERV"
 
-    def __init__(self, cliente: httpx.Client | None = None) -> None:
+    def __init__(self, cliente: httpx.Client | None = None, tipo_dato: str = TIPO_DATO) -> None:
+        if tipo_dato not in PRODUCTOS:
+            raise ErrorChirps(
+                f"Tipo de dato {tipo_dato!r} no esta en el catalogo conocido: "
+                f"{sorted(PRODUCTOS)}"
+            )
+        # H1.14: que producto pide este cliente. Se declara al construirlo para
+        # que cada fila escrita pueda decir de cual vino.
+        self.tipo_dato = tipo_dato
+        self.producto = PRODUCTOS[tipo_dato]
         self._propio = cliente is None
         self._cliente = cliente or httpx.Client(timeout=TIEMPO_LIMITE, follow_redirects=True)
 
@@ -153,7 +240,7 @@ class ExtractorChirps:
         respuesta = self._cliente.post(
             ENVIAR,
             data={
-                "datatype": TIPO_DATO,
+                "datatype": self.tipo_dato,
                 "begintime": desde.strftime("%m/%d/%Y"),
                 "endtime": hasta.strftime("%m/%d/%Y"),
                 "intervaltype": "0",

@@ -4335,3 +4335,586 @@ construidas a mano para cada rama: ganador fuera del ruido, empate con mas
 simple, piso, y nadie. Se sabotea cada rama y se comprueba que cae el
 criterio correcto.
 
+
+---
+
+## D-40 · La ingesta de precipitacion carga el CHIRPS final; el "preliminar" de ClimateSERV llega despues que el final
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Revisa.** D-26 (cadencia de lluvia intensa) · **Se apoya en.** D-07, D-15, D-17 · **Afecta.** H1.14, H4.4, `/salud.ultima_ingesta`
+
+### Contexto
+
+D-26 dejo la cadencia de lluvia intensa como «diaria, con preliminar
+declarado», porque el CHIRPS final llega entre 21 y 51 dias despues y existe
+un producto preliminar de 2 dias. Los criterios de H1.14 obligaron a
+**comprobar contra el catalogo real** que producto sirve ClimateSERV antes de
+escribir el extractor, y a medir su latencia. Tres hechos del 2026-09-03:
+
+1. El catalogo de ClimateSERV (pagina de la API) **no ofrece el CHIRPS
+   preliminar**. Ofrece `0 = UCSB CHIRPS Rainfall` (final) y `90 = UCSB CHIRP
+   Rainfall`, la estimacion satelital sin la correccion por estaciones. El
+   preliminar de D-26 lo publica CHC como GeoTIFF global diario, fuera de este
+   servicio.
+2. Medido con `docs/herramientas/medir_productos_ingesta.py` sobre la celda de
+   Tilaran: el **final llega hasta el 2026-07-31**, 33 dias de latencia, dentro
+   de lo que D-26 documento. El **CHIRP (90) llega solo hasta principios de
+   junio** -156 dias con dato desde el 1 de enero en la corrida de prueba de la
+   ingesta- y sobre una ventana sin datos el servicio **no responde**: dos
+   peticiones encoladas, 120 s y 450 s de espera, sin resultado.
+3. POWER, que aporta el resto de las variables, llega con 3 dias.
+
+Un producto que llega despues que el final no es un preliminar. Cargarlo a
+diario y reemplazarlo cada semana seria trabajo de la maquina para no ganar
+un solo dia, y una columna `fuente_precipitacion = 'chirp'` que nunca tendria
+el dato mas nuevo.
+
+### Decision
+
+1. **Lluvia intensa y sequia cargan el CHIRPS final** (`chirps`, tipo 0), cada
+   una con su cadencia de D-26: lluvia intensa a diario, sequia semanal como
+   mucho. La ventana de cada corrida empieza el dia siguiente al **ultimo dia
+   con dato** y termina ayer, asi que la corrida diaria trae lo que el
+   servicio haya publicado desde la anterior.
+2. **La latencia declarada de lluvia intensa pasa a ser la del final**: la
+   ultima medida, 33 dias, y la que `control.bitacora_etl` deje escrita en
+   cada corrida (`ventana_hasta` contra el ultimo dia con dato). El visor y
+   `/salud` deben mostrar esa fecha, no prometer dos dias.
+3. **La regla de reemplazo se queda**, implementada y probada contra la base:
+   el final reemplaza al preliminar, el preliminar nunca pisa un valor del
+   final, un nulo nunca pisa un valor. El codigo `chirp` sigue en
+   `crudo.fuente` (migracion 013) y `ExtractorChirps` acepta el tipo 90. Es lo
+   que hace falta el dia que un preliminar de verdad -el GeoTIFF de CHC, o un
+   CHIRP que adelante- se conecte: cambiar `PRODUCTO["lluvia_intensa"]` y nada
+   mas.
+4. **FIRMS si tiene un preliminar que llega antes**, y la misma regla se le
+   aplica: NRT (`modis-nrt`, `viirs-snpp-nrt`) declarado por fila, reemplazado
+   por SP por dia y producto cuando el servicio declara que el SP cubre el dia.
+   Medido el 2026-09-03: el SP de MODIS llega al 2026-04-30 y el de VIIRS S-NPP
+   al 2026-04-27; el NRT cubre desde ahi hasta hoy sin hueco.
+
+### Justificacion
+
+El criterio de H1.14 decia que el producto se comprueba contra el catalogo y
+no se supone, y que si el preliminar no esta, «lluvia intensa se declara con
+el producto que si hay y la cadencia diaria queda con la latencia real de ese
+producto, escrita». Esto es aplicar ese criterio con las cifras medidas. Es
+la forma de D-17 y D-25: el producto que se carga se declara, y una latencia
+se mide antes de prometerla.
+
+### Alternativas descartadas
+
+- **Cargar el CHIRP igual, como preliminar.** Llega despues que el final;
+  seria declarar como «mas nuevo» un dato mas viejo y sin correccion por
+  estaciones. Descartada por la medicion.
+- **Bajar el GeoTIFF preliminar de CHC.** Es el unico preliminar real, pero
+  cuesta `rasterio`, recorte por poligono y un archivo global por dia, y no
+  hay medicion de que para Costa Rica llegue antes que el final. Queda como
+  trabajo futuro, con esa medicion como condicion.
+- **Quitar el codigo `chirp` y el tipo 90.** Dejaria la regla de reemplazo sin
+  nada que reemplazar y sin prueba. Se conservan: son cincuenta lineas y la
+  prueba contra la base ya existe.
+
+### Consecuencias
+
+- D-26 sigue en pie en todo menos en la palabra «preliminar» para lluvia
+  intensa: la cadencia diaria se mantiene, el dato que trae es el final.
+- La migracion 013 dice en su comentario que el CHIRP «sale antes»; era lo que
+  el catalogo daba a entender y la medicion lo desmintio el mismo dia. **Una
+  migracion aplicada no se edita** (`aplicar_migraciones.py` lo impide); la
+  correccion vive aqui y en la evidencia de H1.14.
+- Queda como trabajo futuro, fuera de H1.14: un extractor del GeoTIFF de CHC,
+  que necesitaria `rasterio` y recorte por poligono. Solo tiene sentido si
+  se mide primero que ese producto llega antes que el final para Costa Rica.
+
+### Medicion
+
+`docs/herramientas/medir_productos_ingesta.py` (repetible) y la corrida real
+de H1.14 en `docs/evidencias/bases-de-datos/H1.14-ingesta.md`. La cifra que
+debe seguirse: el ultimo dia con dato de `chirps` en `crudo.medicion_diaria`
+contra la fecha de la corrida, que `contar_ingesta.py` imprime. Si alguna vez
+el CHIRP (tipo 90) adelanta al final, `medir_productos_ingesta.py --solo chirp`
+lo mostrara y esta decision se revisa.
+
+---
+
+## D-41 · La concurrencia del ETL va en la descarga, con hilos, y cada fuente admite lo que se midio
+
+**Fecha.** 2026-09-03 · **Decide.** Alejandro (PM) · **Estado.** Aceptada
+**Se apoya en.** D-15, D-26, D-40, H1.1 (CA-12), H1.14 · **Afecta.** H8.2, H1.14, H8.3
+
+### Contexto
+
+El ETL hace dos cosas que no se parecen: **espera por la red** y **escribe en
+PostgreSQL**. Hasta hoy hacia las dos de a una por vez.
+
+Las corridas reales de H1.14, en `control.bitacora_etl`, dicen donde esta el
+tiempo: la de incendio son **244 peticiones** de cinco dias a FIRMS, y la de
+lluvia **ocho consultas a ClimateSERV que el servicio encola** y hay que
+sondear cada tres segundos. La escritura de esas mismas corridas son dos
+`executemany`. El reloj se va esperando, no escribiendo.
+
+Y H1.14 dejo un defecto que esta historia encontro al medir: **descargaba
+dentro de la transaccion**. La cabecera de `cargar_mediciones.py` ya advertia
+que eso mantiene la tabla tomada mientras el proceso espera por la red, y se
+habia colado igual en `ingestar.py`.
+
+### Decision
+
+**1. Se paraleliza la descarga, y solo la descarga.** Un pool acotado de hilos
+para las peticiones; la escritura sigue en una transaccion por lote, en el hilo
+principal. Ningun hilo toca PostgreSQL, y el verificador lo comprueba anotando
+de que hilo sale cada sentencia.
+
+**2. Primero la red, despues la escritura.** `descargar_focos` y
+`escribir_focos` son dos funciones: la transaccion se abre cuando ya no queda
+nada que esperar.
+
+**3. Hilos, no `asyncio`.** Un trabajo que espera por la red no necesita
+corrutinas para dejar de esperar. El GIL no estorba ahi porque un hilo
+bloqueado en la red lo suelta.
+
+**4. Cada fuente admite lo que la medicion dice que aprovecha**, no un numero
+igual para todas:
+
+| Fuente | En vuelo | Por que |
+|---|---|---|
+| FIRMS por area | **4** | x2.49 con cuatro, y cada tarea sigue tardando lo mismo |
+| ClimateSERV (lluvia y sequia) | **1** | x1.11 con cuatro, y cada tarea tarda 3,3 veces mas: el servicio las encola |
+
+**5. El tope general es 4 y sale de la escalera**, no de subir hasta que algo
+se rompa. FIRMS publica su limite -5 000 transacciones cada diez minutos- y las
+244 peticiones no lo rozan; ClimateSERV **no publica ninguno**, y ante una
+fuente publica y gratuita que no dice cuanto aguanta, el equipo no lo averigua
+a la fuerza.
+
+**6. El estado compartido se protege, y el defecto se demuestra antes de
+arreglarlo**: la cache de POWER por celda y la bitacora de la corrida.
+
+### Justificacion
+
+La medicion de CA-9, sobre el trabajo real y no sobre un banco de pruebas
+inventado, midio **el reloj de la tanda y cuanto tardo cada tarea**. Esa
+segunda columna es la que decide, porque distingue tres situaciones que el
+reloj solo no distingue:
+
+| Trabajo | Reloj, 1 -> 4 trabajadores | Cada tarea | Que pasa |
+|---|---|---|---|
+| FIRMS por area | 3.18 -> 1.11 s (**x2.86**) | 0.19 -> **0.19 s** | se reparte de verdad |
+| Lectura de CSV (CPU) | 2.96 -> 3.25 s (x0.91) | 0.40 -> **1.50 s** | el GIL serializa |
+| CHIRPS por distrito | 53.69 -> 48.34 s (x1.11) | 6.18 -> **20.27 s** | el servidor encola |
+
+CHIRPS tiene **la misma firma que el GIL**: cada tarea se vuelve tres veces mas
+lenta, asi que el reloj no se mueve. El 11 % que igual se gana es solape del
+sondeo, no trabajo en paralelo. Pedirle cuatro peticiones a la vez a un
+servicio gratuito que las pone en fila es cuadruplicar la carga a cambio de
+nada, y por eso la precipitacion va de a una **aunque se pida mas**.
+
+Sobre el tope de FIRMS, la escalera de siete repeticiones:
+
+    1 trabajador    2.77 s   x1.00     eficiencia por trabajador
+    2 trabajadores  1.69 s   x1.64     0.82
+    4 trabajadores  1.11 s   x2.49     0.62
+    8 trabajadores  0.87 s   x3.18     0.40
+
+Cada trabajador despues del cuarto compra menos de medio trabajador. Sobre la
+corrida completa de 244 tramos son unos segundos al dia, y no se pagan
+duplicando la presion sobre el servicio.
+
+### Alternativas descartadas
+
+- **Paralelizar la escritura.** Repartir el lote entre transacciones gana menos
+  de un segundo y cuesta la garantia de H1.1: o entran todas las filas o no
+  entra ninguna. Cambiar una garantia por un segundo es un trato que este
+  proyecto no hace.
+- **`asyncio`.** Reescribiria `chirps.py`, `power.py`, `firms.py`,
+  `firms_area.py`, sus pruebas y los dos cargadores para ganar lo mismo: el
+  cuello es la espera, no el costo de un hilo.
+- **Procesos en vez de hilos.** Sirven cuando el cuello es CPU. Se midio que no
+  lo es, y traerian que serializar resultados entre procesos.
+- **Un solo tope para todo el ETL.** Es lo que estaba escrito antes de medir.
+  La medicion mostro que las dos fuentes no se parecen, y un numero unico
+  habria significado hostigar a ClimateSERV para no ganar nada.
+- **Subir el tope hasta que rinda.** Es medir contra un servicio ajeno hasta
+  molestarlo. Se mide una escalera corta y se elige dentro de ella.
+
+### Consecuencias
+
+- La bitacora de una corrida de incendio sale **en orden de terminacion**, no
+  de lectura. Las lineas van enteras -con candado-, pero los tramos aparecen
+  desordenados en el archivo de evidencia. Es el precio y queda dicho.
+- `--secuencial` se queda en el guion para siempre: es el tiempo base de
+  cualquier medicion futura, y sin el la comparacion no se puede repetir.
+- **H8.3** (cache con expiracion, de Cesar) hereda un ETL donde varias
+  peticiones ocurren a la vez: su cache va a necesitar la misma proteccion que
+  la de POWER, y el candado de `hibrido.py` es el ejemplo.
+- Esto **no** mejora la latencia del dato. CHIRPS sigue llegando con 33 dias de
+  retraso (D-40): la corrida tarda menos, el dato no llega antes.
+- Si algun dia ClimateSERV deja de encolar, `EN_VUELO["lluvia_intensa"]`
+  vuelve a `None` y la ingesta aprovecha el pool sin tocar nada mas. La
+  medicion que lo justificaria es la misma que ya existe.
+
+### Medicion
+
+`python -m backend.etl.medir_concurrencia`, repetible, no escribe en la base.
+Las corridas de esta decision estan en `gestion/medicion-h82-b.txt` (escalera
+de FIRMS, siete repeticiones) y `gestion/medicion-h82-c.txt` (tiempos por tarea
+y CHIRPS). La cifra a seguir es **el tiempo por tarea**: si al subir los
+trabajadores cada tarea empieza a tardar proporcionalmente mas, del otro lado
+no hay paralelismo que aprovechar.
+
+---
+
+## D-42 · Los hiperparametros afinados se aplican a la tuberia, aunque cambien quien escribe por 0.0024
+
+**Fecha.** 2026-09-04. **Historia.** H3.8. **Quien decide.** Alejandro.
+**Estado.** Aceptada.
+
+### Contexto
+
+H3.8 busco hiperparametros para los tres algoritmos en los dos
+eventos modelables, sobre una particion interna que no toca ningun bloque de
+prueba de H3.2. Contra la particion externa, el resultado tiene tres partes:
+
+  1. En **lluvia_intensa** el ajuste **empeoro** a xgboost, de 0.371 a 0.327
+     F1-macro. La busqueda vio cinco anios y medio y eligio la esquina mas
+     regularizada; sobre treinta y cuatro anios esa esquina subajusta. Quien
+     escribe no cambia: la climatologica antes y despues.
+  2. En **incendio** el bosque de fabrica venia degenerado -0.4937, por debajo
+     del piso trivial 0.4938, con las mismas cifras por pliegue que la trivial-
+     y regularizarlo lo llevo a 0.5567.
+  3. Esa mejora **cambia quien escribe en incendio**: al subir el techo, la
+     banda de ruido de D-39 pasa a 0.5020 y la climatologica, en 0.4996, queda
+     **fuera por 0.0024**. Escribe la regresion logistica, que es la mas simple
+     de las que quedan dentro.
+
+### Decision
+
+Se versionan los hiperparametros afinados en `AFINADOS` y la
+tuberia los usa, **para los seis casos, incluidos los que empeoraron**, y se
+deja que D-39 decida quien escribe con la tabla externa en cada corrida. En
+incendio eso significa que `analitico.riesgo` pasa a escribirse con la regresion
+logistica afinada.
+
+### Justificacion
+
+La alternativa -no aplicar, o aplicar solo lo que mejoro- es
+elegir despues de ver el resultado, que es exactamente lo que D-10, el embargo
+de H3.2 y el CA-2 de esta historia existen para impedir. Que en este caso la
+eleccion posterior fuera *conservadora* no la hace distinta: si se acepta mover
+la regla cuando el resultado incomoda, la regla ya no mide nada. El criterio
+CA-7, escrito antes de conocer ningun numero, dice «el resultado pasa por D-39
+sin excepcion».
+
+Ademas, el caso de lluvia muestra que aplicar lo que empeoro **no tiene
+consecuencia practica**: xgboost no escribia antes y no escribe ahora, porque
+D-39 no premia al mejor sino al mas simple dentro del ruido. Lo que se aplica no
+es «el modelo ganador», es la tabla completa recalculada.
+
+### Alternativas descartadas
+
+  * **No aplicar nada, porque la mejora esta dentro del ruido.** Descartada: es
+    decidir con el resultado a la vista, y ademas dejaria el bosque degenerado
+    de incendio informado como si fuera el rendimiento del algoritmo.
+  * **Aplicar solo donde mejoro.** Descartada por lo mismo, y porque no hay
+    criterio previo que diga que significa «mejoro» cuando todo cae dentro del
+    ruido.
+  * **Corregir la regla de D-39 para que la exclusion de la banda tenga que
+    superar la dispersion del excluido.** Es probablemente lo correcto y esta
+    propuesto en **I-34**, pero cambiar la regla en la misma historia que
+    produjo el resultado que la incomoda es el error que esta ADR evita.
+    Se decide aparte y sin este resultado a la vista.
+  * **Ampliar la rejilla hasta que el ajuste gane fuera del ruido.** Descartada:
+    es buscar hasta que salga. Y el resultado dice que no ayudaria -en las seis
+    busquedas *todas* las combinaciones cayeron dentro del ruido de la mejor-:
+    lo que falta no son mas puntos, es una particion interna que pueda
+    distinguirlos.
+
+### Consecuencias
+
+  * `analitico.riesgo` en incendio pasa a escribirse con la regresion logistica
+    afinada en la proxima corrida de `estimar_riesgo`. En lluvia sigue la
+    climatologica.
+  * La tabla de H3.6 para incendio queda **corregida en su lectura**: el 0.494
+    del bosque no era el rendimiento del algoritmo, era el de un bosque sin
+    regularizar sobre un evento raro.
+  * Queda abierto **I-34**: quien escribe se decidio por 0.0024 de F1-macro.
+  * `AFINADOS` es un dato versionado del repositorio. Cambiarlo requiere volver
+    a correr `python -m backend.modelado.afinar`, y el verificador comprueba que
+    cada valor sale de la rejilla declarada.
+
+### Medicion
+
+`python -m backend.modelado.afinar` reimprime las dos tablas -de
+fabrica y afinada, sobre los mismos pliegues- y los dos veredictos de D-39 en
+cada corrida, asi que la decision se puede volver a comprobar entera con un
+comando. `python -m backend.modelado.verificar_h38` da 38 de 38 sin base ni red.
+Evidencia en `docs/evidencias/objetivos/H3.8-afinado.md`.
+
+---
+
+## D-43 · El despliegue publico se construye desde el repositorio, no desde las imagenes de ghcr.io
+
+**Fecha.** 2026-09-04. **Historia.** H11.6. **Quien decide.** Alejandro.
+**Estado.** Aceptada.
+
+### Contexto
+
+D-05 fue precisada el 2026-08-20 y dejo escrito que «produccion» era un espacio
+de nombres en una laptop, que eso contradice el proposito del producto, y cual
+era el trabajo pendiente: publicar la API y la base, automatizar la ingesta, y
+recien entonces retirar el aviso de datos simulados. La precondicion -que exista
+un modelo entrenado escribiendo estimaciones- se cumple desde H3.6 y H3.8.
+
+H11.1 construye las dos imagenes en el CI y las publica en `ghcr.io`. H11.2 las
+consume **por SHA exacto**, que es lo correcto: se despliega el artefacto que el
+CI construyo y probo, no una reconstruccion.
+
+Los paquetes de `ghcr.io` de un repositorio privado son privados. Para que un
+proveedor externo los baje hay que abrirlos al publico o darle un credencial.
+
+### Decision
+
+El despliegue publico de H11.6 se construye **desde el repositorio de GitHub**,
+con el proveedor leyendo `infra/docker/api.Dockerfile` y `frontend/Dockerfile`.
+No se abren los paquetes de `ghcr.io` ni se guarda un token de lectura en el
+proveedor.
+
+**H11.2, H11.3 y H11.4 no cambian.** Siguen desplegando a k3d desde `ghcr.io`
+por SHA, que es lo que evalua la rubrica de Arquitectura. Esta decision alcanza
+unicamente al despliegue publico.
+
+### Justificacion
+
+**Lo que se pierde esta escrito y no se disimula:** el binario que corre en el
+sitio publico **no es** el que el CI construyo y probo. Es otra construccion del
+mismo arbol, y nadie garantiza que salga idéntica. Para un despliegue de verdad
+eso seria inaceptable.
+
+Se acepta aqui por tres razones concretas:
+
+  1. **Las alternativas cuestan mas de lo que arreglan.** Abrir los paquetes
+     publica el codigo construido de un repositorio que es privado. Guardar un
+     token agrega un credencial que hay que rotar y que vive fuera del control
+     del equipo. Reconstruir no agrega ninguna superficie nueva.
+  2. **El sitio publico es una demostracion, no la infraestructura evaluada.**
+     Lo que la rubrica mide es el pipeline a k3d, que sigue consumiendo por SHA.
+  3. **La perdida es acotable y se acota.** `/salud` publica la version de la
+     API y la de los contratos; comprobarlas contra lo que declara el repositorio
+     detecta que se desplego otro arbol, que es el error que importa.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Hacer publicos los paquetes de `ghcr.io` | Publica el codigo construido de un repositorio privado. El repositorio es privado por decision del equipo, y esto lo abriria por una puerta lateral |
+| Guardar un token de lectura de `ghcr.io` en el proveedor | Mantiene la propiedad de H11.2 -se despliega lo que el CI probo- pero agrega un credencial de larga vida fuera del repositorio, que hay que rotar y que nadie va a rotar |
+| Publicar tambien desde k3d, con un tunel | No hay servidor donde dejar el cluster encendido, y un tunel desde una laptop no es un sistema publicado: es la misma limitacion de D-05 con otro nombre |
+| No publicar nada y quedarse con el visor estatico | Es el estado actual, y es exactamente lo que D-05 declaro insuficiente |
+
+### Consecuencias
+
+  * El sitio publico se actualiza al empujar a `main`, sin pasar por `ghcr.io`.
+  * **El binario publicado no esta cubierto por la prueba del CI**, aunque el
+    arbol si. Si algun dia esto pasa a ser un despliegue de verdad, se vuelve a
+    `ghcr.io` por SHA y esta ADR se sustituye.
+  * Se agregan dos guiones a `infra/`: `preparar_base.py`, porque el arranque de
+    la base solo existia dentro de docker-compose, y `cargar_datos.py`, porque
+    copiar los datos exige no pisar `control.migracion` y comprobar las cuentas.
+  * El visor de GitHub Pages **no se retira**: es el respaldo si el proveedor se
+    cae o se acaba el credito, y sigue declarando sus datos como simulados.
+
+### Medicion
+
+`/salud` del sitio publico responde `modo`, `version_api` y `version_contratos`;
+las dos ultimas se comparan contra `contratos.VERSION_CONTRATOS` y
+`backend/api/rutas.VERSION_API` del arbol desplegado. `infra/verificar_h116.py`
+comprueba lo que no necesita el despliegue levantado, y la evidencia de la
+historia trae la salida de los dos.
+
+---
+
+## D-44 · La API deja de ser de solo lectura, para exactamente una tabla
+
+**Fecha.** 2026-09-05. **Historia.** H12.1. **Quien decide.** Luna, con Alejandro.
+**Estado.** Aceptada. **Revisa.** H1.8, y la nota de D-05 sobre quien escribe.
+
+### Contexto
+
+H1.8 establecio el minimo privilegio: `geoguardian_api` lee y no escribe. Esa
+propiedad no vive solo en la base; **esta afirmada en tres documentos** -la nota
+de D-05 sobre que el ETL escribe con su propio rol y no por HTTP, los criterios
+de H1.8, y `docs/19-runbook-railway.md`- y **H11.6 la verifico el 2026-09-05
+contra la base publicada**, probando que un `INSERT` de la API es rechazado.
+
+H12.1 extiende `control.bitacora_etl` para el diagnostico. El titulo de la
+historia dice «logs de pipeline **y aplicacion**», y H1.14 ya habia anticipado el
+valor `proceso = 'api'` en el comentario de su migracion. Para que la aplicacion
+registre sus propias corridas tiene que poder escribir en esa tabla.
+
+Sin eso, la API queda **invisible en la bitacora que existe para diagnosticarla**:
+H12.2 -la pantalla de monitoreo- y H12.4 -el diagnostico guiado- verian la mitad
+del sistema y no sabrian que les falta la otra.
+
+### Decision
+
+`geoguardian_api` recibe **`INSERT` y `UPDATE` sobre `control.bitacora_etl`, y
+nada mas**.
+
+Lo que **no** cambia, y se enumera para que no se lea como una apertura general:
+
+  * **Sin `DELETE`**, ahi ni en ninguna parte. Un diagnostico que puede borrar
+    corridas puede borrar la evidencia de lo que diagnostica.
+  * **Sin acceso al esquema `crudo`.** La API no ve el dato bruto.
+  * **Sin escritura en `analitico`, `geo` ni en el resto de `control`.**
+  * El ETL sigue escribiendo con su propio rol y **no por HTTP**, que es lo que
+    D-05 decide y esto no toca.
+
+### Justificacion
+
+La alternativa honesta a conceder esto no es «que la API no escriba»: es «que la
+API no se registre», y eso cuesta mas de lo que ahorra. Una bitacora centralizada
+que omite a uno de los dos productores no esta centralizada.
+
+El permiso es **estrecho y nombrado**: una tabla, dos operaciones. No es una
+excepcion que se pueda estirar sin volver a abrir esta decision.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Que la API escriba con el rol del ETL | Le entrega escritura sobre todo el esquema `crudo` y `analitico` para poder anotar una fila. Cambia un permiso de una tabla por uno de dos esquemas |
+| Un tercer rol solo para que la API registre | Un credencial mas que crear, distribuir y rotar, para una sola tabla y dos operaciones. El costo de operacion supera al riesgo que evita |
+| Que la API no se registre | H12.2 y H12.4 diagnostican la mitad del sistema **sin decir que es la mitad**, que es peor que no diagnosticar |
+| Que la API escriba a un archivo | Queda fuera de la base, asi que el diagnostico no lo puede cruzar con `control.fallo` por `corrida_id`, que es lo que hace util a la bitacora |
+
+### Consecuencias
+
+  * **La frase «la API es de solo lectura» deja de ser cierta** y se corrige donde
+    esta escrita: la nota de D-05, los criterios de H1.8 y el runbook de
+    despliegue. Se corrige, no se matiza: una afirmacion a medias se lee igual
+    que una entera.
+  * **El CA-6 de H11.6 conserva su sentido y cambia su redaccion**: la API no
+    puede escribir **salvo** en `control.bitacora_etl`. Verificado contra la base
+    publicada, esa comprobacion hay que volver a correrla con el texto nuevo.
+  * Si alguna vez hace falta una segunda tabla, **esta ADR se sustituye**. La
+    excepcion no crece por costumbre.
+
+### Medicion
+
+`basedatos/seguridad/verificar_h18.py` gana **dos comprobaciones, y las dos hacen
+falta**:
+
+  1. **Lo permitido funciona:** la API inserta una fila en `control.bitacora_etl`
+     y la actualiza. Un permiso concedido y no probado no esta concedido.
+  2. **Lo prohibido sigue prohibido:** la API es rechazada al hacer `DELETE` en
+     esa misma tabla, y al insertar en `analitico.riesgo`. Sin el segundo caso, el
+     verificador no distingue «se abrio una tabla» de «se abrio la base».
+
+El sabotaje que corresponde es quitar el `GRANT` y comprobar que la primera falla,
+y ampliarlo a `GRANT ALL` y comprobar que la segunda falla. Un control que solo
+mira el lado que se abrio no sabe decir que no.
+
+---
+
+## D-45 · La API lee la serie climatica a traves de una vista en `analitico`; `crudo` sigue cerrado
+
+**Fecha.** 2026-09-06. **Historia.** Ninguna; incidencia I-44 (afecta H1.1 y H1.8).
+**Quien decide.** Alejandro. **Estado.** Aceptada. **Revisa.** H1.1 (`obtener_mediciones`),
+H1.8 (minimo privilegio), la migracion 003 y D-44.
+
+### Contexto
+
+`GET /api/distritos/{codigo}/mediciones` existe desde H1.1 y esta en el contrato
+(`obtener_mediciones`). Su consulta, `SQL_MEDICIONES`, lee `crudo.medicion_diaria`.
+La migracion 003 le niega a `geoguardian_api` hasta el `USAGE` sobre `crudo`, y lo
+dice a proposito: «Esta ausencia es deliberada». Con ese rol la consulta solo puede
+fallar con `permission denied for schema crudo`, y en Railway la ruta responde 500
+(comprobado el 2026-09-06, I-44).
+
+Dos historias decidieron bien por separado y nadie las junto: H1.1 prometio una
+ruta y H1.8 le quito a la API lo que la ruta necesita. Ninguna prueba llama al
+endpoint con la base y los roles reales, asi que la contradiccion vivio en
+produccion sin que ningun control la viera. Y no fue gratis: es la unica ruta que
+muestra la precipitacion diaria; si hubiera funcionado, los ocho meses de nulos
+de I-43 se habrian visto desde enero.
+
+Hay que elegir entre cumplir el contrato o cumplir la 003, o encontrar la forma de
+cumplir las dos.
+
+### Decision
+
+Se crea la vista **`analitico.serie_climatica`** sobre `crudo.medicion_diaria`, con
+las columnas que la ruta ya devuelve (`codigo_distrito`, `fecha`, las seis de
+POWER, `precipitacion_mm`, `fuente_precipitacion`, `imputado`, `metodo_imputacion`),
+y `geoguardian_api` recibe **`SELECT` sobre esa vista y nada mas**.
+`SQL_MEDICIONES` pasa a leer de la vista. `crudo` sigue cerrado para la API,
+exactamente como dice la 003.
+
+Lo que lo hace posible sin tocar la 003: en PostgreSQL una vista se ejecuta con los
+privilegios de **quien la creo**, no de quien la consulta (`security_invoker`
+apagado, que es lo que trae por omision). El duenio del esquema puede leer
+`crudo`; la API solo puede leer la vista. Es el mismo mecanismo con el que
+`analitico` ya expone lo derivado sin exponer lo bruto.
+
+### Justificacion
+
+Es la unica opcion que cumple **las dos** afirmaciones que el proyecto ya tiene
+escritas: la ruta del contrato de H1.1 funciona, y la frase de la 003 sigue siendo
+cierta letra por letra. Las otras dos opciones obligan a reescribir una de las dos.
+
+Ademas deja la separacion en el lugar correcto: `crudo` es lo que las fuentes
+dijeron y `analitico` es lo que el sistema ofrece. Que la serie diaria salga por
+`analitico`, aunque hoy sea una copia columna por columna, dice que **la API
+consume una vista del dato, no el dato**; el dia que la serie servida deba
+diferir de la bruta -por ejemplo, ocultar `fuente_resto` o servir la imputada-,
+el cambio es en la vista y la API no se entera.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| `GRANT SELECT` sobre `crudo.medicion_diaria` a la API | Funciona en una linea, pero obliga a corregir la 003 («ni siquiera lectura»), los criterios de H1.8, el runbook y el verificador de H1.8. Es D-44 otra vez: una excepcion mas sobre un principio que se escribio para no tener excepciones. Y abre `USAGE` sobre el esquema entero, aunque la tabla sea una |
+| Retirar la ruta del contrato | Cumple la 003 y rompe H1.1: el contrato 1.4.0 la promete, el simulado la sirve, y es la ruta que habria hecho visible I-43. Quitar la unica ventana a la precipitacion diaria justo despues de descubrir que estuvo vacia ocho meses es esconder el problema |
+| Que el visor lea la serie desde el ETL, o por archivo estatico | Duplica la fuente de verdad y deja la ruta publicada fallando igual. No resuelve I-44, la rodea |
+| Vista con `security_invoker = on` | Haria que la vista corra con los permisos de la API, que no tiene `crudo`: fallaria igual que hoy. Es justamente el mecanismo que se quiere evitar |
+
+### Consecuencias
+
+  * Migracion **017** (`017_vista_serie_climatica.sql`): `CREATE OR REPLACE VIEW
+    analitico.serie_climatica WITH (security_invoker = false)`, `GRANT SELECT` a
+    `geoguardian_api` y a `geoguardian_lector`, con guarda de existencia del rol
+    como hace la 015. Sin `ALTER DEFAULT PRIVILEGES` nuevo: la 003 ya cubre
+    `analitico` para la API en lectura.
+  * `backend/api/repositorio_postgres.py`: `SQL_MEDICIONES` lee de
+    `analitico.serie_climatica`. La tabla de cabecera del archivo (metodo → tabla)
+    se corrige en la misma linea. `test_repositorio_postgres.py` fija que la
+    sentencia no vuelva a apuntar a `crudo`.
+  * `guardar_mediciones` del mismo repositorio inserta en `crudo.medicion_diaria`
+    y con el rol de la API **tampoco puede**. No lo usa ninguna ruta; lo usa el
+    contrato de repositorio para pruebas. Se deja como esta y se anota en su
+    docstring que solo funciona con el rol del ETL, para que nadie lo lea como una
+    ruta rota. Si algun dia una ruta lo necesita, es otra ADR.
+  * La 003 no cambia ni una palabra. La frase «la API no ve el dato bruto» de D-44
+    sigue siendo cierta: ve una vista.
+  * El contrato 1.4.0 no cambia: la ruta, sus parametros y su forma son los
+    mismos. El simulado tampoco.
+
+### Medicion
+
+  1. **Lo permitido funciona, con el rol de produccion:**
+     `basedatos/seguridad/verificar_h18.py` gana una comprobacion en PERMITIDAS:
+     con `geoguardian_api`, `SELECT count(*) FROM analitico.serie_climatica` devuelve
+     un numero. Es la comprobacion que I-40 enseno a poner: lo que la API **si**
+     puede hacer, probado, no supuesto.
+  2. **Lo prohibido sigue prohibido:** con el mismo rol,
+     `SELECT 1 FROM crudo.medicion_diaria LIMIT 1` es rechazado con
+     `permission denied for schema crudo`. Sin esta, no se distingue «abri una
+     vista» de «abri el esquema».
+  3. **La ruta contesta en produccion:**
+     `GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10`
+     devuelve 200 con diez filas -con `precipitacion_mm` en null hasta que el
+     rodeo de I-43 corra, y eso es lo correcto (D-07)-. Se anota en I-44 con fecha
+     al cerrarla.
+  4. **Sabotaje:** quitar el `GRANT` de la 017 y comprobar que la 1 y la 3 fallan;
+     conceder `USAGE` sobre `crudo` a la API y comprobar que la 2 falla.

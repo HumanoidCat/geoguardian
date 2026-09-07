@@ -78,26 +78,39 @@ export default function ControlCapas({
                 encendida. Un control que no afecta a nada visible confunde. */}
             {capa.conOpacidad && superpuestas[capa.id] && (
               <div className="control-opacidad">
-                <label htmlFor="opacidad-riesgo" className="control-opacidad-etiqueta">
+                {/* El `id` lleva el de la capa. Con una sola capa con opacidad
+                    daba igual; desde H5.5 hay tres, y un `id` fijo pondria tres
+                    elementos iguales en la pagina: HTML invalido, y la etiqueta
+                    apuntando siempre al primero. */}
+                <label htmlFor={`opacidad-${capa.id}`} className="control-opacidad-etiqueta">
                   Opacidad
-                  <span className="control-opacidad-valor">{Math.round(opacidad * 100)} %</span>
+                  <span className="control-opacidad-valor">
+                    {Math.round(opacidad[capa.id] * 100)} %
+                  </span>
                 </label>
                 <input
-                  id="opacidad-riesgo"
+                  id={`opacidad-${capa.id}`}
                   type="range"
                   min="0"
                   max="100"
                   step="5"
-                  value={Math.round(opacidad * 100)}
-                  onChange={(evento) => alCambiarOpacidad(Number(evento.target.value) / 100)}
+                  value={Math.round(opacidad[capa.id] * 100)}
+                  onChange={(evento) =>
+                    alCambiarOpacidad(capa.id, Number(evento.target.value) / 100)
+                  }
                 />
 
                 {/* El deslizador deja al usuario degradar la propiedad que el
                     sistema de diseno verifica: por debajo de la mitad, los
                     colores de la rampa se mezclan con la capa base y dejan de
                     distinguirse entre si. No se le quita el control, se le
-                    avisa. Ocultar el problema seria peor que declararlo. */}
-                {opacidad < UMBRAL_OPACIDAD_FIABLE && (
+                    avisa. Ocultar el problema seria peor que declararlo.
+
+                    Solo aplica a la coropleta: el aviso habla de los niveles de
+                    riesgo, y los indices no tienen niveles sino una rampa
+                    continua. Ponerlo en las tres capas seria advertir de algo
+                    que en dos de ellas no pasa. */}
+                {capa.id === 'riesgo' && opacidad[capa.id] < UMBRAL_OPACIDAD_FIABLE && (
                   <p className="control-opacidad-aviso" role="status">
                     Por debajo del {Math.round(UMBRAL_OPACIDAD_FIABLE * 100)} % los niveles se
                     mezclan con la capa base y dejan de distinguirse con fiabilidad. Util para

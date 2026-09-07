@@ -10,6 +10,7 @@ import {
   ORIGEN_API,
   fechaDeHoy,
   obtenerDistritos,
+  obtenerIndices,
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
@@ -20,18 +21,52 @@ import { IDS_EVENTOS, nombreDeEvento } from './datos/eventos'
 import TableroSemaforo from './componentes/TableroSemaforo'
 import { centroidesDeColeccion } from './datos/interpolacion'
 import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
+import LeyendaIndice from './componentes/LeyendaIndice'
+import LogoGeoGuardian from './componentes/LogoGeoGuardian'
+import EstadoDatos from './componentes/EstadoDatos'
+import TitularRiesgo from './componentes/TitularRiesgo'
+import { resumirPaquetes } from './datos/resumen'
 
-const EVENTO_INICIAL = 'sequia'
+// El evento con que abre el visor NO se escribe aca. Se deriva del dato (H5.9,
+// CA-1): el primero, en el orden de `EVENTOS`, que tenga al menos un distrito
+// con nivel para la fecha pedida.
+//
+// Hasta el 2026-09-06 decia `const EVENTO_INICIAL = 'sequia'`, y sequia es el
+// unico evento que por D-34 no tiene estimaciones nunca. Quien abria el sitio
+// publicado veia los ocho distritos en trama y la leyenda diciendo "Sin
+// estimacion 8", mientras lluvia intensa tenia estimaciones frescas a un clic.
+// El visor hacia lo correcto con el dato (D-07) y aun asi la primera impresion
+// era que no funcionaba.
+//
+// Si ningun evento tiene nivel, se abre en el primero y la pantalla lo dice con
+// palabras: lo hace TitularRiesgo (CA-8) a partir de los tres paquetes.
+function eventoInicialSegun(paquetes) {
+  const conDato = IDS_EVENTOS.find((id) =>
+    Object.values(paquetes?.[id]?.riesgos ?? {}).some((riesgo) => riesgo?.nivel != null),
+  )
+  return conDato ?? IDS_EVENTOS[0]
+}
 
 // Mismo valor que --riesgo-opacidad en tokens.css. Se repite aca porque el
 // estado de React necesita un numero inicial; el CSS sigue siendo el dueno del
 // valor por defecto cuando el deslizador no se ha tocado.
-const OPACIDAD_INICIAL = 0.85
+// Una opacidad **por capa**, no una compartida.
+//
+// Hasta H5.5 habia una sola capa con deslizador y alcanzaba con un numero. Al
+// entrar los indices se reuso ese mismo numero y los tres deslizadores pasaron a
+// ser el mismo valor con tres dibujos: mover el del NDVI movia el del riesgo.
+// Se vio probandolo en el visor, no leyendo el codigo.
+const OPACIDAD_INICIAL = {
+  riesgo: 0.85,
+  ndvi: 0.85,
+  ndwi: 0.85,
+}
 
 export default function App() {
   const [salud, setSalud] = useState(null)
   const [coleccion, setColeccion] = useState(null)
-  const [evento, setEvento] = useState(EVENTO_INICIAL)
+  // null hasta que lleguen los tres paquetes y se pueda derivar. Ver arriba.
+  const [evento, setEvento] = useState(null)
   const [paqueteRiesgos, setPaqueteRiesgos] = useState(null)
   const [seleccionado, setSeleccionado] = useState(null)
   const [error, setError] = useState(null)
@@ -41,6 +76,10 @@ export default function App() {
   const [capaBase, setCapaBase] = useState(CAPA_BASE_INICIAL)
   const [superpuestas, setSuperpuestas] = useState(CAPAS_INICIALES)
   const [opacidad, setOpacidad] = useState(OPACIDAD_INICIAL)
+
+  const cambiarOpacidad = useCallback((id, valor) => {
+    setOpacidad((previas) => ({ ...previas, [id]: valor }))
+  }, [])
   const [exponente, setExponente] = useState(EXPONENTE_IDW_INICIAL)
   const [paquetesTodos, setPaquetesTodos] = useState(null)
 
@@ -62,6 +101,10 @@ export default function App() {
   // nuevo. Con el codigo adentro, la comprobacion es una sola y no se puede
   // olvidar: si no corresponde al distrito de la ficha, no se muestra.
   const [puntoClic, setPuntoClic] = useState(null)
+
+  // Los indices de H5.5. Se cargan una sola vez: no dependen del evento ni de la
+  // fecha del selector, porque son de la fecha de la escena de satelite.
+  const [indices, setIndices] = useState(null)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -90,12 +133,25 @@ export default function App() {
     }
   }, [])
 
+  // Los indices, aparte. Si no estan, la capa no se ofrece y ya: no es un error
+  // y no tiene que ensuciar el estado general con un mensaje rojo.
+  useEffect(() => {
+    let vigente = true
+    obtenerIndices().then((paquete) => {
+      if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
   // Riesgos del evento seleccionado. Se recarga cada vez que cambia el evento.
   //
   // El estado de carga NO se enciende aca: se enciende en el manejador del
   // selector y arranca en true. Encenderlo dentro del efecto provoca un render
   // en cascada, y el linter lo rechaza con razon.
   useEffect(() => {
+    if (evento === null) return undefined
     let vigente = true
 
     async function cargar() {
@@ -128,15 +184,28 @@ export default function App() {
   // Si falla, el semaforo simplemente no se dibuja. No se propaga al error
   // general: el mapa sigue siendo util sin la tabla, y una pantalla en rojo por
   // una parte accesoria seria peor que la ausencia de esa parte.
+  //
+  // Es tambien la carga que decide el evento inicial (CA-1): con los tres
+  // paquetes a la vista se elige el primero que tenga dato. Solo la primera vez;
+  // un evento que la persona eligio no se le cambia al cambiar la fecha. Y no
+  // cuesta una peticion mas: `obtenerRiesgos` memoriza por evento y fecha, asi
+  // que el efecto del mapa recibe el paquete que ya llego por aca (CA-3).
+  //
+  // Si la carga falla y todavia no hay evento, se abre en el primero igual: el
+  // mapa con los distritos sin estimacion es mejor que ningun mapa.
   useEffect(() => {
     let vigente = true
 
     obtenerRiesgosDeVariosEventos(IDS_EVENTOS, fecha)
       .then((paquetes) => {
-        if (vigente) setPaquetesTodos(paquetes)
+        if (!vigente) return
+        setPaquetesTodos(paquetes)
+        setEvento((actual) => actual ?? eventoInicialSegun(paquetes))
       })
       .catch(() => {
-        if (vigente) setPaquetesTodos(null)
+        if (!vigente) return
+        setPaquetesTodos(null)
+        setEvento((actual) => actual ?? IDS_EVENTOS[0])
       })
 
     return () => {
@@ -199,8 +268,21 @@ export default function App() {
     [coleccion],
   )
 
-  const nombreEvento = nombreDeEvento(evento)
+  const nombreEvento = evento ? nombreDeEvento(evento) : ''
   const riesgos = paqueteRiesgos?.riesgos ?? null
+
+  // Lo que cada evento tiene para la fecha, contado desde los tres paquetes. Lo
+  // leen el titular (CA-8) y el selector de evento (CA-1). Si el semaforo no
+  // cargo, es null y ninguno de los dos afirma nada.
+  const resumenes = useMemo(
+    () => (paquetesTodos ? resumirPaquetes(IDS_EVENTOS, paquetesTodos) : null),
+    [paquetesTodos],
+  )
+
+  const nombresPorCodigo = useMemo(
+    () => Object.fromEntries(distritos.map((d) => [d.codigo, d.nombre])),
+    [distritos],
+  )
 
   // El selector se bloquea cuando los datos NO vienen de la API, porque el
   // respaldo estatico tiene una sola fecha y no puede servir otra.
@@ -213,13 +295,14 @@ export default function App() {
   return (
     <div className="aplicacion">
       <header className="cabecera">
-        <div>
-          <h1>GeoGuardian</h1>
-          <p className="subtitulo">
-            Riesgo de lluvia intensa, sequia e incendio forestal por distrito ·
-            Canton de Tilaran
-          </p>
+        <div className="marca">
+          <LogoGeoGuardian />
+          <div>
+            <h1>GeoGuardian</h1>
+            <p className="subtitulo">Riesgo climatico por distrito · Canton de Tilaran</p>
+          </div>
         </div>
+        <EstadoDatos salud={salud} />
       </header>
 
       <AvisoModoSimulado salud={salud} />
@@ -239,76 +322,105 @@ export default function App() {
       )}
 
       {!cargando && coleccion && (
-        <main className="contenido">
-          <div className="columna-mapa">
-            <SelectorEvento seleccionado={evento} alCambiar={cambiarEvento} />
+        <>
+          <TitularRiesgo
+            evento={evento}
+            resumenes={resumenes}
+            paquetes={paquetesTodos}
+            fecha={fecha}
+            nombres={nombresPorCodigo}
+          />
+
+          <section className="controles" aria-label="Evento y fecha">
+            <SelectorEvento seleccionado={evento} alCambiar={cambiarEvento} resumenes={resumenes} />
             <SelectorFecha
               fecha={fecha}
               alCambiar={cambiarFecha}
               bloqueado={sinEleccionDeFecha}
               fechaDelRespaldo={paqueteRiesgos?.fecha}
             />
-            <MapaCanton
-              coleccion={coleccion}
-              riesgos={riesgos}
-              seleccionado={seleccionado}
-              alSeleccionar={seleccionarDesdeMapa}
-              capaBase={capaBase}
-              superpuestas={superpuestas}
-              opacidad={opacidad}
-              exponente={exponente}
-              centroides={centroides}
-            />
-          </div>
+          </section>
 
-          <div className="columna-panel">
-            <ControlCapas
-              capaBase={capaBase}
-              alCambiarCapaBase={setCapaBase}
-              superpuestas={superpuestas}
-              alAlternarSuperpuesta={alternarSuperpuesta}
-              opacidad={opacidad}
-              alCambiarOpacidad={setOpacidad}
-              exponente={exponente}
-              alCambiarExponente={setExponente}
-            />
-
-            {cargandoRiesgos ? (
-              <div className="leyenda">
-                <div className="pulso-cargando barra-carga" />
-                <p className="leyenda-aviso">Cargando los niveles de riesgo...</p>
-              </div>
-            ) : (
-              <LeyendaRiesgo
-                nombreEvento={nombreEvento}
+          <main className="contenido">
+            <div className="columna-mapa">
+              <MapaCanton
+                coleccion={coleccion}
                 riesgos={riesgos}
-                simulado={paqueteRiesgos?.simulado}
-                fecha={paqueteRiesgos?.fecha}
+                seleccionado={seleccionado}
+                alSeleccionar={seleccionarDesdeMapa}
+                capaBase={capaBase}
+                superpuestas={superpuestas}
+                opacidad={opacidad}
+                exponente={exponente}
+                centroides={centroides}
+                indices={indices}
               />
-            )}
 
-            {superpuestas.mapaCalor && !cargandoRiesgos && (
-              <LeyendaMapaCalor centroides={centroides} riesgos={riesgos} exponente={exponente} />
-            )}
+              {/* La leyenda va sobre el mapa en pantalla ancha y debajo en la
+                  angosta; lo decide el CSS de `.leyenda-flotante`. */}
+              <div className="leyenda-flotante">
+                {cargandoRiesgos ? (
+                  <div className="leyenda">
+                    <div className="pulso-cargando barra-carga" />
+                    <p className="leyenda-aviso">Cargando los niveles de riesgo...</p>
+                  </div>
+                ) : (
+                  <LeyendaRiesgo
+                    nombreEvento={nombreEvento}
+                    riesgos={riesgos}
+                    simulado={paqueteRiesgos?.simulado}
+                    fecha={paqueteRiesgos?.fecha}
+                  />
+                )}
+              </div>
 
-            <PanelDistrito
-              distrito={distritoSeleccionado}
-              ubicacion={ubicacionDelDistrito}
-              puntoClic={puntoClic?.codigo === seleccionado ? puntoClic : null}
-              riesgo={seleccionado ? riesgos?.[seleccionado] : null}
-              nombreEvento={nombreEvento}
-            />
-          </div>
-        </main>
-      )}
+              {superpuestas.mapaCalor && !cargandoRiesgos && (
+                <LeyendaMapaCalor centroides={centroides} riesgos={riesgos} exponente={exponente} />
+              )}
+              {superpuestas.ndvi && <LeyendaIndice id="ndvi" paquete={indices} />}
+              {superpuestas.ndwi && <LeyendaIndice id="ndwi" paquete={indices} />}
+            </div>
 
-      {!cargando && coleccion && paquetesTodos && (
-        <TableroSemaforo
-          distritos={distritos}
-          paquetes={paquetesTodos}
-          seleccionado={seleccionado}
-          alSeleccionar={seleccionarDesdeTablero}
-        />
+            <aside className="columna-panel">
+              {/* El semaforo sube junto al mapa (H5.9): en el sitio publicado
+                  quedaba debajo del pliegue, como un bloque aparte al final de
+                  la pagina, y es la unica vista que muestra los tres eventos. */}
+              {paquetesTodos && (
+                <TableroSemaforo
+                  distritos={distritos}
+                  paquetes={paquetesTodos}
+                  seleccionado={seleccionado}
+                  alSeleccionar={seleccionarDesdeTablero}
+                />
+              )}
+
+              <PanelDistrito
+                distrito={distritoSeleccionado}
+                ubicacion={ubicacionDelDistrito}
+                puntoClic={puntoClic?.codigo === seleccionado ? puntoClic : null}
+                riesgo={seleccionado ? riesgos?.[seleccionado] : null}
+                nombreEvento={nombreEvento}
+              />
+
+              {/* Plegado por omision: son diez controles que se usan una vez por
+                  sesion, y abiertos empujaban el semaforo y la ficha fuera de la
+                  pantalla. */}
+              <details className="capas-plegable">
+                <summary>Capas del mapa</summary>
+                <ControlCapas
+                  capaBase={capaBase}
+                  alCambiarCapaBase={setCapaBase}
+                  superpuestas={superpuestas}
+                  alAlternarSuperpuesta={alternarSuperpuesta}
+                  opacidad={opacidad}
+                  alCambiarOpacidad={cambiarOpacidad}
+                  exponente={exponente}
+                  alCambiarExponente={setExponente}
+                />
+              </details>
+            </aside>
+          </main>
+        </>
       )}
     </div>
   )

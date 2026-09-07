@@ -62,6 +62,27 @@ const RUTA_API = import.meta.env.VITE_API_URL ?? '/api'
  */
 const BASE = import.meta.env.BASE_URL
 
+/**
+ * Los indices NDVI y NDWI de H5.5.
+ *
+ * **No pasan por la API y no son un respaldo.** Son un producto que se genera
+ * con `frontend/herramientas/generar_indices.py` a partir de una escena de
+ * Sentinel-2 y queda versionado en `public/`, para que el visor funcione desde
+ * `docker compose up` sin credenciales de Copernicus.
+ *
+ * Si el archivo no esta, la capa simplemente no se ofrece. No es un error: quien
+ * no corrio el guion no tiene los PNG, y eso es distinto de una falla.
+ */
+export async function obtenerIndices() {
+  try {
+    const respuesta = await fetch(`${BASE}indices/indices.json`)
+    if (!respuesta.ok) return null
+    return await respuesta.json()
+  } catch {
+    return null
+  }
+}
+
 const RESPALDO = {
   salud: `${BASE}simulados/salud.json`,
   distritos: `${BASE}simulados/distritos.geojson`,
@@ -291,11 +312,41 @@ async function pedirDistritos() {
  * ofrecer una eleccion que no existe. Devolver el paquete rotulado con la fecha
  * pedida seria el defecto de I-04 otra vez, en otra capa.
  *
- * Un distrito puede venir con `nivel` en null: el contrato lo permite mientras no
- * exista un modelo entrenado. Eso no se corrige aca, se muestra como ausencia de
- * estimacion.
+ * Un distrito puede venir con `nivel` en null: el contrato lo permite cuando no
+ * hay estimacion para ese evento y esa fecha. Sequia no la tiene nunca, por
+ * D-34; incendio solo en fechas con focos registrados. Eso no se corrige aca, se
+ * muestra como ausencia de estimacion.
+ *
+ * ---------------------------------------------------------------------------
+ * UNA CONSULTA POR EVENTO Y FECHA, AUNQUE LA PIDAN DOS (H5.9, CA-3)
+ * ---------------------------------------------------------------------------
+ *
+ * App.jsx pide los riesgos por dos caminos: el del evento que muestra el mapa y
+ * el del semaforo, que pide los tres. Medido en el sitio publicado el
+ * 2026-09-05, una carga limpia hacia CUATRO peticiones a /api/riesgos para tres
+ * eventos: el evento del mapa se pedia dos veces. Los dos efectos eran correctos
+ * por separado.
+ *
+ * Es el mismo patron que `negociacion` y `coleccionEnCurso`: la promesa se
+ * memoriza por clave `evento|fecha` y quien llegue segundo recibe la misma. Si
+ * la peticion falla, la clave se suelta, para que el siguiente intento vuelva a
+ * pedir en vez de heredar el error para siempre.
  */
-export async function obtenerRiesgos(evento, fechaPedida = null) {
+const riesgosEnCurso = new Map()
+
+export function obtenerRiesgos(evento, fechaPedida = null) {
+  const clave = `${evento}|${fechaPedida ?? fechaDeHoy()}`
+  if (!riesgosEnCurso.has(clave)) {
+    const promesa = pedirRiesgos(evento, fechaPedida).catch((causa) => {
+      riesgosEnCurso.delete(clave)
+      throw causa
+    })
+    riesgosEnCurso.set(clave, promesa)
+  }
+  return riesgosEnCurso.get(clave)
+}
+
+async function pedirRiesgos(evento, fechaPedida) {
   const { origen, salud } = await resolverOrigen()
 
   if (origen !== ORIGEN_API) {

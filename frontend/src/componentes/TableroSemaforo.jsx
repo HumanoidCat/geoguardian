@@ -67,7 +67,7 @@ const SIN_ESTIMACION = [-1, -1]
  *
  * `nivel` y `probabilidad` son dos opcionales INDEPENDIENTES en el contrato,
  * y el docstring de `Riesgo` en contratos/esquemas.py lo dice: `probabilidad`
- * es None mientras no exista un modelo entrenado.
+ * es None cuando no hay estimacion para ese evento y fecha.
  *
  * La version anterior ordenaba solo por probabilidad y mandaba al final a los
  * distritos que no la tenian. Un distrito con `nivel: alto` y `probabilidad:
@@ -262,8 +262,8 @@ export default function TableroSemaforo({ distritos, paquetes, alSeleccionar, se
 
       {simulado && (
         <p className="tablero-aviso">
-          Niveles simulados. No hay modelo entrenado: estos valores no representan
-          riesgo real.
+          Niveles simulados: estos valores no salen de un modelo ni de observaciones
+          y no representan riesgo real.
         </p>
       )}
     </section>

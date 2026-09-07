@@ -26,7 +26,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
-from backend.api.dependencias import modo_de, obtener_repositorio
+from backend.api.dependencias import (
+    base_conectada,
+    modo_de,
+    obtener_repositorio,
+    ultima_ingesta_de,
+)
 from backend.api.errores import Error
 from contratos import VERSION_CONTRATOS
 from contratos.enums import TipoEvento
@@ -62,15 +67,18 @@ CodigoDistrito = Annotated[
     tags=["estado"],
 )
 def salud(repositorio: Repo) -> Salud:
-    modo = modo_de(repositorio)
+    # Ninguno de los tres campos se escribe a mano: los tres se le preguntan a la
+    # implementacion que efectivamente contesto. `modo` ya era asi desde H6.1; los
+    # otros dos eran constantes -`False` y `None`- puestas cuando H6.1 no abria
+    # conexion, y ciertas entonces. H6.2 las volvio falsas y sobrevivieron nueve
+    # dias porque ningun criterio preguntaba por ellas con el repositorio real.
+    # Ver I-41 y el criterio CA-7 de verificar_h61.py, que ahora si pregunta.
     return Salud(
         version_api=VERSION_API,
         version_contratos=VERSION_CONTRATOS,
-        modo=modo,
-        # Esta historia no abre conexion a PostgreSQL: eso es H6.2. Declararlo
-        # falso es la respuesta honesta, no un valor pendiente.
-        base_datos_conectada=False,
-        ultima_ingesta=None,
+        modo=modo_de(repositorio),
+        base_datos_conectada=base_conectada(repositorio),
+        ultima_ingesta=ultima_ingesta_de(repositorio),
     )
 
 

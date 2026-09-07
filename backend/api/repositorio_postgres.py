@@ -16,7 +16,7 @@ tablas que todavia no existen:
     listar_distritos       geo.distrito              H1.3
     obtener_distrito       geo.distrito              H1.3
     guardar_mediciones     crudo.medicion_diaria     H1.1
-    obtener_mediciones     crudo.medicion_diaria     H1.1
+    obtener_mediciones     analitico.serie_climatica H1.1; vista desde D-45 (I-44)
     guardar_focos          crudo.foco_calor          H1.2
     contar_focos           crudo.foco_calor          H1.2
     guardar_riesgos        analitico.riesgo          H3.6 (Alejandro, D-39)
@@ -76,7 +76,7 @@ valor para las ocho cargas. Ver la evidencia de H1.1.
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from basedatos.conexion import conectar
 from contratos.enums import Algoritmo, MetodoImputacion, NivelRiesgo, TipoEvento
@@ -126,6 +126,35 @@ def _pendiente(metodo: str):
     )
 
 
+# La ultima corrida de INGESTA que termino bien. El filtro por prefijo no es
+# adorno: H12.1 va a escribir filas con `proceso = 'api'` (D-44), y sin el, la
+# primera vez que la API se registre a si misma `ultima_ingesta` pasaria a
+# significar «la ultima vez que la API anoto algo». Cambiaria el significado de un
+# campo del contrato sin que nadie tocara el contrato.
+#
+# SOBRE EL INDICE DE LA 013, MEDIDO Y NO SUPUESTO
+#
+# La 013 dejo `bitacora_etl_proceso_ix (proceso, terminada_en DESC)` con el
+# comentario «la que /salud va a hacer». **Esta consulta no lo usa**, y conviene
+# decirlo antes de que alguien lo de por hecho. Medido sobre 200 000 filas en
+# PostgreSQL 16.15:
+#
+#     WHERE proceso = 'ingesta.sequia'    Index Scan            0.08 ms
+#     WHERE proceso LIKE 'ingesta.%'      Parallel Seq Scan    16.6 ms
+#     WHERE proceso IN (los tres)         Parallel Seq Scan    17.3 ms
+#
+# El indice sirve la pregunta del ETL -«la ultima corrida de ESTE proceso»-, que
+# es igualdad. La de /salud es «la ultima de CUALQUIER ingesta», y ni el LIKE ni
+# la lista explicita la vuelven indexable. Se deja el recorrido secuencial: son
+# 17 ms sobre doscientas mil filas y hoy la tabla tiene ocho. Cambiar el indice
+# por una consulta que se hace una vez al cargar la pagina no se paga.
+SQL_ULTIMA_INGESTA = """
+    SELECT max(terminada_en)
+      FROM control.bitacora_etl
+     WHERE estado = 'exitosa'
+       AND proceso LIKE %s
+"""
+
 SQL_DISTRITOS = """
     SELECT codigo, nombre, area_km2, poblacion, ST_AsGeoJSON(geometria)
       FROM geo.distrito
@@ -142,13 +171,17 @@ SQL_DISTRITO = """
 # Una fila por dia del rango, incluidos los que no tienen medicion. El contrato lo
 # exige: «el consumidor necesita ver los huecos». Sin el generate_series, un dia
 # ausente seria indistinguible de un dia que no existe.
+# D-45 (I-44): la API no tiene acceso a `crudo` (003) y la ruta leia de ahi, asi
+# que respondia 500 en produccion. Lee de `analitico.serie_climatica`, una vista
+# que corre con los privilegios de su duenio (migracion 017). `crudo` sigue
+# cerrado para la API.
 SQL_MEDICIONES = """
     SELECT dia::date,
            m.temp_max_c, m.temp_min_c, m.temp_media_c,
            m.precipitacion_mm, m.humedad_relativa_pct, m.viento_ms, m.radiacion_mj_m2,
            m.imputado, m.metodo_imputacion
       FROM generate_series(%(desde)s::date, %(hasta)s::date, interval '1 day') AS dia
-      LEFT JOIN crudo.medicion_diaria m
+      LEFT JOIN analitico.serie_climatica m
              ON m.fecha = dia::date AND m.codigo_distrito = %(codigo)s
      ORDER BY dia
 """
@@ -278,6 +311,41 @@ class RepositorioPostgres:
     def cerrar(self) -> None:
         self._conexion.close()
 
+    # -- Estado, para /salud ------------------------------------------------ #
+    #
+    # Dos consultas y no una a proposito. Si se usara la de la ingesta tambien
+    # como sonda de conexion, un `permission denied` sobre control.bitacora_etl
+    # se reportaria como «base no conectada», que es una respuesta falsa distinta
+    # de la que se esta arreglando. Cada campo responde por lo suyo.
+
+    def esta_viva(self) -> bool:
+        """
+        Si la base contesta AHORA. No lanza: /salud tiene que poder decir que no.
+
+        Un /salud que devuelve 500 cuando la base se cae no informa de nada; es
+        justo el caso para el que el frontend consulta este endpoint.
+        """
+        try:
+            with self._conexion.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                return cursor.fetchone() is not None
+        except Exception:  # noqa: BLE001
+            return False
+
+    def ultima_ingesta(self) -> datetime | None:
+        """
+        Cuando termino la ultima ingesta exitosa, o None si no hay ninguna.
+
+        None aqui significa lo que el contrato dice que significa -«nunca se
+        ejecuto»- y por eso el fallo se distingue: si la consulta no se puede
+        hacer, esto propaga la excepcion en vez de devolver None. Devolver None
+        ante un error diria «nunca corrio», que es exactamente la mentira de I-41.
+        """
+        with self._conexion.cursor() as cursor:
+            cursor.execute(SQL_ULTIMA_INGESTA, ("ingesta.%",))
+            fila = cursor.fetchone()
+            return fila[0] if fila else None
+
     # -- Territorio --------------------------------------------------------- #
 
     def _a_distrito(self, fila) -> Distrito:
@@ -310,6 +378,11 @@ class RepositorioPostgres:
 
         La transaccion envuelve el `executemany` completo, asi que una carga
         interrumpida no deja filas sueltas, que es lo que el contrato exige.
+
+        Escribe en `crudo.medicion_diaria`, asi que **solo funciona con el rol
+        del ETL**: la API no tiene acceso a `crudo` (003) y ninguna ruta llama a
+        este metodo. Existe por el contrato de repositorio (D-45 lo deja dicho
+        para que nadie lo lea como una ruta rota).
         """
         if not mediciones:
             return 0

@@ -30,7 +30,7 @@ import ast
 import re
 import sys
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 # El verificador se invoca de dos formas y las dos tienen que funcionar:
@@ -329,6 +329,20 @@ class RepositorioFalso:
 
     MARCA = "Distrito de prueba CA-7"
 
+    # Los dos valores que /salud tiene que REPETIR, no inventar. Se eligen
+    # distintos de las constantes que estuvieron escritas en rutas.py hasta el
+    # 2026-09-05 -False y None-, que es lo que hace que el sabotaje se note: con
+    # las constantes puestas, /salud contesta False y None mientras este doble
+    # declara True y una fecha. Ver I-41.
+    CONECTADA = True
+    INGESTA = datetime.fromisoformat("2026-09-04T12:30:00+00:00")
+
+    def esta_viva(self) -> bool:
+        return self.CONECTADA
+
+    def ultima_ingesta(self) -> datetime | None:
+        return self.INGESTA
+
     def _distrito(self) -> Distrito:
         return Distrito(
             codigo="59999",
@@ -388,6 +402,40 @@ def ca7_sustitucion() -> Resultado:
             detalle.append(f"  [MAL] /salud dice modo={salud['modo']}, se esperaba real")
         else:
             detalle.append("  [ok ] /salud deduce el modo de la implementacion, no de un literal")
+
+        # LOS DOS CAMPOS QUE FALTABAN. Hasta el 2026-09-05 este bloque preguntaba
+        # solo por `modo`, y por eso `base_datos_conectada` pudo quedarse en la
+        # constante False nueve dias despues de que H6.2 conectara la base de
+        # verdad. Un criterio que revisa un campo de tres no dice nada de los
+        # otros dos: I-41.
+        if salud["base_datos_conectada"] is not RepositorioFalso.CONECTADA:
+            ok = False
+            detalle.append(
+                f"  [MAL] /salud dice base_datos_conectada="
+                f"{salud['base_datos_conectada']}, y la implementacion dice "
+                f"{RepositorioFalso.CONECTADA}"
+            )
+        else:
+            detalle.append(
+                "  [ok ] /salud le pregunta a la implementacion si hay base, no a una constante"
+            )
+
+        esperada = RepositorioFalso.INGESTA
+        recibida = salud["ultima_ingesta"]
+        # FastAPI serializa el desplazamiento como 'Z'; `fromisoformat` no lo
+        # acepta antes de Python 3.11. Se normaliza para que este criterio no
+        # dependa de la version del interprete que lo corre.
+        normalizada = recibida.replace("Z", "+00:00") if recibida else None
+        if normalizada is None or datetime.fromisoformat(normalizada) != esperada:
+            ok = False
+            detalle.append(
+                f"  [MAL] /salud dice ultima_ingesta={recibida}, se esperaba "
+                f"{esperada.isoformat()}"
+            )
+        else:
+            detalle.append(
+                f"  [ok ] /salud reporta la ultima ingesta de la implementacion: {recibida}"
+            )
 
     detalle.append("  ningun archivo de rutas fue modificado para esta prueba")
     return Resultado("CA-7", "Sustituir la implementacion no toca ningun endpoint", ok, detalle)

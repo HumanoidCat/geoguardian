@@ -96,6 +96,9 @@ class XGBoostEstimador:
 
     nombre: str = "xgboost"
     balancear: bool = True
+    #: Hiperparametros que sobreescriben los de fabrica (H3.8). Ver la nota de
+    #: `random_forest.py`: la semilla y el hilo unico no se afinan.
+    parametros: dict = field(default_factory=dict)
 
     _columnas: list[str] = field(default_factory=list, init=False)
     _clases: list[NivelRiesgo] = field(default_factory=list, init=False)
@@ -157,11 +160,13 @@ class XGBoostEstimador:
             conteo = np.bincount(y, minlength=len(self._clases))
             pesos = (len(y) / (len(self._clases) * conteo))[y]
 
-        self._modelo = XGBClassifier(
-            tree_method="hist",
-            n_jobs=1,  # ver la cabecera: con varios hilos no es reproducible
-            random_state=SEMILLA,
-        ).fit(X, y, sample_weight=pesos)
+        ajustes = {
+            "tree_method": "hist",
+            **self.parametros,
+            "n_jobs": 1,  # ver la cabecera: con varios hilos no es reproducible
+            "random_state": SEMILLA,
+        }
+        self._modelo = XGBClassifier(**ajustes).fit(X, y, sample_weight=pesos)
         return self
 
     # ----------------------------------------------------------------- #
