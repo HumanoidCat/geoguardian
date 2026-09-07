@@ -102,8 +102,6 @@ PENDIENTES = {
     "listar_eventos": ("analitico.evento", "H4.3"),
     "guardar_reporte_calidad": ("control.reporte_calidad", "H1.5"),
     "listar_reportes_calidad": ("control.reporte_calidad", "H1.5"),
-    "guardar_metricas": ("analitico.metrica", "H3.7"),
-    "listar_metricas": ("analitico.metrica", "H3.7"),
 }
 
 
@@ -291,6 +289,36 @@ SQL_RIESGOS_POR_FECHA = """
             AND r.tipo_evento = %(tipo_evento)s
      WHERE d.codigo_canton = %(canton)s
      ORDER BY d.codigo
+"""
+
+
+SQL_GUARDAR_METRICA = """
+    INSERT INTO analitico.metrica (
+        algoritmo, tipo_evento, version, entrenado_en,
+        f1_macro, precision_macro, exhaustividad_macro,
+        matriz_confusion, supera_linea_base
+    )
+    VALUES (
+        %(algoritmo)s, %(tipo_evento)s, %(version)s, %(entrenado_en)s,
+        %(f1_macro)s, %(precision_macro)s, %(exhaustividad_macro)s,
+        %(matriz_confusion)s, %(supera_linea_base)s
+    )
+    ON CONFLICT (algoritmo, tipo_evento, version) DO UPDATE SET
+        entrenado_en        = EXCLUDED.entrenado_en,
+        f1_macro            = EXCLUDED.f1_macro,
+        precision_macro     = EXCLUDED.precision_macro,
+        exhaustividad_macro = EXCLUDED.exhaustividad_macro,
+        matriz_confusion    = EXCLUDED.matriz_confusion,
+        supera_linea_base   = EXCLUDED.supera_linea_base,
+        registrado_en       = now()
+"""
+
+SQL_LISTAR_METRICAS = """
+    SELECT algoritmo, tipo_evento, version, entrenado_en,
+           f1_macro, precision_macro, exhaustividad_macro,
+           matriz_confusion, supera_linea_base
+      FROM analitico.metrica
+     ORDER BY tipo_evento, registrado_en DESC, algoritmo
 """
 
 
@@ -587,11 +615,73 @@ class RepositorioPostgres:
     def listar_reportes_calidad(self) -> list[ReporteCalidad]:
         raise _pendiente("listar_reportes_calidad")
 
+    @staticmethod
+    def _a_metricas(fila) -> MetricasModelo:
+        """
+        Traduce una fila a `MetricasModelo` **sin rellenar nada**.
+
+        `numeric` vuelve como `Decimal` y hay que convertirlo, pero un NULL
+        vuelve None y asi se queda: una metrica no calculada no es un cero, y
+        `supera_linea_base` tiene tres estados -no comparado, no supera,
+        supera-, que es la distincion sobre la que D-39 decidio.
+        """
+        (
+            algoritmo,
+            tipo_evento,
+            version,
+            entrenado_en,
+            f1,
+            precision,
+            exhaustividad,
+            matriz,
+            supera,
+        ) = fila
+        return MetricasModelo(
+            algoritmo=Algoritmo(algoritmo),
+            tipo_evento=TipoEvento(tipo_evento),
+            version=version,
+            entrenado_en=entrenado_en,
+            f1_macro=float(f1) if f1 is not None else None,
+            precision_macro=float(precision) if precision is not None else None,
+            exhaustividad_macro=float(exhaustividad) if exhaustividad is not None else None,
+            matriz_confusion=matriz,
+            supera_linea_base=supera,
+        )
+
     def guardar_metricas(self, metricas: MetricasModelo) -> None:
-        raise _pendiente("guardar_metricas")
+        """
+        Idempotente por la clave natural (algoritmo, evento, version).
+
+        Volver a guardar la misma version **actualiza**: reentrenar con los
+        mismos datos y la misma version no debe dejar dos filas que digan cosas
+        distintas sobre el mismo modelo. Si lo que se quiere es conservar la
+        medicion anterior, lo que cambia es la version, que para eso existe.
+        """
+        with self._conexion.transaction(), self._conexion.cursor() as cursor:
+            cursor.execute(
+                SQL_GUARDAR_METRICA,
+                {
+                    "algoritmo": metricas.algoritmo.value,
+                    "tipo_evento": metricas.tipo_evento.value,
+                    "version": metricas.version,
+                    "entrenado_en": metricas.entrenado_en,
+                    "f1_macro": metricas.f1_macro,
+                    "precision_macro": metricas.precision_macro,
+                    "exhaustividad_macro": metricas.exhaustividad_macro,
+                    "matriz_confusion": (
+                        json.dumps(metricas.matriz_confusion)
+                        if metricas.matriz_confusion is not None
+                        else None
+                    ),
+                    "supera_linea_base": metricas.supera_linea_base,
+                },
+            )
 
     def listar_metricas(self) -> list[MetricasModelo]:
-        raise _pendiente("listar_metricas")
+        """Todas, agrupadas por evento y con la mas reciente primero."""
+        with self._conexion.cursor() as cursor:
+            cursor.execute(SQL_LISTAR_METRICAS)
+            return [self._a_metricas(fila) for fila in cursor.fetchall()]
 
 
 def _categoria_desde_entero(confianza: int | None) -> str:
