@@ -81,11 +81,25 @@ en una máquina limpia, es un defecto del manual.
 | k3d | 5.x | Clúster local de Kubernetes | Solo para k3d |
 
 > **Python 3.11 no es una sugerencia.** Con 3.14 el `requirements.txt` no instala:
-> `scipy` intenta compilarse desde fuente y falla. Con 3.12 y 3.13 no se ha
-> probado; el CI corre sobre 3.11.
+> `scipy` intenta compilarse desde fuente y falla. Con 3.13 tampoco: `shap` no
+> tiene rueda precompilada y se pone a compilar C++, que sin Visual Studio Build
+> Tools termina en errores crípticos (lo encontró la verificación externa del
+> 2026-09-02). El CI corre sobre 3.11.
 
-En Windows, la instalación paso a paso de cada uno está en `docs/ARRANQUE.md`,
-que además documenta los errores que ya le ocurrieron al equipo.
+**Para las secciones 3 a 5 no hacen falta `kubectl` ni `k3d`**: todo corre sobre
+Docker Compose y Python local. Esas dos filas son solo para el despliegue en
+Kubernetes de la sección 8.
+
+**En Windows, con varias versiones de Python instaladas**, lo habitual es que
+`python` apunte a la más nueva. Instalar la 3.11 y llamarla por su número:
+
+```powershell
+winget install Python.Python.3.11
+py -3.11 --version          # debe decir Python 3.11.x
+```
+
+La instalación paso a paso de todo lo demás está en `docs/ARRANQUE.md`, que
+además documenta los errores que ya le ocurrieron al equipo.
 
 ---
 
@@ -134,17 +148,35 @@ privilegio, que es la historia H1.8.
 > tanto aquí como en `docker-compose.yml`. Si falta, el contenedor no arranca y el
 > mensaje lo dice explícitamente.
 
+> **`POSTGRES_HOST=db` no hay que cambiarlo.** Ese nombre lo usa Docker Compose
+> para que la API, dentro de la red de contenedores, encuentre a la base. Los
+> guiones de Python que se corren desde la máquina (`aplicar_migraciones`,
+> `cargar_distritos`, los verificadores) leen **`POSTGRES_HOST_LOCAL`**, que ya
+> viene en `localhost`. Son dos variables porque son dos redes distintas; el
+> comentario de `.env.example` lo explica.
+
 > `.env` está en `.gitignore` y nunca se sube. Si aparece en `git status`, hay un
 > problema: avisar antes de confirmar nada.
 
 ### 3.3 Preparar Python
 
 ```bash
-python -m venv .venv
+python -m venv .venv             # Linux y macOS
+py -3.11 -m venv .venv           # Windows: fuerza la 3.11 aunque haya otras
 source .venv/bin/activate        # Linux y macOS
 .\.venv\Scripts\Activate.ps1     # Windows PowerShell
 pip install -r requirements.txt
 ```
+
+> **Si PowerShell se niega a ejecutar `Activate.ps1`** («la ejecución de scripts
+> está deshabilitada»), es la política de ejecución, no el proyecto. Una sola vez:
+>
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+
+Todo lo que sigue -secciones 4 y 5- se corre **desde la raíz del repositorio y con
+el entorno activado**. Cada bloque que cambia de carpeta vuelve a la raíz al final.
 
 ---
 
@@ -203,13 +235,19 @@ filtro.
 ### 4.4 Visor
 
 ```bash
+python frontend/herramientas/exportar_simulados.py   # genera los datos estáticos, desde la raíz
 cd frontend
 npm install
-python ../frontend/herramientas/exportar_simulados.py   # genera los datos estáticos
 npm run dev
 ```
 
-Queda en `http://localhost:5173`.
+Queda en `http://localhost:5173`. **`npm run dev` se queda corriendo en primer
+plano y ocupa esa terminal**: para seguir con la sección 4.5 y la 5 hay que abrir
+una segunda terminal, activar el entorno y **volver a la raíz** (`cd ..` si se
+está en `frontend/`). La verificación externa del 2026-09-02 siguió en la misma
+terminal sin salir de `frontend/` y todos los comandos de la sección 5 fallaron
+con `No module named 'contratos'` y rutas inexistentes: no estaba roto el
+proyecto, estaba mal la carpeta.
 
 **El visor habla con la API**, por la ruta relativa `/api`, que el proxy de
 `vite.config.js` reenvía a `localhost:8000`. Para verlo con datos hay que levantar
@@ -231,15 +269,19 @@ uvicorn backend.api.aplicacion:app --port 8000
 
 Documentación interactiva en `http://localhost:8000/docs`.
 
-Todavía **no hay servicio de API en `docker-compose.yml`**: falta su Dockerfile,
-que es la historia H6.0. Hasta entonces se levanta a mano.
+Desde H6.0 (2026-08-26) `docker-compose.yml` también trae los servicios `api` y
+`visor`, así que `docker compose up -d` levanta los tres juntos; el `uvicorn` a
+mano sigue siendo la forma de desarrollar la API con recarga. Por omisión la API
+sirve datos simulados (`GEOGUARDIAN_REPOSITORIO=simulado`); con `postgres` lee la
+base de la sección 4.
 
 ---
 
 ## 5. Verificar que la instalación quedó bien
 
 Esta sección es la que hay que ejecutar para comprobar que el sistema funciona.
-Cada comando imprime su propio veredicto.
+Cada comando imprime su propio veredicto. **Todos se corren desde la raíz del
+repositorio con el entorno activado**; 5.7 además necesita el `npm install` de 4.4.
 
 ### 5.1 PostGIS responde y los esquemas existen
 
@@ -428,6 +470,10 @@ causa raíz en `docs/04-bitacora-incidencias.md`.
 | `kubectl` no conecta con el clúster recién creado | El kubeconfig apunta a un nombre que resuelve mal con varias interfaces de red | Crear el clúster fijando la dirección: `k3d cluster create geoguardian --api-port 127.0.0.1:6445`. Ver I-03 |
 | Un `ERROR` en medio de los guiones de verificación | Es intencional: la prueba provoca el rechazo | Leer la línea siguiente del guion, que explica qué demuestra |
 | `git push` pide contraseña | GitHub ya no acepta contraseñas | `gh auth login` |
+| `No module named 'contratos'`, `No such file or directory` con los verificadores, `docker compose` no encuentra configuración | La terminal quedó dentro de `frontend/` después de 4.4 | `cd ..` a la raíz. Todo lo de la sección 5 se corre desde ahí |
+| `Activate.ps1` no se puede cargar porque la ejecución de scripts está deshabilitada | Política de ejecución de PowerShell | `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, una vez |
+| `pip install` se queda compilando `shap` o falla con errores de compilador | El entorno se creó con Python 3.12 o superior | Borrar `.venv` y crearlo con `py -3.11 -m venv .venv` |
+| `"eslint" no se reconoce`, `"vite" no se reconoce` | Falta `npm install` en `frontend/` | Sección 4.4 primero |
 
 ---
 
@@ -458,6 +504,14 @@ Esta sección la completa **una persona ajena al desarrollo**, siguiendo el manu
 desde el punto 2 en una máquina donde el proyecto no esté instalado. Es el
 requisito de la historia H10.4: un manual que solo funciona para quien lo escribió
 no es un manual.
+
+> **Esta hoja se entrega por enlace, nunca por copia.** Las cifras que trae
+> —comprobaciones de contratos, versiones— las vigila
+> `docs/herramientas/verificar_documentacion.py` **mientras la hoja viva en este
+> archivo**. Una copia suelta hereda el texto y no la vigilancia: las cifras se
+> congelan el día que sale del repositorio y quien la llene va a perseguir un
+> fallo que no existe. Ya pasó el 2026-09-02 y está contado en
+> `docs/evidencias/entregables/H10.4-verificacion-externa-2026-09-02.md`.
 
 | # | Paso | Comando de referencia | ¿Funcionó? | Observación |
 |---|---|---|---|---|

@@ -137,8 +137,15 @@
   - **Traspasada desde Avril el 2026-08-31** por **D-33**. No es un cambio de
     alcance ni una correccion del trabajo previo: la historia se movio para
     poder cerrar el sprint, y su contenido queda tal como estaba escrito.
-- [ ] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo
+- [x] **H10.4** · Manual tecnico verificado por alguien ajeno al desarrollo (2026-09-06)
   - `E10` · 5 pts · 4.8 h · rubrica: MVP · depende de: H8.1
+  - horas: estimada 4.8 . real HORAS_REALES
+  - Abierta desde el Sprint 1 a proposito: no se cerro con una autoverificacion. La
+    externa la hizo Fabrizio el 2026-09-02 (`docs/evidencias/entregables/H10.4-verificacion-externa-2026-09-02.md`):
+    16 pasos, 11 a la primera, 5 a medias, 7 cosas resueltas por fuera del manual.
+    Seis eran omisiones del manual y estan corregidas en `docs/10-manual-tecnico.md`
+    el 2026-09-06; la septima no era del manual sino de habersele mandado una copia
+    suelta de la hoja, y se corrige con una regla en la seccion 10.
 
 - [x] **H11.1** · CI: construir imagen Docker y publicar artefactos en ghcr.io (2026-09-01)
   - `E11` · 5 pts · 4.8 h · rubrica: CICD · depende de: H6.0, H6.1 · **bloquea a: H11.2**
