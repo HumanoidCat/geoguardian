@@ -409,11 +409,26 @@ $env:POSTGRES_DB         = "geoguardian"
 python -m basedatos.aplicar_migraciones
 ```
 
-**Pendiente al 2026-09-05:** el PR #262 (H12.1, Luna) agrega
-`014_bitacora_etl_diagnostico.sql`, que extiende `control.bitacora_etl`. La base
-publicada tiene trece migraciones. Cuando ese PR se fusione, hay que correr lo de
-arriba; si no, la API publicada corre contra un esquema mas viejo que su codigo y
-el sintoma va a aparecer lejos de la causa.
+**Pendiente al 2026-09-06:** la base publicada tiene trece migraciones y el
+repositorio dieciseis. Faltan la **014** (H12.1, `control.bitacora_etl` con
+`filas_leidas`, que `ingestar.py` ya escribe desde I-43), la **015** (I-40,
+`USAGE` sobre `public` para PostGIS) y la **016** (I-45, `fuente_precipitacion`
+en NULL cuando no hay valor, con su restriccion). Hay que correr lo de arriba;
+si no, el ETL y la API publicados corren contra un esquema mas viejo que su
+codigo y el sintoma va a aparecer lejos de la causa: el cierre de una corrida
+del ETL fallaria por una columna que no existe.
+
+**Y despues de la 016, una sola vez,** el rodeo de I-43 con el proxy todavia
+abierto y las mismas variables:
+
+```powershell
+python -m backend.etl.ingestar --evento lluvia_intensa --desde 2025-12-01
+```
+
+Pide desde el dia 1 del mes, que es lo que ClimateSERV devuelve completo, y
+desatasca la serie de precipitacion que quedo pegada en el 2025-12-31. Queda
+escrito en la bitacora (`mensaje`: «ventana fijada con --desde»). Las corridas
+siguientes vuelven a calcular su ventana solas.
 
 Esto es trabajo manual y se nota. Es una de las razones por las que el paso 3 de
 D-05 -la automatizacion- existe como historia.

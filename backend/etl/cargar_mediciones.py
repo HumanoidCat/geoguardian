@@ -92,7 +92,7 @@ SQL_INSERTAR = """
         %(temp_max_c)s, %(temp_min_c)s, %(temp_media_c)s,
         %(humedad_relativa_pct)s, %(viento_ms)s, %(radiacion_mj_m2)s,
         %(precipitacion_mm)s,
-        'chirps', 'power',
+        %(fuente_precipitacion)s, 'power',
         now()
     )
     ON CONFLICT (codigo_distrito, fecha) DO UPDATE SET
@@ -139,6 +139,8 @@ def escribir(conexion, mediciones: list[MedicionDiaria], fallar: bool = False) -
             "viento_ms": m.viento_ms,
             "radiacion_mj_m2": m.radiacion_mj_m2,
             "precipitacion_mm": m.precipitacion_mm,
+            # I-45: un dia sin precipitacion no declara fuente (migracion 016).
+            "fuente_precipitacion": "chirps" if m.precipitacion_mm is not None else None,
         }
         for m in mediciones
     ]
