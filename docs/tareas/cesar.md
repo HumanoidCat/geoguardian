@@ -153,8 +153,14 @@
   - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1
   - **Diferida el 2026-09-03 por D-38.**
 
-- [ ] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento
+- [x] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento (2026-09-07)
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1 · depende de: H1.6
+  - horas: estimada 2.9 . real 2.5
+  - Evidencia: `docs/evidencias/sistemas-operativos/H8.4-almacenamiento-rasters.md`
+  - Los rasters van al **disco, no a PostGIS**: sus bytes no se comprimen, y el
+    formato `custom` de `pg_dump` si, asi que cada estacion seca dentro de la base
+    le sumaria 298 MB a cada respaldo de H1.10. Un derivado en `float32` pesa 1,4
+    veces las dos bandas de las que sale, asi que se recalcula en vez de guardarse.
 
 ## Regla: lo hecho no se borra
 
