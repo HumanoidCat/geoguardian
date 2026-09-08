@@ -115,8 +115,14 @@
 > semana 10 (15,5 h, 13 pts). H3.7 si H3.6 cierra a tiempo. **H2.6 y H8.3
 > quedan diferidas** por D-38.
 
-- [ ] **H12.3** · Alertas automaticas ante fallo de pipeline o despliegue
+- [x] **H12.3** · Alertas automaticas ante fallo de pipeline o despliegue (2026-09-07)
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H11.2
+  - horas: estimada 7.8 . real 7.0
+  - Evidencia: `docs/evidencias/arquitectura-software/H12.3-alertas.md`
+  - Un flujo nuevo escucha a CI y CD con `workflow_run`, asi que **no hubo que
+    tocar `ci.yml` ni `cd.yml`**, que no son mios. Demostrado contra corridas que
+    fallaron de verdad: la issue #284 se abrio, deduplico y se cerro sola.
+  - **Troubleshoot deja de estar en cero.**
 
 - [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
   - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5

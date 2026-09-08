@@ -137,6 +137,31 @@ def leer_aplicadas(conexion: psycopg.Connection) -> dict[int, tuple[str, str]]:
         return {numero: (archivo, suma) for numero, archivo, suma in cursor.fetchall()}
 
 
+#: Lo que se le dice a quien se topa con una diferencia. Por **I-29**: este
+#: control compara el contenido aplicado contra el contenido en disco, y esa
+#: comparacion es correcta, pero **no puede saber cual de las dos causas la
+#: produjo**. Antes decia una sola -"revertí el cambio"- y a quien le gano otra
+#: rama lo mandaba a revertir algo que nadie hizo. Un control que no puede
+#: distinguir dos causas no afirma una.
+CAUSAS_POSIBLES = """Hay dos causas posibles y la accion NO es la misma (I-29):
+
+  1. Alguien edito una migracion ya aplicada. Una migracion aplicada no se
+     edita: revertí el cambio y creá un archivo nuevo con el siguiente numero.
+
+  2. Una fusion dejo ese archivo en otro estado -otra version, otro nombre, o
+     ninguno- y lo que aplicaste en esta base quedo en una rama que no gano. No
+     hay nada que revertir: hay que realinear esta base con lo que quedo en
+     disco.
+
+Para distinguirlas, mira quien cambio el archivo:
+
+    git log --oneline -- basedatos/ddl/<archivo>
+
+El procedimiento de realineado, sin perder datos, esta contado en
+docs/evidencias/bases-de-datos/H1.10-respaldo-restauracion.md, hasta que exista
+uno en docs/10-manual-tecnico.md."""
+
+
 def comprobar_integridad(
     migraciones: list[Migracion], aplicadas: dict[int, tuple[str, str]]
 ) -> None:
@@ -177,8 +202,8 @@ def comprobar_integridad(
         raise ErrorMigracion(
             "Hay migraciones ya aplicadas que no coinciden con el disco:\n"
             + "\n".join(problemas)
-            + "\n\nUna migracion aplicada no se edita. Revertí el cambio y creá "
-            "un archivo nuevo con el siguiente numero."
+            + "\n\n"
+            + CAUSAS_POSIBLES
         )
 
 
