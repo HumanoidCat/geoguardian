@@ -1043,6 +1043,32 @@ body {
   pointer-events: none;
 }
 
+/* El nombre del lago. Cursiva y en el azul oscuro de la orilla, que es como los
+   mapas nombran el agua desde siempre; el halo claro lo despega del celeste sin
+   necesidad de una caja. Mismo tamano que las etiquetas de distrito, para que no
+   compita con ellas. */
+.etiqueta-lago {
+  background: none;
+  border: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.etiqueta-lago span {
+  font-family: var(--fuente);
+  font-size: var(--texto-xs);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--agua-borde);
+  text-shadow:
+    0 0 3px var(--agua-halo),
+    0 0 3px var(--agua-halo),
+    0 0 3px var(--agua-halo),
+    0 0 3px var(--agua-halo);
+  transform: translate(-50%, -50%);
+  display: inline-block;
+}
+
 .etiqueta-distrito span {
   font-family: var(--fuente);
   font-size: var(--texto-xs);
@@ -1473,4 +1499,360 @@ button.marca-semaforo:focus-visible {
   .columna-panel .tabla-semaforo {
     font-size: var(--texto-sm);
   }
+}
+
+/* H14.3 · El Lago Arenal. Leaflet no resuelve variables CSS en las opciones de
+   estilo, asi que el color real se aplica desde aqui y las opciones del
+   componente quedan como respaldo. `pointer-events: none` es redundante con
+   `interactive={false}`, y esta a proposito: si alguien quitara esa opcion, el
+   lago seguiria sin robarle el clic al distrito de abajo. */
+/* La orilla del lago son dos trazos: el halo claro va debajo y mas ancho, la
+   linea oscura encima y mas fina. Ver `--agua-halo` en tokens.css: una sola
+   linea no puede verse sobre el amarillo de 'bajo' y sobre el rojo de 'alto' a
+   la vez cuando se simula protanopia. El relleno lo lleva el halo, que es la
+   capa de abajo, para que no tape la linea. */
+.lago-halo {
+  fill: var(--agua);
+  fill-opacity: 1;
+  stroke: var(--agua-halo);
+  stroke-width: 3.4;
+  pointer-events: none;
+}
+
+.lago {
+  fill: none;
+  stroke: var(--agua-borde);
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------- *
+ * «Hoy en tu distrito» (H14.2)
+ *
+ * La primera pantalla, para quien vive en el canton. Tres decisiones que
+ * conviene no deshacer sin pensarlo:
+ *
+ *  - El fondo calido vive aca y no en `body`. El mapa conserva el suyo porque su
+ *    evidencia esta cerrada; extender el papel al resto es una linea mas y
+ *    re-tomar tres juegos de capturas.
+ *  - La palabra del nivel es lo mas grande de la tarjeta, mas que el nombre del
+ *    evento. Quien abre la pagina quiere saber si tiene que hacer algo, no como
+ *    se llama la variable.
+ *  - El circulo de nivel lleva borde oscuro siempre. Sin el, el amarillo palido
+ *    de «tranquilo» da 1,1:1 contra el papel y a 16 px desaparece.
+ * -------------------------------------------------------------------------- */
+
+.hoy {
+  background: var(--papel);
+  padding: 20px 16px 40px;
+}
+
+.hoy-interior {
+  display: grid;
+  gap: 18px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.hoy-selector {
+  background: var(--superficie);
+  border: 1.5px solid var(--papel-linea);
+  border-radius: var(--radio-lg);
+  padding: 14px 18px;
+}
+
+.hoy-selector label {
+  display: block;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.hoy-selector select {
+  font: inherit;
+  font-size: var(--texto-xl);
+  font-weight: 700;
+  color: var(--texto);
+  background: transparent;
+  border: none;
+  padding: 2px 0 0;
+  width: 100%;
+  min-height: 44px;
+}
+
+.hoy-selector select:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 4px;
+  border-radius: var(--radio);
+}
+
+.hoy-pide-distrito {
+  background: var(--superficie);
+  border: 1.5px solid var(--papel-linea);
+  border-radius: var(--radio-lg);
+  padding: 18px;
+  margin: 0;
+  font-size: var(--texto-lg);
+  color: var(--texto);
+}
+
+.hoy-tarjetas {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .hoy-tarjetas {
+    grid-template-columns: repeat(3, 1fr);
+    /* Estiradas y no `start`: tres tarjetas de alturas distintas se leen como
+       tres cosas de importancia distinta, y las tres importan igual. */
+    align-items: stretch;
+  }
+}
+
+.tarjeta-hoy {
+  background: var(--superficie);
+  border: 1.5px solid var(--papel-linea);
+  border-radius: var(--radio-lg);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 14px;
+}
+
+.tarjeta-hoy-icono .pictograma {
+  width: 52px;
+  height: 52px;
+  color: var(--texto);
+}
+
+.tarjeta-hoy-evento {
+  margin: 0 0 6px;
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.tarjeta-hoy-nivel {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+
+.tarjeta-hoy-nivel strong {
+  font-size: var(--texto-xl);
+  line-height: 1.05;
+}
+
+/* El termino tecnico, al lado de la palabra y mas chico. No es decoracion: es la
+   traduccion, y tenerla a la vista es lo que evita que el producto hable dos
+   idiomas distintos en dos pantallas. El mapa sigue diciendo «Alto». */
+.tarjeta-hoy-tecnico {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.circulo-nivel {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--texto);
+  display: inline-block;
+  flex: none;
+  align-self: center;
+}
+
+.circulo-nivel.nivel-bajo {
+  background: var(--riesgo-bajo);
+}
+.circulo-nivel.nivel-medio {
+  background: var(--riesgo-medio);
+}
+.circulo-nivel.nivel-alto {
+  background: var(--riesgo-alto);
+}
+
+/* Sin nivel no se pinta un color: se pinta la trama de ausencia de D-07, la
+   misma que ya usa el mapa. La ausencia se dibuja, nunca se rellena con algo
+   plausible. */
+.circulo-nivel.sin-nivel {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--sin-dato-fondo) 0 3px,
+    var(--sin-dato-trama) 3px 5px
+  );
+  border-color: var(--sin-dato-borde);
+  border-style: dashed;
+}
+
+.tarjeta-hoy-frase {
+  font-size: var(--texto-lg);
+  margin: 10px 0 8px;
+}
+
+.tarjeta-hoy-hacer {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: var(--texto-md);
+}
+
+.tarjeta-hoy-hacer li::before {
+  content: '\2192\00a0';
+  font-weight: 700;
+}
+
+.tarjeta-hoy-nota,
+.tarjeta-hoy-dato {
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  margin: 10px 0 0;
+}
+
+.tarjeta-hoy-oficial {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+/* El 9-1-1 de una tarjeta de «cuidado» es una accion, no una nota al pie. Se
+   toca con el pulgar y sin apuntar: 48 px de alto, borde propio y el rojo de la
+   rampa, que es el unico sitio donde ese color significa lo mismo dentro y fuera
+   del mapa. */
+.boton-emergencia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 20px;
+  border-radius: var(--radio-lg);
+  border: 2px solid var(--riesgo-alto);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: var(--texto-md);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boton-emergencia:hover {
+  background: var(--riesgo-alto);
+  color: var(--texto-sobre-alto);
+}
+
+.boton-emergencia:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 3px;
+}
+
+/* Los enlaces en linea dentro de una frase quedan exentos del tamano minimo de
+   destino por la propia norma (WCAG 2.2, criterio 2.5.8, excepcion «en linea»).
+   Aun asi se les da alto suficiente para que no sean una linea de un pixel: la
+   excepcion permite no cumplirlo, no obliga a hacerlo mal. */
+.enlace-oficial {
+  display: inline-block;
+  min-height: 24px;
+  padding: 2px 0;
+  font-size: var(--texto-sm);
+}
+
+.hoy-acciones {
+  display: grid;
+}
+
+.boton-mapa,
+.boton-volver {
+  font: inherit;
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  min-height: 52px;
+  padding: 12px 20px;
+  border-radius: var(--radio-lg);
+  border: 2px solid var(--texto);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.boton-mapa:hover,
+.boton-volver:hover {
+  background: var(--superficie-alterna);
+}
+
+.boton-mapa:focus-visible,
+.boton-volver:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 3px;
+}
+
+.volver-a-hoy {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.hoy-significado {
+  background: var(--superficie);
+  border: 1.5px solid var(--papel-linea);
+  border-radius: var(--radio-lg);
+  padding: 16px 18px;
+}
+
+.hoy-significado h2 {
+  margin: 0 0 10px;
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.hoy-significado dl {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.hoy-significado dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--texto-md);
+}
+
+.hoy-significado dt span {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.hoy-significado dd {
+  margin: 2px 0 0 30px;
+  font-size: var(--texto-md);
+  color: var(--texto);
+}
+
+.hoy-oficial {
+  font-size: var(--texto-sm);
+  color: var(--texto);
+  margin: 0;
+}
+
+.hoy-de-donde summary {
+  cursor: pointer;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.hoy-de-donde p {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  margin: 0 0 8px;
 }

@@ -2,8 +2,10 @@ import { useEffect, useMemo } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { CAPAS_BASE } from '../datos/capasBase'
+import { anclaDeEtiqueta } from '../datos/anclaEtiqueta'
 import CapaMapaCalor from './CapaMapaCalor'
 import CapaIndice from './CapaIndice'
+import CapaLago from './CapaLago'
 
 /**
  * Mapa del canton de Tilaran con sus ocho distritos, coloreados por nivel de
@@ -206,9 +208,13 @@ function AjustarEncuadre({ coleccion }) {
  * ninguna imagen: el icono por defecto de Leaflet se carga por URL y se rompe
  * en la construccion de produccion. Un texto en un div no tiene ese problema.
  *
- * El punto donde se coloca es el centro de la caja envolvente del poligono. Con
- * los cuadrados actuales coincide con el centro real; con las geometrias del
- * SNIT sera aproximado, suficiente para una etiqueta.
+ * El punto sale de `anclaDeEtiqueta`, no del centro de la caja envolvente.
+ *
+ * El centro de la caja era lo que habia y con cuadrados funcionaba, pero con las
+ * geometrias del SNIT no: al prender esta capa por omision el 2026-09-08,
+ * **«Quebrada Grande» y «Libano» se solapaban**, porque el centro de la caja de
+ * un distrito alargado cae fuera de su propia parte ancha y se va contra el
+ * vecino. `anclaDeEtiqueta` pone el nombre en el tramo interior mas ancho.
  */
 function CapaEtiquetas({ coleccion }) {
   const mapa = useMap()
@@ -219,8 +225,8 @@ function CapaEtiquetas({ coleccion }) {
     const grupo = L.layerGroup().addTo(mapa)
 
     for (const rasgo of coleccion.features) {
-      const centro = L.geoJSON(rasgo).getBounds().getCenter()
-      L.marker(centro, {
+      const ancla = anclaDeEtiqueta(rasgo) ?? L.geoJSON(rasgo).getBounds().getCenter()
+      L.marker(ancla, {
         interactive: false,
         keyboard: false,
         icon: L.divIcon({
@@ -416,6 +422,11 @@ export default function MapaCanton({
                 interactive={false}
               />
             )}
+
+            {/* El agua va despues de la coropleta y de los limites, o sea
+                encima: el lago no tiene nivel de riesgo y no puede quedar
+                pintado con el del distrito que lo contiene (H14.3). */}
+            <CapaLago />
 
             {/* Los indices van **despues** de la coropleta, o sea encima. Es lo
                 contrario del mapa de calor de arriba, y a proposito: una capa
