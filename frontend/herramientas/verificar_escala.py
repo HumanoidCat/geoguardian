@@ -200,13 +200,23 @@ def main() -> None:
 
     # Los cuatro fondos sobre los que puede caer el borde. La trama de ausencia
     # de dato aporta dos: el fondo y las rayas.
-    fondos = {
-        "riesgo bajo": rampa["bajo"],
-        "riesgo medio": rampa["medio"],
-        "riesgo alto": rampa["alto"],
-        "trama sin dato": tokens.get("--sin-dato-trama", "#9e9e9e"),
-        "fondo sin dato": tokens.get("--sin-dato-fondo", "#ffffff"),
-    }
+    #
+    # Se piden con corchete, como todo lo de arriba, y no con `.get` y un valor
+    # por defecto. El defecto era `#9e9e9e`, que fue el valor de la trama hasta
+    # que H5.9 lo subio a `#757575` el 2026-09-06 por no llegar al 3:1 grafico.
+    # Si el token desapareciera, el `.get` habria seguido midiendo el gris viejo
+    # -el que no pasa- y saliendo en verde: un control que informa sobre su
+    # propio valor por defecto en vez de sobre el archivo.
+    try:
+        fondos = {
+            "riesgo bajo": rampa["bajo"],
+            "riesgo medio": rampa["medio"],
+            "riesgo alto": rampa["alto"],
+            "trama sin dato": tokens["--sin-dato-trama"],
+            "fondo sin dato": tokens["--sin-dato-fondo"],
+        }
+    except KeyError as falta:
+        raise SystemExit(f"ERROR: falta la variable {falta} en tokens.css") from None
 
     # La marca no es una linea sola sino un par: linea clara con halo oscuro por
     # fuera. Ninguna de las dos contrasta sobre todos los fondos, y no hace falta
