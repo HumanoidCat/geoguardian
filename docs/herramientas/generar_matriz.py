@@ -213,7 +213,17 @@ def construir() -> str:
             faltan_en_backlog.append(identificador)
             continue
 
-        rubrica = fila["rubrica"] or rubrica_del_backlog(del_backlog)
+        # La rubrica sale SIEMPRE de docs/backlog.csv. Antes esta linea era
+        # `fila["rubrica"] or rubrica_del_backlog(...)`, y ese `or` era el unico
+        # camino por el que un campo evaluable de la matriz podia salir de
+        # trazabilidad.csv sin que ningun control lo comprobara. Al abrir la
+        # escritura de la fila propia -docs/07-, el hueco se cierra aca.
+        #
+        # Y no era teorico: H1.3 declaraba "BD-1, BD-3" en trazabilidad.csv y
+        # "BD-1" en el cuerpo del backlog, mientras sus propias etiquetas y
+        # docs/08 decian "BD-1, BD-3". El `or` tapaba ese desacuerdo. Se corrigio
+        # el backlog, que es la fuente, en el mismo PR que quito el `or`.
+        rubrica = rubrica_del_backlog(del_backlog)
         dueno = del_backlog["responsable"].capitalize()
 
         lineas.append(
