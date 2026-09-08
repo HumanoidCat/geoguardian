@@ -6,8 +6,26 @@ USO
     python -m backend.etl.fuentes.verificar_h6_3
 
 No necesita Docker ni red: los criterios son sobre la forma del codigo -que
-exista el registro, que nadie importe una clase concreta, que agregar una
-fuente no toque los cargadores-, no sobre el resultado de una descarga.
+exista el registro, que nadie importe una clase concreta- y no sobre el
+resultado de una descarga.
+
+QUE CAMBIO EL 2026-09-07, Y POR QUE
+
+CA-4 comparaba los cargadores contra un hash congelado el 2026-09-03. Cuando
+H1.14 edito `cargar_mediciones.py` por una razon que nada tiene que ver con
+agregar fuentes, la comparacion empezo a fallar diciendo "cargadores
+cambiados", que no es lo que habia pasado. **Era el mismo defecto de I-29 en mi
+propio codigo:** un control que dice la verdad sobre lo que mide -los bytes son
+distintos- y miente sobre lo que significa.
+
+CA-4 nunca fue una propiedad que se pueda vigilar: era una **demostracion
+fechada**. Contar cuantos archivos se tocan al agregar una fuente solo se puede
+responder haciendo el experimento, una vez. Congelarlo dentro de un verificador
+que corre para siempre lo convierte en una afirmacion que caduca sola.
+
+El experimento se queda donde pertenece, en la evidencia, con sus hashes y su
+fecha. Aca CA-4 comprueba lo que sigue siendo cierto hoy, y CA-3 se amplio a
+`ingestar.py`, que desde H1.14 es el mayor consumidor de `fuentes/`.
 
 LIMITE DECLARADO. CA-6 compara el bloque de argparse de cada cargador contra
 una copia guardada y comprueba que los dos modulos importan limpio. **No
@@ -19,24 +37,28 @@ de linea de comandos no cambio, no que la carga corrio.
 from __future__ import annotations
 
 import ast
-import hashlib
 import importlib
 import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[3]
 DIR_ETL = RAIZ / "backend" / "etl"
-CARGADORES = ("cargar_distritos.py", "cargar_focos.py", "cargar_mediciones.py")
-CLASES_PROHIBIDAS = {"ExtractorChirps", "ExtractorPower", "ExtractorHibrido", "ExtractorFirms"}
-
-# Capturados con sha256 justo despues de que los cargadores pasaran a usar la
-# fabrica y ANTES de agregar `prueba_fabrica.py` y su linea en el registro.
-# CA-4 se cumple si, con la fuente de juguete ya adentro, los tres archivos
-# siguen dando el mismo hash: esa es la prueba de que agregarla no los toco.
-HASHES_ANTES_DE_LA_PRUEBA = {
-    "cargar_distritos.py": "7cd6ebd7d59c372b0ab8ce006621abca3fab67b84e37f06c954b52d228fe427f",
-    "cargar_focos.py": "71dc06a8564ab639963b681b3282fff525caf8af7dbe72304baaa39fbcc4acc6",
-    "cargar_mediciones.py": "ce26feadfc6752c330c56a0be0565fb60267e415b8ef8a68fefbecba9b7ad2a8",
+#: Todo lo que consume `fuentes/` y no debe conocer una clase concreta.
+#: `ingestar.py` entro aca el 2026-09-07: lo creo H1.14 con 870 lineas y es hoy
+#: el mayor consumidor del paquete. Cuando se escribio este verificador no
+#: existia.
+CONSUMIDORES = (
+    "cargar_distritos.py",
+    "cargar_focos.py",
+    "cargar_mediciones.py",
+    "ingestar.py",
+)
+CLASES_PROHIBIDAS = {
+    "ExtractorChirps",
+    "ExtractorPower",
+    "ExtractorHibrido",
+    "ExtractorFirms",
+    "ExtractorFirmsArea",
 }
 
 # Argumentos minimos para instanciar cada fuente registrada durante CA-2. Si
@@ -47,6 +69,10 @@ ARGUMENTOS_DE_PRUEBA = {
     "hibrido": {"territorios": []},
     "prueba": {},
     "firms": {"caja": (-85.0, 10.0, -84.0, 11.0)},
+    # La clave va explicita: `ExtractorFirmsArea` se niega a construirse sin
+    # FIRMS_MAP_KEY, y esta comprobacion no debe depender de que el entorno la
+    # tenga puesta. No sale a la red: solo se instancia y se mira el Protocol.
+    "firms-area": {"caja": (-85.0, 10.0, -84.0, 11.0), "clave": "clave-de-prueba"},
 }
 
 ARGPARSE_MEDICIONES = """    analizador.add_argument("--desde", default=DESDE.isoformat())
@@ -161,7 +187,7 @@ def ca2_protocolo(resultado: Resultado, fabrica) -> None:
 
 def ca3_sin_import_concreto(resultado: Resultado) -> None:
     ofensores = {}
-    for nombre in CARGADORES:
+    for nombre in CONSUMIDORES:
         arbol = ast.parse((DIR_ETL / nombre).read_text(encoding="utf-8"))
         importados = set()
         for nodo in ast.walk(arbol):
@@ -171,30 +197,42 @@ def ca3_sin_import_concreto(resultado: Resultado) -> None:
             ofensores[nombre] = sorted(importados & CLASES_PROHIBIDAS)
 
     resultado.marcar(
-        "CA-3 ningun cargador importa una clase concreta de fuentes/",
+        "CA-3 nadie que consuma fuentes/ importa una clase concreta",
         not ofensores,
         str(ofensores)
         if ofensores
-        else "los tres limpios; siguen importando tipos de error "
-        "y de dato (ErrorChirps, ErrorPower, ErrorFirms, FocoBruto), que no son extractores",
+        else f"limpios: {', '.join(CONSUMIDORES)}; siguen importando tipos de error y de "
+        "dato (ErrorChirps, ErrorPower, ErrorFirms, FocoBruto) y constantes de producto, "
+        "que no son extractores",
     )
 
 
 def ca4_fuente_de_juguete(resultado: Resultado, fabrica) -> None:
+    """
+    Una fuente se agrega con su archivo y una entrada del registro.
+
+    **Esto ya no compara hashes.** La demostracion de que agregar una fuente no
+    toca ningun cargador se hizo el 2026-09-03, con los tres archivos comparados
+    byte por byte antes y despues, y esta contada en la evidencia con sus sumas.
+    Un experimento fechado no se puede repetir desde aca: los cargadores cambian
+    por otras historias, y comparar contra el hash de aquel dia produce una falla
+    que dice "cambiaron los cargadores" cuando lo que paso fue otra cosa.
+
+    Lo que si sigue siendo comprobable es lo de abajo, y lo confirma ademas un
+    hecho posterior que vale mas que cualquier hash: H1.14 agrego la fuente
+    `firms-area` el 2026-09-05 **sin tocar ningun cargador**, y `ingestar.py` la
+    pide por nombre a la fabrica.
+    """
     archivo_nuevo = (DIR_ETL / "fuentes" / "prueba_fabrica.py").exists()
     registrada = "prueba" in fabrica.REGISTRO_CLIMA
-    cambios = [
-        nombre
-        for nombre, esperado in HASHES_ANTES_DE_LA_PRUEBA.items()
-        if hashlib.sha256((DIR_ETL / nombre).read_bytes()).hexdigest() != esperado
-    ]
+    agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS
 
     resultado.marcar(
-        "CA-4 agregar una fuente toca dos archivos y deja los cargadores byte por byte iguales",
-        archivo_nuevo and registrada and not cambios,
-        f"archivo nuevo: {archivo_nuevo} · registrada: {registrada} · "
-        f"cargadores cambiados: {cambios or 'ninguno'} · el segundo archivo es fabrica.py, "
-        "donde suma dos lineas: el import y la entrada del registro",
+        "CA-4 una fuente se agrega con su archivo y una entrada del registro",
+        archivo_nuevo and registrada,
+        f"la de juguete: archivo propio {archivo_nuevo}, en el registro {registrada} · "
+        f"y una real agregada despues por H1.14 sin tocar cargadores: {agregada_despues} · "
+        "la comparacion byte por byte del 2026-09-03 esta en la evidencia, fechada",
     )
 
 
