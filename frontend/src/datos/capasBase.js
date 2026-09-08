@@ -105,7 +105,12 @@ export const CAPAS_INICIALES = {
   ndvi: false,
   ndwi: false,
   limites: false,
-  etiquetas: false,
+  // Prendidas desde el 2026-09-08, por decision del PM. El producto promete
+  // "riesgo por distrito" y el mapa abria sin un solo nombre de distrito: habia
+  // que prender la capa a mano para saber que se estaba mirando. A diferencia de
+  // los indices, esta capa no mezcla fechas -los nombres no caducan-, asi que el
+  // motivo para arrancar apagada no le aplicaba.
+  etiquetas: true,
 }
 
 /**
