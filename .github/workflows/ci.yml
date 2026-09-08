@@ -259,6 +259,18 @@ jobs:
       - name: Ninguna frase falsa sobre el sistema y la tipografia esta en uso (H5.9)
         if: steps.existe.outputs.si == 'true'
         run: python frontend/herramientas/verificar_h59.py
+      # «Ninguna sigla en la primera pantalla» es una regla de tono, y una regla
+      # de tono que nadie comprueba se rompe en el tercer cambio: alguien agrega
+      # «percentil 99» a una tarjeta para ser preciso y la pantalla deja de ser
+      # para quien vive en el distrito. Este control lee las frases de H14.2,
+      # busca las siglas, exige que cada accion lleve un verbo en segunda persona
+      # y que cada evento sepa que decir cuando no hay estimacion.
+      #
+      # Se prueba a si mismo antes de mirar el repositorio, igual que el de H5.9:
+      # un control que solo sabe decir que si no significa nada.
+      - name: Ninguna sigla en la primera pantalla y cada accion lleva verbo (H14.2)
+        if: steps.existe.outputs.si == 'true'
+        run: python frontend/herramientas/verificar_frases.py
       # El mapa de calor se pintaba sobre el rectangulo que encierra al canton:
       # 23,8 % de la superficie caia sobre los cantones vecinos y el 20,7 % del
       # canton quedaba sin pintar. Vivio cuatro dias en el sitio publico porque

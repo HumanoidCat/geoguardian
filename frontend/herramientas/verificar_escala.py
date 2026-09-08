@@ -12,6 +12,9 @@ comprueba cuatro cosas, fallando si alguna no se cumple:
   4. El texto sobre cada nivel cumple el contraste minimo de WCAG AA, 4.5:1.
   5. El borde del distrito seleccionado se distingue sobre los cuatro fondos
      posibles, por luminancia y no por tono.
+  6. La orilla del Lago Arenal -linea mas halo- se distingue sobre el agua y
+     sobre los tres pasos de la rampa, tambien con dicromacia, que es lo que
+     hace visible el lago sin depender del color.
 
 No usa ninguna biblioteca externa: solo la biblioteca estandar de Python.
 
@@ -289,6 +292,36 @@ def main() -> None:
             f"{razon:.2f}:1  (minimo {CONTRASTE_MINIMO_GRAFICO})",
         )
 
+    # H14.2: el limite de la tarjeta y del selector sobre el papel.
+    #
+    # Sale de la revision de Avril sobre el mockup: un borde de 1,4:1 como unico
+    # separador entre dos bloques. Medido en la pantalla construida era peor,
+    # porque el relleno blanco contra el papel da 1,07:1 y no aporta nada: la
+    # linea lo cargaba todo. El selector de distrito ES un control de formulario
+    # y su contorno necesita 3:1 por norma; las tarjetas no, pero comparten el
+    # token y la persona de esta pantalla tiene baja vision.
+    print("\nEl limite de las tarjetas sobre el papel (H14.2):")
+    papel = tokens.get("--papel")
+    linea_papel = tokens.get("--papel-linea")
+    if papel and linea_papel:
+        for descripcion, fondo in (
+            ("la linea de la tarjeta sobre el papel", papel),
+            ("la linea de la tarjeta sobre su relleno", tokens["--superficie"]),
+        ):
+            razon = contraste(linea_papel, fondo)
+            exigir(
+                razon >= CONTRASTE_MINIMO_GRAFICO,
+                descripcion,
+                f"{razon:.2f}:1  (minimo {CONTRASTE_MINIMO_GRAFICO})",
+            )
+        razon = contraste(tokens["--superficie"], papel)
+        print(
+            f"  nota  el relleno de la tarjeta contra el papel da {razon:.2f}:1: "
+            "por eso el limite lo tiene que cargar la linea"
+        )
+    else:
+        exigir(False, "existen --papel y --papel-linea en tokens.css")
+
     pares_texto = {
         "el texto sobre la superficie": (tokens["--texto"], tokens["--superficie"]),
         "el texto suave sobre la superficie": (tokens["--texto-suave"], tokens["--superficie"]),
@@ -316,6 +349,82 @@ def main() -> None:
     # para que nadie lo use como texto de lectura.
     razon = contraste(tokens["--texto-tenue"], tokens["--superficie"])
     print(f"  nota  el texto tenue sobre la superficie da {razon:.2f}:1: no sirve para leer")
+
+    # ----------------------------------------------------------------------- #
+    # H14.3, CA-2: el agua del Lago Arenal.
+    #
+    # NINGUN RELLENO PUEDE LLEGAR A 3:1 CONTRA LOS TRES PASOS A LA VEZ, Y ESTA
+    # MEDIDO: la rampa cubre casi todo el rango de luminancia, asi que para
+    # separarse de 'bajo' habria que estar por debajo de L=0,247 y de 'alto' por
+    # encima de L=0,670, y no existe ese color. Por eso lo que se exige aca es
+    # la ORILLA, que si puede con los cuatro fondos.
+    #
+    # Y LA ORILLA TAMPOCO PUEDE SER UNA SOLA LINEA. Bajo protanopia el rojo de
+    # 'alto' se ve casi negro y 'bajo' sigue siendo amarillo palido: entre esos
+    # dos fondos hay 6,0:1, asi que un unico color necesitaria 9:1 para llegar a
+    # 3:1 contra los dos. Se busco en el cubo sRGB entero: cero candidatos. Se
+    # usa el mismo par que la marca de seleccion -linea oscura con halo claro-,
+    # y basta con que UNA de las dos cumpla en cada fondo.
+    #
+    # El relleno es el mismo celeste que el mapa base de OpenStreetMap usa para
+    # rios y lagunas (medido sobre las teselas que el visor tiene cargadas:
+    # 17 995 pixeles exactos contra 1 176 del siguiente candidato). Si alguien
+    # lo cambia buscando contraste va a romper la continuidad con el agua del
+    # mapa base, y el embalse vuelve a leerse como una mancha del sistema. Del
+    # relleno solo se exige que no sea un color de la rampa, para que el lago no
+    # se pueda confundir con un cuarto nivel.
+    # ----------------------------------------------------------------------- #
+    print("\nEl agua del Lago Arenal se distingue por el borde (H14.3, CA-2):")
+    try:
+        agua = tokens["--agua"]
+        agua_borde = tokens["--agua-borde"]
+        agua_halo = tokens["--agua-halo"]
+    except KeyError as falta:
+        raise SystemExit(f"ERROR: falta la variable {falta} en tokens.css") from None
+
+    exigir(
+        agua not in rampa.values(),
+        "el relleno del agua no es ninguno de los tres pasos de la rampa",
+        agua,
+    )
+
+    fondos_agua = {"el agua": agua}
+    fondos_agua.update({f"riesgo {nivel}": color for nivel, color in rampa.items()})
+
+    for nombre, fondo in fondos_agua.items():
+        mejor = max(contraste(agua_borde, fondo), contraste(agua_halo, fondo))
+        exigir(
+            mejor >= CONTRASTE_MINIMO_GRAFICO,
+            f"la orilla del lago se ve sobre {nombre}",
+            f"{mejor:.2f}:1  (minimo {CONTRASTE_MINIMO_GRAFICO})",
+        )
+
+    razon = contraste(agua_borde, agua_halo)
+    exigir(
+        razon >= CONTRASTE_MINIMO_GRAFICO,
+        "la linea y el halo del lago se distinguen entre si",
+        f"{razon:.2f}:1",
+    )
+
+    for tipo in MATRICES:
+        peor = min(
+            max(
+                contraste(simular(agua_borde, tipo), simular(fondo, tipo)),
+                contraste(simular(agua_halo, tipo), simular(fondo, tipo)),
+            )
+            for fondo in fondos_agua.values()
+        )
+        exigir(
+            peor >= CONTRASTE_MINIMO_GRAFICO,
+            f"la orilla del lago se ve bajo {tipo}",
+            f"{peor:.2f}:1 en el peor fondo",
+        )
+
+    peor_relleno = min(contraste(agua, color) for color in rampa.values())
+    print(
+        f"  nota  el relleno del agua contra el peor paso de la rampa da "
+        f"{peor_relleno:.2f}:1: es lo esperado, la legibilidad la carga el borde"
+    )
 
     if fallos:
         print(f"\n{len(fallos)} verificaciones fallaron:")
