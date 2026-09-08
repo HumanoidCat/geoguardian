@@ -93,6 +93,7 @@ def canal_de(hexadecimal: str, indice: int) -> int:
     h = hexadecimal.lstrip("#")
     return int(h[indice * 2 : indice * 2 + 2], 16)
 
+
 #: Clases de SCL que se conservan. El resto se descarta.
 #:
 #:   4 vegetacion · 5 suelo desnudo · 6 agua · 7 sin clasificar
