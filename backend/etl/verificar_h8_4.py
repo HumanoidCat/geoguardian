@@ -108,7 +108,12 @@ def ca3_disco_o_base(resultado: Resultado, datos: dict, texto: str) -> None:
         return
 
     incompresibles = all(fila["ganancia_pct"] < 5 for fila in compresion)
-    por_estacion = round(datos["derivado"]["fuentes_mb"] * 0 + 49.6 * ESCENAS_POR_ESTACION)
+    # Los MB por estacion salen de lo MEDIDO. `medir_compresion` ya devuelve el peso
+    # en disco de cada banda, asi que sumarlas es la escena entera. Antes era una
+    # constante copiada de H1.6, con la medicion anulada multiplicandola por cero:
+    # I-07 dentro del control que existe para atrapar I-07.
+    por_escena = sum(fila["disco_mb"] for fila in compresion)
+    por_estacion = round(por_escena * ESCENAS_POR_ESTACION)
     nombra_respaldo = f"+{por_estacion} MB por respaldo" in texto
     nombra_extension = "postgis_raster" in texto
 
@@ -123,7 +128,8 @@ def ca3_disco_o_base(resultado: Resultado, datos: dict, texto: str) -> None:
 
 def ca4_proyeccion(resultado: Resultado, datos: dict, texto: str) -> None:
     derivado = datos["derivado"]
-    bandas = round(49.6 * ESCENAS_POR_ESTACION)
+    # Mismo criterio que CA-3: medido, no copiado.
+    bandas = round(sum(fila["disco_mb"] for fila in datos["compresion"]) * ESCENAS_POR_ESTACION)
     indices = round(
         derivado["int16_escalado_deflate_mb"] * ESCENAS_POR_ESTACION * INDICES_PUBLICADOS
     )
