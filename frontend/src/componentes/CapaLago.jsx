@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { anclaDeEtiqueta } from '../datos/anclaEtiqueta'
+import { obtenerLago, RUTA_LAGO } from '../datos/lago'
 
 /**
  * El Lago Arenal, dibujado como agua sobre la coropleta.
@@ -55,7 +56,6 @@ import { anclaDeEtiqueta } from '../datos/anclaEtiqueta'
  * `public/geo/procedencia-lago-arenal.md`.
  */
 
-const RUTA = `${import.meta.env.BASE_URL}geo/lago-arenal.geojson`
 
 /** Panel propio para el agua. 400 es `overlayPane` y 600 es `markerPane`. */
 const PANEL = 'agua'
@@ -147,17 +147,13 @@ export default function CapaLago() {
 
   useEffect(() => {
     let vigente = true
-    fetch(RUTA)
-      .then((respuesta) => {
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`)
-        return respuesta.json()
-      })
+    obtenerLago()
       .then((datos) => {
         if (vigente) setGeometria(datos)
       })
       .catch((causa) => {
         // Deliberado: el mapa se dibuja igual sin el lago.
-        console.warn(`No se pudo cargar el Lago Arenal desde ${RUTA}:`, causa.message)
+        console.warn(`No se pudo cargar el Lago Arenal desde ${RUTA_LAGO}:`, causa.message)
       })
     return () => {
       vigente = false
