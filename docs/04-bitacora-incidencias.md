@@ -2062,8 +2062,19 @@ contra repositorio lo van a encontrar. D-33 movio doce historias entre
 personas; conviene esperar mas de estos.
 
 **Impacto.** Ninguno en datos: Cesar realineo su base sin perder nada. Un
-mensaje de error que manda a hacer lo incorrecto, pendiente de corregir en
-`basedatos/`.
+mensaje de error que manda a hacer lo incorrecto.
+
+**CERRADA el 2026-09-07, con el PR #281.** Cesar reescribio el mensaje de
+`comprobar_integridad` para que nombre **las dos causas** y diga que accion
+corresponde a cada una. La causa 2 dice, textual, «no hay nada que revertir»,
+que es justo la instruccion equivocada que se dio la primera vez, y remite a
+`git log --oneline -- basedatos/ddl/<archivo>` para distinguirlas. El
+procedimiento de realineado queda referido a la evidencia de H1.10 hasta que
+exista uno en `docs/10-manual-tecnico.md`, que era el segundo punto pedido.
+Comprobado sin base: `comprobar_integridad` es una funcion pura y se le pasaron
+discrepancias fabricadas; las tres ramas del control producen el mensaje nuevo.
+Las dos citas del mensaje viejo -en esta bitacora y en la evidencia de H1.10-
+**se dejan como estan**: son transcripciones de lo que paso ese dia.
 
 ## I-30 · `/salud` dice que la base no esta conectada mientras sirve 143 407 filas de ella
 
@@ -3460,3 +3471,88 @@ afirmaba una procedencia falsa en toda fila sin valor -1968 en la base local
 medida, las del tramo de latencia en la publicada-, y esa tabla es la fuente del
 documento IEEE. Corregido en Railway con la 016 el 2026-09-06: `fuente_sin_valor`
 quedo en 0 en todos los anios.
+
+## I-46 · El ETL asume que las migraciones estan aplicadas y no lo comprueba
+
+**Fecha.** 2026-09-07.
+
+**Quien lo detecto.** Luna, corriendo la ingesta antes de aplicar migraciones en
+su base local.
+
+**Que paso.** La ingesta descargo durante noventa segundos, construyo 2232
+mediciones y **recien al escribir** fallo con:
+
+    psycopg.errors.NotNullViolation: null value in column "fuente_precipitacion"
+    of relation "medicion_diaria_2026" violates not-null constraint
+
+**Causa raiz.** El codigo nuevo escribe la fuente en `NULL` cuando no hay valor
+-que es lo correcto y lo que pide la **016**- pero la columna sigue siendo
+`NOT NULL` mientras esa migracion no corra. **La corrida falla por una migracion
+faltante, y para saberlo hay que leer un traceback de psycopg y deducirlo.**
+
+Es la misma familia de **I-29**: el sistema no distingue «te falta un paso» de
+«hay un defecto». I-29 fue el extremo del aplicador de migraciones; este es el
+otro extremo, el consumidor que da por hecho el estado de la base.
+
+**Accion tomada.** Pendiente. `backend/etl/ingestar.py` es del PM por H1.14 y la
+correccion es suya: una comprobacion **al arrancar**, antes de la primera
+descarga, de que las migraciones que el codigo asume esten aplicadas, diciendo
+cual falta. Convierte noventa segundos y un traceback en una linea al primer
+segundo.
+
+**Aprendizaje.** Un programa que tarda en fallar cuesta mas que uno que falla mal:
+noventa segundos de descarga se pierden enteros porque la comprobacion barata
+-mirar el registro de migraciones- se hace tarde o no se hace.
+
+**Impacto.** Ninguno en datos. Tiempo perdido por corrida, y un mensaje que hay
+que traducir mentalmente.
+
+## I-47 · Un `git add -A` metio la epica E14 entera dentro de un PR ajeno de una linea
+
+**Fecha.** 2026-09-08.
+
+**Quien lo detecto.** El PM, al mirar el commit del merge del PR #282.
+
+**Que paso.** Para no frenar la fila de PR, el PM empujo el mismo una correccion
+de **una linea** en `backend/etl/fuentes/verificar_h6_3.py`, en la rama de Cesar.
+La secuencia usada terminaba en `git add -A`, y el arbol de trabajo tenia sin
+commitear **la epica E14 completa**. El commit se llevo **28 archivos ajenos al
+PR**: H14.2 y H14.3 con sus evidencias y PNG, `HoyEnTuDistrito.jsx`,
+`CapaLago.jsx`, `Pictogramas.jsx`, `palabras.js`, `anclaEtiqueta.js`,
+`generar_lago.py`, `verificar_frases.py`, `lago-arenal.geojson`, y modificados
+`App.jsx`, `MapaCanton.jsx`, `capasBase.js`, `tokens.css`, `index.css`,
+`verificar_escala.py` y `ci.yml`. **De 30 archivos, dos eran del PR.**
+
+Ademas el merge se hizo con `--admin` **sobre un push recien hecho**, asi que los
+ocho checks verdes que se vieron eran del commit anterior. `dev` quedo en rojo.
+
+**Causa raiz.** Dos, y ninguna es del contenido:
+
+  1. **`git add -A` sin un `git status` delante.** Con trabajo de otra rama en el
+     arbol, `-A` no distingue lo que corresponde al PR de lo que no.
+  2. **`--admin` no espera al CI.** Mergea con lo ultimo que reporto GitHub, que
+     puede ser de un commit anterior.
+
+**Que se rompio.** `verificar_h66.py` fallo un criterio de 41: `ningun componente
+hace su propio fetch`. `CapaLago.jsx` pedia su GeoJSON con `fetch(RUTA)`, y por
+**D-23** `cliente.js` es el unico modulo que sabe de donde vienen los datos. El
+control funciono exactamente como debia; lo que fallo fue el camino por el que
+ese archivo entro.
+
+**Accion tomada.** No se revirtio: revertir un merge ya empujado, con otros PR
+encima, hace mas dano del que arregla, y el trabajo era del PM y se iba a subir
+igual. Se corrigio el defecto en el **PR #290**, moviendo la carga a
+`frontend/src/datos/lago.js`, y `dev` volvio a verde. Quedan escritas tres reglas:
+
+  - **`git status` ANTES de cada `add`.**
+  - **El `add` siempre acotado a archivos concretos; nunca `-A`.**
+  - **`--admin` nunca sobre un push recien hecho**: se espera a que el CI cierre.
+
+**Aprendizaje.** El costo no fue el codigo -entro trabajo bueno- sino la
+trazabilidad: la historia del repositorio dice que H14.2 y H14.3 entraron dentro
+de un PR titulado «El verificador de H6.3 deja de afirmar un experimento fechado»,
+tocando ademas archivos de Avril. Eso no se puede deshacer y por eso se escribe.
+
+**Impacto.** `dev` en rojo durante unos cuarenta minutos, un PR ajeno con 28
+archivos que no le corresponden, y **la epica E14 en `dev` antes de que se
+decidiera si sale al aire**: la proxima promocion a `main` la publica.

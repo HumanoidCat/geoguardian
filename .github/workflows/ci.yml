@@ -453,6 +453,7 @@ jobs:
         run: |
           echo "verificar_h60 necesita un demonio Docker; se corre a mano."
           echo "verificar_h17 necesita la base cargada; se corre a mano."
+          echo "verificar_h8_4 necesita una escena de Sentinel descargada; se corre a mano."
           echo "Ver docs/15-cerrar-una-historia.md."
 
   # ------------------------------------------------------------------------- #

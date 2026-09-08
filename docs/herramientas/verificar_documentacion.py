@@ -341,6 +341,10 @@ AFIRMACIONES = [
             # verificando el manual, y su diagnostico es el que importa: "un
             # verificador que no mira ese dato deja que envejezca en silencio".
             ("docs/10-manual-tecnico.md", r'declarar \*\*"Contratos version ([\d.]+)"\*\*'),
+            # Pedida por Avril al entregar H13.2 (#289): su manual afirma la
+            # version de contratos en la tabla de Salud, y ningun control la
+            # miraba. Es el mismo hueco que Cesar encontro en el manual tecnico.
+            ("docs/20-manual-de-operacion.md", r"hoy \`([\d.]+)\`"),
         ],
     ),
     # Los tres inventarios del backlog se comprueban en los tres documentos que

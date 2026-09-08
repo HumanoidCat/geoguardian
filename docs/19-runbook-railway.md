@@ -173,6 +173,23 @@ Para construir el esquema y cargar los datos desde tu maquina hace falta que la
 base sea alcanzable desde fuera **una sola vez**:
 
 Settings → Networking → **TCP Proxy**, puerto de destino `5432`. Railway
+
+> **Dos avisos, del 2026-09-08.**
+>
+> **El host y el puerto NO son fijos.** Cada vez que se reabre el proxy, Railway
+> puede dar otros: el 2026-09-06 era `altaria.proxy.rlwy.net:17362` y el 09-07
+> `acela.proxy.rlwy.net:25549`. **Se leen en Settings → Networking en ese
+> momento**; ningun valor anotado antes sirve.
+>
+> **`Test-NetConnection` NO comprueba que estes llegando a tu base.** Contra el
+> host y el puerto viejos dio `TcpTestSucceeded : True` estando los dos mal: los
+> proxies de Railway resuelven a un borde compartido que acepta TCP en cualquier
+> puerto aunque no haya nada tuyo detras. Decia la verdad sobre lo que medía y
+> mentia sobre lo que significaba. **La comprobacion honesta es intentar el
+> handshake de Postgres**, con un `connect_timeout` corto para no esperar los
+> noventa segundos de reintento de `conectar()`:
+>
+>     python -c "import os,psycopg; psycopg.connect(host=os.environ['POSTGRES_HOST_LOCAL'], port=os.environ['POSTGRES_PORT'], user=os.environ['POSTGRES_USER'], password=os.environ['POSTGRES_PASSWORD'], dbname=os.environ['POSTGRES_DB'], connect_timeout=10); print('conecta')"
 devuelve un host y un puerto publicos. **Se quitan en el paso 7.**
 
 De la pestana **Variables** del servicio se anotan, para el paso 4:

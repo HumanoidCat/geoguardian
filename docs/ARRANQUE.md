@@ -87,6 +87,26 @@ saltarse este paso hasta que trabajen con el frontend.
 winget install OpenJS.NodeJS.LTS
 ```
 
+## Graphviz
+
+Hace falta para **regenerar los diagramas**, y por lo tanto para cerrar cualquier
+historia que toque el DDL: `docs/herramientas/generar_diagramas.py` y el CA-4 de
+`verificar_diagramas.py` no corren sin el. El CI lo instala solo; una maquina
+nueva no.
+
+Faltaba en esta guia hasta el 2026-09-08, y se noto cuando la migracion **018**
+agrego una tabla y el diagrama entidad-relacion no se pudo regenerar.
+
+```powershell
+winget install Graphviz.Graphviz
+```
+
+Cerrá y volvé a abrir PowerShell —si no, `dot` no entra al PATH—. Después:
+
+```powershell
+dot -V
+```
+
 Cerrá y volvé a abrir PowerShell. Después:
 
 ```powershell
