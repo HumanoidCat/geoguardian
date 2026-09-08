@@ -64,6 +64,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -71,6 +72,27 @@ RAIZ = Path(__file__).resolve().parents[2]
 CRUDOS = RAIZ / "datos" / "crudos" / "sentinel"
 DISTRITOS = RAIZ / "frontend" / "public" / "simulados" / "distritos.geojson"
 SALIDA = RAIZ / "frontend" / "public" / "indices"
+TOKENS = RAIZ / "frontend" / "src" / "estilos" / "tokens.css"
+
+
+def leer_tokens() -> dict[str, str]:
+    """Lee los colores del CSS. Si el CSS cambia, este guion lo sigue.
+
+    Es el mismo lector que `verificar_escala.py`, a proposito: dos formas de
+    leer el mismo archivo se desfasan igual que dos copias del valor.
+    """
+    if not TOKENS.exists():
+        raise SystemExit(f"ERROR: no existe {TOKENS}")
+    return dict(
+        re.findall(r"(--[a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;", TOKENS.read_text(encoding="utf-8"))
+    )
+
+
+def canal_de(hexadecimal: str, indice: int) -> int:
+    """Un canal de un `#rrggbb`, como entero de 0 a 255."""
+    h = hexadecimal.lstrip("#")
+    return int(h[indice * 2 : indice * 2 + 2], 16)
+
 
 #: Clases de SCL que se conservan. El resto se descarta.
 #:
@@ -486,11 +508,27 @@ def _escribir_png(
         trama = ((filas + columnas) % 8) < 2
         hueco = dentro_canton & ~hay
 
-        # Fondo blanco al 55 %, y la linea gris encima. Los dos colores salen de
-        # tokens.css: --sin-dato-fondo y --sin-dato-trama.
-        canales[0] = np.where(hueco, np.where(trama, 0x9E, 0xFF), canales[0])
-        canales[1] = np.where(hueco, np.where(trama, 0x9E, 0xFF), canales[1])
-        canales[2] = np.where(hueco, np.where(trama, 0x9E, 0xFF), canales[2])
+        # Fondo al 55 %, y la linea encima. Los dos colores **se leen** de
+        # tokens.css: `--sin-dato-fondo` y `--sin-dato-trama`.
+        #
+        # Antes estaban escritos en duro como 0x9E y 0xFF, con este mismo
+        # comentario diciendo que "salen de tokens.css". Salian de tokens.css el
+        # dia que se copiaron. El 2026-09-06, H5.9 subio `--sin-dato-trama` de
+        # `#9e9e9e` a `#757575` -2,68:1 no llegaba al 3:1 grafico- y **este guion
+        # no se entero**: la coropleta paso a dibujar la ausencia en un gris y
+        # esta capa siguio en el otro, sobre el 24,7 % del canton que va en
+        # trama. Dos grises para la misma cosa en el mismo mapa.
+        #
+        # Un comentario que afirma un vinculo no crea el vinculo. Ahora se lee.
+        tokens = leer_tokens()
+        trama_hex = tokens["--sin-dato-trama"]
+        fondo_hex = tokens["--sin-dato-fondo"]
+        for canal_i in range(3):
+            canales[canal_i] = np.where(
+                hueco,
+                np.where(trama, canal_de(trama_hex, canal_i), canal_de(fondo_hex, canal_i)),
+                canales[canal_i],
+            )
         canales[3] = np.where(hueco, np.where(trama, 255, 140), canales[3])
 
     perfil = {

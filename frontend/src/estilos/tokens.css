@@ -70,6 +70,50 @@
   --sin-dato-borde: #757575;
   --texto-sobre-sin-dato: #424242;
 
+  /* ---------------------------------------------------------------------- *
+   * Agua
+   *
+   * El Lago Arenal ocupa 88 km2 dentro del canton, sobre todo en el distrito de
+   * Tilaran, porque asi viene el limite del SNIT. Se dibuja encima de la coropleta con
+   * este color (H14.3): no es un nivel de riesgo ni una ausencia de dato, es
+   * agua.
+   *
+   * ES EL MISMO COLOR QUE EL MAPA BASE YA USA PARA EL AGUA, Y SE MIDIO.
+   * Se muestrearon las teselas de OpenStreetMap que el visor tiene cargadas: de
+   * los pixeles azulados, 17 995 son exactamente #aad3df -el siguiente candidato
+   * aparece 1 176 veces-. Ese es el celeste de los rios y las lagunas chicas que
+   * ya se ven dibujados alrededor del lago. Pintar el embalse de otro azul lo
+   * separaba visualmente del agua que lo alimenta y lo hacia leer como una
+   * mancha del sistema, no como el lago. La primera version uso #2f7fa6 (azul
+   * oscuro, elegido por contraste) y se descarto por eso: correcto en los
+   * numeros, falso en el mapa.
+   *
+   * NINGUN COLOR PUEDE LLEGAR A 3:1 CONTRA LOS TRES PASOS A LA VEZ, Y SE MIDIO.
+   * La rampa cubre casi todo el rango de luminancia: para separarse de 'bajo'
+   * hay que estar por debajo de L=0,247 y para separarse de 'alto' por encima
+   * de L=0,670. No existe ese color. El agua queda en 1,37:1 contra 'bajo',
+   * 1,12:1 contra 'medio' y 3,02:1 contra 'alto'.
+   *
+   * Por eso **la legibilidad la carga el borde, no el relleno**. `--agua-borde`
+   * llega a 3:1 contra el agua y contra los tres pasos, asi que el contorno del
+   * lago se ve en blanco y negro, proyectado y con cualquier daltonismo. Lo que
+   * aporta el relleno es lo otro: el tono cian no esta en la rampa -que es
+   * amarillo, naranja y rojo-, o sea que el lago no se puede confundir con un
+   * cuarto nivel aunque su luminancia se parezca a la de 'bajo'.
+   * ---------------------------------------------------------------------- */
+  --agua: #aad3df;
+  /* La orilla es un PAR, linea oscura con halo claro por fuera, igual que la
+     marca del distrito seleccionado. No es decoracion: una sola linea no puede
+     cumplir. Bajo protanopia el rojo de 'alto' se ve casi negro, y 'bajo' sigue
+     siendo amarillo palido: entre esos dos fondos solo hay 6,0:1, asi que para
+     que un unico color llegara a 3:1 contra los dos harian falta 9:1. Se busco
+     en el cubo sRGB completo y NO EXISTE ese color: cero candidatos. Con el par
+     alcanza con que una de las dos partes cumpla en cada fondo, y el peor caso
+     de los 16 pares (4 fondos x vision normal y los tres tipos de dicromacia)
+     queda en 4,04:1. */
+  --agua-borde: #08202d;
+  --agua-halo: #f5fbfd;
+
   /* Estado de carga. Se distingue por movimiento, no por color: la animacion
      comunica "todavia no se sabe" sin competir con la rampa. */
   --cargando-base: #eeeeee;
@@ -99,6 +143,24 @@
   /* ---------------------------------------------------------------------- *
    * Interfaz
    * ---------------------------------------------------------------------- */
+  /* Fondo calido de «Hoy en tu distrito» (H14.2).
+     Se aplica SOLO a esa pantalla, no a todo el visor. El mapa conserva su
+     fondo de hoy porque su evidencia esta archivada y cerrada, y cambiarla
+     obligaria a re-tomar las capturas de tres historias. Si el papel funciona,
+     extenderlo al resto es una linea mas y esas capturas. */
+  --papel: #faf7f0;
+  /* El borde de las tarjetas sobre el papel, y del selector de distrito.
+     Era #d9d3c7 y se cambio el 2026-09-08 tras la revision de Avril sobre el
+     mockup. Medido: ese gris daba 1,39:1 contra el papel y 1,49:1 contra el
+     relleno blanco, y el relleno blanco contra el papel da 1,07:1. O sea que
+     TODO el limite de la tarjeta lo cargaba una linea de 1,4:1. El selector de
+     distrito es un control de formulario y su contorno si necesita 3:1; las
+     tarjetas no lo necesitan por norma, pero la persona a la que va dirigida
+     esta pantalla tiene 72 anos y baja vision, asi que se le da el mismo trato.
+     Este llega a 3,31:1 contra el papel y 3,54:1 contra el blanco, y sigue
+     siendo un gris calido y no un trazo negro. */
+  --papel-linea: #8f877c;
+
   --superficie: #ffffff;
   --superficie-alterna: #f5f5f5;
   --borde: #e0e0e0;
