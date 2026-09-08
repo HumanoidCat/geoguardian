@@ -75,7 +75,7 @@ from __future__ import annotations
 import argparse
 import sys
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -91,7 +91,8 @@ from backend.modelado.linea_base import (  # noqa: E402
     f1_macro,
 )
 from backend.modelado.particion import particionar, resumen_f1  # noqa: E402
-from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
+from contratos.enums import Algoritmo, NivelRiesgo, TipoEvento  # noqa: E402
+from contratos.esquemas import MetricasModelo  # noqa: E402
 
 # --------------------------------------------------------------------------- #
 # El contrato                                                                   #
@@ -516,6 +517,95 @@ def veredicto(resultados: list[Resultado]) -> str:
 # --------------------------------------------------------------------------- #
 
 
+# --------------------------------------------------------------------------- #
+# Persistir lo medido - H3.7                                                    #
+# --------------------------------------------------------------------------- #
+
+#: Como se llama cada estimador de esta tabla en el enum `Algoritmo` del
+#: contrato. **La trivial no esta, y no es un olvido:** `contratos/enums.py`
+#: define cuatro valores y ninguno la nombra, asi que `MetricasModelo` no la
+#: puede representar. Se salta, se dice cuantas se saltaron, y la limitacion
+#: queda escrita en la migracion 018 y en la evidencia de H3.7.
+NOMBRE_A_ALGORITMO = {
+    "climatologica": Algoritmo.LINEA_BASE,
+    "regresion logistica": Algoritmo.REGRESION_LOGISTICA,
+    "random forest": Algoritmo.RANDOM_FOREST,
+    "xgboost": Algoritmo.XGBOOST,
+}
+
+#: Contra quien se contrasta `supera_linea_base`. **No es REFERENCIA.**
+#: `REFERENCIA` es la trivial, que es el piso de la tabla impresa; el contrato
+#: dice, textual, que `supera_linea_base` es None "mientras no se haya
+#: contrastado contra la linea base **climatologica**". Son dos lineas base
+#: distintas y usar la equivocada daria un valor falso sin que nada se queje.
+LINEA_BASE_DEL_CONTRATO = "climatologica"
+
+
+def _supera_linea_base(resultado: Resultado, climatologica: Resultado | None) -> bool | None:
+    """
+    Tres estados, no dos.
+
+    `None` cuando no se pudo contrastar: no hay climatologica evaluada, o es
+    ella misma -contrastarla consigo misma no significa nada-. Devolver `False`
+    en esos casos diria "no supera", que es una afirmacion que nadie midio.
+
+    La regla del si es la de **CA-5 de H3.6**, la misma que usa `veredicto` y
+    `elegir_escritor`: la ventaja tiene que ser mayor que lo que el propio
+    estimador se mueve entre pliegues. No se reescribe aqui para que no haya dos
+    versiones de la misma regla.
+    """
+    if climatologica is None or resultado is climatologica:
+        return None
+    if not resultado.por_pliegue or not climatologica.por_pliegue:
+        return None
+    return (resultado.media - climatologica.media) > resultado.rango
+
+
+def a_metricas(
+    evento: TipoEvento, resultados: list[Resultado], version: str, entrenado_en: datetime
+) -> list[MetricasModelo]:
+    """
+    Traduce la tabla comparativa a filas del contrato, **sin inventar nada**.
+
+    `precision_macro`, `exhaustividad_macro` y `matriz_confusion` van en `None`
+    a proposito: esta comparacion mide F1-macro por D-10 y no calcula las otras.
+    Ponerles cero seria decir que se midieron y dieron cero.
+    """
+    climatologica = next((r for r in resultados if r.nombre == LINEA_BASE_DEL_CONTRATO), None)
+    filas = []
+    for resultado in resultados:
+        algoritmo = NOMBRE_A_ALGORITMO.get(resultado.nombre)
+        if algoritmo is None or not resultado.por_pliegue:
+            continue
+        filas.append(
+            MetricasModelo(
+                algoritmo=algoritmo,
+                tipo_evento=evento,
+                version=version,
+                entrenado_en=entrenado_en,
+                f1_macro=round(resultado.media, 4),
+                precision_macro=None,
+                exhaustividad_macro=None,
+                matriz_confusion=None,
+                supera_linea_base=_supera_linea_base(resultado, climatologica),
+            )
+        )
+    return filas
+
+
+def guardar(filas: list[MetricasModelo]) -> int:
+    """Escribe por el repositorio, no por SQL suelto. Devuelve cuantas se enviaron."""
+    from backend.api.repositorio_postgres import RepositorioPostgres
+
+    repositorio = RepositorioPostgres()
+    try:
+        for metricas in filas:
+            repositorio.guardar_metricas(metricas)
+    finally:
+        repositorio.cerrar()
+    return len(filas)
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
@@ -526,6 +616,19 @@ def main() -> int:
         type=Path,
         default=RAIZ / "datos" / "procesados" / "caracteristicas.csv",
         help="matriz de H3.3. Si no existe, corren solo las lineas base.",
+    )
+    p.add_argument(
+        "--guardar",
+        action="store_true",
+        help=(
+            "H3.7: persiste lo medido en analitico.metrica. Sin la bandera, este "
+            "guion se comporta exactamente igual que antes y no necesita base de datos."
+        ),
+    )
+    p.add_argument(
+        "--version-modelo",
+        default=None,
+        help="Version con la que se guardan las metricas. Por omision, comparacion-<fecha>.",
     )
     args = p.parse_args()
 
@@ -566,8 +669,12 @@ def main() -> int:
         print(f"  NO MODELABLE  {evento.value:19} {motivo}")
     print()
 
+    por_evento: dict[TipoEvento, list[Resultado]] = {}
+    entrenado_en = datetime.now().astimezone()
+
     for evento in TipoEvento:
         resultados = comparar(evento, filas, estimadores, caracteristicas)
+        por_evento[evento] = resultados
         if not resultados or not resultados[0].por_pliegue:
             print(f"{evento.value.upper()}: sin pliegues evaluables\n")
             continue
@@ -605,6 +712,37 @@ def main() -> int:
         print("la metrica y el trato de los None ya estan decididos aca.\n")
     else:
         print("Los tres algoritmos de D-09 estan en la tabla.\n")
+
+    if args.guardar:
+        version = args.version_modelo or f"comparacion-{date.today().isoformat()}"
+        filas_metricas = [
+            fila
+            for evento, resultados in por_evento.items()
+            for fila in a_metricas(evento, resultados, version, entrenado_en)
+        ]
+        saltadas = sum(
+            1
+            for resultados in por_evento.values()
+            for r in resultados
+            if r.nombre not in NOMBRE_A_ALGORITMO and r.por_pliegue
+        )
+        print(
+            f"H3.7: guardando {len(filas_metricas)} filas en analitico.metrica, "
+            f"version {version}"
+        )
+        if saltadas:
+            print(
+                f"  {saltadas} no se guardan: el enum Algoritmo del contrato no las nombra "
+                "(la linea base trivial). Declarado en la migracion 018."
+            )
+        try:
+            guardadas = guardar(filas_metricas)
+        except Exception as error:
+            print(f"  FALLO al guardar: {error}")
+            print("  La comparacion de arriba es valida igual: guardar es un paso aparte.")
+            return 1
+        print(f"  guardadas {guardadas}\n")
+
     return 0
 
 

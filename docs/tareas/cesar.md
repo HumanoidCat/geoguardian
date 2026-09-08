@@ -128,8 +128,18 @@
   - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
   - **Diferida el 2026-09-03 por D-38.**
 
-- [ ] **H3.7** · Versionar modelos con metricas y fecha asociadas
+- [x] **H3.7** · Versionar modelos con metricas y fecha asociadas (2026-09-07)
   - `E3` · 3 pts · 2.9 h · rubrica: Arq · depende de: H3.6
+  - horas: estimada 2.9 . real 4.0
+  - Evidencia: `docs/evidencias/arquitectura-software/H3.7-metricas-versionadas.md`
+  - **El desvio es cambio de alcance, no mala estimacion.** Las 2.9 h se estimaron
+    cuando la historia era solo "versionar modelos". **D-39** le sumo la tabla
+    `analitico.metrica`, su migracion y los dos metodos del repositorio que H3.6
+    dejo pendientes; y como nadie los llamaba, tambien el productor: la bandera
+    `--guardar` de `comparar.py`, por la excepcion de `docs/07`.
+  - Hallazgo declarado: el enum `Algoritmo` del contrato no nombra a la linea base
+    trivial, asi que el piso con el que D-39 decide quien escribe **no se puede
+    guardar** en esta tabla. Arreglarlo exige tocar `contratos/`, que es compartido.
 
 - [x] **H6.3** · Strategy y Factory: agregar una fuente sin tocar el orquestador (2026-09-04)
   - `E6` · 5 pts · 4.8 h · rubrica: Arq · depende de: H6.2
