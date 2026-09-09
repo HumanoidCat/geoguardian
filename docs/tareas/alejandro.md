@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 205 puntos · 308.4 horas · 30.8 h por semana en promedio
+**Total asignado:** 218 puntos · 328.7 horas · 32.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 73.1 | 36 | SOBRECARGA +37 h |
+| S4 | semanas 10-11 | 93.4 | 36 | SOBRECARGA +57.4 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 73.1 h
+## Sprint 4 (semanas 10-11) — 93.4 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -592,6 +592,49 @@
   - Agregada el 2026-09-06 desde la revision del sitio publicado. Criterios en
     `docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md` (PR #270), antes del codigo.
   - `frontend/` es de Avril: los archivos tocados se declaran en el PR y ella lo revisa.
+
+- [ ] **H14.3** · El Lago Arenal se dibuja como agua sobre la coropleta
+  - `E14` · 2 pts · 3.1 h · rubrica: CG-1 · depende de: H1.3, H5.3 · **bloquea a: H14.2**
+  - **Hecha y fusionada en `dev` el 2026-09-08.** Se marca `[x]` cuando Alejandro
+    diga las horas reales: **las horas no se inventan** (D-24), y el verificador
+    exige la linea completa en cuanto la casilla se cierra.
+  - La coropleta pintaba 88,2 km2 de agua con el nivel del distrito. Medido con 122
+    puntos dentro del lago: 109 caen sobre Tilaran. No se recorta el distrito -eso
+    seria I-14 otra vez-: el agua se dibuja encima, en un panel propio de Leaflet con
+    zIndex fijo, porque todas las capas vectoriales comparten un mismo `<svg>` y ahi
+    manda el orden de pintado, no el orden de montaje.
+  - La orilla es un par linea + halo. Un solo color **no existe**: se recorrio el cubo
+    sRGB entero buscando uno que diera 3:1 contra los cuatro fondos en las cuatro
+    visiones y **no hay ninguno**. El par da 4,04:1 en el peor caso.
+  - Criterios en `docs/evidencias/computacion-grafica/H14.3-criterios-aceptacion.md`.
+  - Entro dentro del PR #282 por el `git add -A` de **I-47**, no en un PR propio.
+
+- [ ] **H14.2** · Hoy en tu distrito: la primera pantalla habla en palabras
+  - `E14` · 8 pts · 12.5 h · rubrica: CG-1, CG-4 · depende de: H5.9, H7.1, H14.3
+  - **Hecha y fusionada en `dev` el 2026-09-08.** Igual que H14.3: falta el numero
+    real para cerrarla.
+  - Sale de la retroalimentacion docente: el visor se veia generico. Entra una pantalla
+    que dice en palabras que viene esta semana y que hacer. El mapa **abre primero** y
+    la pantalla nueva esta a un clic con el distrito ya elegido.
+  - Publico, palabras (`tranquilo` / `atento` / `cuidado` junto a su termino tecnico) e
+    identidad quedan en **D-46**. La rampa de color no se toco.
+  - `verificar_frases.py` entra al CI: 18 siglas prohibidas, todo nivel con palabra y
+    termino, toda accion con verbo en segunda persona, nadie promete «tiempo real».
+  - Criterios en `docs/evidencias/computacion-grafica/H14.2-criterios-aceptacion.md`.
+  - Entro dentro del PR #282 por **I-47**, y su defecto de D-23 se corrigio en el #290.
+
+- [ ] **H11.7** · Las estimaciones publicadas se renuevan solas
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H11.6, H3.6, H3.8
+  - Sale de **I-48**: el sitio publicado no tiene estimaciones despues del 2026-09-12
+    y la feria es el 24. `estimar_riesgo` escribe hasta hoy + 7 dias y es un comando
+    manual; nada lo vuelve a correr.
+  - Imagen aparte (`infra/docker/trabajos.Dockerfile`) que corre la cadena y **sale**,
+    mas un servicio de cron diario en Railway, en el paso 9 del runbook.
+  - La lista de paquetes no se leyo: `infra/verificar_trabajos.py` recorre el grafo de
+    imports con `ast` y encontro dos que faltaban, `scipy` y `pydantic`. Ninguno habria
+    roto la construccion; habrian roto la primera corrida de madrugada.
+  - Criterios en `docs/evidencias/sistemas-operativos/H11.7-criterios-aceptacion.md`.
+  - Toca `.github/workflows/ci.yml`, que no es su carpeta, y lo declara en el PR.
 
 ## Regla: lo hecho no se borra
 

@@ -3,6 +3,8 @@
 **Historia.** H11.6 · paso 1 de los tres que D-05 dejo declarados.
 **Decision de arquitectura.** D-43.
 **Escrito.** 2026-09-04. **Corregido con lo medido.** 2026-09-05.
+**Paso 9 agregado.** 2026-09-09, por **I-48**: el sitio publicado se quedaba sin
+estimaciones el 2026-09-12 y nadie lo habia medido.
 
 **Regla que no se rompe.** Los valores de las variables los pone Alejandro en la
 consola de Railway. Aca van **nombres**, nunca secretos, y nada de esto entra al
@@ -16,7 +18,7 @@ vez -son la parte util-, cada uno con la salida que lo delato.
 
 ## Que se arma
 
-Tres servicios en **un solo proyecto y un solo entorno** de Railway. La red
+Cuatro servicios en **un solo proyecto y un solo entorno** de Railway. La red
 privada de Railway solo conecta servicios del mismo proyecto y entorno.
 
 ```
@@ -30,7 +32,19 @@ privada de Railway solo conecta servicios del mismo proyecto y entorno.
   +---------+             +----------+            +-----------+
    dominio                 sin dominio              sin dominio
    publico                  publico                  publico
+                                                         ^
+                                                         |
+                                            +------------+---------+
+                                            |       trabajos       |
+                                            |  cron 09:00 UTC      |
+                                            |  corre y se apaga    |
+                                            +----------------------+
 ```
+
+El cuarto, **`trabajos`**, no atiende nada: se enciende una vez al dia, vuelve a
+estimar el riesgo y se apaga. Existe porque las estimaciones tienen fecha de
+vencimiento -siete dias hacia adelante- y hasta el 2026-09-09 **nada las
+renovaba**. Paso 9.
 
 **Un solo dominio publico, el del visor.** La API no se expone: el navegador
 nunca le habla directo. Eso no es una precaucion extra, es lo que **D-23**
@@ -412,6 +426,138 @@ Una vez cargados los datos:
 
 ---
 
+## 9 · El servicio `trabajos`: las estimaciones no se renuevan solas
+
+**Esto no estaba en el runbook original y es un agujero, no una mejora.** Ver
+**I-48**. Medido contra la API publicada el 2026-09-09:
+
+    2026-09-12  ->  lluvia 8/8   sequia 8/8
+    2026-09-13  ->  lluvia 0/8   sequia 0/8
+
+`estimar_riesgo` escribe hasta **hoy + 7 dias** y es un **comando manual**: la
+ultima corrida fue el 2026-09-05, de ahi sale el 12. No hay `schedule:` en
+`.github/workflows/`, ni CronJob en `infra/k8s/`, ni nada en Railway. Sin este
+paso, **el sitio publicado se queda sin estimaciones** y por D-07 dibuja ausencia,
+que es lo correcto y es justo lo que no se quiere mostrar.
+
+> **Incendio no se arregla aca.** Sus filas terminan el 2024-12-24 porque desde
+> **D-42** su escritor es la regresion logistica, que no proyecta hacia adelante.
+> Correr esto no le agrega un dia. Eso es **H14.6**.
+
+### El servicio
+
+**New → GitHub Repo → `HumanoidCat/geoguardian`**. Renombrar a **`trabajos`**.
+
+| Campo | Valor |
+|---|---|
+| Root Directory | `/` |
+| Builder | Dockerfile |
+| Dockerfile Path | `infra/docker/trabajos.Dockerfile` |
+| Branch | `main` |
+| Public Networking | **ninguno** — no generarle dominio |
+| Cron Schedule (Settings) | `0 9 * * *` |
+
+`0 9 * * *` es **09:00 UTC**, que en Costa Rica son las **3:00 de la madrugada**.
+**Railway solo entiende UTC**; no hay campo de zona horaria y poner la hora local
+adelanta la corrida seis horas. El horario minimo que Railway acepta es cada
+cinco minutos, asi que diario entra sin problema.
+
+**Diario y no semanal, a proposito.** Cada corrida deja siete dias por delante.
+Diario significa que **seis fallos seguidos pasan desapercibidos y el septimo se
+nota**; semanal significa que un solo fallo deja el sitio en blanco.
+
+### Variables
+
+Las mismas de `api`, con **un cambio que importa**: el usuario. La API entra con
+el rol de solo lectura; esta cadena **escribe** en `analitico.riesgo`, asi que va
+con el usuario del ETL.
+
+| Nombre | Valor |
+|---|---|
+| `POSTGRES_HOST_LOCAL` | `${{PostGIS.RAILWAY_PRIVATE_DOMAIN}}` |
+| `POSTGRES_PORT` | `5432` |
+| `POSTGRES_DB` | `geoguardian` |
+| `POSTGRES_USER` | `etl_geoguardian` |
+| `POSTGRES_PASSWORD` | la del rol de escritura |
+
+> **`POSTGRES_HOST_LOCAL` y no `POSTGRES_HOST`**, igual que en el paso 3 y por la
+> misma razon: `basedatos/conexion.py` lee esa y solo esa. Poner `POSTGRES_HOST`
+> no da error, **da `localhost`**, que dentro del contenedor no es nadie. El
+> propio Dockerfile lo explica en su encabezado.
+>
+> **`GEOGUARDIAN_REPOSITORIO` no va aca.** Esa variable la lee
+> `backend/api/dependencias.py` para elegir implementacion; `estimar_riesgo`
+> importa `RepositorioPostgres` directo. Ponerla no hace nada, y ponerla mal
+> tampoco: por eso conviene no ponerla.
+>
+> **Con `api_geoguardian` la corrida falla al escribir, no al conectar.** Es un
+> fallo tardio: los dos generadores corren completos y revienta al final. Si el
+> registro muestra un `permission denied for table riesgo`, es este error.
+
+### Comprobar que quedo bien, en este orden
+
+```
+1. Construye. En Deployments, la etapa de instalacion tiene que listar
+   exactamente siete paquetes. Si el `test` de la linea 3 del Dockerfile
+   falla, la construccion se corta ahi: eso es lo que se quiere.
+
+2. Corre y SALE. En el registro de la corrida tiene que verse el codigo de
+   salida 0 y el contenedor apagado. Un servicio de cron que se queda vivo
+   hace que Railway SE SALTE la corrida siguiente, sin avisar.
+
+3. Escribio de verdad. Contra el visor, no contra la base:
+
+   https://<dominio del visor>/api/riesgos?fecha=<hoy+7>&tipo_evento=lluvia_intensa
+
+   Tiene que devolver ocho filas. Con la fecha de ayer + 8 devuelve cero, y
+   esa es la prueba de que la ventana se movio.
+
+4. Cuanto costo. Anotar la duracion de la corrida y mirar el consumo del
+   proyecto al dia siguiente. Son tres servicios encendidos con $5; este es
+   el cuarto y hay que saber cuanto suma antes de darlo por gratis.
+```
+
+### Dos cosas que hay que mirar en la consola, no suponer
+
+  * **Si al desplegar corre una vez de inmediato o espera al horario.** Cambia
+    como se prueba el punto 3: si espera, hay que disparar la corrida a mano
+    desde Deployments para verla. **No lo confirme; se ve en el registro.**
+  * **Si el servicio se reconstruye en cada push a `main`.** Al ser un servicio
+    de repositorio, en principio si, y esta imagen es la mas pesada de las
+    cuatro. Railway tiene **Watch Paths** en Settings para acotarlo a
+    `infra/docker/trabajos.Dockerfile`, `backend/modelado/**`, `backend/senales/**`
+    y `requirements.txt`. Vale la pena si las construcciones pesan en el consumo.
+
+### La red de seguridad, que no es opcional
+
+El horizonte se mueve solo mientras el cron corra. **Antes de la Invenio Fest
+hay que mirarlo con los ojos**, el lunes 22 y otra vez la manana del 24:
+
+    https://<dominio del visor>/api/riesgos?fecha=2026-09-24&tipo_evento=lluvia_intensa
+
+Ocho filas. Si salen cero, el arreglo manual es el mismo de siempre -abrir el TCP
+proxy del paso 2c, poner las variables de sesion del paso 4 con el usuario del
+ETL y correr la cadena- y toma minutos, **si se descubre a tiempo**.
+
+### Si no se quiere el servicio
+
+**Hay una salida sin servicio nuevo:** correr la cadena a mano el lunes 22, con
+el proxy abierto y las variables de sesion del paso 4:
+
+```powershell
+python -m backend.modelado.generar_etiquetas
+python -m backend.modelado.generar_caracteristicas
+python -m backend.modelado.estimar_riesgo --sin-escribir   # dice que escritor elige D-39
+python -m backend.modelado.estimar_riesgo
+```
+
+Eso cubre hasta el **29 de septiembre** y la feria es el 24. Es menos trabajo hoy
+y **es un recordatorio en la cabeza de una persona**, que es exactamente el tipo
+de control que fallo para llegar a I-48. La imagen existe igual y no caduca:
+sirve para esta feria y para la siguiente.
+
+---
+
 ## Cuando entra una migracion nueva al repositorio
 
 La base publicada **no se actualiza sola**. Cada vez que se fusiona una historia
@@ -490,6 +636,11 @@ Ver **I-40**.
 aparte. **Tres servicios encendidos las 24 horas con $5 es ajustado**, y no se
 puede decir cuanto da sin medirlo.
 
+**`trabajos` es el cuarto pero no esta encendido las 24 horas**: corre unos
+minutos al dia y se apaga. Lo que si puede pesar son sus **construcciones**, que
+son las mas grandes de las cuatro imagenes -scikit-learn y xgboost-, y por eso el
+paso 9 dice que hay que mirar si se reconstruye en cada push.
+
 Por eso el **CA-9** lo mide **a las 48 horas**, no el dia de la entrega. Y por
 eso **el visor de GitHub Pages no se toca**: si Railway se apaga, la defensa
 sigue teniendo un sitio en pie que declara sus datos como simulados.
@@ -514,6 +665,12 @@ obligaria a CORS y a tocar archivo de Cesar, con solicitud de cambio-.
 - **No poner `GEOGUARDIAN_REPOSITORIO=postgres` en el visor.** No lo lee.
 - **No copiar ningun secreto a un archivo del repositorio.** Ni a `.env.example`,
   ni a un manifiesto, ni a un comentario.
+- **No poner `POSTGRES_HOST` en `trabajos` creyendo que es el host.** Se ignora
+  y la corrida va a `localhost`. La que se lee es `POSTGRES_HOST_LOCAL`.
+- **No darle a `trabajos` el usuario de la API.** `api_geoguardian` es de solo
+  lectura: la corrida llega hasta el final y falla al escribir.
+- **No dejar que `trabajos` quede vivo.** Railway se salta la corrida siguiente
+  si la anterior sigue corriendo, y no avisa.
 - **No borrar `frontend/public/simulados/*.json`.** Son la degradacion que exige
   la Definition of Done de H6.6, y el respaldo si Railway cae.
 
@@ -529,6 +686,7 @@ obligaria a CORS y a tocar archivo de Cesar, con solicitud de cambio-.
 | `.gitignore` con `.env` exacto y no `.env.*` | Un archivo con contrasenas reales **no** estaba ignorado | Corregido en esta historia, con el motivo escrito en el propio `.gitignore` |
 | Incluir `template0` al refrescar la intercalacion | `ERROR: invalid collation version change`, y la excepcion corto el `CREATE DATABASE` | Paso 2: `template0` no se toca ni hace falta |
 | Afirmar que hacia falta CORS | D-23 y `cliente.js` ya resolvian eso con ruta relativa | Leer la decision antes de proponer |
+| No preguntar hasta cuando alcanzaban los datos publicados | Las estimaciones se acababan el 2026-09-12 y se descubrio por casualidad | Paso 9, y la comprobacion de la ventana en el paso 7 |
 
 ---
 

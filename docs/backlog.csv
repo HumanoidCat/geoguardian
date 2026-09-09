@@ -1287,3 +1287,95 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E6,S2,Arq,alejandro",S2,alejandro,5,4.8
+H14.3,H14.3 El Lago Arenal se dibuja como agua sobre la coropleta,"Epica E14 | 2 puntos | 3.1 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H1.3, H5.3
+Sprint: S4 (semanas 10-11)
+
+Los limites distritales del SNIT incluyen el espejo de agua del Lago Arenal, asi
+que la coropleta pintaba 88,2 km2 de lago con el nivel de riesgo del distrito: el
+visor decia que el agua tiene riesgo alto de lluvia intensa. Medido con 122 puntos
+dentro del agua: 109 caen sobre Tilaran, uno sobre Arenal, uno sobre Tronadora y
+11 fuera del canton.
+
+No se recorta el distrito -eso cambiaria el limite oficial y rompería la suma de
+verificacion de H1.3, que es I-14 otra vez-: el agua se dibuja encima, en un panel
+propio de Leaflet con zIndex fijo.
+
+Criterios escritos antes del codigo en
+docs/evidencias/computacion-grafica/H14.3-criterios-aceptacion.md.
+La hace Alejandro; toca frontend/, que no es su carpeta, y lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E14,S4,CG-1,alejandro",S4,alejandro,2,3.1
+H14.2,H14.2 Hoy en tu distrito: la primera pantalla habla en palabras,"Epica E14 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H5.9, H7.1, H14.3
+Sprint: S4 (semanas 10-11)
+
+Sale de la retroalimentacion docente sobre el visor publicado: se ve generico y no
+se sabe para quien esta hecho. La primera pantalla era un coropleta con un semaforo
+y un selector de fecha, que le sirve al Comite Municipal de Emergencias y a quien
+evalua, no a la persona que vive en el distrito.
+
+Entra una pantalla que dice en palabras que viene esta semana en un distrito y que
+hacer, con tres tarjetas -lluvia, incendio, sequia-, la palabra del nivel junto a
+su termino tecnico, y la fecha del dato observado separada de la fecha de la
+estimacion. El mapa no se quita: recibe, y la pantalla nueva esta a un clic con el
+distrito ya elegido.
+
+Lo que la pantalla se niega a decir es parte de la historia: la sequia no muestra
+nivel aunque el origen se lo mande (D-34), y la tarjeta de incendio no dice cuantos
+focos hay porque el conteo no sale por ninguna ruta de la API (D-25, I-38).
+
+Publico, palabras e identidad quedan en D-46. Criterios escritos antes del codigo
+en docs/evidencias/computacion-grafica/H14.2-criterios-aceptacion.md.
+Entra verificar_frases.py al CI. La hace Alejandro; toca frontend/ y
+.github/workflows/ci.yml, que no son su carpeta, y lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E14,S4,CG-1,CG-4,alejandro",S4,alejandro,8,12.5
+H11.7,H11.7 Las estimaciones publicadas se renuevan solas,"Epica E11 | 3 puntos | 4.7 h estimadas
+
+Rubrica o objetivo: CICD
+Depende de: H11.6, H3.6, H3.8
+Sprint: S4 (semanas 10-11)
+
+Sale de I-48, medido el 2026-09-09 contra la API publicada: el sitio no tiene
+estimaciones despues del 2026-09-12 y la feria es el 24. estimar_riesgo escribe
+hasta hoy + 7 dias y es un comando manual; su ultima corrida fue el 2026-09-05.
+No hay schedule en Actions, ni CronJob en infra/k8s, ni nada en Railway que lo
+vuelva a correr.
+
+Entra una imagen aparte -infra/docker/trabajos.Dockerfile- que corre la cadena
+completa (etiquetas, caracteristicas, estimacion) y sale, y un servicio de cron
+diario en Railway. La lista de paquetes no se lee: infra/verificar_trabajos.py
+recorre el grafo de imports con ast desde los tres puntos de entrada y compara
+contra las lineas COPY y el filtro. Encontro dos que faltaban, scipy y pydantic,
+que no habrian roto la construccion sino la primera corrida de madrugada.
+
+Lo que NO es: no automatiza la ingesta (eso es H1.14) y no arregla incendio, que
+termina en 2024-12-24 porque desde D-42 su escritor no proyecta hacia adelante
+(eso es H14.6).
+
+Criterios escritos antes del codigo en
+docs/evidencias/sistemas-operativos/H11.7-criterios-aceptacion.md.
+Paso 9 del runbook de Railway. Toca .github/workflows/ci.yml, que no es su
+carpeta, y lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E11,S4,CICD,alejandro",S4,alejandro,3,4.7

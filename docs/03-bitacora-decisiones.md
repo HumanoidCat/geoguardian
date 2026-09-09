@@ -4918,3 +4918,113 @@ el cambio es en la vista y la API no se entera.
      al cerrarla.
   4. **Sabotaje:** quitar el `GRANT` de la 017 y comprobar que la 1 y la 3 fallan;
      conceder `USAGE` sobre `crudo` a la API y comprobar que la 2 falla.
+
+## D-46 · Publico meta, las palabras de los niveles y que se hace con la identidad
+
+**Fecha.** 2026-09-08. **Historia.** E14, historias H14.1 y H14.2.
+**Quien decide.** Alejandro. **Estado.** Aceptada. **Revisa.** H5.9 (no la modifica),
+D-07, D-25, D-34.
+
+### Contexto
+
+La retroalimentacion docente sobre el visor publicado dijo dos cosas: que se ve
+generico y que **no se sabe para quien esta hecho**. La segunda es la que importa,
+porque la primera se sigue de ella.
+
+Hasta ahora la respuesta implicita era *para quien sepa leer un mapa de riesgo*:
+la primera pantalla era un coropleta con un semaforo, una leyenda y un selector de
+fecha. Eso le sirve al Comite Municipal de Emergencias y a quien evalua el
+proyecto. No le sirve a la persona que vive en el distrito, que es de quien es el
+producto segun el charter.
+
+Sin un publico declarado no se puede decidir nada de lo que viene despues -que
+palabras usar, que se muestra primero, que se calla-, porque toda esa cadena
+depende de a quien se le habla.
+
+### Decision
+
+**Publico primario:** las familias y los pequenos productores de los siete
+distritos perifericos del canton. **Publico secundario, aliado y no usuario
+final:** el Comite Municipal de Emergencias y los comites comunales.
+
+Los dos se atienden **sin construir dos productos**: la gente entra por «Hoy en tu
+distrito», que habla en palabras; el comite usa el mapa con el semaforo completo,
+que ya existe y no se toca. El mapa es la puerta y la pantalla en palabras esta a
+un clic, con el distrito ya elegido.
+
+**Los tres niveles se dicen con dos vocabularios a la vez, no con uno:**
+
+| Nivel | Palabra | Termino tecnico |
+|---|---|---|
+| bajo | tranquilo | riesgo bajo |
+| medio | atento | riesgo medio |
+| alto | cuidado | riesgo alto |
+
+En «Hoy en tu distrito» la palabra va grande y el termino tecnico al lado, chico.
+**En el mapa no cambia nada:** sigue diciendo Alto, Medio y Bajo.
+
+**La rampa de riesgo no se toca.** **El logo actual se mantiene** y su rediseno
+queda pospuesto sin fecha. **El color de marca no se decide** hasta que se decida
+el logo.
+
+### Justificacion
+
+Dos vocabularios sueltos para lo mismo serian la incoherencia que la
+retroalimentacion senalo. Mostrarlos **juntos** los convierte en lo contrario: la
+traduccion queda a la vista en la pantalla en vez de escondida en el codigo, y esa
+traduccion es la tesis del producto -el hueco que el estudio de mercado encontro
+no es tecnologico, es de traduccion y entrega-.
+
+Que el mapa reciba y no la pantalla en palabras sale de probarlo: «Hoy en tu
+distrito» **exige elegir un distrito antes de mostrar nada**, y quien llega por
+primera vez no sabe que hay ocho ni cual es el suyo. El mapa contesta esa pregunta
+sin pedir nada.
+
+Lo de la rampa y lo del logo se posponen por la misma razon: ninguno de los dos es
+lo que la retroalimentacion senalo, y los dos cuestan mas de lo que rinden a esta
+altura del calendario.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Solo *bajo / medio / alto* | Es lenguaje de escala, no de persona. La pantalla dejaria de estar hecha para el publico que este mismo documento declara |
+| Solo *tranquilo / atento / cuidado*, tambien en el mapa | Le quita al comite y a quien evalua el termino con el que trabajan, y obliga a re-tomar la evidencia de H5.9, que esta cerrada |
+| Llamar a los niveles *verde / amarillo / rojo* | Choca con la Comision Nacional de Emergencias, que usa esos nombres para sus alertas oficiales. Parecerse a una alerta oficial es un problema de la Ley 8488, no de estilo |
+| Poner verde en el nivel «tranquilo» | Medido: ningun verde de semaforo cabe. Ver la seccion siguiente |
+| Que el comite tenga su propia pantalla | Dos productos que mantener, y el que ya existe le sirve tal cual |
+| Rediseñar el logo ahora | Tres tandas con generadores de imagen dieron ilustraciones que no sobreviven a 16 px. La via realista es una persona, y no cabe antes del 24 |
+
+### Consecuencias
+
+Se gana una primera pantalla que le habla a alguien concreto, y el mapa intacto
+para quien lo necesitaba. La traduccion entre los dos vocabularios queda visible y
+comprobable: `verificar_frases.py` exige que cada nivel traiga su palabra **y** su
+termino tecnico, y que no haya siglas en la primera pantalla.
+
+Se pierde -y se escribe- que el logo sigue siendo el que la retroalimentacion
+llamo generico, y que **sus tres barras usan exactamente los tres colores de la
+rampa** (`#d7301f`, `#feb24c`, `#ffeda0`). Un logo pintado con los colores que en
+el mapa significan un nivel se puede leer como si fuera un nivel. Queda anotado
+como deuda, no como descuido.
+
+Tambien se pierde el verde en el semaforo, que es lo que mas gente espera de un
+semaforo.
+
+### Medicion
+
+**Por que no cabe un verde de semaforo.** La rampa tiene que ir de claro a oscuro
+para que sobreviva a una fotocopia en blanco y negro -que es el cartel del aula- y
+a la dicromacia. Medido con la formula de `verificar_escala.py`: la rampa actual da
+gris percibido **233 → 189 → 96**, bajando. Un verde de semaforo como `#4caf50` da
+**135**, *mas oscuro que el naranja*: la escala quedaria 135 → 189 → 96, sube y
+baja, y en blanco y negro «tranquilo» y «cuidado» se verian casi iguales.
+
+Los unicos verdes mas claros que el naranja son pastel: `#d9f0a3` da 224 y
+`#ccf2cc` da 226. Ambos pasarian todas las verificaciones, y quedan disponibles si
+alguna vez se decide pagar el retrabajo de la evidencia de H5.1, H5.3 y H5.9.
+
+**Publico primario.** Los siete distritos perifericos suman unas 12 000 personas de
+los 21 232 del canton; Tilaran centro concentra el resto. Los eventos que el
+catalogo registra en esos distritos -Nate en 2017 en Libano y Arenal, la sequia de
+2014 en Tierras Morenas- son los que sostienen las frases de las tarjetas.
