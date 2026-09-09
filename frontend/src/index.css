@@ -1790,10 +1790,41 @@ button.marca-semaforo:focus-visible {
   outline-offset: 3px;
 }
 
-.volver-a-hoy {
+/* La entrada a «Hoy en tu distrito» desde el mapa. Ancha, arriba, y con el
+   fondo de papel para que se lea como puerta a otra cosa y no como un control
+   mas del visor. */
+.ir-a-hoy {
+  /* `.aplicacion` es flex, asi que sin `width: 100%` esta caja se encoge a lo
+     que mida el texto del boton y queda flotando en medio de la pagina como un
+     control suelto. Con el ancho puesto ocupa la misma columna que el resto del
+     visor y se lee como lo que es: la puerta a la otra pantalla. */
+  width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 12px 16px 0;
+  padding: 14px 16px 0;
+}
+
+.boton-ir-a-hoy {
+  font: inherit;
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 20px;
+  border-radius: var(--radio-lg);
+  border: 2px solid var(--papel-linea);
+  background: var(--papel);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.boton-ir-a-hoy:hover {
+  background: var(--superficie-alterna);
+}
+
+.boton-ir-a-hoy:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 3px;
 }
 
 .hoy-significado {
@@ -1842,11 +1873,22 @@ button.marca-semaforo:focus-visible {
   margin: 0;
 }
 
+/* Tenia pinta de texto suelto al pie de la pagina, no de algo que se abre.
+   Con caja y borde se lee como lo que es: el nivel de abajo, cerrado, a un
+   clic. Ahi viven las siglas que no pueden estar en la primera pantalla. */
+.hoy-de-donde {
+  background: var(--superficie);
+  border: 1.5px solid var(--papel-linea);
+  border-radius: var(--radio-lg);
+  padding: 0 18px;
+}
+
 .hoy-de-donde summary {
   cursor: pointer;
-  font-size: var(--texto-sm);
-  color: var(--texto-suave);
-  min-height: 44px;
+  font-size: var(--texto-md);
+  font-weight: 700;
+  color: var(--texto);
+  min-height: 52px;
   display: flex;
   align-items: center;
 }

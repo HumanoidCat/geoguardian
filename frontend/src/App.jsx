@@ -65,15 +65,21 @@ const OPACIDAD_INICIAL = {
 
 // Con que pantalla abre el visor.
 //
-// «hoy» es «Hoy en tu distrito», la pantalla para quien vive en el canton
-// (H14.2). «mapa» es el visor de siempre, entero y sin quitarle nada: es la
-// vista del Comite Municipal de Emergencias y de quien evalua el proyecto.
+// **El mapa primero.** Decision del PM el 2026-09-08, despues de ver las dos
+// pantallas funcionando.
 //
-// El mapa no se degrada a segunda pantalla porque estorbe. Baja un nivel porque
-// la primera pantalla tiene que hablarle a la persona del distrito, y un
-// coropleta con un semaforo y un selector de fecha no le habla a nadie que no
-// sepa leer un mapa de riesgo.
-const VISTA_INICIAL = 'hoy'
+// La version anterior abria en «Hoy en tu distrito», y el razonamiento era que
+// la primera pantalla tiene que hablarle a la persona del distrito. Al probarlo
+// aparecio el problema: **«Hoy en tu distrito» no puede ser la puerta porque
+// exige elegir un distrito antes de mostrar nada**, y quien llega por primera
+// vez todavia no sabe que hay ocho ni cual es el suyo. El mapa contesta esa
+// pregunta sin pedir nada: se ve el canton, se ven los nombres, se ve donde
+// esta cada uno.
+//
+// Asi que el mapa recibe y «Hoy en tu distrito» es a donde se va, con el
+// distrito ya elegido en el mapa. La pantalla no pierde su papel: gana un
+// camino para llegar a ella que no empieza con un formulario vacio.
+const VISTA_INICIAL = 'mapa'
 
 export default function App() {
   const [vista, setVista] = useState(VISTA_INICIAL)
@@ -360,9 +366,15 @@ export default function App() {
 
       {!cargando && coleccion && vista === 'mapa' && (
         <>
-          <div className="volver-a-hoy">
-            <button type="button" className="boton-volver" onClick={() => setVista('hoy')}>
-              Volver a mi distrito
+          {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
+              El texto nombra el distrito cuando hay uno elegido: «ver que viene
+              esta semana en Libano» dice a donde lleva, y «en tu distrito» solo
+              promete. */}
+          <div className="ir-a-hoy">
+            <button type="button" className="boton-ir-a-hoy" onClick={() => setVista('hoy')}>
+              {distritoSeleccionado
+                ? `Ver que viene esta semana en ${distritoSeleccionado.nombre}`
+                : 'Ver que viene esta semana en tu distrito'}
             </button>
           </div>
 
