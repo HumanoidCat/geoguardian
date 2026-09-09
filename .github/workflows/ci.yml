@@ -196,6 +196,14 @@ jobs:
       # Un control que solo se ejecuta despues de fusionar no protege la fusion.
       - name: La espera a la API de Kubernetes sabe rendirse y decirlo
         run: python -m infra.probar_espera_api
+      # I-48. La imagen de los trabajos programados filtra `requirements.txt` y
+      # copia archivos sueltos: si a esas listas les falta algo, la imagen se
+      # construye igual y revienta en la primera corrida de madrugada. Este
+      # guion recorre el grafo de imports con `ast` y compara. Corre aca -y no
+      # construyendo la imagen- porque el control es estatico y cuesta un
+      # segundo; construir scikit-learn y xgboost en cada push, no.
+      - name: La imagen de trabajos lleva todo lo que la cadena importa
+        run: python infra/verificar_trabajos.py
 
   frontend:
     name: Frontend

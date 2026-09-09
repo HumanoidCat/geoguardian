@@ -3556,3 +3556,68 @@ tocando ademas archivos de Avril. Eso no se puede deshacer y por eso se escribe.
 **Impacto.** `dev` en rojo durante unos cuarenta minutos, un PR ajeno con 28
 archivos que no le corresponden, y **la epica E14 en `dev` antes de que se
 decidiera si sale al aire**: la proxima promocion a `main` la publica.
+
+---
+
+## I-48 · Las estimaciones publicadas caducan el 2026-09-12 y nada las renueva
+
+**Fecha.** 2026-09-09.
+
+**Quien lo detecto.** El PM, preguntando por las fechas raras que salian en
+«Hoy en tu distrito» mientras se armaba H14.2.
+
+**Que paso.** El visor publicado no tiene estimaciones despues del **2026-09-12**.
+Medido contra la API de produccion, no supuesto:
+
+    2026-09-12  ->  lluvia 8/8   incendio 0/8   sequia 8/8
+    2026-09-13  ->  lluvia 0/8   incendio 0/8   sequia 0/8
+    2026-09-24  ->  lluvia 0/8   incendio 0/8   sequia 0/8
+
+**El 2026-09-24 es el dia de la Invenio Fest.** El sitio que se va a mostrar a
+las incubadoras estaria dibujando ausencia en los tres eventos y en los ocho
+distritos. Por **D-07** eso no sale como un cero ni como un error: sale como «sin
+dato», que es lo correcto y es exactamente lo que no se quiere proyectar.
+
+**Causa raiz.** `backend/modelado/estimar_riesgo` escribe hasta **hoy + 7 dias**
+(`HORIZONTE_DIAS = 7`) y **es un comando manual**. Su ultima corrida fue el
+2026-09-05, de ahi salen el 12 y no otra fecha. No hay ningun `schedule:` en
+`.github/workflows/`, ni un CronJob en `infra/k8s/`, ni nada en Railway que lo
+vuelva a correr. El propio guion lo dice en su encabezado -«para "hoy"
+dependeria de la ingesta con cadencia de H1.14»- y esa cadencia sigue pendiente.
+
+Dicho corto: **el horizonte no caduca por un fallo, caduca por diseno**, y lo que
+falta es quien lo empuje.
+
+**Lo de incendio es otra cosa y no se arregla con esto.** Sus filas terminan el
+**2024-12-24**, nueve meses antes. Desde **D-42** su escritor es la regresion
+logistica, que necesita la matriz de caracteristicas y **no proyecta hacia
+adelante**; ademas cubre tres distritos por diseno, no ocho. Volver a correr la
+estimacion no le agrega un solo dia. Eso es **H14.6**, aparte.
+
+**Accion tomada.** Se armo la imagen `infra/docker/trabajos.Dockerfile`, que
+corre la cadena completa -etiquetas, caracteristicas, estimacion- y sale. La
+lista de paquetes **no se leyo, se recorrio**: `infra/verificar_trabajos.py`
+camina el grafo de imports con `ast` desde los tres puntos de entrada y compara
+contra las lineas `COPY` y el filtro del `grep`. Encontro dos que faltaban en la
+primera version, `scipy` y `pydantic`; `scipy` entra por `backend/senales/spi.py`,
+tres saltos abajo del punto de entrada. Ninguno de los dos habria roto la
+construccion: habrian roto la **primera corrida programada**, de madrugada y sin
+nadie mirando.
+
+El servicio de Railway y su horario quedan escritos en el **paso 9** del
+`19-runbook-railway.md`.
+
+**Aprendizaje.** Un dato que se escribe con un horizonte hacia adelante tiene
+fecha de vencimiento, y la fecha de vencimiento hay que **medirla y anotarla**,
+no descubrirla. La pregunta «¿hasta cuando alcanza lo que hay publicado?» no se
+hizo ni al desplegar en Railway ni al armar el visor estatico; se hizo quince
+dias antes de la feria y por casualidad.
+
+Y una segunda, sobre el metodo: la lista de dependencias de una imagen **no se
+verifica leyendola**. Un verificador que camina el grafo encontro en un segundo
+lo que dos lecturas del mismo archivo no vieron.
+
+**Impacto.** Ninguno todavia -la caducidad es futura-, y esa es la unica razon
+por la que no fue grave. De haberse detectado el 2026-09-24 por la manana, no
+habia arreglo posible en el dia: la cadena necesita la base publicada, el proxy
+abierto y una corrida completa.
