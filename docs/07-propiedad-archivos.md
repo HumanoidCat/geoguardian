@@ -45,6 +45,7 @@ verdad, no de tramite**. Si eso se afloja, la regla vuelve.
 | backend/api | Cesar | Endpoints, enrutamiento, dependencias de FastAPI |
 | backend/etl | Cesar | Extractores, limpieza, carga |
 | basedatos | Cesar | DDL, seguridad, procedimientos, respaldos, consultas |
+| backend/alertas | Cesar | Alertas automaticas de fallo de pipeline y despliegue |
 | backend/senales | **Luna** | Filtrado, remuestreo, espectro, SPI, anomalias |
 | backend/modelado | Alejandro | Etiquetado, linea base, entrenamiento, evaluacion, SHAP |
 | infra | Alejandro | Docker, manifiestos de Kubernetes |
@@ -389,10 +390,16 @@ siquiera Alejandro:
 - `docs/05-matriz-trazabilidad.md`, la tabla completa.
 - La **linea de avance** de `docs/08-backlog.md`, la que dice cuantas historias
   van cerradas. El resto de ese archivo si se edita a mano.
+- **Los siete SVG de `docs/diagramas/`.** Se agregaron a esta lista el
+  2026-09-08: son tan derivados como la matriz -salen de un generador que lee
+  el DDL y el codigo- pero no estaban declarados, asi que agregar una tabla
+  obligaba a pedir permiso para regenerar un dibujo. Paso con la **018** y
+  `analitico.metrica`.
 
-Se produce con:
+Se producen con:
 
     python docs/herramientas/generar_matriz.py
+    python docs/herramientas/generar_diagramas.py    # necesita Graphviz
 
 Para cambiar una fila se cambia su fuente:
 
@@ -401,7 +408,7 @@ Para cambiar una fila se cambia su fuente:
 | Que la historia figure como terminada | `docs/tareas/<persona>.md`, marcando `[x]` | Su dueno |
 | El archivo de evidencia que aparece | Subirlo a `docs/evidencias/`, con el nombre `<ID>-<algo>.md` | Su dueno |
 | El dueno o la rubrica | `docs/backlog.csv` | Alejandro |
-| El requisito, el modulo o la prueba | `docs/trazabilidad.csv` | Alejandro |
+| El requisito, el modulo o la prueba | `docs/trazabilidad.csv` | **Su dueno**, para la fila de su propia historia; Alejandro para las demas |
 
 **Por que.** Era el archivo mas conflictivo del repositorio: lo tocaban las cuatro
 personas, casi siempre en el mismo bloque de filas, y nada lo comprobaba. En dos
@@ -460,7 +467,8 @@ Si no da cero, la rama esta atrasada y hay que fusionar antes de volver a genera
 dueno del modulo afectado:
 
 - contratos/ (todo el contenido)
-- docs/trazabilidad.csv
+- docs/trazabilidad.csv, **salvo agregar la fila de la propia historia cerrada**
+  (ver abajo)
 - docker-compose.yml
 - .env.example
 - requirements.txt
@@ -488,6 +496,36 @@ Lo que sigue exigiendo solicitud:
 
 **Leer un archivo compartido nunca requiere solicitud.** Leer `contratos/` para
 generar algo dentro de la propia carpeta es uso normal, no modificacion.
+
+### `docs/trazabilidad.csv`: la fila de la propia historia, sin solicitud
+
+**Cambiado el 2026-09-08.** Agregar la fila de **tu propia historia cerrada** pasa
+a ser **escritura libre**. Modificar una fila ajena sigue exigiendo solicitud.
+
+**Que costaba la regla anterior.** Cesar entrego H6.3 el 2026-09-03 y no pudo
+cerrarla hasta el 07 esperando una fila: `generar_matriz.py` se niega a correr si
+una historia cerrada no la tiene, y `verificar_horas.py` rechaza declarar horas de
+algo abierto. En el camino, H8.4 y H12.3 entraron con modulo y prueba en
+«pendiente: lo declara Cesar al entregar», y Avril pidio la de H13.2 en vez de
+ponerla. Tres bloqueos por el mismo motivo en una semana.
+
+**Que protegia, comprobado antes de cambiarlo.** En `generar_matriz.py` el **dueno**
+sale siempre de `docs/backlog.csv` y `verificar_estado.py` cruza que coincidan, asi
+que escribir un dueno en `trazabilidad.csv` no tenia ningun efecto. Lo unico que
+ganaba sobre el backlog era la **rubrica**, y eso **ningun control lo comprobaba**.
+
+Ese hueco existia igual con la regla cerrada, porque el `or` del generador no
+distinguia quien habia escrito la fila. Y no era teorico: **H1.3 declaraba
+`BD-1, BD-3` en `trazabilidad.csv` y `BD-1` en el cuerpo del backlog**, mientras
+sus propias etiquetas y `docs/08` decian `BD-1, BD-3`. El `or` tapaba ese
+desacuerdo.
+
+**Por eso el cambio son dos cosas y no una:** se abre la escritura de la fila
+propia **y** se le quita el `or` a `generar_matriz.py`, para que la rubrica salga
+siempre del backlog. Con las dos, agregar tu fila no puede alterar nada evaluable.
+
+**Lo que no cambia:** todo archivo tocado fuera de la carpeta propia se sigue
+declarando en el Pull Request. Lo que se elimina es el permiso previo, no el aviso.
 
 ## Por que esta regla
 
@@ -654,8 +692,17 @@ archivos compartidos; el dueno y el aprobador son la misma persona, y aprueba.
 | Cesar | `.github/workflows/alerta.yml` (**nuevo**) | **H12.3, y nada mas**: un flujo que escucha con `workflow_run` cuando CI o CD terminan en `dev` o `main` y abre o cierra una issue de alerta. La logica va en un guion de Python en carpeta de Cesar |
 
 Lo que la excepcion **no** cubre: `ci.yml` y `cd.yml`. No se tocan, y H12.3 lo
-convierte en criterio (su CA-1 compara los dos por hash). Permisos del flujo:
-`issues: write` y `actions: read`, los minimos que necesita.
+convierte en criterio. Permisos del flujo: `issues: write` y `actions: read`,
+los minimos que necesita.
+
+> **Corregido el 2026-09-08.** Esta frase decia que «su CA-1 compara los dos por
+> hash», y esa forma quedo descartada: un hash congelado responde «cambio este
+> archivo desde que lo copie», no «esta historia lo toco», asi que el dia que
+> Alejandro editara `ci.yml` por su cuenta el verificador habria acusado a H12.3.
+> Es el mismo defecto que Cesar corrigio en el CA-4 de H6.3 el mismo dia. **CA-1
+> comprueba ahora que la alerta no este cableada dentro de esos dos archivos**,
+> que es lo que sigue siendo cierto manana; que no se tocaron se ve en el diff
+> del PR, que es donde eso es comprobable.
 
 Sobre la prueba: un `workflow_run` solo corre desde la rama por omision, asi
 que Cesar lo prueba corriendo el guion a mano contra una corrida que fallo de

@@ -4918,3 +4918,223 @@ el cambio es en la vista y la API no se entera.
      al cerrarla.
   4. **Sabotaje:** quitar el `GRANT` de la 017 y comprobar que la 1 y la 3 fallan;
      conceder `USAGE` sobre `crudo` a la API y comprobar que la 2 falla.
+
+## D-46 · Publico meta, las palabras de los niveles y que se hace con la identidad
+
+**Fecha.** 2026-09-08. **Historia.** E14, historias H14.1 y H14.2.
+**Quien decide.** Alejandro. **Estado.** Aceptada. **Revisa.** H5.9 (no la modifica),
+D-07, D-25, D-34.
+
+### Contexto
+
+La retroalimentacion docente sobre el visor publicado dijo dos cosas: que se ve
+generico y que **no se sabe para quien esta hecho**. La segunda es la que importa,
+porque la primera se sigue de ella.
+
+Hasta ahora la respuesta implicita era *para quien sepa leer un mapa de riesgo*:
+la primera pantalla era un coropleta con un semaforo, una leyenda y un selector de
+fecha. Eso le sirve al Comite Municipal de Emergencias y a quien evalua el
+proyecto. No le sirve a la persona que vive en el distrito, que es de quien es el
+producto segun el charter.
+
+Sin un publico declarado no se puede decidir nada de lo que viene despues -que
+palabras usar, que se muestra primero, que se calla-, porque toda esa cadena
+depende de a quien se le habla.
+
+### Decision
+
+**Publico primario:** las familias y los pequenos productores de los siete
+distritos perifericos del canton. **Publico secundario, aliado y no usuario
+final:** el Comite Municipal de Emergencias y los comites comunales.
+
+Los dos se atienden **sin construir dos productos**: la gente entra por «Hoy en tu
+distrito», que habla en palabras; el comite usa el mapa con el semaforo completo,
+que ya existe y no se toca. El mapa es la puerta y la pantalla en palabras esta a
+un clic, con el distrito ya elegido.
+
+**Los tres niveles se dicen con dos vocabularios a la vez, no con uno:**
+
+| Nivel | Palabra | Termino tecnico |
+|---|---|---|
+| bajo | tranquilo | riesgo bajo |
+| medio | atento | riesgo medio |
+| alto | cuidado | riesgo alto |
+
+En «Hoy en tu distrito» la palabra va grande y el termino tecnico al lado, chico.
+**En el mapa no cambia nada:** sigue diciendo Alto, Medio y Bajo.
+
+**La rampa de riesgo no se toca.** **El logo actual se mantiene** y su rediseno
+queda pospuesto sin fecha. **El color de marca no se decide** hasta que se decida
+el logo.
+
+### Justificacion
+
+Dos vocabularios sueltos para lo mismo serian la incoherencia que la
+retroalimentacion senalo. Mostrarlos **juntos** los convierte en lo contrario: la
+traduccion queda a la vista en la pantalla en vez de escondida en el codigo, y esa
+traduccion es la tesis del producto -el hueco que el estudio de mercado encontro
+no es tecnologico, es de traduccion y entrega-.
+
+Que el mapa reciba y no la pantalla en palabras sale de probarlo: «Hoy en tu
+distrito» **exige elegir un distrito antes de mostrar nada**, y quien llega por
+primera vez no sabe que hay ocho ni cual es el suyo. El mapa contesta esa pregunta
+sin pedir nada.
+
+Lo de la rampa y lo del logo se posponen por la misma razon: ninguno de los dos es
+lo que la retroalimentacion senalo, y los dos cuestan mas de lo que rinden a esta
+altura del calendario.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| Solo *bajo / medio / alto* | Es lenguaje de escala, no de persona. La pantalla dejaria de estar hecha para el publico que este mismo documento declara |
+| Solo *tranquilo / atento / cuidado*, tambien en el mapa | Le quita al comite y a quien evalua el termino con el que trabajan, y obliga a re-tomar la evidencia de H5.9, que esta cerrada |
+| Llamar a los niveles *verde / amarillo / rojo* | Choca con la Comision Nacional de Emergencias, que usa esos nombres para sus alertas oficiales. Parecerse a una alerta oficial es un problema de la Ley 8488, no de estilo |
+| Poner verde en el nivel «tranquilo» | Medido: ningun verde de semaforo cabe. Ver la seccion siguiente |
+| Que el comite tenga su propia pantalla | Dos productos que mantener, y el que ya existe le sirve tal cual |
+| Rediseñar el logo ahora | Tres tandas con generadores de imagen dieron ilustraciones que no sobreviven a 16 px. La via realista es una persona, y no cabe antes del 24 |
+
+### Consecuencias
+
+Se gana una primera pantalla que le habla a alguien concreto, y el mapa intacto
+para quien lo necesitaba. La traduccion entre los dos vocabularios queda visible y
+comprobable: `verificar_frases.py` exige que cada nivel traiga su palabra **y** su
+termino tecnico, y que no haya siglas en la primera pantalla.
+
+Se pierde -y se escribe- que el logo sigue siendo el que la retroalimentacion
+llamo generico, y que **sus tres barras usan exactamente los tres colores de la
+rampa** (`#d7301f`, `#feb24c`, `#ffeda0`). Un logo pintado con los colores que en
+el mapa significan un nivel se puede leer como si fuera un nivel. Queda anotado
+como deuda, no como descuido.
+
+Tambien se pierde el verde en el semaforo, que es lo que mas gente espera de un
+semaforo.
+
+### Medicion
+
+**Por que no cabe un verde de semaforo.** La rampa tiene que ir de claro a oscuro
+para que sobreviva a una fotocopia en blanco y negro -que es el cartel del aula- y
+a la dicromacia. Medido con la formula de `verificar_escala.py`: la rampa actual da
+gris percibido **233 → 189 → 96**, bajando. Un verde de semaforo como `#4caf50` da
+**135**, *mas oscuro que el naranja*: la escala quedaria 135 → 189 → 96, sube y
+baja, y en blanco y negro «tranquilo» y «cuidado» se verian casi iguales.
+
+Los unicos verdes mas claros que el naranja son pastel: `#d9f0a3` da 224 y
+`#ccf2cc` da 226. Ambos pasarian todas las verificaciones, y quedan disponibles si
+alguna vez se decide pagar el retrabajo de la evidencia de H5.1, H5.3 y H5.9.
+
+**Publico primario.** Los siete distritos perifericos suman unas 12 000 personas de
+los 21 232 del canton; Tilaran centro concentra el resto. Los eventos que el
+catalogo registra en esos distritos -Nate en 2017 en Libano y Arenal, la sequia de
+2014 en Tierras Morenas- son los que sostienen las frases de las tarjetas.
+
+---
+
+## D-47 · Open-Meteo entra como serie larga del canton, no como fuente por distrito
+
+**Fecha.** 2026-09-09. **Historia.** H1.16, y afecta a H3.11 y H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-15 (que dejo esta puerta abierta con una condicion), D-40, D-34.
+
+### Contexto
+
+Se busco una segunda fuente de precipitacion por dos razones distintas que
+conviene no mezclar:
+
+  1. **Frescura.** CHIRPS llega con **21 a 51 dias** de atraso (D-40). El visor
+     publicado muestra fechas que se ven viejas porque lo son.
+  2. **Historia.** Las etiquetas empiezan en 1991. **D-34** cerro la sequia con
+     13 episodios en 34 anos, contra los 30 que pide el CA-6 de H3.0.
+
+Open-Meteo sirve reanalisis ERA5-Land: **5 dias** de atraso y archivo **desde
+1950**. Gana en las dos cosas. Pero su malla es de 0,1 grados -unos 11 km- contra
+los 0,05 -unos 5,5 km- de CHIRPS, y el canton mide 30,7 por 36,6 km.
+
+**D-15 previo exactamente esta situacion.** Adopto CHIRPS *condicionado a repetir
+el mismo test de resolucion sobre la fuente nueva antes de escribir el extractor*,
+porque una resolucion nominal mejor no es prueba de diferenciacion real.
+
+### Decision
+
+**Open-Meteo NO entra como fuente de precipitacion por distrito.** No alimenta el
+nivel de riesgo, ni el SPI de la tarjeta de H14.5, ni la matriz de caracteristicas.
+
+**Open-Meteo SI entra como serie larga a nivel canton**, para un solo uso: contar
+episodios de sequia sobre 1950-2024 en H3.11.
+
+La precipitacion por distrito sigue siendo CHIRPS, con su atraso declarado en
+pantalla como ya lo hace H14.2.
+
+### Justificacion
+
+El test corrio el 2026-09-09 contra `geo.distrito`, con `ST_PointOnSurface` y la
+malla anclada al centro que entrega el CDS:
+
+    Los ocho distritos caen en 6 celdas distintas.
+      celda (951, 1005): 50801 Tilaran, 50807 Arenal
+      celda (951, 1004): 50802 Quebrada Grande, 50808 Cabeceras
+
+**Tilaran y Arenal recibirian el mismo valor de lluvia todos los dias del ano.**
+Eso es **I-05** otra vez -la incidencia por la que se descarto NASA POWER antes de
+escribir una linea del extractor- y la unica diferencia es de grado: POWER metia
+el canton entero en una celda, ERA5-Land lo mete en seis. El defecto es el mismo:
+**la fuente decide el resultado por construccion y no por hallazgo.**
+
+Un visor que dice «riesgo por distrito» y sirve el mismo numero para dos de ellos
+esta mintiendo con precision decimal.
+
+**Para contar episodios de sequia, en cambio, la colision no existe.** D-34 ya
+decidio contar **a nivel canton**, porque una sequia que pega en los ocho
+distritos es una sequia y no ocho. En ese uso el canton es una sola unidad y la
+resolucion de la malla no cambia nada.
+
+### Alternativas descartadas
+
+**Usar ERA5-Land por distrito y avisar que dos pares comparten valor.** Se
+descarta: el aviso no arregla el dato, y la pantalla de H14.2 esta construida
+sobre la promesa de que cada distrito habla de si mismo.
+
+**Usar ECMWF IFS de Open-Meteo, 9 km y sin atraso.** Una medicion preliminar da
+7 celdas para 8 distritos: mejora, pero sigue colisionando y ademas solo cubre
+desde 2017, asi que no sirve para el problema de la historia. Queda anotado por
+si alguna vez la pregunta es solo frescura.
+
+**Reemplazar CHIRPS.** Nunca estuvo sobre la mesa despues del test: seria cambiar
+una fuente que distingue ocho por una que distingue seis.
+
+**Interpolar ERA5-Land a los centroides.** Inventa detalle que el dato no tiene.
+Es I-14: darle al mapa una forma que la fuente no dice.
+
+### Consecuencias
+
+  * **H1.16 se acota.** Trae la serie del canton, no un extractor por distrito.
+    Es menos trabajo y es lo unico que el test permite.
+  * **H3.11 sigue en pie sin cambios.** Era la historia que necesitaba la serie
+    larga, y es la que la colision no toca.
+  * **H14.5 se queda con CHIRPS**, con su atraso a la vista. La tarjeta de sequia
+    dira un indice de hace unas semanas, con su fecha, que es peor de lo que
+    esperabamos y sigue siendo verdad.
+  * **El problema de la frescura queda abierto.** Esta decision no lo resuelve.
+    Lo que si hace es cerrar el camino que parecia resolverlo y no podia.
+  * **La atribucion de Copernicus** entra igual, por la serie del canton.
+
+### Medicion
+
+    docs/herramientas/verificar_resolucion_fuente.py --malla era5-land
+    contra geo.distrito, 2026-09-09
+
+    extension real del canton   30,7 x 36,6 km, caja envolvente 1124 km2
+    CHIRPS      0,05 grados     8 celdas para 8 distritos
+    ERA5-Land   0,10 grados     6 celdas para 8 distritos, 2 colisiones
+    ECMWF IFS   0,08 grados     7 celdas para 8 distritos, 1 colision (preliminar)
+
+    latencia CHIRPS       21 a 51 dias   (D-40, medido)
+    latencia ERA5-Land    5 dias         (documentacion de Open-Meteo)
+    archivo CHIRPS        desde 1981
+    archivo ERA5-Land     desde 1950
+
+La medicion preliminar del mismo dia, hecha con centroides ponderados por area
+sobre el GeoJSON de respaldo, **dio las mismas seis celdas y las mismas dos
+colisiones**. Dos metodos distintos, mismo resultado: eso es lo que hace confiable
+al numero, no que lo diga el guion oficial.

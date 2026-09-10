@@ -252,6 +252,39 @@ class BosqueAleatorio:
 
     # ----------------------------------------------------------------- #
     @property
+    def columnas_ajustadas(self) -> list[str]:
+        """Las columnas EN EL ORDEN en que este modelo las recibio al ajustarse.
+
+        Sin esto, quien construya una matriz por fuera tiene que adivinar el
+        orden, y adivinarlo mal no falla: entrena bien y explica al reves.
+        """
+        return list(self._columnas)
+
+    def probabilidades_crudas(self, matriz):
+        """De una matriz de caracteristicas crudas a probabilidades por clase.
+
+        **Existe para explicabilidad (H4.2) y hace falta que sea ESTO y no el
+        modelo desnudo.** La primera version de esta historia expuso
+        `modelo_interno`, el objeto de la biblioteca, y eso resulto ser un objeto
+        A MEDIAS: no aqui, pero si en la regresion logistica, que
+        guarda su escalador fuera del modelo. Se expone lo mismo en los tres
+        para que quien explique no tenga que saber cual lleva escalador.
+
+        El resultado fue una descomposicion de SHAP perfectamente aditiva sobre
+        un numero que no era la prediccion. **Ninguna comprobacion lo atrapo**
+        -los dos lados de la identidad salian del mismo camino equivocado- y se
+        vio poniendo la salida al lado de P(alto) en la corrida del 2026-09-07.
+
+        Las columnas de `matriz` van en el orden de `columnas_ajustadas`.
+        """
+        import numpy as np
+
+        if self._modelo is None:
+            raise ValueError("hay que llamar a ajustar() antes de probabilidades_crudas()")
+        X = np.asarray(matriz, dtype=float)
+        return self._modelo.predict_proba(X)
+
+    @property
     def necesita_caracteristicas(self) -> bool:
         return True
 

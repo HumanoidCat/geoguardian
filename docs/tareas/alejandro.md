@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 205 puntos · 308.4 horas · 30.8 h por semana en promedio
+**Total asignado:** 244 puntos · 369.3 horas · 36.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 73.1 | 36 | SOBRECARGA +37 h |
+| S4 | semanas 10-11 | 134.0 | 36 | SOBRECARGA +98.0 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 73.1 h
+## Sprint 4 (semanas 10-11) — 134.0 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -592,6 +592,114 @@
   - Agregada el 2026-09-06 desde la revision del sitio publicado. Criterios en
     `docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md` (PR #270), antes del codigo.
   - `frontend/` es de Avril: los archivos tocados se declaran en el PR y ella lo revisa.
+
+- [ ] **H14.3** · El Lago Arenal se dibuja como agua sobre la coropleta
+  - `E14` · 2 pts · 3.1 h · rubrica: CG-1 · depende de: H1.3, H5.3 · **bloquea a: H14.2**
+  - **Hecha y fusionada en `dev` el 2026-09-08.** Se marca `[x]` cuando Alejandro
+    diga las horas reales: **las horas no se inventan** (D-24), y el verificador
+    exige la linea completa en cuanto la casilla se cierra.
+  - La coropleta pintaba 88,2 km2 de agua con el nivel del distrito. Medido con 122
+    puntos dentro del lago: 109 caen sobre Tilaran. No se recorta el distrito -eso
+    seria I-14 otra vez-: el agua se dibuja encima, en un panel propio de Leaflet con
+    zIndex fijo, porque todas las capas vectoriales comparten un mismo `<svg>` y ahi
+    manda el orden de pintado, no el orden de montaje.
+  - La orilla es un par linea + halo. Un solo color **no existe**: se recorrio el cubo
+    sRGB entero buscando uno que diera 3:1 contra los cuatro fondos en las cuatro
+    visiones y **no hay ninguno**. El par da 4,04:1 en el peor caso.
+  - Criterios en `docs/evidencias/computacion-grafica/H14.3-criterios-aceptacion.md`.
+  - Entro dentro del PR #282 por el `git add -A` de **I-47**, no en un PR propio.
+
+- [ ] **H14.2** · Hoy en tu distrito: la primera pantalla habla en palabras
+  - `E14` · 8 pts · 12.5 h · rubrica: CG-1, CG-4 · depende de: H5.9, H7.1, H14.3
+  - **Hecha y fusionada en `dev` el 2026-09-08.** Igual que H14.3: falta el numero
+    real para cerrarla.
+  - Sale de la retroalimentacion docente: el visor se veia generico. Entra una pantalla
+    que dice en palabras que viene esta semana y que hacer. El mapa **abre primero** y
+    la pantalla nueva esta a un clic con el distrito ya elegido.
+  - Publico, palabras (`tranquilo` / `atento` / `cuidado` junto a su termino tecnico) e
+    identidad quedan en **D-46**. La rampa de color no se toco.
+  - `verificar_frases.py` entra al CI: 18 siglas prohibidas, todo nivel con palabra y
+    termino, toda accion con verbo en segunda persona, nadie promete «tiempo real».
+  - Criterios en `docs/evidencias/computacion-grafica/H14.2-criterios-aceptacion.md`.
+  - Entro dentro del PR #282 por **I-47**, y su defecto de D-23 se corrigio en el #290.
+
+- [ ] **H11.7** · Las estimaciones publicadas se renuevan solas
+  - `E11` · 3 pts · 4.7 h · rubrica: CICD · depende de: H11.6, H3.6, H3.8
+  - Sale de **I-48**: el sitio publicado no tiene estimaciones despues del 2026-09-12
+    y la feria es el 24. `estimar_riesgo` escribe hasta hoy + 7 dias y es un comando
+    manual; nada lo vuelve a correr.
+  - Imagen aparte (`infra/docker/trabajos.Dockerfile`) que corre la cadena y **sale**,
+    mas un servicio de cron diario en Railway, en el paso 9 del runbook.
+  - La lista de paquetes no se leyo: `infra/verificar_trabajos.py` recorre el grafo de
+    imports con `ast` y encontro dos que faltaban, `scipy` y `pydantic`. Ninguno habria
+    roto la construccion; habrian roto la primera corrida de madrugada.
+  - Criterios en `docs/evidencias/sistemas-operativos/H11.7-criterios-aceptacion.md`.
+  - Toca `.github/workflows/ci.yml`, que no es su carpeta, y lo declara en el PR.
+
+- [ ] **H3.9** · El modelo aprende cuando y donde: calendario y geografia en la matriz
+  - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H3.3, H3.6, H1.3 · **bloquea a: H3.10**
+  - Medido el 2026-09-10 **con `fabricas()`**, los estimadores que la tuberia usa:
+    con 27 columnas xgboost da 0.327 y **la climatologica gana** con 0.346; con las
+    seis columnas nuevas xgboost sube a **0.348** y queda **empate tecnico por
+    +0.002**.
+  - Las columnas suben **+0.021 a xgboost y +0.023 a random forest** y dan vuelta el
+    orden, pero **no producen un ganador declarado**. No es «el modelo le gana»: es
+    «deja de perderle».
+  - **Ninguna de las dos sola alcanza**: +0.006 el calendario, +0.005 la geografia.
+    Por eso es una historia y no dos.
+  - Una primera medicion del 09-09 dio +0.042 y ganador. **Ese numero no vale**:
+    uso `estimadores_disponibles()` en vez de `fabricas()`. Queda como **I-49**.
+  - Pendiente declarado: los hiperparametros de **D-42** se afinaron sobre 27
+    columnas y con 33 estan vencidos.
+  - Ninguna fuente de datos nueva: las cuatro geograficas salen de `geo.distrito` y
+    del GeoJSON del lago de H14.3.
+  - Criterios en `docs/evidencias/objetivos/H3.9-criterios-aceptacion.md`, con la
+    medicion exploratoria fechada **antes** de tocar `generar_caracteristicas.py`.
+
+- [ ] **H3.10** · El ENSO entra al modelo como caracteristica
+  - `E3` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H3.9
+  - El calendario dice que mes es; el ENSO dice que este marzo no es como los otros.
+    Indice ONI de la NOAA: publico, mensual, desde 1950. El archivo se versiona, que
+    ademas protege a la imagen de trabajos de H11.7, que corre sin nadie mirando.
+  - La comparacion es contra H3.9, no contra la matriz vieja.
+  - Criterios en `docs/evidencias/objetivos/H3.10-criterios-aceptacion.md`.
+
+- [ ] **H1.16** · Open-Meteo como serie larga del canton (D-47)
+  - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H6.3 · **bloquea a: H3.11**
+  - **El test de D-15 ya corrio, el 2026-09-09**, contra `geo.distrito`: ERA5-Land
+    pone los ocho distritos en **seis celdas** -Tilaran con Arenal, Quebrada Grande
+    con Cabeceras-. Recibirian el mismo valor todos los dias del ano: **I-05** otra
+    vez. Una medicion preliminar por otro metodo dio lo mismo.
+  - Por eso **D-47** acoto la historia antes de escribirla: **no** entra por
+    distrito -ni nivel, ni el SPI de H14.5, ni la matriz- y **si** entra como serie
+    larga a nivel canton para contar episodios de sequia en H3.11. Ahi la colision
+    no existe, porque **D-34 ya cuenta a nivel canton**.
+  - Baja de 8 a 5 puntos: es la mitad del trabajo que parecia.
+  - **Lo que NO consigue, y se declara:** nacio tambien para que la pantalla dejara
+    de mostrar fechas viejas y no lo logra. La frescura queda abierta.
+  - Criterios en `docs/evidencias/bases-de-datos/H1.16-criterios-aceptacion.md`.
+
+- [ ] **H3.11** · Recontar los episodios de sequia sobre la serie larga
+  - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H1.16, H3.0
+  - **D-34 no dice que no haya datos: dice que hay 13 sequias en 34 anos**, una cada
+    2.6 anos. Con 75 anos de ERA5 serian unas 29, pegado al umbral de 30, pero el
+    minimo por pliegue seguiria en unas 6 contra las 10 que pide CA-6.
+  - No promete destrabarla: promete moverla de «imposible» a **«medido»**. Si no
+    alcanza, D-34 pasa a decir «29 sobre 75 anos y aun asi 6 en el peor pliegue»,
+    que es una frase mucho mas fuerte para el documento IEEE.
+  - No cambia el umbral, no cambia la escala del SPI y no entrena nada.
+  - Criterios en `docs/evidencias/objetivos/H3.11-criterios-aceptacion.md`.
+
+- [ ] **H14.5** · La tarjeta de sequia dice el indice medido, no un nivel estimado
+  - `E14` · 5 pts · 7.8 h · rubrica: CG-1, CG-4 · depende de: H14.2, H2.3
+  - **D-34 dice que la sequia no se puede MODELAR. No dice que no se pueda MEDIR.**
+    El SPI-6 se calcula con la lluvia que ya cayo: es un hecho observado, del mismo
+    tipo que «ayer llovieron 12 mm».
+  - La tarjeta deja de estar en blanco sin que nadie finja que puede predecir: dice
+    el valor, su categoria estandar en palabras y la fecha del dato. **No** usa la
+    rampa de color, **no** da nivel ni probabilidad, y **no** escribe en
+    `analitico.riesgo`.
+  - Criterios en `docs/evidencias/computacion-grafica/H14.5-criterios-aceptacion.md`.
 
 ## Regla: lo hecho no se borra
 

@@ -24,6 +24,7 @@ import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 import LeyendaIndice from './componentes/LeyendaIndice'
 import LogoGeoGuardian from './componentes/LogoGeoGuardian'
 import EstadoDatos from './componentes/EstadoDatos'
+import HoyEnTuDistrito from './componentes/HoyEnTuDistrito'
 import TitularRiesgo from './componentes/TitularRiesgo'
 import { resumirPaquetes } from './datos/resumen'
 
@@ -62,7 +63,26 @@ const OPACIDAD_INICIAL = {
   ndwi: 0.85,
 }
 
+// Con que pantalla abre el visor.
+//
+// **El mapa primero.** Decision del PM el 2026-09-08, despues de ver las dos
+// pantallas funcionando.
+//
+// La version anterior abria en «Hoy en tu distrito», y el razonamiento era que
+// la primera pantalla tiene que hablarle a la persona del distrito. Al probarlo
+// aparecio el problema: **«Hoy en tu distrito» no puede ser la puerta porque
+// exige elegir un distrito antes de mostrar nada**, y quien llega por primera
+// vez todavia no sabe que hay ocho ni cual es el suyo. El mapa contesta esa
+// pregunta sin pedir nada: se ve el canton, se ven los nombres, se ve donde
+// esta cada uno.
+//
+// Asi que el mapa recibe y «Hoy en tu distrito» es a donde se va, con el
+// distrito ya elegido en el mapa. La pantalla no pierde su papel: gana un
+// camino para llegar a ella que no empieza con un formulario vacio.
+const VISTA_INICIAL = 'mapa'
+
 export default function App() {
+  const [vista, setVista] = useState(VISTA_INICIAL)
   const [salud, setSalud] = useState(null)
   const [coleccion, setColeccion] = useState(null)
   // null hasta que lleguen los tres paquetes y se pueda derivar. Ver arriba.
@@ -232,10 +252,23 @@ export default function App() {
   const seleccionarDesdeTablero = useCallback(
     (codigo, eventoDeLaCelda) => {
       setSeleccionado(codigo)
-      if (eventoDeLaCelda !== evento) cambiarEvento(eventoDeLaCelda)
+      // La guarda de `eventoDeLaCelda` no es defensa por si acaso: sin ella,
+      // llamar a esta funcion con un solo argumento ponia el evento en
+      // `undefined`, el visor pedia `riesgos-undefined` y el servidor de
+      // desarrollo respondia su propio HTML con un 200, asi que la pantalla
+      // mostraba «Unexpected token '<'» como si fuera un fallo de datos. Un
+      // origen que responde 200 a cualquier ruta convierte un argumento
+      // olvidado en un error que no se parece en nada a su causa.
+      if (eventoDeLaCelda && eventoDeLaCelda !== evento) cambiarEvento(eventoDeLaCelda)
     },
     [evento, cambiarEvento],
   )
+
+  // Elegir distrito sin tocar el evento. Es lo que hace «Hoy en tu distrito»,
+  // que muestra los tres eventos a la vez y por lo tanto no cambia ninguno.
+  const elegirDistrito = useCallback((codigo) => {
+    setSeleccionado(codigo || null)
+  }, [])
 
   const alternarSuperpuesta = useCallback((id) => {
     setSuperpuestas((previas) => ({ ...previas, [id]: !previas[id] }))
@@ -321,8 +354,30 @@ export default function App() {
         </div>
       )}
 
-      {!cargando && coleccion && (
+      {!cargando && coleccion && vista === 'hoy' && (
+        <HoyEnTuDistrito
+          distritos={distritos}
+          paquetes={paquetesTodos}
+          seleccionado={seleccionado}
+          alSeleccionar={elegirDistrito}
+          alVerMapa={() => setVista('mapa')}
+        />
+      )}
+
+      {!cargando && coleccion && vista === 'mapa' && (
         <>
+          {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
+              El texto nombra el distrito cuando hay uno elegido: «ver que viene
+              esta semana en Libano» dice a donde lleva, y «en tu distrito» solo
+              promete. */}
+          <div className="ir-a-hoy">
+            <button type="button" className="boton-ir-a-hoy" onClick={() => setVista('hoy')}>
+              {distritoSeleccionado
+                ? `Ver que viene esta semana en ${distritoSeleccionado.nombre}`
+                : 'Ver que viene esta semana en tu distrito'}
+            </button>
+          </div>
+
           <TitularRiesgo
             evento={evento}
             resumenes={resumenes}

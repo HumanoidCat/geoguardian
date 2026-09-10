@@ -234,8 +234,6 @@ LLAMADAS_PENDIENTES = {
     "listar_eventos": lambda r: r.listar_eventos(),
     "guardar_reporte_calidad": lambda r: r.guardar_reporte_calidad(None),
     "listar_reportes_calidad": lambda r: r.listar_reportes_calidad(),
-    "guardar_metricas": lambda r: r.guardar_metricas(None),
-    "listar_metricas": lambda r: r.listar_metricas(),
 }
 
 
@@ -271,7 +269,9 @@ def test_los_pendientes_los_atrapa_un_except_generico():
     """Hereda de NotImplementedError para que no haga falta conocer el modulo."""
     repositorio = RepositorioPostgres(conexion=ConexionFalsa())
     with pytest.raises(NotImplementedError):
-        repositorio.listar_metricas()
+        # Cambio de metodo el 2026-09-07: `listar_metricas` dejo de ser
+        # pendiente con H3.7. Se usa otro de los que siguen sin tabla.
+        repositorio.listar_reportes_calidad()
 
 
 # --------------------------------------------------------------------------- #

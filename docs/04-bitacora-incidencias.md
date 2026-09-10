@@ -2062,8 +2062,19 @@ contra repositorio lo van a encontrar. D-33 movio doce historias entre
 personas; conviene esperar mas de estos.
 
 **Impacto.** Ninguno en datos: Cesar realineo su base sin perder nada. Un
-mensaje de error que manda a hacer lo incorrecto, pendiente de corregir en
-`basedatos/`.
+mensaje de error que manda a hacer lo incorrecto.
+
+**CERRADA el 2026-09-07, con el PR #281.** Cesar reescribio el mensaje de
+`comprobar_integridad` para que nombre **las dos causas** y diga que accion
+corresponde a cada una. La causa 2 dice, textual, «no hay nada que revertir»,
+que es justo la instruccion equivocada que se dio la primera vez, y remite a
+`git log --oneline -- basedatos/ddl/<archivo>` para distinguirlas. El
+procedimiento de realineado queda referido a la evidencia de H1.10 hasta que
+exista uno en `docs/10-manual-tecnico.md`, que era el segundo punto pedido.
+Comprobado sin base: `comprobar_integridad` es una funcion pura y se le pasaron
+discrepancias fabricadas; las tres ramas del control producen el mensaje nuevo.
+Las dos citas del mensaje viejo -en esta bitacora y en la evidencia de H1.10-
+**se dejan como estan**: son transcripciones de lo que paso ese dia.
 
 ## I-30 · `/salud` dice que la base no esta conectada mientras sirve 143 407 filas de ella
 
@@ -3460,3 +3471,228 @@ afirmaba una procedencia falsa en toda fila sin valor -1968 en la base local
 medida, las del tramo de latencia en la publicada-, y esa tabla es la fuente del
 documento IEEE. Corregido en Railway con la 016 el 2026-09-06: `fuente_sin_valor`
 quedo en 0 en todos los anios.
+
+## I-46 · El ETL asume que las migraciones estan aplicadas y no lo comprueba
+
+**Fecha.** 2026-09-07.
+
+**Quien lo detecto.** Luna, corriendo la ingesta antes de aplicar migraciones en
+su base local.
+
+**Que paso.** La ingesta descargo durante noventa segundos, construyo 2232
+mediciones y **recien al escribir** fallo con:
+
+    psycopg.errors.NotNullViolation: null value in column "fuente_precipitacion"
+    of relation "medicion_diaria_2026" violates not-null constraint
+
+**Causa raiz.** El codigo nuevo escribe la fuente en `NULL` cuando no hay valor
+-que es lo correcto y lo que pide la **016**- pero la columna sigue siendo
+`NOT NULL` mientras esa migracion no corra. **La corrida falla por una migracion
+faltante, y para saberlo hay que leer un traceback de psycopg y deducirlo.**
+
+Es la misma familia de **I-29**: el sistema no distingue «te falta un paso» de
+«hay un defecto». I-29 fue el extremo del aplicador de migraciones; este es el
+otro extremo, el consumidor que da por hecho el estado de la base.
+
+**Accion tomada.** Pendiente. `backend/etl/ingestar.py` es del PM por H1.14 y la
+correccion es suya: una comprobacion **al arrancar**, antes de la primera
+descarga, de que las migraciones que el codigo asume esten aplicadas, diciendo
+cual falta. Convierte noventa segundos y un traceback en una linea al primer
+segundo.
+
+**Aprendizaje.** Un programa que tarda en fallar cuesta mas que uno que falla mal:
+noventa segundos de descarga se pierden enteros porque la comprobacion barata
+-mirar el registro de migraciones- se hace tarde o no se hace.
+
+**Impacto.** Ninguno en datos. Tiempo perdido por corrida, y un mensaje que hay
+que traducir mentalmente.
+
+## I-47 · Un `git add -A` metio la epica E14 entera dentro de un PR ajeno de una linea
+
+**Fecha.** 2026-09-08.
+
+**Quien lo detecto.** El PM, al mirar el commit del merge del PR #282.
+
+**Que paso.** Para no frenar la fila de PR, el PM empujo el mismo una correccion
+de **una linea** en `backend/etl/fuentes/verificar_h6_3.py`, en la rama de Cesar.
+La secuencia usada terminaba en `git add -A`, y el arbol de trabajo tenia sin
+commitear **la epica E14 completa**. El commit se llevo **28 archivos ajenos al
+PR**: H14.2 y H14.3 con sus evidencias y PNG, `HoyEnTuDistrito.jsx`,
+`CapaLago.jsx`, `Pictogramas.jsx`, `palabras.js`, `anclaEtiqueta.js`,
+`generar_lago.py`, `verificar_frases.py`, `lago-arenal.geojson`, y modificados
+`App.jsx`, `MapaCanton.jsx`, `capasBase.js`, `tokens.css`, `index.css`,
+`verificar_escala.py` y `ci.yml`. **De 30 archivos, dos eran del PR.**
+
+Ademas el merge se hizo con `--admin` **sobre un push recien hecho**, asi que los
+ocho checks verdes que se vieron eran del commit anterior. `dev` quedo en rojo.
+
+**Causa raiz.** Dos, y ninguna es del contenido:
+
+  1. **`git add -A` sin un `git status` delante.** Con trabajo de otra rama en el
+     arbol, `-A` no distingue lo que corresponde al PR de lo que no.
+  2. **`--admin` no espera al CI.** Mergea con lo ultimo que reporto GitHub, que
+     puede ser de un commit anterior.
+
+**Que se rompio.** `verificar_h66.py` fallo un criterio de 41: `ningun componente
+hace su propio fetch`. `CapaLago.jsx` pedia su GeoJSON con `fetch(RUTA)`, y por
+**D-23** `cliente.js` es el unico modulo que sabe de donde vienen los datos. El
+control funciono exactamente como debia; lo que fallo fue el camino por el que
+ese archivo entro.
+
+**Accion tomada.** No se revirtio: revertir un merge ya empujado, con otros PR
+encima, hace mas dano del que arregla, y el trabajo era del PM y se iba a subir
+igual. Se corrigio el defecto en el **PR #290**, moviendo la carga a
+`frontend/src/datos/lago.js`, y `dev` volvio a verde. Quedan escritas tres reglas:
+
+  - **`git status` ANTES de cada `add`.**
+  - **El `add` siempre acotado a archivos concretos; nunca `-A`.**
+  - **`--admin` nunca sobre un push recien hecho**: se espera a que el CI cierre.
+
+**Aprendizaje.** El costo no fue el codigo -entro trabajo bueno- sino la
+trazabilidad: la historia del repositorio dice que H14.2 y H14.3 entraron dentro
+de un PR titulado «El verificador de H6.3 deja de afirmar un experimento fechado»,
+tocando ademas archivos de Avril. Eso no se puede deshacer y por eso se escribe.
+
+**Impacto.** `dev` en rojo durante unos cuarenta minutos, un PR ajeno con 28
+archivos que no le corresponden, y **la epica E14 en `dev` antes de que se
+decidiera si sale al aire**: la proxima promocion a `main` la publica.
+
+---
+
+## I-48 · Las estimaciones publicadas caducan el 2026-09-12 y nada las renueva
+
+**Fecha.** 2026-09-09.
+
+**Quien lo detecto.** El PM, preguntando por las fechas raras que salian en
+«Hoy en tu distrito» mientras se armaba H14.2.
+
+**Que paso.** El visor publicado no tiene estimaciones despues del **2026-09-12**.
+Medido contra la API de produccion, no supuesto:
+
+    2026-09-12  ->  lluvia 8/8   incendio 0/8   sequia 8/8
+    2026-09-13  ->  lluvia 0/8   incendio 0/8   sequia 0/8
+    2026-09-24  ->  lluvia 0/8   incendio 0/8   sequia 0/8
+
+**El 2026-09-24 es el dia de la Invenio Fest.** El sitio que se va a mostrar a
+las incubadoras estaria dibujando ausencia en los tres eventos y en los ocho
+distritos. Por **D-07** eso no sale como un cero ni como un error: sale como «sin
+dato», que es lo correcto y es exactamente lo que no se quiere proyectar.
+
+**Causa raiz.** `backend/modelado/estimar_riesgo` escribe hasta **hoy + 7 dias**
+(`HORIZONTE_DIAS = 7`) y **es un comando manual**. Su ultima corrida fue el
+2026-09-05, de ahi salen el 12 y no otra fecha. No hay ningun `schedule:` en
+`.github/workflows/`, ni un CronJob en `infra/k8s/`, ni nada en Railway que lo
+vuelva a correr. El propio guion lo dice en su encabezado -«para "hoy"
+dependeria de la ingesta con cadencia de H1.14»- y esa cadencia sigue pendiente.
+
+Dicho corto: **el horizonte no caduca por un fallo, caduca por diseno**, y lo que
+falta es quien lo empuje.
+
+**Lo de incendio es otra cosa y no se arregla con esto.** Sus filas terminan el
+**2024-12-24**, nueve meses antes. Desde **D-42** su escritor es la regresion
+logistica, que necesita la matriz de caracteristicas y **no proyecta hacia
+adelante**; ademas cubre tres distritos por diseno, no ocho. Volver a correr la
+estimacion no le agrega un solo dia. Eso es **H14.6**, aparte.
+
+**Accion tomada.** Se armo la imagen `infra/docker/trabajos.Dockerfile`, que
+corre la cadena completa -etiquetas, caracteristicas, estimacion- y sale. La
+lista de paquetes **no se leyo, se recorrio**: `infra/verificar_trabajos.py`
+camina el grafo de imports con `ast` desde los tres puntos de entrada y compara
+contra las lineas `COPY` y el filtro del `grep`. Encontro dos que faltaban en la
+primera version, `scipy` y `pydantic`; `scipy` entra por `backend/senales/spi.py`,
+tres saltos abajo del punto de entrada. Ninguno de los dos habria roto la
+construccion: habrian roto la **primera corrida programada**, de madrugada y sin
+nadie mirando.
+
+El servicio de Railway y su horario quedan escritos en el **paso 9** del
+`19-runbook-railway.md`.
+
+**Aprendizaje.** Un dato que se escribe con un horizonte hacia adelante tiene
+fecha de vencimiento, y la fecha de vencimiento hay que **medirla y anotarla**,
+no descubrirla. La pregunta «¿hasta cuando alcanza lo que hay publicado?» no se
+hizo ni al desplegar en Railway ni al armar el visor estatico; se hizo quince
+dias antes de la feria y por casualidad.
+
+Y una segunda, sobre el metodo: la lista de dependencias de una imagen **no se
+verifica leyendola**. Un verificador que camina el grafo encontro en un segundo
+lo que dos lecturas del mismo archivo no vieron.
+
+**Impacto.** Ninguno todavia -la caducidad es futura-, y esa es la unica razon
+por la que no fue grave. De haberse detectado el 2026-09-24 por la manana, no
+habia arreglo posible en el dia: la cadena necesita la base publicada, el proxy
+abierto y una corrida completa.
+
+---
+
+## I-49 · La tabla comparativa corrida a mano no evalua a los estimadores que escriben
+
+**Fecha.** 2026-09-10.
+
+**Quien lo detecto.** El PM, al ver que la corrida real de la cadena daba
+`xgboost 0.327` donde una medicion mia del dia anterior habia dado `0.371`.
+
+**Que paso.** El 2026-09-09 se midio el efecto de agregar seis columnas a la
+matriz de H3.3 corriendo `comparar.py` con `--caracteristicas`. Dio que xgboost
+subia de **0.371 a 0.388** y que el arnes lo declaraba **ganador por +0.042**
+sobre la climatologica. Ese numero se uso para justificar la historia H3.9, se
+escribio en sus criterios, en el backlog, en la trazabilidad y en el mensaje de
+un commit.
+
+**Es falso**, y la corrida completa del dia siguiente lo destapo sola.
+
+**Causa raiz.** Hay dos juegos de estimadores y el mismo modulo sirve los dos:
+
+    comparar.py, en su main()   ->  estimadores_disponibles()  ->  de fabrica
+    estimar_riesgo.py           ->  fabricas()                 ->  afinados (D-42)
+
+`fabricas()` aplica los hiperparametros que **D-42** dejo escritos, y D-42 tambien
+dejo escrito que en lluvia intensa **el afinado empeora a xgboost, de 0.371 a
+0.327**. O sea: los dos numeros estaban medidos y documentados desde el 2026-09-04,
+y aun asi se volvieron a confundir.
+
+**El defecto no es de nadie que use la herramienta mal: es que la herramienta no
+lo dice.** `comparar.py` imprime una tabla encabezada «Tabla comparativa de
+estimadores · H3.6» sin una sola linea que aclare cual de los dos juegos esta
+midiendo. Quien la corre a mano supone -razonablemente- que esta viendo lo que la
+tuberia va a escribir.
+
+**Que se rompio.** Nada en produccion. Lo que se rompio fue **una decision**: se
+escribio una historia entera, con criterios, puntos y numeros, sobre una medicion
+que no correspondia. **No llego a `main` ni a `dev`**: el commit existia solo en la
+maquina del PM y se rehizo antes de empujarlo.
+
+**Medicion correcta**, repetida con `fabricas()`:
+
+    estimador              27 col   33 col
+    xgboost                 0.327    0.348
+    random forest           0.322    0.345
+    regresion logistica     0.305    0.323
+    climatologica           0.346    0.346
+    veredicto          climatologica  empate tecnico
+                       gana +0.019    xgboost +0.002
+
+Las columnas sirven -y sirven mas sobre los afinados que sobre los de fabrica-
+pero **no producen un ganador**.
+
+**Accion tomada.** Se corrigieron los criterios de H3.9, el backlog, la
+trazabilidad y el archivo de tareas antes de empujar nada. El **CA-4 de H3.9**
+pasa a exigir explicitamente que la medicion se haga con `fabricas()`, y aparece
+un **CA-9** que obliga a declarar si el afinado de D-42 -hecho sobre 27 columnas-
+se rehace o se deja vencido.
+
+**Queda pendiente el arreglo de la herramienta**: que `comparar.py` imprima con
+que juego de estimadores esta midiendo. Es una linea, y sin ella esta trampa
+vuelve a estar armada para el siguiente que la corra.
+
+**Aprendizaje.** Un numero que sale de correr una herramienta a mano **no es el
+numero del sistema** hasta que se comprueba que la herramienta y el sistema llaman
+al mismo codigo. Aca las dos rutas estaban a cuatro lineas de distancia en el
+mismo archivo.
+
+Y la segunda, que es la que duele: **la respuesta ya estaba escrita en D-42**. No
+falto medir; falto leer lo que ya se habia medido antes de festejar.
+
+**Impacto.** Ninguno en el producto. Un dia de trabajo apoyado en un numero
+equivocado, y una historia que hubo que reescribir entera antes de que existiera
+codigo. Se detecto porque el PM corrio la cadena completa y comparo, no porque
+ningun control lo atrapara.
