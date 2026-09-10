@@ -1,6 +1,6 @@
 # Reparto del backlog
 
-**94 historias · 465 puntos · 674.5 horas** (incluye 20 % de revision)
+**99 historias · 491 puntos · 715.1 horas** (incluye 20 % de revision)
 
 > El detalle completo, con dependencias de cada historia, esta en
 > [`docs/08-backlog.md`](../08-backlog.md). Este archivo es solo el resumen.

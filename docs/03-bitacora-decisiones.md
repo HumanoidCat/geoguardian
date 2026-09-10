@@ -5028,3 +5028,113 @@ alguna vez se decide pagar el retrabajo de la evidencia de H5.1, H5.3 y H5.9.
 los 21 232 del canton; Tilaran centro concentra el resto. Los eventos que el
 catalogo registra en esos distritos -Nate en 2017 en Libano y Arenal, la sequia de
 2014 en Tierras Morenas- son los que sostienen las frases de las tarjetas.
+
+---
+
+## D-47 · Open-Meteo entra como serie larga del canton, no como fuente por distrito
+
+**Fecha.** 2026-09-09. **Historia.** H1.16, y afecta a H3.11 y H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-15 (que dejo esta puerta abierta con una condicion), D-40, D-34.
+
+### Contexto
+
+Se busco una segunda fuente de precipitacion por dos razones distintas que
+conviene no mezclar:
+
+  1. **Frescura.** CHIRPS llega con **21 a 51 dias** de atraso (D-40). El visor
+     publicado muestra fechas que se ven viejas porque lo son.
+  2. **Historia.** Las etiquetas empiezan en 1991. **D-34** cerro la sequia con
+     13 episodios en 34 anos, contra los 30 que pide el CA-6 de H3.0.
+
+Open-Meteo sirve reanalisis ERA5-Land: **5 dias** de atraso y archivo **desde
+1950**. Gana en las dos cosas. Pero su malla es de 0,1 grados -unos 11 km- contra
+los 0,05 -unos 5,5 km- de CHIRPS, y el canton mide 30,7 por 36,6 km.
+
+**D-15 previo exactamente esta situacion.** Adopto CHIRPS *condicionado a repetir
+el mismo test de resolucion sobre la fuente nueva antes de escribir el extractor*,
+porque una resolucion nominal mejor no es prueba de diferenciacion real.
+
+### Decision
+
+**Open-Meteo NO entra como fuente de precipitacion por distrito.** No alimenta el
+nivel de riesgo, ni el SPI de la tarjeta de H14.5, ni la matriz de caracteristicas.
+
+**Open-Meteo SI entra como serie larga a nivel canton**, para un solo uso: contar
+episodios de sequia sobre 1950-2024 en H3.11.
+
+La precipitacion por distrito sigue siendo CHIRPS, con su atraso declarado en
+pantalla como ya lo hace H14.2.
+
+### Justificacion
+
+El test corrio el 2026-09-09 contra `geo.distrito`, con `ST_PointOnSurface` y la
+malla anclada al centro que entrega el CDS:
+
+    Los ocho distritos caen en 6 celdas distintas.
+      celda (951, 1005): 50801 Tilaran, 50807 Arenal
+      celda (951, 1004): 50802 Quebrada Grande, 50808 Cabeceras
+
+**Tilaran y Arenal recibirian el mismo valor de lluvia todos los dias del ano.**
+Eso es **I-05** otra vez -la incidencia por la que se descarto NASA POWER antes de
+escribir una linea del extractor- y la unica diferencia es de grado: POWER metia
+el canton entero en una celda, ERA5-Land lo mete en seis. El defecto es el mismo:
+**la fuente decide el resultado por construccion y no por hallazgo.**
+
+Un visor que dice «riesgo por distrito» y sirve el mismo numero para dos de ellos
+esta mintiendo con precision decimal.
+
+**Para contar episodios de sequia, en cambio, la colision no existe.** D-34 ya
+decidio contar **a nivel canton**, porque una sequia que pega en los ocho
+distritos es una sequia y no ocho. En ese uso el canton es una sola unidad y la
+resolucion de la malla no cambia nada.
+
+### Alternativas descartadas
+
+**Usar ERA5-Land por distrito y avisar que dos pares comparten valor.** Se
+descarta: el aviso no arregla el dato, y la pantalla de H14.2 esta construida
+sobre la promesa de que cada distrito habla de si mismo.
+
+**Usar ECMWF IFS de Open-Meteo, 9 km y sin atraso.** Una medicion preliminar da
+7 celdas para 8 distritos: mejora, pero sigue colisionando y ademas solo cubre
+desde 2017, asi que no sirve para el problema de la historia. Queda anotado por
+si alguna vez la pregunta es solo frescura.
+
+**Reemplazar CHIRPS.** Nunca estuvo sobre la mesa despues del test: seria cambiar
+una fuente que distingue ocho por una que distingue seis.
+
+**Interpolar ERA5-Land a los centroides.** Inventa detalle que el dato no tiene.
+Es I-14: darle al mapa una forma que la fuente no dice.
+
+### Consecuencias
+
+  * **H1.16 se acota.** Trae la serie del canton, no un extractor por distrito.
+    Es menos trabajo y es lo unico que el test permite.
+  * **H3.11 sigue en pie sin cambios.** Era la historia que necesitaba la serie
+    larga, y es la que la colision no toca.
+  * **H14.5 se queda con CHIRPS**, con su atraso a la vista. La tarjeta de sequia
+    dira un indice de hace unas semanas, con su fecha, que es peor de lo que
+    esperabamos y sigue siendo verdad.
+  * **El problema de la frescura queda abierto.** Esta decision no lo resuelve.
+    Lo que si hace es cerrar el camino que parecia resolverlo y no podia.
+  * **La atribucion de Copernicus** entra igual, por la serie del canton.
+
+### Medicion
+
+    docs/herramientas/verificar_resolucion_fuente.py --malla era5-land
+    contra geo.distrito, 2026-09-09
+
+    extension real del canton   30,7 x 36,6 km, caja envolvente 1124 km2
+    CHIRPS      0,05 grados     8 celdas para 8 distritos
+    ERA5-Land   0,10 grados     6 celdas para 8 distritos, 2 colisiones
+    ECMWF IFS   0,08 grados     7 celdas para 8 distritos, 1 colision (preliminar)
+
+    latencia CHIRPS       21 a 51 dias   (D-40, medido)
+    latencia ERA5-Land    5 dias         (documentacion de Open-Meteo)
+    archivo CHIRPS        desde 1981
+    archivo ERA5-Land     desde 1950
+
+La medicion preliminar del mismo dia, hecha con centroides ponderados por area
+sobre el GeoJSON de respaldo, **dio las mismas seis celdas y las mismas dos
+colisiones**. Dos metodos distintos, mismo resultado: eso es lo que hace confiable
+al numero, no que lo diga el guion oficial.
