@@ -3621,3 +3621,78 @@ lo que dos lecturas del mismo archivo no vieron.
 por la que no fue grave. De haberse detectado el 2026-09-24 por la manana, no
 habia arreglo posible en el dia: la cadena necesita la base publicada, el proxy
 abierto y una corrida completa.
+
+---
+
+## I-49 · La tabla comparativa corrida a mano no evalua a los estimadores que escriben
+
+**Fecha.** 2026-09-10.
+
+**Quien lo detecto.** El PM, al ver que la corrida real de la cadena daba
+`xgboost 0.327` donde una medicion mia del dia anterior habia dado `0.371`.
+
+**Que paso.** El 2026-09-09 se midio el efecto de agregar seis columnas a la
+matriz de H3.3 corriendo `comparar.py` con `--caracteristicas`. Dio que xgboost
+subia de **0.371 a 0.388** y que el arnes lo declaraba **ganador por +0.042**
+sobre la climatologica. Ese numero se uso para justificar la historia H3.9, se
+escribio en sus criterios, en el backlog, en la trazabilidad y en el mensaje de
+un commit.
+
+**Es falso**, y la corrida completa del dia siguiente lo destapo sola.
+
+**Causa raiz.** Hay dos juegos de estimadores y el mismo modulo sirve los dos:
+
+    comparar.py, en su main()   ->  estimadores_disponibles()  ->  de fabrica
+    estimar_riesgo.py           ->  fabricas()                 ->  afinados (D-42)
+
+`fabricas()` aplica los hiperparametros que **D-42** dejo escritos, y D-42 tambien
+dejo escrito que en lluvia intensa **el afinado empeora a xgboost, de 0.371 a
+0.327**. O sea: los dos numeros estaban medidos y documentados desde el 2026-09-04,
+y aun asi se volvieron a confundir.
+
+**El defecto no es de nadie que use la herramienta mal: es que la herramienta no
+lo dice.** `comparar.py` imprime una tabla encabezada «Tabla comparativa de
+estimadores · H3.6» sin una sola linea que aclare cual de los dos juegos esta
+midiendo. Quien la corre a mano supone -razonablemente- que esta viendo lo que la
+tuberia va a escribir.
+
+**Que se rompio.** Nada en produccion. Lo que se rompio fue **una decision**: se
+escribio una historia entera, con criterios, puntos y numeros, sobre una medicion
+que no correspondia. **No llego a `main` ni a `dev`**: el commit existia solo en la
+maquina del PM y se rehizo antes de empujarlo.
+
+**Medicion correcta**, repetida con `fabricas()`:
+
+    estimador              27 col   33 col
+    xgboost                 0.327    0.348
+    random forest           0.322    0.345
+    regresion logistica     0.305    0.323
+    climatologica           0.346    0.346
+    veredicto          climatologica  empate tecnico
+                       gana +0.019    xgboost +0.002
+
+Las columnas sirven -y sirven mas sobre los afinados que sobre los de fabrica-
+pero **no producen un ganador**.
+
+**Accion tomada.** Se corrigieron los criterios de H3.9, el backlog, la
+trazabilidad y el archivo de tareas antes de empujar nada. El **CA-4 de H3.9**
+pasa a exigir explicitamente que la medicion se haga con `fabricas()`, y aparece
+un **CA-9** que obliga a declarar si el afinado de D-42 -hecho sobre 27 columnas-
+se rehace o se deja vencido.
+
+**Queda pendiente el arreglo de la herramienta**: que `comparar.py` imprima con
+que juego de estimadores esta midiendo. Es una linea, y sin ella esta trampa
+vuelve a estar armada para el siguiente que la corra.
+
+**Aprendizaje.** Un numero que sale de correr una herramienta a mano **no es el
+numero del sistema** hasta que se comprueba que la herramienta y el sistema llaman
+al mismo codigo. Aca las dos rutas estaban a cuatro lineas de distancia en el
+mismo archivo.
+
+Y la segunda, que es la que duele: **la respuesta ya estaba escrita en D-42**. No
+falto medir; falto leer lo que ya se habia medido antes de festejar.
+
+**Impacto.** Ninguno en el producto. Un dia de trabajo apoyado en un numero
+equivocado, y una historia que hubo que reescribir entera antes de que existiera
+codigo. Se detecto porque el PM corrio la cadena completa y comparo, no porque
+ningun control lo atrapara.

@@ -42,6 +42,15 @@ import argparse
 import math
 import sys
 from datetime import date, datetime
+from pathlib import Path
+
+# Sin esto, `python docs/herramientas/verificar_resolucion_fuente.py` falla con
+# «No module named 'basedatos'»: Python pone en sys.path la carpeta del guion, no
+# la raiz del repositorio. Los demas verificadores de esta carpeta ya lo hacen; a
+# este le faltaba, y por eso nunca se pudo correr como dice su propio encabezado.
+RAIZ = Path(__file__).resolve().parents[2]
+if str(RAIZ) not in sys.path:
+    sys.path.insert(0, str(RAIZ))
 
 # Mallas conocidas: paso en grados y donde esta anclada.
 #
