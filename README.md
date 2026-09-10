@@ -8,21 +8,39 @@ Proyecto Integrador · Carrera TICE · Universidad Invenio · III Trimestre 2026
 
 ## Visor en línea
 
+Hay **dos**, y no muestran lo mismo. Cuál está viendo cada quien se declara en la
+propia pantalla.
+
+### Con datos reales
+
+**https://visor-production-40b5.up.railway.app/**
+
+Consulta la API, que lee de PostgreSQL con PostGIS. Los tres servicios viven en el
+mismo proyecto de Railway y hablan por su red privada: **el navegador solo conoce
+el dominio del visor**, que reenvía `/api` por dentro. Por eso la API no expone
+dominio público y **no hace falta CORS** — es lo que decidió **D-23**.
+
+Se despliega solo desde `main`, por la integración de Railway con GitHub.
+Levantarlo desde cero está en `docs/19-runbook-railway.md`, con los errores que
+costó la primera vez.
+
+### Con datos simulados
+
 **https://humanoidcat.github.io/geoguardian/**
 
-> **Los datos que muestra son simulados.** El visor publicado no consulta la API
-> ni la base de datos: lee un respaldo estático de valores de prueba, y lo declara
-> en pantalla. Sirve para ver la interfaz y el flujo, **no para tomar decisiones
-> sobre riesgo real**.
->
-> No es una limitación accidental. La cadena de datos depende de H1.2, y el
-> despliegue de la API y la base son las historias H11.1 a H11.4, que dependen de
-> H6.0. Ver **D-05** y **D-23**.
+> **No consulta nada.** Lee un respaldo estático de valores de prueba y **lo dice
+> en pantalla**. Sirve para ver la interfaz y el flujo, no para decidir sobre
+> riesgo real.
 
-Se publica solo desde `main`, con el trabajo `publicar-visor` de
+**No es un sobrante: es la degradación que exige la Definition of Done de H6.6.**
+Si Railway se cae —o si se acaba el consumo del plan— sigue habiendo un sitio en
+pie que declara sus datos como simulados, en vez de una página caída o, peor, una
+que miente. Ver **D-05**.
+
+Se publica desde `main` con el trabajo `publicar-visor` de
 `.github/workflows/ci.yml`. Cada publicación vuelve a comprobar los criterios de
 aceptación **sobre el artefacto construido** con
-`docs/herramientas/verificar_h115.py`, porque el modo de fallo que esta historia
+`docs/herramientas/verificar_h115.py`, porque el modo de fallo que esa historia
 encontró —una ruta absoluta de raíz que se rompe al servir desde un
 subdirectorio— no se ve en el código fuente, solo en el `dist`.
 
