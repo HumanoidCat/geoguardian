@@ -112,15 +112,31 @@ def retirar_de_otros_escritores(evento: TipoEvento, algoritmo: Algoritmo) -> int
     El borrado dispara `riesgo_auditoria_tg`, que es `AFTER DELETE OR UPDATE`:
     la historia de H1.13 guarda que estas filas existieron y cuando dejaron de
     existir. Eso es deseable y por eso no se apaga.
+
+    POR QUE LLAMA A UNA FUNCION Y NO HACE EL DELETE
+
+    Hasta el 2026-09-11 esto era un `DELETE FROM analitico.riesgo ...` directo.
+    Esa noche la cadena corrio por primera vez bajo el rol del ETL -en el
+    servicio `trabajos` de Railway, H11.7- y murio justo aqui:
+
+        psycopg.errors.InsufficientPrivilege: permission denied for table riesgo
+
+    La 003 no le da DELETE a ningun rol, y eso no se cambia (D-48). Lo que hay
+    es `analitico.retirar_otros_escritores`, de la 019: hace este unico borrado
+    con los permisos de quien la definio, se niega si el escritor que se queda
+    no tiene filas del evento, y el ETL solo puede ejecutarla. Es I-51.
+
+    En local nunca se noto porque la cadena corre con el usuario dueno. Un
+    permiso que solo se prueba con el usuario que lo tiene todo no esta probado.
     """
     from basedatos.conexion import conectar
 
     with conectar(autocommit=True) as conexion, conexion.cursor() as cursor:
         cursor.execute(
-            "DELETE FROM analitico.riesgo WHERE tipo_evento = %s AND algoritmo <> %s",
+            "SELECT analitico.retirar_otros_escritores(%s, %s)",
             (evento.value, algoritmo.value),
         )
-        return cursor.rowcount
+        return int(cursor.fetchone()[0])
 
 
 def contar_del_evento(evento: TipoEvento) -> int:

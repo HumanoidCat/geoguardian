@@ -3696,3 +3696,165 @@ falto medir; falto leer lo que ya se habia medido antes de festejar.
 equivocado, y una historia que hubo que reescribir entera antes de que existiera
 codigo. Se detecto porque el PM corrio la cadena completa y comparo, no porque
 ningun control lo atrapara.
+
+---
+
+## I-50 · El servicio `trabajos` nunca pudo entrar a la base publicada, y nadie lo supo en dos dias
+
+**Fecha.** 2026-09-11.
+
+**Quien lo detecto.** El PM, al revisar por que llegaban cientos de correos de
+Railway. Cada uno era una corrida fallida del cron.
+
+**Que paso.** El servicio `trabajos` se creo con el horario de prueba
+`*/5 * * * *` para ver una corrida pronto. La corrida fallo. Y la
+siguiente, y todas las demas, cada cinco minutos, durante mas de un dia:
+
+    psycopg.OperationalError: connection failed: connection to server at
+    "10.196.11.232", port 5432 failed: FATAL:  password authentication failed
+    for user "etl_geoguardian"
+
+**Cero corridas buenas.** El horario de prueba nunca se cambio al definitivo, y
+el registro nunca se leyo.
+
+**Causa raiz, en dos capas.**
+
+La primera es la contrasena. La base publicada tiene **sus propias** contrasenas
+para `etl_geoguardian` y `api_geoguardian`, distintas de las del `.env` de
+desarrollo, y eso es lo correcto: las credenciales de produccion no viven en la
+maquina de un desarrollador. Cuando se rotaron, a `api` se le actualizo la
+variable en Railway y a `trabajos` -que no existia todavia- se le puso despues
+una que no era. Ningun control lo atrapa porque la conexion no se prueba hasta
+que corre el cron.
+
+La segunda es que **el cron no avisa que falla: manda un correo**, y el correo
+numero doscientos se parece al primero. Un servicio que falla cada cinco minutos
+produce el mismo silencio que uno que no corre.
+
+**Lo que se probo antes de tocar nada**, con el proxy abierto:
+
+    aplicar_migraciones --verificar   sobre `railway`      0 de 18 aplicadas
+    aplicar_migraciones --verificar   sobre `geoguardian`  17 de 18 aplicadas
+    crear_usuarios --verificar                            los dos usuarios existen
+    conectar como etl con la contrasena del .env          rechazada
+    conectar como api con la contrasena del .env          rechazada
+
+La primera linea importa: la base `railway` es la que Railway crea sola al
+levantar PostGIS, esta vacia y nadie la usa. **Aplicarle las migraciones ahi
+habria creado un esquema completo en la base equivocada.** Se verifico antes de
+aplicar, que es para lo que `--verificar` existe.
+
+La cuarta y la quinta lineas cambiaron el plan: `crear_usuarios` pisa **las dos**
+contrasenas con las del `.env`, y la de la API en produccion **funciona** -el
+visor estaba sirviendo datos-. Correrlo habria tumbado el visor para arreglar el
+cron.
+
+**Accion tomada.**
+
+  1. `ALTER ROLE etl_geoguardian WITH LOGIN PASSWORD ...` con una contrasena
+     nueva generada en el momento, **solo para ese rol**. La de la API no se toco.
+  2. La misma contrasena en la variable `POSTGRES_PASSWORD` del servicio
+     `trabajos`. Se puso una vez y se limpio de la terminal.
+  3. Se comprobo desde fuera, con `has_table_privilege`, que el rol entra y
+     puede escribir en las 46 tablas que le tocan -crudo, analitico, control- y
+     en ninguna de `geo`. Esa lista es la evidencia del CA-6 de H11.7 que faltaba.
+  4. Se aplico la **018** a la base publicada, que era la unica pendiente.
+  5. La corrida siguiente **entro**. Fallo por otra cosa: **I-51**.
+
+**Aprendizaje.** Tres, y ninguno es sobre contrasenas.
+
+Un horario de prueba es una deuda con fecha: **se pone y en el mismo gesto se
+anota cuando se quita**. Aca se puso `*/5`, se fue a hacer otra cosa, y el
+servicio corrio cientos de veces sin que nadie mirara una.
+
+Antes de aplicar una migracion a una base que no se conoce, `--verificar`
+**sobre la base correcta**. La primera lectura dio «0 de 18» y la tentacion era
+aplicar; la segunda lectura dio «17 de 18» sobre otra base del mismo servidor. La
+diferencia entre las dos era el nombre de la base, y era la diferencia entre
+arreglar y romper.
+
+Y la que mas cuesta: **un guion que arregla dos cosas a la vez no sirve para
+arreglar una.** `crear_usuarios` esta bien disenado para levantar una base de
+cero. Para reparar un solo usuario en produccion es un martillo, y la primera
+propuesta fue usarlo. Se paro porque se probo primero si la API estaba rota, y
+no lo estaba.
+
+**Impacto.** Ninguno en el producto: el visor siguio arriba todo el tiempo. Lo que
+se perdio fue **un dia de corridas** que debieron haber renovado las
+estimaciones y no lo hicieron, y unos cientos de correos. Si se hubiera
+descubierto el 24 por la manana, era la misma situacion de I-48.
+
+---
+
+## I-51 · La cadena corrio por primera vez con el rol del ETL, y al rol le faltaba un permiso
+
+**Fecha.** 2026-09-11.
+
+**Quien lo detecto.** El registro de Railway, en la primera corrida de `trabajos`
+que logro entrar a la base (despues de I-50).
+
+**Que paso.** La cadena hizo todo:
+
+    generar_etiquetas          ok
+    generar_caracteristicas    ok   104.256 filas, 27 columnas
+    estimar_riesgo             lluvia_intensa: 104.360 filas escritas
+
+y murio en la ultima instruccion de ese evento:
+
+    File "/app/backend/modelado/estimar_riesgo.py", line 119, in retirar_de_otros_escritores
+    psycopg.errors.InsufficientPrivilege: permission denied for table riesgo
+
+No llego a sequia ni a incendio.
+
+**Causa raiz.** Dos decisiones correctas que nunca se habian encontrado.
+
+La migracion **003** (H1.8) dice: *«Ningun rol recibe DELETE ni TRUNCATE en
+ningun esquema.»* Y lo cumple: el ETL tiene `SELECT, INSERT, UPDATE` sobre
+`analitico.riesgo` y nada mas.
+
+El arreglo de **I-37** (2026-09-05) agrego `retirar_de_otros_escritores`, que
+hace `DELETE FROM analitico.riesgo WHERE tipo_evento = %s AND algoritmo <> %s`
+para que cada evento tenga un solo escritor.
+
+**Nunca chocaron porque la cadena nunca habia corrido como `etl_geoguardian`.**
+En local corre con el usuario dueno de las tablas. El arreglo de I-37 se probo
+asi, paso, y se dio por probado. Seis dias despues, el primer servicio que corre
+la cadena con el rol que le corresponde la rompio en la primera vuelta.
+
+**Lo que no se rompio.** Las 104.360 filas de lluvia entraron limpias: se
+escriben con `ON CONFLICT` sobre la clave natural y la climatologica era ya el
+unico escritor de ese evento, asi que el `DELETE` que fallo **no tenia nada que
+borrar**. Medido contra la API publicada la misma noche:
+
+    /api/riesgos?fecha=2026-09-11&tipo_evento=lluvia_intensa
+      8 filas · algoritmo linea_base_climatologica
+      version_modelo climatologica@2026-09-11 f1=0.346 empate-tecnico
+
+**Las estimaciones que el visor muestra hoy las escribio el cron.** Era el
+objetivo de H11.7 y se cumplio en la corrida que fallo.
+
+**Accion tomada.** **D-48**: la regla de la 003 no se toca; el borrado se
+encapsula en `analitico.retirar_otros_escritores` (migracion **019**, `SECURITY
+DEFINER`), el ETL recibe `EXECUTE` sobre la funcion y `estimar_riesgo` la llama
+en vez de emitir el `DELETE`. La funcion ademas **se niega** si el escritor que
+se queda no tiene filas del evento, salvaguarda que el `DELETE` crudo no tenia.
+`verificar_h18.py` gana la linea que comprueba que el `DELETE` directo sigue
+rechazado.
+
+**Aprendizaje.** Un permiso que solo se prueba con el usuario que lo tiene todo
+**no esta probado**. H1.8 comprobo el minimo privilegio intentando operaciones
+prohibidas con cada rol -y eso sigue siendo correcto-, pero nadie corrio **la
+aplicacion completa** con el rol que la aplicacion usa. Son dos pruebas
+distintas: una dice que el rol no puede lo que no debe; la otra dice que puede
+lo que necesita. Faltaba la segunda, y es la que se agrega como criterio de
+H11.7.
+
+Y una sobre el orden de los hallazgos: I-50 tapaba a I-51. Mientras el cron no
+podia ni conectar, era imposible saber que tampoco podia borrar. **Cada capa que
+se destapa muestra la siguiente**, y por eso la primera corrida buena de un
+servicio nuevo hay que mirarla entera, no solo el codigo de salida.
+
+**Impacto.** Ninguno en el producto. Lluvia intensa quedo renovada; sequia no
+escribe por D-34; incendio no corrio esa noche y sus filas siguen terminando el
+2024-12-24, como antes. La corrida siguiente, con la 019 aplicada, es la que
+cierra el CA-5 de H11.7.

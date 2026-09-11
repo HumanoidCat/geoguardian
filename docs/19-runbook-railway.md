@@ -462,6 +462,14 @@ que es lo correcto y es justo lo que no se quiere mostrar.
 adelanta la corrida seis horas. El horario minimo que Railway acepta es cada
 cinco minutos, asi que diario entra sin problema.
 
+> **Si se pone `*/5 * * * *` para probar, se anota en el mismo gesto cuando se
+> quita.** La primera vez se puso, se dejo, y el servicio corrio cientos de
+> veces fallando sin que nadie leyera una corrida: cada fallo era un correo de
+> Railway, y el correo doscientos se parece al primero. Ver **I-50**. Al
+> escribir `0 9 * * *` en el campo, comprobar con zoom que la casilla diga
+> **At 09:00 (UTC)** y no **Daily**: Railway interpreta lo segundo como
+> medianoche.
+
 **Diario y no semanal, a proposito.** Cada corrida deja siete dias por delante.
 Diario significa que **seis fallos seguidos pasan desapercibidos y el septimo se
 nota**; semanal significa que un solo fallo deja el sitio en blanco.
@@ -478,7 +486,21 @@ con el usuario del ETL.
 | `POSTGRES_PORT` | `5432` |
 | `POSTGRES_DB` | `geoguardian` |
 | `POSTGRES_USER` | `etl_geoguardian` |
-| `POSTGRES_PASSWORD` | la del rol de escritura |
+| `POSTGRES_PASSWORD` | la del rol de escritura **en la base publicada** |
+
+> **La base publicada tiene sus propias contrasenas.** No son las del `.env` de
+> nadie, y esta bien que no lo sean. Si hace falta fijar la del ETL, se hace
+> **solo para ese rol** con el proxy abierto:
+>
+> ```powershell
+> $env:NUEVA_PASS = -join ((48..57)+(65..90)+(97..122) | Get-Random -Count 32 | % {[char]$_})
+> python -c "import os, psycopg; from psycopg import sql; from basedatos.conexion import conectar; c=conectar(autocommit=True); c.execute(sql.SQL('ALTER ROLE etl_geoguardian WITH LOGIN PASSWORD {}').format(sql.Literal(os.environ['NUEVA_PASS']))); print('listo')"
+> Set-Clipboard $env:NUEVA_PASS      # pegar en Railway y luego: Remove-Item Env:NUEVA_PASS
+> ```
+>
+> **No usar `crear_usuarios` para esto.** Pisa las contrasenas de **los dos**
+> usuarios con las del `.env`, y la de `api_geoguardian` en produccion funciona:
+> correrlo tumba el visor para arreglar el cron. Ver **I-50**.
 
 > **`POSTGRES_HOST_LOCAL` y no `POSTGRES_HOST`**, igual que en el paso 3 y por la
 > misma razon: `basedatos/conexion.py` lee esa y solo esa. Poner `POSTGRES_HOST`
@@ -492,7 +514,13 @@ con el usuario del ETL.
 >
 > **Con `api_geoguardian` la corrida falla al escribir, no al conectar.** Es un
 > fallo tardio: los dos generadores corren completos y revienta al final. Si el
-> registro muestra un `permission denied for table riesgo`, es este error.
+> registro muestra un `permission denied for table riesgo` **antes de la linea
+> `escritas`**, es este error.
+>
+> **Si el `permission denied for table riesgo` aparece despues de `escritas`**,
+> es otra cosa: la base publicada no tiene la migracion **019** y el ETL esta
+> intentando el `DELETE` de `retirar_de_otros_escritores` a mano. Ver **I-51** y
+> **D-48**. Se arregla aplicando la 019 con el procedimiento de mas abajo.
 
 ### Comprobar que quedo bien, en este orden
 
@@ -572,13 +600,19 @@ $env:POSTGRES_DB         = "geoguardian"
 python -m basedatos.aplicar_migraciones
 ```
 
-**Al 2026-09-06, 22:00:** la base publicada tiene dieciseis migraciones (la
+**Al 2026-09-06, 22:00:** la base publicada tenia dieciseis migraciones (la
 014, la 015 y la 016 se aplicaron esa noche; el rodeo de I-43 se corrio y no
-tenia nada que rellenar: ver la correccion de I-43). **Falta la 017** (D-45,
-`analitico.serie_climatica`): hasta que se aplique, `/api/distritos/{codigo}/mediciones`
-sigue en 500 aunque la API publicada ya lea de la vista. Es el mismo
-procedimiento de arriba, y despues se comprueba con
-`GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10` → 200.
+tenia nada que rellenar: ver la correccion de I-43). La 017 (D-45,
+`analitico.serie_climatica`) se aplico despues y
+`GET /api/distritos/50801/mediciones?desde=2026-08-01&hasta=2026-08-10` responde
+200. **Al 2026-09-11:** dieciocho aplicadas; la **019** (D-48) entra con este
+cambio y hay que aplicarla con el procedimiento de arriba **antes** de la
+siguiente corrida de `trabajos`.
+
+> **`--verificar` primero, y sobre la base correcta.** El servidor de Railway
+> tiene **tres** bases: `geoguardian`, que es la buena, `postgres`, y `railway`,
+> que Railway crea sola y esta vacia. Con `POSTGRES_DB=railway` el verificador
+> dice «0 de 18 aplicadas» y la tentacion es aplicar. **No.** Ver I-50.
 
 Si alguna vez una serie de precipitacion queda atascada -el ultimo dia con dato
 no avanza aunque la fuente publique-, el rodeo de I-43 es, con el proxy abierto
@@ -687,6 +721,8 @@ obligaria a CORS y a tocar archivo de Cesar, con solicitud de cambio-.
 | Incluir `template0` al refrescar la intercalacion | `ERROR: invalid collation version change`, y la excepcion corto el `CREATE DATABASE` | Paso 2: `template0` no se toca ni hace falta |
 | Afirmar que hacia falta CORS | D-23 y `cliente.js` ya resolvian eso con ruta relativa | Leer la decision antes de proponer |
 | No preguntar hasta cuando alcanzaban los datos publicados | Las estimaciones se acababan el 2026-09-12 y se descubrio por casualidad | Paso 9, y la comprobacion de la ventana en el paso 7 |
+| Dejar el cron de prueba `*/5` y no leer el registro | Cientos de corridas fallidas y cientos de correos, cero estimaciones renovadas | Paso 9: el horario de prueba se anota con su fecha de retiro; la primera corrida se lee entera |
+| Probar el rol del ETL solo con operaciones prohibidas | La cadena completa nunca habia corrido como `etl_geoguardian`; le faltaba un permiso | CA-9 de H11.7: la aplicacion se corre con su rol |
 
 ---
 

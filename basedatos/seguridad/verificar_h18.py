@@ -313,6 +313,16 @@ PROHIBIDAS = [
         "DELETE FROM control.bitacora_etl",
         "denied",
     ),
+    # D-48: el ETL retira escritores anteriores a traves de
+    # `analitico.retirar_otros_escritores` (019), y **sigue sin DELETE** sobre la
+    # tabla. La 019 concede EXECUTE sobre una funcion, no un permiso sobre
+    # `analitico.riesgo`; esta linea es la que lo demuestra cada vez que corre.
+    (
+        "etl",
+        "DELETE en analitico.riesgo",
+        "DELETE FROM analitico.riesgo",
+        "denied",
+    ),
 ]
 
 
