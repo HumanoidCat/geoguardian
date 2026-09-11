@@ -1,9 +1,20 @@
+---
+author:
+  - "Alejandro Josué Rodríguez Zamora"
+  - "César Andrés Ubau Calvo"
+  - "Luis Alejandro Luna García"
+  - "Avril Madrigal Elizondo"
+institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
+date: "10 de septiembre de 2026"
+lang: es
+---
+
 # Manual técnico
 
 **Proyecto:** GeoGuardian — estimación del riesgo climático por distrito en el
 cantón de Tilarán, Costa Rica
 **Historia:** H10.4 · **Rúbrica:** MVP · **Responsable:** Alejandro
-**Estado del sistema al 23 de agosto de 2026**
+**Estado del sistema al 10 de septiembre de 2026**
 
 Este manual está escrito para alguien que **no participó en el desarrollo**: un
 evaluador, un profesor, o quien tenga que mantener el sistema el próximo
@@ -29,40 +40,41 @@ Tilarán, a un horizonte de siete días, a partir de datos abiertos.
 | Modelo territorial en 3FN con las geometrías oficiales de los 8 distritos | Funciona |
 | Sistema de migraciones versionadas, transaccional e idempotente | Funciona |
 | Contratos de los seis módulos, con simulados y 47 comprobaciones automáticas | Funciona |
-| Visor cartográfico con los polígonos distritales, contra datos simulados | Funciona |
-| **Semáforo de riesgo** por distrito y evento, ordenado por urgencia (H7.1) | Funciona |
-| **Reporte de calidad de datos**: completitud, atípicos y sesgo espacial (H1.5) | Método y pruebas, sin cifras reales |
-| Tres entornos de Kubernetes en k3d | Funciona |
+| **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos, y el archivo de focos de calor desde 2001 | Funciona |
+| Ingesta reejecutable con cadencia declarada por fuente y bitácora centralizada | Funciona |
+| Procesamiento de señales: filtrado, espectro, SPI, percentiles y anomalías | Funciona, sobre las series reales |
+| Etiquetado de los tres eventos, partición temporal y dos líneas base | Funciona |
+| Tres algoritmos supervisados, afinados, y la tabla comparativa | Funciona. **Ninguno supera a la línea base fuera del ruido** |
+| Tubería que escribe `analitico.riesgo` con el estimador que la tabla elige | Funciona |
+| Importancia de variables y explicaciones SHAP | Funciona |
+| **API REST** con OpenAPI, en modo `postgres`, sirviendo riesgo real | Funciona |
+| Visor cartográfico con semáforo, capas, «Hoy en tu distrito» y el lago | Funciona |
 | Integración continua, 8 trabajos por cada cambio | Funciona |
-| Publicación del visor como sitio estático en GitHub Pages (H11.5) | Escrito y verificado, **sin URL viva todavía** |
-| Procesamiento de señales: filtrado, espectro, SPI, percentiles y anomalías | Funciona, con 108 pruebas |
-| **Series climáticas reales**: 102.272 filas, 35 años, los 8 distritos | Funciona |
-| **API REST** con OpenAPI y los esquemas del contrato | Funciona |
+| Tres entornos de Kubernetes en k3d, con despliegue continuo desde `ghcr.io` | Funciona |
+| Publicación del visor como sitio estático en GitHub Pages, con datos declarados simulados | Funciona |
+| **Despliegue público en Railway** con datos reales, un solo dominio, el del visor | Funciona |
 | Roles de base de datos con mínimo privilegio, verificando las denegaciones | Funciona |
+| Respaldo definido y restauración probada | Funciona |
 
-**Lo que todavía no existe.** El extractor de focos de calor (H1.2) y el módulo
-de modelado. Sus carpetas están creadas y reservadas, pero vacías.
+**Lo que todavía no existe.** La renovación automática de las estimaciones —la
+tubería escribe hasta siete días después de correr y hoy se ejecuta a mano; el
+servicio programado está diseñado y no desplegado— y la validación con usuarios
+(sesión de usabilidad y SUS), cuyos materiales están listos.
 
-**De H1.2 sí existe la medición.** El riesgo R16 se cerró el 20 de agosto contando
-**242 focos de FIRMS en 24 años** dentro del cantón, con las geometrías del SNIT.
-De ahí salió que el umbral de incendio del charter no producía tres clases sino
-dos, y **SC-05** lo redefinió como binario: `alto` es «al menos un foco en la
-ventana de 7 días» y `medio` no existe para ese evento. El alcance se acotó a los
-tres distritos con señal. Ver **D-25**.
+**Lo que existe y conviene saber leer.** Lo que la API sirve para lluvia intensa
+lo escribe la **línea base climatológica**, no un modelo de aprendizaje: la
+tabla comparativa no encontró un algoritmo que la supere fuera de la dispersión
+entre pliegues, y la regla que decide quién escribe elige al más simple dentro
+del ruido. Para incendio escribe la regresión logística afinada, solo en los
+tres distritos con señal. Para sequía no escribe nadie, porque el evento no
+alcanza el mínimo de episodios para modelarse; el visor lo muestra como «sin
+estimación». Cada fila de `analitico.riesgo` lleva `algoritmo` y
+`version_modelo` con el estimador, la fecha de la corrida, el F1-macro y el
+veredicto, así que esto se puede comprobar con una consulta.
 
-**El visor consume la API desde el 20 de agosto**, historia H6.6. Los datos que
-sirve siguen siendo simulados, porque detrás de la API está el repositorio
-simulado hasta que llegue H6.2, y el visor lo declara con una banda permanente en
-pantalla.
-
-Si la API no responde, el visor **no se cae**: lee el respaldo estático de
-`frontend/public/simulados/` y declara también ese cambio de origen. Ver D-23.
-
-El módulo de señales existe y está probado, pero **sus pruebas corren contra los
-simulados**. Ahora que hay series reales cargadas, hay que volver a correrlas sobre
-ellas: una serie real tiene patrones distintos de los del simulado. Es la
-diferencia entre "funciona" y "produce resultados del cantón", y conviene no
-confundirlas.
+**El último día con lluvia medida queda semanas detrás de la fecha de
+estimación**: la precipitación final de CHIRPS llega entre 21 y 51 días después
+del día que describe. La pantalla declara las dos fechas por separado.
 
 Este manual no promete nada que no se pueda ejecutar. Si un comando de aquí falla
 en una máquina limpia, es un defecto del manual.
@@ -549,10 +561,13 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 47 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 48 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |
 | `docs/07-propiedad-archivos.md` | Quién es dueño de qué carpeta |
 | `infra/k8s/README.md` | Levantar los tres entornos en k3d |
 | `CONTRIBUTING.md` | Flujo de ramas, commits y Definition of Done |
+| `docs/17-documento-tecnico.md` | La documentación técnica del MVP: descripción funcional, arquitectura, modelado, verificación, despliegue, y cómo leer los identificadores (anexo 14) |
+| `docs/19-runbook-railway.md` | Montar el despliegue público desde cero |
+| `docs/20-manual-de-operacion.md` | Atender el sistema publicado día a día |
