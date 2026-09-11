@@ -5138,3 +5138,119 @@ La medicion preliminar del mismo dia, hecha con centroides ponderados por area
 sobre el GeoJSON de respaldo, **dio las mismas seis celdas y las mismas dos
 colisiones**. Dos metodos distintos, mismo resultado: eso es lo que hace confiable
 al numero, no que lo diga el guion oficial.
+
+---
+
+## D-48 · El ETL retira escritores anteriores por una funcion, y sigue sin DELETE
+
+**Fecha.** 2026-09-11. **Historia.** H11.7, y toca H1.8 y H3.6.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-39 (un evento, un escritor), I-37 (el arreglo que borra), la migracion 003 (la regla que prohibe borrar).
+
+### Contexto
+
+La noche del 2026-09-11 la cadena de estimacion corrio **por primera vez bajo el
+rol del ETL**, en el servicio `trabajos` de Railway. Hizo todo lo que tenia que
+hacer -etiquetas, matriz, 104.360 filas de lluvia intensa escritas en la base
+publicada- y murio en la ultima instruccion:
+
+    psycopg.errors.InsufficientPrivilege: permission denied for table riesgo
+
+La instruccion era el `DELETE` de `retirar_de_otros_escritores`, el arreglo de
+**I-37**: cuando D-39 cambia el escritor de un evento, las filas del anterior que
+el nuevo no cubre se retiran, para que el visor no sirva fechas de un estimador
+que ya no se elige.
+
+Y la migracion **003** dice, textual: *«Ningun rol recibe DELETE ni TRUNCATE en
+ningun esquema. Borrar datos historicos no es una operacion de la aplicacion.»*
+
+Las dos decisiones son correctas. Nunca se habian encontrado porque en local la
+cadena corre con el usuario dueno de las tablas, que puede todo. Es **I-51**.
+
+### Decision
+
+**La regla de la 003 no se toca.** `geoguardian_etl` sigue sin `DELETE` sobre
+`analitico.riesgo` ni sobre ninguna otra tabla.
+
+**El retiro se encapsula en una funcion:**
+`analitico.retirar_otros_escritores(tipo_evento, algoritmo)`, en la migracion
+**019**, declarada `SECURITY DEFINER`. Hace ese unico borrado con los permisos de
+quien la definio. El ETL recibe `EXECUTE` sobre la funcion y nada mas.
+
+`estimar_riesgo.retirar_de_otros_escritores` deja de emitir el `DELETE` y llama a
+la funcion. Su firma y su valor de retorno no cambian.
+
+### Justificacion
+
+**Es la misma forma que ya tiene la 009.** Cuando el ETL necesito insertar contra
+siete restricciones sin que una fila mala abortara el lote, no se le aflojo la
+tabla: se le dio `registrar_riesgo`. El permiso se concede sobre **la operacion
+que la aplicacion necesita**, no sobre la tabla. Aca es lo mismo con un borrado.
+
+**Deja el documento de seguridad diciendo la verdad.** La otra salida -conceder
+`DELETE` sobre `analitico.riesgo` y enmendar la 003 para que diga «salvo en
+analitico»- tambien funcionaba. Se descarta porque abre mas de lo que hace falta:
+un `DELETE` sobre la tabla permite cualquier borrado; la funcion permite uno solo,
+con el `WHERE` cocido adentro.
+
+**La funcion es mas segura que el `DELETE` que reemplaza.** El predicado original,
+`algoritmo <> %s`, con un algoritmo que nunca escribio borra el evento entero.
+Desde Python no podia pasar -el valor sale de un enum- pero una funcion que el
+ETL puede llamar no debe fiarse de quien la llama. Por eso **se niega si el
+escritor que se queda no tiene ni una fila del evento**: retirar a todos en favor
+de nadie es exactamente lo que `estimar_riesgo` ya dice que no se hace solo.
+
+**El disparador de auditoria sigue viendo el borrado.** `riesgo_auditoria_tg` es
+`AFTER DELETE` y no distingue quien borra. La historia de H1.13 queda igual.
+
+### Alternativas descartadas
+
+**Conceder `DELETE` sobre `analitico.riesgo` al rol del ETL.** Tres lineas de
+migracion y cero codigo. Se descarta por lo dicho arriba: cambia una regla
+escrita para resolver un caso, y el caso cabe sin cambiarla.
+
+**Marcar las filas como retiradas en vez de borrarlas.** Una columna, un filtro en
+la API y en el visor. Cambia el contrato de `Riesgo` a trece dias de la feria para
+resolver un problema de permisos. No.
+
+**Correr `trabajos` con el usuario dueno.** Es lo que hacia que el problema no se
+viera en local. Poner ese usuario en un servicio programado que corre solo de
+madrugada es lo contrario de H1.8.
+
+### Consecuencias
+
+  * **Migracion 019** en `basedatos/ddl/`. Se aplica a la base publicada con el
+    procedimiento del runbook, con el proxy abierto.
+  * **`verificar_h18.py` gana una linea en `PROHIBIDAS`**: `DELETE` del ETL sobre
+    `analitico.riesgo` tiene que seguir rechazado. Es la prueba de que la 019
+    concedio una funcion y no un permiso.
+  * **La primera corrida completa de `trabajos` es la evidencia** del CA-5 de
+    H11.7 y de esta decision a la vez: si el log muestra `retiradas` o termina
+    sin ese renglon, el borrado corrio bajo el ETL sin `DELETE`.
+  * **Un rol de aplicacion se prueba corriendo la aplicacion con el.** Queda como
+    aprendizaje en I-51 y como criterio nuevo de H11.7.
+
+### Medicion
+
+    Corrida cfbeb60b..df4de70a de `trabajos`, Railway, 2026-09-11 20:17 UTC
+      generar_etiquetas          ok
+      generar_caracteristicas    ok    104.256 filas, 27 columnas
+      estimar_riesgo             lluvia_intensa: 104.360 filas escritas
+                                 retirar_de_otros_escritores: permission denied
+
+    Tablas donde el ETL puede INSERT en la base publicada (medido con
+    has_table_privilege, 2026-09-11): 46, todas en crudo, analitico y control.
+    Ninguna en geo. DELETE: ninguna.
+
+    La 019 probada sobre PostgreSQL 16 limpio, con una tabla minima, los dos
+    roles y un disparador AFTER DELETE, antes de tocar la base publicada:
+
+      etl: DELETE FROM analitico.riesgo             permission denied
+      etl: retirar('incendio', 'xgboost')            se niega: xgboost no tiene filas
+      etl: retirar('incendio', 'regresion_logistica') 2 retiradas; la fila con
+                                                     algoritmo NULL y los otros
+                                                     eventos quedan intactos
+      disparador de auditoria                        DELETE x2
+      has_function_privilege(public)                 false
+      has_function_privilege(etl_geoguardian)        true
+      has_table_privilege(etl, riesgo, DELETE)       false
