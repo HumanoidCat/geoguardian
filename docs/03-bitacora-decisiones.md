@@ -5254,3 +5254,68 @@ madrugada es lo contrario de H1.8.
       has_function_privilege(public)                 false
       has_function_privilege(etl_geoguardian)        true
       has_table_privilege(etl, riesgo, DELETE)       false
+
+---
+
+## D-49 · El cartel (H10.6) pasa de Avril a Alejandro
+
+**Fecha.** 2026-09-13. **Historia.** H10.6.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-33 y D-37, que fijaron como se mueve una historia: la fila sigue al trabajo, y el contenido no cambia.
+
+### Contexto
+
+H10.6 -el cartel academico IEEE, legible a 1,5 m- estaba a nombre de Avril desde
+el reparto inicial, con la logica de que es una pieza grafica. Once dias antes de
+la feria, el cartel no existe todavia, y lo que va en el cartel ya existe: es el
+documento IEEE (H10.5c, de Alejandro), el pitch, la pregunta de investigacion, el
+resultado de D-39 y el QR del visor. Lo que falta no es diseno: es decidir que
+frases van y cuales no, y eso lo esta decidiendo el PM cada dia en el documento.
+
+Avril tiene en el Sprint 4 la pantalla de monitoreo (H12.2), el historico de
+incidentes (H12.5), el manual de operacion (H13.2) y dos historias del visor. El
+cartel le agregaria un documento entero que leer antes de poder empezar.
+
+### Decision
+
+**H10.6 pasa a Alejandro.** Mismo alcance, mismos puntos (8), mismas horas (7,7).
+La fila de `backlog.csv` cambia `responsable` y etiqueta, la issue cambia de
+etiqueta, y el archivo de tareas de cada uno refleja el traspaso con la nota de
+siempre.
+
+### Justificacion
+
+**La propiedad sigue al trabajo, no al reves** -es la regla de D-33-, y el trabajo
+del cartel es de sintesis del documento, no de dibujo. Quien escribe el documento
+tarda menos en resumirlo que quien tendria que leerlo primero.
+
+**No es una correccion.** Nadie hizo nada mal: el reparto de agosto no podia saber
+que el cartel iba a depender tanto del documento final.
+
+### Alternativas descartadas
+
+**Dejarla en Avril y pasarle un borrador de textos.** Es hacer la historia a
+medias entre dos personas, con el PR de una y la revision de la otra sobre el
+mismo archivo. Mas coordinacion que trabajo.
+
+**Partirla en dos historias (textos y diseno).** Son 7,7 horas. Partirlas crea
+mas backlog que cartel.
+
+### Consecuencias
+
+  * Alejandro sube a **254 puntos y 380,1 h**; Avril baja a **74 y 89,4 h**, y su
+    Sprint 4 pasa de 36,6 a 28,9 h, por debajo del compromiso por primera vez.
+  * El Sprint 4 de Alejandro queda en **144,8 h** contra 36 de capacidad. Ya
+    estaba en 134,0. Se acepta porque las horas del Sprint 4 son las que de todos
+    modos se estan trabajando, y porque el cartel se hace con material que ya
+    existe.
+  * `docs/tareas/README.md` conserva la tabla del reparto de agosto, que ya
+    estaba desactualizada; no se corrige aqui.
+
+### Medicion
+
+    backlog.csv, 2026-09-13
+      H10.6  responsable avril -> alejandro   8 pts  7.7 h  S4
+      alejandro   S4 144.8 h   total 380.1 h   254 pts
+      avril       S4  28.9 h   total  89.4 h    74 pts
+    verificar_backlog.py: OK

@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 244 puntos · 369.3 horas · 36.9 h por semana en promedio
+**Total asignado:** 254 puntos · 380.1 horas · 38.0 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 134.0 | 36 | SOBRECARGA +98.0 h |
+| S4 | semanas 10-11 | 144.8 | 36 | SOBRECARGA +108.8 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 134.0 h
+## Sprint 4 (semanas 10-11) — 144.8 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -635,6 +635,11 @@
     roto la construccion; habrian roto la primera corrida de madrugada.
   - Criterios en `docs/evidencias/sistemas-operativos/H11.7-criterios-aceptacion.md`.
   - Toca `.github/workflows/ci.yml`, que no es su carpeta, y lo declara en el PR.
+  - **2026-09-13:** primera corrida completa el 12 a las 09:00 UTC, 141.517 filas, bajo el
+    rol del ETL y sin `DELETE` (D-48, I-50, I-51). Evidencia en
+    `docs/evidencias/sistemas-operativos/H11.7-estimaciones-renovadas.md`. Quedan
+    abiertos **CA-2** (provocar el fallo de construccion) y **CA-7** (otra persona sigue
+    el paso 9); se marca cuando cierren.
 
 - [ ] **H3.9** · El modelo aprende cuando y donde: calendario y geografia en la matriz
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H3.3, H3.6, H1.3 · **bloquea a: H3.10**
@@ -700,6 +705,28 @@
     rampa de color, **no** da nivel ni probabilidad, y **no** escribe en
     `analitico.riesgo`.
   - Criterios en `docs/evidencias/computacion-grafica/H14.5-criterios-aceptacion.md`.
+
+- [ ] **H14.6** · El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas
+  - `E14` · 2 pts · 3.1 h · rubrica: OE2 · depende de: H11.7, H3.6
+  - Las estimaciones de incendio publicadas terminan el **2024-12-24** (I-37, I-48) y no
+    es un limite del modelo: `estimar_riesgo` solo extiende las fechas hasta hoy+7 cuando
+    el escritor **no** necesita caracteristicas. La regresion logistica recibe las fechas
+    de las etiquetas, y FIRMS termina en 2024. La matriz llega a 2026 con 99,5 % de filas
+    completas: el modelo puede predecir 2025 y 2026 y el codigo no se lo pide.
+  - Cambia una regla: todo escritor recibe las fechas hasta hoy+7; donde falten
+    caracteristicas devuelve `None` y no hay fila (D-07).
+  - **Lo que no consigue, y se declara:** el horizonte de siete dias sigue siendo solo
+    de la climatologica. Con CHIRPS a 21-51 dias de atraso (D-40), incendio llega hasta
+    hace unas semanas, no hasta hoy. Para el 24 la tarjeta de incendio dibuja ausencia,
+    y la razon es una frase, no una excusa.
+  - Criterios en `docs/evidencias/objetivos/H14.6-criterios-aceptacion.md`.
+
+- [ ] **H10.6** · Cartel academico IEEE legible a 1.5 m
+  - `E10` · 8 pts · 7.7 h · rubrica: IEEE · depende de: H10.5c
+  - **Traspasada desde Avril el 2026-09-13** por **D-49**. No es un cambio de
+    alcance ni una correccion del trabajo previo: la historia se movio porque el
+    cartel sale del documento IEEE y del pitch, que escribe el PM, y su contenido
+    queda tal como estaba escrito.
 
 ## Regla: lo hecho no se borra
 

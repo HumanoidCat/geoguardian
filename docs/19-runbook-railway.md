@@ -440,9 +440,15 @@ ultima corrida fue el 2026-09-05, de ahi sale el 12. No hay `schedule:` en
 paso, **el sitio publicado se queda sin estimaciones** y por D-07 dibuja ausencia,
 que es lo correcto y es justo lo que no se quiere mostrar.
 
-> **Incendio no se arregla aca.** Sus filas terminan el 2024-12-24 porque desde
-> **D-42** su escritor es la regresion logistica, que no proyecta hacia adelante.
-> Correr esto no le agrega un dia. Eso es **H14.6**.
+> **Incendio, corregido el 2026-09-13.** Hasta H14.6 sus filas terminaban el
+> 2024-12-24, y este runbook decia que era porque la regresion logistica «no
+> proyecta hacia adelante». Era el codigo, no el modelo: `estimar_riesgo` solo le
+> pedia fechas mas alla de las etiquetas a la climatologica. Desde H14.6 todo
+> escritor recibe las fechas hasta hoy + 7 y devuelve `None` donde falta dato.
+> Incendio llega ahora **hasta la ultima fecha con las cuatro variables
+> completas** -unas semanas atras, por el atraso de CHIRPS (D-40)-, y **no** hasta
+> hoy: para el dia de la feria la tarjeta de incendio dibuja ausencia, y esa es la
+> verdad del dato.
 
 ### El servicio
 
