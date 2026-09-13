@@ -4336,6 +4336,17 @@ simple, piso, y nadie. Se sabotea cada rama y se comprueba que cae el
 criterio correcto.
 
 
+> **Observación del 2026-09-13, por H3.9.** La banda de esta regla es «el mejor
+> menos su rango entre pliegues». Con la matriz de 32 columnas, en incendio el
+> random forest no mejoró (0,557 → 0,553) pero se volvió más ruidoso (rango
+> 0,055 → 0,064); la banda se abrió y la climatológica, que estaba fuera por
+> 0,002 desde D-42, entró. **El escritor cambió porque el líder se puso más
+> inestable, no porque alguien mejoró.** Es la misma sensibilidad que I-34 ya
+> anotó en la otra dirección. No se corrige aquí: cambiar la regla después de
+> ver el resultado sería lo contrario de lo que la regla existe para evitar.
+> Queda como propiedad conocida, y como algo que una regla futura podría
+> tratar con una banda por estimador y no por líder.
+
 ---
 
 ## D-40 · La ingesta de precipitacion carga el CHIRPS final; el "preliminar" de ClimateSERV llega despues que el final
@@ -4650,6 +4661,12 @@ fabrica y afinada, sobre los mismos pliegues- y los dos veredictos de D-39 en
 cada corrida, asi que la decision se puede volver a comprobar entera con un
 comando. `python -m backend.modelado.verificar_h38` da 38 de 38 sin base ni red.
 Evidencia en `docs/evidencias/objetivos/H3.8-afinado.md`.
+
+> **Actualización del 2026-09-13, por H3.9.** Con la matriz de 32 columnas y
+> estos mismos afinados, el escritor de incendio vuelve a ser la climatológica
+> (ver la nota en D-39 y la evidencia de H3.9). Los hiperparámetros de aquí se
+> buscaron sobre 27 columnas y se usan tal cual sobre 32; rehacerlos es H3.8
+> sobre 32 columnas, pendiente con nombre.
 
 ---
 
@@ -5319,3 +5336,104 @@ mas backlog que cartel.
       alejandro   S4 144.8 h   total 380.1 h   254 pts
       avril       S4  28.9 h   total  89.4 h    74 pts
     verificar_backlog.py: OK
+
+---
+
+## D-50 · El pronóstico numérico entra, en dos usos separados y por Open-Meteo
+
+**Fecha.** 2026-09-13. **Historias.** H15.0, H15.1, H15.2 (épica E15).
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-15 y D-47 (la resolución se mide antes de usar una fuente), D-23 (un solo origen), D-39 (quién escribe), D-46 (el público y las palabras), D-07 (la ausencia se dibuja).
+
+### Contexto
+
+Después de H3.9, el arnés dice lo mismo que desde H3.6, con más precisión: en
+lluvia intensa el mejor modelo **empata** con la climatología (0,348 contra
+0,346) y en incendio no se separa de ella fuera del ruido. La causa no está en
+los algoritmos ni en las columnas: **todo lo que el modelo ve es pasado**, la
+lluvia con 21 a 51 días de atraso, y se le pregunta por los próximos siete
+días. El calendario es el mejor resumen del pasado que existe.
+
+Las aplicaciones del clima no son más listas: **consumen un pronóstico
+numérico**. GeoGuardian nunca ha tenido uno, ni para el modelo ni para la
+persona que abre el visor por la mañana.
+
+Open-Meteo sirve ECMWF IFS HRES (9 km) gratis para uso no comercial, sin
+llave, con 16 días de horizonte; y archiva **por plazo** -qué se dijo 1, 2 … 7
+días antes de cada fecha- desde enero de 2024 (Previous Runs API). El archivo
+más largo (2017→) guarda la corrida más cercana a cada día y **no sirve para
+entrenar** sin filtrar el futuro.
+
+### Decision
+
+**El pronóstico entra por Open-Meteo, modelo `ecmwf_ifs_hres_9km` declarado,
+a través de la API propia, en dos usos que no se mezclan:**
+
+  1. **Como característica del modelo (H15.1)**, medida con el arnés y la
+     regla de D-39 como cualquier otra. Solo con datos que existían el día
+     de la estimación; el generador lo comprueba y corta si no.
+  2. **Como información en el visor (H15.2)**, debajo del riesgo, separada de
+     él, rotulada con modelo, resolución, punto, hora y atribución.
+
+**La base de las dos es H15.0**: la ruta `/api/distritos/{codigo}/pronostico`,
+el contrato `Pronostico`, un extractor que cumple `Protocol` con su simulado,
+caché de 30 minutos y degradación declarada.
+
+### Justificacion
+
+**Es la única pregunta que falta hacer.** Todo lo demás -tres algoritmos,
+afinado, calendario, geografía- ya se midió y da empate. Un modelo que ve el
+pronóstico es la primera entrada nueva de verdad desde H3.3.
+
+**La resolución ya se midió y se declara.** D-47 dio 7 celdas para 8 distritos
+en la malla de ~9 km. No es la colisión completa de NASA POWER (I-05), y no se
+esconde: la respuesta lleva la celda devuelta y el visor dice qué par la
+comparte. H15.0 lo mide con la fuente real antes de servir nada (D-15).
+
+**Sin fuga de información, por construcción.** Usar el archivo largo sería
+entrenar con lo que se supo después. Menos años sin trampa vale más que más
+años con ella, y el mínimo de episodios de H3.0 decide si alcanza.
+
+**El pronóstico en pantalla es lo que el pitch promete** -«qué viene esta
+semana en su distrito»- y hoy la pantalla solo dice el riesgo. Lo que nos
+diferencia de una app del clima no es no tener pronóstico: es decir de dónde
+sale y dónde no distingue.
+
+### Alternativas descartadas
+
+**Llamar a Open-Meteo desde el navegador.** Rompe D-23, reparte la caché en
+cada teléfono, y el visor estático no degrada igual.
+
+**`best_match`.** Elige modelo por ubicación y día; un dato de procedencia
+variable no se puede rotular ni reproducir.
+
+**Descargar los GRIB de ECMWF.** Infraestructura sin una pregunta que la pida.
+
+**Usar el pronóstico como regla de riesgo directa, saltándose el arnés.**
+Tentador y rápido. Se descarta como atajo, y se **incluye como línea base**
+dentro del arnés («umbral de pronóstico»), donde D-39 la trata como a
+cualquiera.
+
+**Rellenar los años sin pronóstico.** Inventa dato. D-07.
+
+### Consecuencias
+
+  * Épica **E15** con tres historias; entra al backlog con criterios antes que
+    código. H15.0 toca `contratos/`, `backend/api/`, `backend/etl/fuentes/`;
+    H15.2 toca `frontend/`; H15.1 toca `basedatos/ddl/` (migración 020) y
+    `infra/docker/trabajos.Dockerfile`. Todo declarado en cada PR.
+  * Contratos 1.4.0 → 1.5.0 (aditivo).
+  * `trabajos` gana un paso (bajar el pronóstico de hoy) cuando H15.1 entre.
+  * **Para la Invenio Fest entra solo lo medido.** Si H15.1 llega con número,
+    es la diapositiva más fuerte; si no, se presenta como lo que sigue, ya
+    especificado.
+  * Atribución a Open-Meteo en la respuesta, en el README y en las referencias.
+
+### Medicion
+
+    Open-Meteo, 2026-09-13
+      forecast API      ecmwf_ifs_hres_9km · 16 dias · actualiza cada hora · gratis sin llave
+      previous runs     plazos 1..7 · archivo desde 2024-01 (la mayoria de modelos)
+      historical fcst   desde 2017 (ECMWF) · corrida mas cercana al dia: NO sirve para entrenar
+    D-47, 2026-09-09    malla ~9 km: 7 celdas para 8 distritos, 1 colision (preliminar)
+    Peticiones/dia      8 distritos x 48 refrescos = 384, con cache de 30 min

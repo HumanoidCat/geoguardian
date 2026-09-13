@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 254 puntos · 380.1 horas · 38.0 h por semana en promedio
+**Total asignado:** 275 puntos · 412.9 horas · 41.3 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 144.8 | 36 | SOBRECARGA +108.8 h |
+| S4 | semanas 10-11 | 177.6 | 36 | SOBRECARGA +141.6 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 144.8 h
+## Sprint 4 (semanas 10-11) — 177.6 h
 
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -593,11 +593,11 @@
     `docs/evidencias/computacion-grafica/H5.9-criterios-aceptacion.md` (PR #270), antes del codigo.
   - `frontend/` es de Avril: los archivos tocados se declaran en el PR y ella lo revisa.
 
-- [ ] **H14.3** · El Lago Arenal se dibuja como agua sobre la coropleta
+- [x] **H14.3** · El Lago Arenal se dibuja como agua sobre la coropleta (2026-09-08)
   - `E14` · 2 pts · 3.1 h · rubrica: CG-1 · depende de: H1.3, H5.3 · **bloquea a: H14.2**
-  - **Hecha y fusionada en `dev` el 2026-09-08.** Se marca `[x]` cuando Alejandro
-    diga las horas reales: **las horas no se inventan** (D-24), y el verificador
-    exige la linea completa en cuanto la casilla se cierra.
+  - horas: estimada n/d (no se estimo antes de arrancar) . real 1.5
+  - Fusionada en `dev` el 2026-09-08; las horas se declararon el 2026-09-13, como
+    parte de 15 h en total entre H14.3, H14.2 y H3.9, repartidas por peso.
   - La coropleta pintaba 88,2 km2 de agua con el nivel del distrito. Medido con 122
     puntos dentro del lago: 109 caen sobre Tilaran. No se recorta el distrito -eso
     seria I-14 otra vez-: el agua se dibuja encima, en un panel propio de Leaflet con
@@ -609,10 +609,10 @@
   - Criterios en `docs/evidencias/computacion-grafica/H14.3-criterios-aceptacion.md`.
   - Entro dentro del PR #282 por el `git add -A` de **I-47**, no en un PR propio.
 
-- [ ] **H14.2** · Hoy en tu distrito: la primera pantalla habla en palabras
+- [x] **H14.2** · Hoy en tu distrito: la primera pantalla habla en palabras (2026-09-08)
   - `E14` · 8 pts · 12.5 h · rubrica: CG-1, CG-4 · depende de: H5.9, H7.1, H14.3
-  - **Hecha y fusionada en `dev` el 2026-09-08.** Igual que H14.3: falta el numero
-    real para cerrarla.
+  - horas: estimada n/d (no se estimo antes de arrancar) . real 7.0
+  - Fusionada en `dev` el 2026-09-08; las horas se declararon el 2026-09-13.
   - Sale de la retroalimentacion docente: el visor se veia generico. Entra una pantalla
     que dice en palabras que viene esta semana y que hacer. El mapa **abre primero** y
     la pantalla nueva esta a un clic con el distrito ya elegido.
@@ -641,8 +641,9 @@
     abiertos **CA-2** (provocar el fallo de construccion) y **CA-7** (otra persona sigue
     el paso 9); se marca cuando cierren.
 
-- [ ] **H3.9** · El modelo aprende cuando y donde: calendario y geografia en la matriz
+- [x] **H3.9** · El modelo aprende cuando y donde: calendario y geografia en la matriz (2026-09-13)
   - `E3` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H3.3, H3.6, H1.3 · **bloquea a: H3.10**
+  - horas: estimada n/d (no se estimo antes de arrancar) . real 6.5
   - Medido el 2026-09-10 **con `fabricas()`**, los estimadores que la tuberia usa:
     con 27 columnas xgboost da 0.327 y **la climatologica gana** con 0.346; con las
     seis columnas nuevas xgboost sube a **0.348** y queda **empate tecnico por
@@ -658,6 +659,13 @@
     columnas y con 33 estan vencidos.
   - Ninguna fuente de datos nueva: las cuatro geograficas salen de `geo.distrito` y
     del GeoJSON del lago de H14.3.
+  - **2026-09-13:** medido antes y despues con `fabricas()` sobre la misma matriz:
+    quedan **cinco** columnas (la distancia al lago no aporta y era la unica que leia
+    un archivo fuera de la base). Lluvia: xgboost 0.327 → 0.348, empate tecnico, escribe
+    la climatologica. Incendio: las columnas no lo mueven, pero el rango del lider se
+    abre (0.055 → 0.064) y la climatologica entra en la banda: **escribe la
+    climatologica**, hasta hoy + 7. Evidencia en
+    `docs/evidencias/objetivos/H3.9-calendario-y-geografia.md`.
   - Criterios en `docs/evidencias/objetivos/H3.9-criterios-aceptacion.md`, con la
     medicion exploratoria fechada **antes** de tocar `generar_caracteristicas.py`.
 
@@ -732,6 +740,38 @@
     Evidencia abierta en `H10.6-cartel.md`: el QR del repositorio da 404 (es
     privado) y el «trabajo futuro» nombra a H11.7, que esta en produccion.
     Faltan la prueba de la pared a 1,5 m y la medicion del 24.
+
+- [ ] **H15.0** · La API sirve el pronostico por distrito, con cache y sin mentir sobre la malla
+  - `E15` · 5 pts · 7.8 h · rubrica: Arq · depende de: H6.3, H6.1, H8.3
+  - Ruta `/api/distritos/{codigo}/pronostico` con el contrato `Pronostico` (1.5.0):
+    modelo declarado `ecmwf_ifs_hres_9km`, punto y celda devuelta, cache de 30 min,
+    copia buena hasta 6 h con `desactualizado`, y 503 con cuerpo si no hay nada.
+  - La resolucion se mide con la fuente real antes de servir (D-15, D-47).
+  - Criterios en `docs/evidencias/arquitectura-software/H15.0-criterios-aceptacion.md`.
+  - Toca `contratos/`, `backend/api/` y `backend/etl/fuentes/`, y lo declara en el PR.
+
+- [ ] **H15.1** · El pronostico como caracteristica: el modelo ve el futuro por primera vez
+  - `E15` · 8 pts · 12.5 h · rubrica: OE2 · depende de: H15.0, H3.9, H3.6, H11.7
+  - `crudo.pronostico_diario` (migracion 020) desde la Previous Runs API: lo que se
+    dijo 1..7 dias antes de cada fecha, desde 2024. El archivo de 2017 NO se usa:
+    seria mirar el futuro. El generador corta si encuentra una fila del futuro.
+  - Siete columnas declaradas y una linea base «umbral de pronostico». Se mide una
+    vez, con y sin las columnas, sobre los mismos pliegues. D-39 decide.
+  - Antes: contar episodios de la ventana contra el minimo de H3.0. Ademas: el
+    pronostico contra CHIRPS plazo por plazo.
+  - `trabajos` gana el paso de bajar el pronostico de hoy.
+  - Criterios en `docs/evidencias/objetivos/H15.1-criterios-aceptacion.md`.
+  - Toca `basedatos/ddl/` y `backend/etl/`, y lo declara en el PR.
+
+- [ ] **H15.2** · El clima de la semana en el visor, con la misma honestidad que el riesgo
+  - `E15` · 8 pts · 12.5 h · rubrica: CG-1 · depende de: H15.0, H14.2, H5.9
+  - Debajo del riesgo y separado de el: «Lo que estimamos» / «Lo que dice el
+    pronostico». Ahora, hoy hora por hora, siete dias. Un icono nunca va solo;
+    ninguna sigla; los colores del riesgo no se tocan.
+  - Cada bloque dice modelo, punto, hora y atribucion; si el distrito comparte
+    celda con otro, lo dice. Sin pronostico se dibuja la ausencia.
+  - Criterios en `docs/evidencias/computacion-grafica/H15.2-criterios-aceptacion.md`.
+  - Toca `frontend/`, y lo declara en el PR.
 
 ## Regla: lo hecho no se borra
 
