@@ -979,7 +979,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,IEEE,avril",S4,avril,8,7.7
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,IEEE,alejandro",S4,alejandro,8,7.7
 H10.7,H10.7 Diagramas de casos de uso y entidad-relacion,"Epica E10 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: Arq
@@ -1579,3 +1579,33 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E14,S4,CG-1,CG-4,alejandro",S4,alejandro,5,7.8
+H14.6,"H14.6 El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas","Epica E14 | 2 puntos | 3.1 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H11.7, H3.6
+Sprint: S4 (semanas 10-11)
+
+Las estimaciones de incendio publicadas terminan el 2024-12-24 (I-37, I-48). No es
+un limite del modelo: en estimar_riesgo, las fechas solo se extienden hasta hoy+7
+cuando el escritor no necesita caracteristicas. Para la regresion logistica -el
+escritor de incendio desde D-42- las fechas son las de las etiquetas, y las
+etiquetas de FIRMS terminan en 2024. La matriz de caracteristicas llega a 2026
+con 99.5 % de filas completas: el modelo puede predecir 2025 y 2026, y el codigo
+no se lo pide.
+
+Cambia una regla: todo escritor recibe las fechas hasta hoy+7, y donde falten
+caracteristicas devuelve None y no hay fila (D-07). Lo que no cambia: los tres
+distritos con senal (D-25), el escritor (D-39), y que el horizonte de siete dias
+solo lo alcanza la climatologica. Con CHIRPS a 21-51 dias de atraso (D-40), el
+modelo de incendio llega hasta hace unas semanas, no hasta hoy: eso se mide y se
+declara, no se tapa.
+
+Criterios escritos antes del codigo en
+docs/evidencias/objetivos/H14.6-criterios-aceptacion.md.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E14,S4,OE2,alejandro",S4,alejandro,2,3.1

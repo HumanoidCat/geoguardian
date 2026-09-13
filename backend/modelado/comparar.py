@@ -663,6 +663,13 @@ def main() -> int:
     estimadores = estimadores_disponibles(bool(caracteristicas))
     print(f"  caracteristicas {len(caracteristicas)} filas, {n_columnas} columnas")
     print(f"  estimadores en la tabla   {len(estimadores)}")
+    # I-49: esta tabla mide los estimadores DE FABRICA. Los que escriben en la
+    # base son los afinados de D-42, que `estimar_riesgo` arma con `fabricas()`.
+    # Sin esta linea, quien corre esto a mano supone -razonablemente- que esta
+    # viendo lo que la tuberia va a escribir, y no es asi: en lluvia intensa el
+    # afinado EMPEORA a xgboost de 0.371 a 0.327. Paso el 2026-09-09.
+    print("  hiperparametros           DE FABRICA (H3.6). Los afinados de D-42 los mide")
+    print("                            `estimar_riesgo --sin-escribir`, que es lo que escribe.")
     for nombre, historia in pendientes(bool(caracteristicas)).items():
         print(f"  PENDIENTE  {nombre:22} {historia}")
     for evento, motivo in NO_MODELABLES.items():

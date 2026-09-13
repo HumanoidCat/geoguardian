@@ -205,9 +205,17 @@ def filas_a_escribir(
     modelo = fabricas(evento, bool(caracteristicas))[decision.escritor]()
     modelo.ajustar([o for o, _ in entrenamiento], [e for _, e in entrenamiento])
 
-    # Las fechas: las del dato, y hasta `hasta` si el escritor solo mira el calendario.
+    # Las fechas: las del dato, y de ahi hasta `hasta`, PARA TODO ESCRITOR.
+    #
+    # Hasta H14.6 esto se extendia solo para el que no necesita caracteristicas.
+    # Con eso, la regresion logistica de incendio recibia las fechas de las
+    # etiquetas -FIRMS termina en 2024- aunque la matriz llega a 2026: dos anos
+    # de estimaciones que el modelo podia dar y nadie le pedia (I-37, I-48).
+    # Donde falte una caracteristica el modelo devuelve None y no hay fila
+    # (D-07, mas abajo): el modelo llega hasta donde llega el dato, y solo la
+    # climatologica llega hasta hoy + 7. Eso es lo correcto, y se mide.
     fechas = sorted({f for _, f, _ in propias})
-    if not getattr(modelo, "necesita_caracteristicas", True) and fechas:
+    if fechas:
         dia = fechas[-1] + timedelta(days=1)
         while dia <= hasta:
             fechas.append(dia)
