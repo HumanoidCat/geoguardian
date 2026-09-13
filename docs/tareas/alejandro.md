@@ -727,6 +727,11 @@
     alcance ni una correccion del trabajo previo: la historia se movio porque el
     cartel sale del documento IEEE y del pitch, que escribe el PM, y su contenido
     queda tal como estaba escrito.
+  - Criterios en `docs/evidencias/entregables/H10.6-criterios-aceptacion.md`,
+    escritos el 2026-09-13 con el cartel ya construido y antes de imprimirlo.
+    Evidencia abierta en `H10.6-cartel.md`: el QR del repositorio da 404 (es
+    privado) y el «trabajo futuro» nombra a H11.7, que esta en produccion.
+    Faltan la prueba de la pared a 1,5 m y la medicion del 24.
 
 ## Regla: lo hecho no se borra
 
