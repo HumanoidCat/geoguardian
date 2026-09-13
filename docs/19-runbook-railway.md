@@ -447,8 +447,14 @@ que es lo correcto y es justo lo que no se quiere mostrar.
 > escritor recibe las fechas hasta hoy + 7 y devuelve `None` donde falta dato.
 > Incendio llega ahora **hasta la ultima fecha con las cuatro variables
 > completas** -unas semanas atras, por el atraso de CHIRPS (D-40)-, y **no** hasta
-> hoy: para el dia de la feria la tarjeta de incendio dibuja ausencia, y esa es la
-> verdad del dato.
+> hoy, **mientras lo escriba un modelo con caracteristicas**.
+>
+> **Y desde H3.9 no lo escribe uno.** Con la matriz de 32 columnas la banda de
+> D-39 se abre y la climatologica entra en ella: escribe la climatologica, que
+> solo mira el calendario y llega a hoy + 7. Asi que en produccion incendio tiene
+> nivel hasta hoy + 7 en los tres distritos de D-25 y `null` en los otros cinco.
+> Que escritor esta activo se lee en `version_modelo` de cualquier fila de
+> `/api/riesgos?tipo_evento=incendio`; no se supone.
 
 ### El servicio
 
