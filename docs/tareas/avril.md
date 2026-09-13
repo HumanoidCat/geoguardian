@@ -28,12 +28,12 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 82 puntos · 97.1 horas · 8.8 h por semana en promedio
+**Total asignado:** 74 puntos · 89.4 horas · 8.1 h por semana en promedio
 
 > Estas cifras salen de `docs/backlog.csv` y **todavia no incluyen H5.6**, que
 > volvio aca el 2026-09-02 por la clausula de devolucion de D-33. La celda
 > `responsable` de esa fila sigue diciendo `alejandro` y es un archivo compartido:
-> cuando el PM la cambie, el total pasa a 77 puntos y 92.3 h. Se deja escrito en
+> cuando el PM la cambie, el total pasa a 69 puntos y 84.6 h. Se deja escrito en
 > vez de corregir la tabla, porque el CSV es la fuente.
 >
 > El encabezado del Sprint 2 dice **21.1 h** y no 16.3: ademas de H5.6 volvio
@@ -47,7 +47,7 @@
 | S1 | semanas 4-5 | 11.5 | 36 | holgado |
 | S2 | semanas 6-7 | 21.1 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
-| S4 | semanas 10-11 | 36.6 | 36 | SOBRECARGA +1 h |
+| S4 | semanas 10-11 | 28.9 | 36 | holgado |
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
@@ -170,10 +170,11 @@
     API que expone `/riesgos`. Alcance acordado con el PM antes de tocar nada.
 
 
-## Sprint 4 (semanas 10-11) — 36.6 h
+## Sprint 4 (semanas 10-11) — 28.9 h
 
-- [ ] **H10.6** · Cartel academico IEEE legible a 1.5 m
-  - `E10` · 8 pts · 7.7 h · rubrica: IEEE · depende de: H10.5c
+> **Actualizado el 2026-09-13 por D-49.** H10.6 (el cartel) salio de esta lista
+> hacia Alejandro. No es un cambio de alcance: el cartel sale del documento IEEE
+> y del pitch, que escribe el PM.
 
 - [ ] **H10.9** · Guion de demo y tres ensayos completos
   - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3

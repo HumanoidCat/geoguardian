@@ -3594,6 +3594,13 @@ logistica, que necesita la matriz de caracteristicas y **no proyecta hacia
 adelante**; ademas cubre tres distritos por diseno, no ocho. Volver a correr la
 estimacion no le agrega un solo dia. Eso es **H14.6**, aparte.
 
+> **Correccion del 2026-09-13, por H14.6.** «No proyecta hacia adelante» describia
+> el codigo, no el modelo: `filas_a_escribir` solo extendia las fechas mas alla de
+> las etiquetas para el escritor sin caracteristicas. La matriz llega a 2026 con
+> 99,5 % de filas completas y la regresion logistica podia predecirlas; nadie se lo
+> pedia. Lo que si es cierto y sigue siendo cierto: con CHIRPS a 21-51 dias de
+> atraso, el modelo de incendio no alcanza a hoy ni al horizonte. Ver H14.6.
+
 **Accion tomada.** Se armo la imagen `infra/docker/trabajos.Dockerfile`, que
 corre la cadena completa -etiquetas, caracteristicas, estimacion- y sale. La
 lista de paquetes **no se leyo, se recorrio**: `infra/verificar_trabajos.py`
