@@ -1609,3 +1609,110 @@ Definition of Done:
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
 - [ ] Funciona desde docker compose up en maquina limpia","E14,S4,OE2,alejandro",S4,alejandro,2,3.1
+H15.0,"H15.0 La API sirve el pronostico por distrito, con cache y sin mentir sobre la malla","Epica E15 | 5 puntos | 7.8 h estimadas
+
+Rubrica o objetivo: Arq
+Depende de: H6.3, H6.1, H8.3
+Sprint: S4 (semanas 10-11)
+
+El visor dice que riesgo estimamos y no dice que clima viene. Todas las apps del
+clima lo dicen porque consumen un pronostico numerico; GeoGuardian nunca tuvo
+uno. Esta historia lo trae a la API como una fuente mas, para que el visor
+(H15.2) y el modelo (H15.1) lo consuman del mismo lugar.
+
+Ruta GET /api/distritos/{codigo}/pronostico con el contrato Pronostico
+(contratos 1.4.0 -> 1.5.0, aditivo): modelo declarado ecmwf_ifs_hres_9km de
+Open-Meteo, nunca best_match; punto ST_PointOnSurface del distrito y la celda
+que la fuente devolvio, para poder decir donde no distingue; cache en memoria
+de 30 minutos por distrito (384 peticiones/dia); si la fuente falla, la ultima
+copia buena hasta 6 h con desactualizado=true, y sin copia, 503 con cuerpo. Un
+fallo del proveedor nunca tumba /riesgos. Nada se guarda en la base.
+
+Antes de servir nada se mide la resolucion con la fuente real (D-15, D-47):
+ocho puntos, cuantas celdas distintas, y que par colisiona.
+
+Criterios escritos antes del codigo en
+docs/evidencias/arquitectura-software/H15.0-criterios-aceptacion.md.
+La hace Alejandro; toca contratos/, backend/api/ y backend/etl/fuentes/, que no
+son su carpeta, y lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E15,S4,Arq,alejandro",S4,alejandro,5,7.8
+H15.1,H15.1 El pronostico como caracteristica: el modelo ve el futuro por primera vez,"Epica E15 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: OE2
+Depende de: H15.0, H3.9, H3.6, H11.7
+Sprint: S4 (semanas 10-11)
+
+Todo lo que el modelo ve es pasado, y se le pregunta por los proximos siete
+dias: por eso la climatologica empata o gana desde H3.6, y ninguna columna del
+pasado va a cambiarlo. La unica entrada nueva posible es un pronostico numerico.
+
+Entra crudo.pronostico_diario (migracion 020) cargado desde la Previous Runs
+API de Open-Meteo: que se dijo 1, 2 ... 7 dias antes de cada fecha, desde enero
+de 2024. El archivo largo (2017->) NO se usa: guarda la corrida mas cercana a
+cada dia y entrenar con el seria mirar el futuro. Regla de oro, escrita en el
+codigo: una caracteristica se admite solo si existia el dia de la estimacion;
+el generador corta si encuentra una fila del futuro.
+
+Siete columnas declaradas antes de medir (lluvia acumulada y maxima
+pronosticadas, dias con >=10 mm, probabilidad maxima, temperatura maxima,
+humedad minima, viento maximo) y una linea base nueva sin entrenar: umbral de
+pronostico sobre el percentil del distrito. Se mide UNA vez con fabricas(),
+sobre los mismos pliegues con y sin las columnas; el veredicto lo dice el
+arnes y D-39 decide quien escribe. Antes de modelar se cuentan los episodios
+de la ventana contra el minimo de H3.0. Se contrasta ademas el pronostico
+contra CHIRPS plazo por plazo, que nadie ha medido en el canton.
+
+En produccion, trabajos gana un paso: bajar el pronostico de hoy antes de
+generar la matriz. Por primera vez la fila de manana tiene informacion de
+manana.
+
+Criterios escritos antes del codigo en
+docs/evidencias/objetivos/H15.1-criterios-aceptacion.md.
+La hace Alejandro; toca basedatos/ddl/ y backend/etl/, que no son su carpeta, y
+lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E15,S4,OE2,alejandro",S4,alejandro,8,12.5
+H15.2,"H15.2 El clima de la semana en el visor, con la misma honestidad que el riesgo","Epica E15 | 8 puntos | 12.5 h estimadas
+
+Rubrica o objetivo: CG-1
+Depende de: H15.0, H14.2, H5.9
+Sprint: S4 (semanas 10-11)
+
+La primera pantalla dice que riesgo estimamos y no dice que clima viene. Esta
+historia trae el clima de la semana a la misma pantalla, debajo del riesgo y
+separado de el: ""Lo que estimamos"" arriba, ""Lo que dice el pronostico"" abajo.
+
+Tres bloques, los de cualquier app del clima: ahora (temperatura, sensacion,
+el cielo en una palabra, viento, humedad), hoy hora por hora (tira de 24 h) y
+los proximos siete dias (maxima y minima, lluvia en mm y probabilidad, viento,
+indice ultravioleta en palabra, amanecer y atardecer). Un icono nunca va solo.
+Ninguna sigla. Los colores y las palabras del riesgo no se tocan: el
+pronostico usa los neutros del sistema de diseno.
+
+Cada bloque dice de donde sale: modelo europeo (ECMWF, 9 km), centro del
+distrito, hora de emision, datos de Open-Meteo. Si el distrito comparte celda
+con otro, lo dice: ""mismo pronostico que X: a 9 km la malla no los separa"".
+Sin pronostico se dibuja la ausencia; desactualizado se dice con la hora. El
+visor estatico muestra un simulado y lo declara.
+
+Criterios escritos antes del codigo en
+docs/evidencias/computacion-grafica/H15.2-criterios-aceptacion.md.
+La hace Alejandro; toca frontend/, que no es su carpeta, y lo declara en el PR.
+
+Definition of Done:
+- [ ] Criterios de aceptacion verificados por otra persona
+- [ ] Verificado ejecutando, no leyendo
+- [ ] Evidencia archivada en docs/evidencias/
+- [ ] Pull Request hacia dev revisado
+- [ ] Funciona desde docker compose up en maquina limpia","E15,S4,CG-1,CG-4,alejandro",S4,alejandro,8,12.5
