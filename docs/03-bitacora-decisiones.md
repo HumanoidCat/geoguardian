@@ -5532,6 +5532,55 @@ evidencia de **H10.5c**, **H11.6**, **H11.7** y **H14.6**, **H4.4 acotada** y
 **H4.5**, y de las otras personas **H10.9** (el guion de demo y los tres ensayos,
 de Avril) y **H9.2a/H9.2b** (las sesiones de Luna, desbloqueadas desde el 11).
 
+### Justificacion
+
+**El recorte va a ocurrir igual; lo que se elige es si queda escrito.** Diez días
+y 213,5 h abiertas no caben. La única decisión real es si el alcance se retira
+por escrito hoy o se pierde por calendario el 23 sin que nadie pueda decir qué
+pasó. A1.1 ya enseñó el costo de lo segundo: el recorte del 3 de agosto vivió
+tres semanas en un acta de ceremonia hasta que D-27 tuvo que ir a buscarlo.
+
+**Un alcance sin declarar cuesta atención aunque no se trabaje.** Mientras las
+siete sigan sin condición ni fecha, cada revisión del tablero vuelve a
+evaluarlas. Esa atención es exactamente la que el cartel necesita, y el cartel no
+tiene sustituto: es lo único que el jurado ve antes de que alguien hable.
+
+**El criterio de corte es la rúbrica, no el tamaño.** Por eso H4.4 sobrevive
+siendo la historia más cara del backlog (26,4 h) y H14.5 se difiere siendo tres
+veces más barata. Cortar por horas habría hecho lo contrario y habría dejado OE3
+sin cerrar, que es el único daño de esta lista que no se puede reparar después
+del 24.
+
+**Diferir no es lo mismo que descartar, y la diferencia es la condición.** D-27
+fijó el precedente: alcance retirado con condición de reactivación medible y
+momento de evaluación. Sin esas dos cosas, «diferido» es una forma educada de
+decir que no se hizo.
+
+### Alternativas descartadas
+
+**No decidir nada y trabajar hasta donde alcance.** Es lo que pasa por defecto y
+es lo peor: el alcance se recorta igual, pero lo recorta el reloj, y lo que queda
+a medias queda a medias en público. Además obliga a decidir el 23, cansado, que
+es cuando peor se decide.
+
+**Diferir también H4.4 y H4.5, que es lo que más horas libera (31,7 h).** Deja
+OE3 sin historia que lo cierre, con H4.1, H4.2 y H4.3 ya cerradas. Un objetivo
+específico declarado y no cerrado pesa más que siete historias diferidas con
+motivo, y a diferencia de H14.5 no se puede recuperar después de la feria.
+
+**Cerrar H4.4 y H4.5 como están, sin acotarlas.** 31,7 h nominales contra las
+~40 h reales que quedan, compitiendo con el cartel. Acotar H4.4 al contraste
+contra el catálogo de H4.3 conserva lo que la rúbrica pide y lo que la feria
+aprovecha, y suelta el análisis por algoritmo, que el arnés de H3.9 ya publicó.
+
+**Borrar las siete del backlog y cerrar sus issues.** Sube el porcentaje de
+avance sin trabajo, que es precisamente el error que esta decisión existe para no
+cometer. Quedan abiertas.
+
+**Diferir H15.2 pero conservar H15.0 y H15.1.** Tentador porque H15.0 es barata
+(7,8 h), pero H15.0 sola no muestra nada: sirve una ruta que nadie consume. La
+épica entra entera o no entra.
+
 ### Consecuencias
 
 **Las siete historias no se borran del backlog ni se cierran sus issues.** Siguen
@@ -5550,3 +5599,22 @@ error de D-27 por ese otro no vale la pena.
 E15 conserva sus tres issues abiertas (#312, #313, #314) y sus criterios de
 aceptación escritos, que es exactamente lo que D-50 quería: el pronóstico no se
 descarta, se pone en la fila con el trabajo ya hecho por delante.
+
+### Medicion
+
+    Al 2026-09-14, diez dias antes de la feria
+
+    Abierto total           27 historias   136 pts   213,5 h
+      de Alejandro          14 historias    77 pts   137,0 h
+      de las otras tres     13 historias    59 pts    76,5 h
+
+    Se difiere               7 historias    39 pts    60,9 h
+      E15 (H15.0/1/2)        3 historias    21 pts    32,8 h
+      X.2 y X.3 del IEEE     3 historias    13 pts    20,3 h   H3.10, H3.11, H1.16
+      H14.5                  1 historia      5 pts     7,8 h
+
+    No se difiere, por OE3   2 historias    12 pts    31,7 h   H4.4 acotada, H4.5
+
+    Sprint 4 comprometido   de 172 pts a 133 pts · de 35 historias a 28
+
+    Se evalua en la retrospectiva de la semana 12, despues del 24
