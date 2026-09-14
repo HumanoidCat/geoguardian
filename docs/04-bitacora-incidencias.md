@@ -3865,3 +3865,89 @@ servicio nuevo hay que mirarla entera, no solo el codigo de salida.
 escribe por D-34; incendio no corrio esa noche y sus filas siguen terminando el
 2024-12-24, como antes. La corrida siguiente, con la 019 aplicada, es la que
 cierra el CA-5 de H11.7.
+
+---
+
+## I-52 · Una historia figura desbloqueada con una dependencia que nadie escribio, dos veces
+
+**Fecha.** 2026-09-13, sobre hechos del **2026-08-23** y del **2026-09-08**.
+
+**Quien lo detecto.** Luna, las dos veces.
+
+**Que paso.**
+
+*Primera vez, 2026-08-23.* Al cerrar H9.1 el tablero mostro **H9.2b** como
+desbloqueada. Al ir a ejecutarla aparecio que el contraste no mide nada sin
+modelo: sin estimaciones, la frase «el mapa se equivoca en Quebrada Grande» no
+dice nada sobre el sistema. **La dependencia de H3.0 no estaba declarada en
+ningun lado.** Se agrego al backlog y a `docs/tareas/luna.md`.
+
+*Segunda vez, 2026-09-08.* H9.2b volvia a figurar desbloqueada, y esta vez con
+razon aparente: H9.2a y H3.0 cerradas, las dos. Antes de convocar participantes
+se consulto la base en vez de deducirlo del tablero:
+
+    A · analitico.riesgo
+      filas totales: 0
+
+**El codigo que escribe esa tabla existia y estaba cerrado. Nadie lo habia
+corrido.**
+
+**Causa raiz.** El backlog declara dependencias **entre historias**, y una
+historia cerrada garantiza que el **codigo existe**, no que se haya
+**ejecutado**. H3.0 cerrada significa que el etiquetado esta implementado; no
+significa que haya etiquetas escritas en la base.
+
+Entre «la historia esta cerrada» y «el dato esta en la base» hay un paso que el
+backlog **no puede expresar**, porque no es una historia: es un estado del
+sistema.
+
+**Por que la segunda vez es peor que la primera.** La primera fue un **olvido**:
+una dependencia real entre dos historias que nadie escribio al armar el backlog.
+Se corrige escribiendola, y se corrigio.
+
+La segunda no se corrige escribiendo nada, porque **la dependencia no es
+expresable en el formato**. Y se detecto por una sola razon: se consulto la base
+antes de convocar. Sin esa consulta se habria convocado a personas que vivieron
+eventos reales —el temporal de Nate, la sequia de 2014— para contrastar su
+memoria contra **una tabla vacia**. El costo no habria sido de horas: habria sido
+gastar el recurso mas escaso del proyecto, que son participantes dispuestos, en
+una sesion incapaz de medir nada.
+
+**Accion tomada.**
+
+1. **2026-08-23.** Se declaro la dependencia H9.2b → H3.0 en el backlog y en
+   `docs/tareas/luna.md`.
+2. **2026-09-08.** Se midio antes de comprometer, con un guion de solo lectura
+   que declara contra que base mide (**I-38**). Se reporto al PM con la cifra y
+   no con una impresion.
+3. **2026-09-11.** **H11.7** dejo el servicio `trabajos` reescribiendo
+   `analitico.riesgo` todos los dias a las 09:00 UTC. La dependencia deja de ser
+   un estado que alguien tiene que acordarse de producir.
+
+**Aprendizaje.**
+
+> **Una historia cerrada garantiza que el codigo existe, no que se haya corrido.**
+
+Antes de comprometer trabajo que depende de datos —y **sobre todo antes de
+convocar personas**— se consulta el estado real del sistema, no el tablero. El
+tablero dice quien termino que; no dice que hay en la base.
+
+Y el corolario: **una dependencia sobre un estado del sistema no se arregla
+anotandola, se arregla automatizando el estado.** Lo primero deja un recordatorio
+que alguien tiene que leer; lo segundo quita el paso. La solucion real fue H11.7,
+no el renglon que se escribio en agosto.
+
+Es la misma familia que **I-51**: alli un permiso se daba por probado porque
+nadie habia corrido la aplicacion completa con el rol que la aplicacion usa.
+Aqui una dependencia se daba por satisfecha porque nadie habia corrido el codigo
+que la satisface. **En los dos casos lo que faltaba no era codigo: era una
+ejecucion.**
+
+**Impacto.** Ninguna hora de ejecucion perdida: las dos veces se detecto
+**antes** de trabajar, que es el unico motivo por el que esta incidencia se puede
+escribir en tono tranquilo.
+
+Si costo **cinco dias de convocatoria**, entre el reporte del 2026-09-08 y la
+respuesta del 2026-09-13, con la feria del 24 de por medio. Las tres historias
+afectadas —H9.2b, H9.3 y H9.4— suman **16,3 h** y estuvieron en riesgo de no
+entrar al Sprint 4.
