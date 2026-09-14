@@ -714,8 +714,16 @@
     `analitico.riesgo`.
   - Criterios en `docs/evidencias/computacion-grafica/H14.5-criterios-aceptacion.md`.
 
-- [ ] **H14.6** · El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas
+- [x] **H14.6** · El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas (2026-09-14)
   - `E14` · 2 pts · 3.1 h · rubrica: OE2 · depende de: H11.7, H3.6
+  - horas: estimada n/d (no se estimo antes de arrancar) . real 8.0
+  - CA-5 medido en produccion el 2026-09-14: la corrida del cron de las 09:00 UTC
+    escribio **38901** filas de incendio (bajo=28308, alto=10593) con
+    `regresion-logistica@2026-09-14`, el numero que la historia predijo. Y desde
+    fuera: el 2026-07-31 hay nivel en 50804, 50805 y 50806 y ausencia en los otros
+    cinco; el 2026-08-01 y el 2026-09-14, ausencia en los ocho. Era la ultima
+    corrida en la que el criterio se podia medir: H3.9 pasa incendio a la
+    climatologica al llegar a `main`.
   - Las estimaciones de incendio publicadas terminan el **2024-12-24** (I-37, I-48) y no
     es un limite del modelo: `estimar_riesgo` solo extiende las fechas hasta hoy+7 cuando
     el escritor **no** necesita caracteristicas. La regresion logistica recibe las fechas
