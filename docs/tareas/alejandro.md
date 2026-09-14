@@ -598,8 +598,24 @@
   - **Obliga a corregir V-E del documento IEEE**, que declara el contraste de incendio
     «inexistente». Va en H10.5c, no aqui.
 
-- [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
+- [x] **H4.5** · Redactar la respuesta a la pregunta de investigacion (2026-09-14)
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
+  - horas: estimada 5.3 . real 1.0
+  - **Cierra OE3.** Criterios en `H4.5-criterios-aceptacion.md`, escritos antes del texto;
+    respuesta en `H4.5-respuesta-pregunta-investigacion.md`.
+  - La respuesta es **negativa y se publica asi**: los datos abiertos alcanzan para
+    construir el sistema, publicarlo y declarar donde no se sabe; **no** para superar la
+    linea base del calendario (H1 rechazada, VI-B y IX-B) ni para anticipar los eventos
+    con danos mejor que la tasa base del propio escritor (H4.4: 0,90x y 0,63x pareado).
+  - La cadena que deja escrita, y que ninguna seccion del documento decia junta: **el dato
+    no distingue los distritos** (PI1) -> **el modelo no supera al calendario** (PI2) ->
+    **y el calendario no anticipa los eventos que importaron** (H4.4). La etiqueta si los
+    reconoce (PI3, 4,74x).
+  - Contesta la objecion obvia -si la etiqueta los reconoce, ¿como no los anticipa la
+    estimacion?-: miran cosas distintas. El etiquetado usa la lluvia observada de esos
+    dias; la estimacion, solo el mes calendario.
+  - No mide nada nuevo: cada cifra se rastrea a H4.4, H4.4a o a una seccion del documento.
+  - Lista las correcciones que obliga en **VI-C** y **IV-E** del IEEE; las hace H10.5c.
 
 - [x] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real (2026-09-14)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
