@@ -573,8 +573,30 @@
 - [ ] **H10.5c** · Redactar el documento IEEE completo
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
 
-- [ ] **H4.4** · Contrastar estimaciones contra el catalogo y analizar fallos
+- [x] **H4.4** · Contrastar estimaciones contra el catalogo y analizar fallos (2026-09-14)
   - `E4` · 10 pts · 26.4 h · rubrica: OE3 · depende de: H4.3, H3.6 · **bloquea a: H4.5**
+  - horas: estimada 26.4 . real 3.0
+  - **Acotada por D-51**: se contrasta contra el escritor vigente y no se vuelven a
+    comparar algoritmos, que es lo que inflaba la estimacion; el arnes de H3.9 ya
+    publico esa comparacion. Criterios en `H4.4-criterios-aceptacion.md` (PR #326),
+    escritos antes del codigo.
+  - **El resultado:** la estimacion publicada de lluvia intensa **no distingue un dia
+    con evento de cualquier otro dia del mismo mes**. Anticipo 8 de 34 (23,5 %) contra
+    una tasa base de 26,0 % del mismo escritor: **realce 0,90x**, y **0,63x** pareado
+    por mes (8 observados contra 12,8 esperados, z = -1,79). Veintiuno de los 34
+    quedaron en `medio`.
+  - **Cinco eventos con danos cayeron en celdas con P(alto) = 0**, donde el etiquetado
+    nunca marco alto en ese distrito y ese mes. Cuatro son de mayo.
+  - **El incendio si se pudo contrastar**, al reves de lo que concluyo H4.4a: contra el
+    etiquetado era imposible (FIRMS termina en 2024), contra las estimaciones no, porque
+    desde H14.6 el escritor proyecta. Acerto 1 de 1 **y no vale**: en abril ese escritor
+    dice `alto` en el 100 % de las celdas con estimacion, realce pareado 1,00x.
+  - Seis de los ocho aciertos son de dos temporales que afectaron varios distritos el
+    mismo dia: son tres episodios, no ocho aciertos independientes.
+  - Herramienta `backend/modelado/contrastar_estimaciones.py`, contra la API publicada y
+    sin credenciales; 13 pruebas en el CI, incluido el sabotaje que rompe CA-6.
+  - **Obliga a corregir V-E del documento IEEE**, que declara el contraste de incendio
+    «inexistente». Va en H10.5c, no aqui.
 
 - [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
