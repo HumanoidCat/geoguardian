@@ -3951,3 +3951,90 @@ Si costo **cinco dias de convocatoria**, entre el reporte del 2026-09-08 y la
 respuesta del 2026-09-13, con la feria del 24 de por medio. Las tres historias
 afectadas —H9.2b, H9.3 y H9.4— suman **16,3 h** y estuvieron en riesgo de no
 entrar al Sprint 4.
+
+---
+
+## I-53 · La funcion escrita para declarar la procedencia declaro una procedencia falsa
+
+**Fecha.** 2026-09-13
+
+**Quien lo detecto.** Luna, al correr el diagnostico de H12.4 contra la base con
+`docker compose ps` a la vista.
+
+**Que paso.** El 2026-09-08, `diagnostico_sprint4.py` imprimio:
+
+    base LOCAL: geoguardian en localhost:5432
+
+Sobre esa linea se «corrigio» la evidencia de H4.2, que decia `5433`, y se
+escribio ademas que el puerto se habia puesto **de memoria**.
+
+El 2026-09-13, el modulo de H12.4 —que vive dentro del repositorio— imprimio
+`localhost:5433`. Y las dos fuentes de verdad coinciden con eso:
+
+    docker compose ps           ->  geoguardian-db  0.0.0.0:5433->5432/tcp
+    findstr POSTGRES_PORT .env  ->  POSTGRES_PORT=5433
+
+**El valor original era el correcto. La correccion era el error.**
+
+**Causa raiz.** `_contra_que_base()` llamaba a `load_dotenv()` sin argumentos y
+despues releia `os.getenv("POSTGRES_PORT") or "5432"` por su cuenta.
+
+`find_dotenv()` busca el `.env` **desde el directorio del archivo que llama**,
+hacia arriba. Los once guiones de sonda viven fuera del repositorio, y por esa
+rama del arbol no hay ningun `.env`. La variable salia vacia y el codigo caia a
+su valor por defecto.
+
+La conexion funcionaba igual, porque `cadena_conexion()` esta en
+`basedatos/conexion.py`, dentro del repo, y su propio `load_dotenv()` si
+encuentra el archivo. Pero **`_contra_que_base()` se imprime antes de
+`conectar()`**: la linea de procedencia salia del defecto y el resto del guion
+trabajaba contra la base correcta.
+
+**El defecto no estaba en lo que la funcion hacia, sino en donde vivia el archivo
+que la llamaba.** Dos copias identicas del mismo codigo dan respuestas distintas
+segun su ruta.
+
+**Por que es peor que las tres veces anteriores.** `_contra_que_base()` se
+escribio el 2026-09-07 **para cumplir I-38**, despues de que un informe de CHIRPS
+no declarara contra que base media. Es el remedio contra declarar mal la
+procedencia, declarando mal la procedencia.
+
+Y las tres anteriores —las 1968 filas de `medicion_diaria`, el informe de CHIRPS
+y el puerto— fueron datos escritos **de memoria**. Esta salio de **un guion que
+se ejecuto**, que es justamente lo que se habia puesto como remedio. Una cifra
+que viene de una corrida **no se vuelve a cuestionar**, y por eso esta alcanzo a
+provocar una correccion falsa sobre un documento que estaba bien.
+
+**Accion tomada.**
+
+1. El commit `4f4da64` de `feature/lal-h4.2-shap` **se revirtio antes del
+   merge** (`1422c82`). En `dev` los dos documentos de H4.2 nunca dejaron de
+   decir `5433`: ninguna cifra equivocada llego a la rama principal.
+2. `_contra_que_base()` en `backend/calidad/diagnostico_bitacora.py` **ya no lee
+   variables de entorno**: toma host, puerto y base de lo que devuelve
+   `cadena_conexion()`, descartando la contrasena. Es correcta **por
+   construccion**, no por vivir en el lugar adecuado.
+3. Los once guiones de sonda de fuera del repositorio quedan **marcados como no
+   fiables para declarar procedencia**. Ninguna evidencia debe apoyarse en su
+   linea de procedencia sin contrastarla contra `docker compose ps`.
+
+**Aprendizaje.**
+
+> **Una funcion que declara la procedencia no puede tener su propia idea de cual
+> es. Le pregunta al mismo codigo que abre la conexion.**
+
+Y la de fondo, que vale para todo el proyecto:
+
+> **Un valor por defecto silencioso convierte «no encontre el dato» en «el dato
+> es este».**
+
+`os.getenv("POSTGRES_PORT") or "5432"` no distingue «no hay `.env`» de «el `.env`
+dice 5432», y las dos salen impresas con el mismo tono. Es la misma forma que
+**D-07** persigue en los datos —la ausencia no se rellena con un valor
+plausible— aparecida en la configuracion.
+
+**Impacto.** Una correccion falsa escrita en dos documentos de H4.2, en una rama,
+**detenida antes del merge**. Costo el tiempo de escribirla y el de deshacerla,
+mas un aviso al PM diciendo que lo que se le habia anunciado como error no lo
+era. Y una comprobacion de menos en el repertorio: durante cinco dias se creyo
+que esa linea de procedencia era confiable.
