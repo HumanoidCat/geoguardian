@@ -5514,6 +5514,12 @@ porque lo construyó.
 Se evalúa en la **retrospectiva de la semana 12**, después de la feria. Una
 historia diferida reabre solo si se cumplen las tres:
 
+> **Enmendado por D-52 el 2026-09-14.** Este proyecto no tiene retrospectivas:
+> la condición remitía a un momento que no existe y por eso nadie podía
+> evaluarla. Se evalúa **por escrito en esta bitácora el 2026-09-25**. D-52
+> también invierte la condición 1 —el cartel se cierra al final, no antes— y
+> fija el orden y el corte de la reactivación.
+
 1. **El cartel (H10.6) está cerrado con evidencia**, incluidos los defectos que
    su evidencia abierta ya nombra: el QR del repositorio, «trabajo futuro» y el
    cuerpo a 28 pt.
@@ -5620,3 +5626,127 @@ descarta, se pone en la fila con el trabajo ya hecho por delante.
     Sprint 4 comprometido   de 172 pts a 133 pts · de 35 historias a 28
 
     Se evalua en la retrospectiva de la semana 12, despues del 24
+    Corregido por D-52 el 2026-09-14: por escrito en esta bitacora el 25
+
+---
+
+## D-52 · Las siete historias diferidas por D-51 se reactivan en orden, con corte de fecha, y la condición deja de citar una ceremonia que no existe
+
+**Fecha.** 2026-09-14. **Historias.** H15.0, H15.1, H15.2, H3.10, H3.11, H1.16, H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-51 (la enmienda), D-50 (los dos usos del pronóstico no se mezclan), D-27 (alcance diferido con condición de reactivación medible).
+
+### Contexto
+
+D-51 difirió siete historias hoy mismo y fijó que su reactivación se
+evaluaría «en la retrospectiva de la semana 12». **Ese momento no existe: este
+proyecto no tiene retrospectivas.** Una condición que remite a una reunión que
+nunca va a ocurrir es una condición que nadie puede evaluar, y por lo tanto no
+es una condición: es una forma educada de decir que no se hizo. Es el mismo
+defecto que D-27 corrigió en A1.1 —alcance retirado sin registro consultable—,
+con otra forma.
+
+Además el PM decide, el mismo día, intentar las siete antes de la feria. Eso no
+invalida la aritmética de D-51: siguen sin caber las 213,5 h en diez días. Por
+eso esta decisión **no levanta el diferimiento**, lo ordena y le pone fecha.
+
+Al escribirse, **H11.6 ya está cerrada** con sus dos apagones medidos en
+producción y su costo contra la página de uso (PR #324). Quedan como
+prerrequisito H11.7, H4.4 y H4.5.
+
+### Decision
+
+**1. La condición de D-51 se corrige.** Donde decía «se evalúa en la
+retrospectiva de la semana 12» se lee: **se evalúa por escrito en esta
+bitácora**, en la fecha que fija el punto 3. D-51 queda anotada en sus dos
+apariciones —el punto 3 de su decisión y la última línea de su medición— con la
+fecha de esta enmienda. No se le borra una palabra: la historia de lo que se
+se decidió hoy se conserva.
+
+**2. Se reactivan en un orden fijo y de a una.** Cada historia arranca solo
+cuando la anterior está fusionada en `dev`:
+
+    H14.5  ->  H1.16  ->  H3.11  ->  H15.0  ->  H15.2  ->  H15.1  ->  H3.10
+
+El orden pone primero lo que se ve el 24 (H14.5, la tarjeta de sequía), después
+lo que cambia una frase del documento IEEE (H1.16 habilita a H3.11, que convierte
+«9 episodios, no modelable» en una frase medida sobre 75 años), y al final lo que
+obliga a volver a medir el modelo.
+
+**3. Corte.** Lo que no esté fusionado en `dev` **al terminar el 2026-09-22**
+queda diferido exactamente como lo dejó D-51. Se evalúa el **2026-09-25**, el día
+después de la feria, con una enmienda fechada en esta bitácora. El 23 queda para
+el cartel y nada más.
+
+**4. Las condiciones 2 y 3 de D-51 se mantienen como prerrequisito:** ninguna de
+las siete arranca antes de que **H11.7, H4.4 y H4.5** estén en `dev`. H11.6 ya lo
+está.
+
+**La condición 1 se invierte.** D-51 pedía el cartel cerrado antes de reabrir
+nada; aquí el cartel (H10.6) se cierra **al final**. El cartel describe el
+sistema que existe: cerrarlo antes de H14.5 o H15.2 y después cambiar el visor
+lo dejaría desactualizado el día que se cuelga en la pared, que es el único día
+que importa.
+
+**5. E15 puede entrar parcial.** D-51 decía «la épica entra entera o no entra».
+Se matiza por D-50, que separa dos usos que no se mezclan: **H15.0 + H15.2 es el
+uso del visor** y vale solo —la API sirve el pronóstico y la pantalla lo
+muestra—; **H15.1 es el uso del modelo** y sin H15.0 no existe. H15.1 sola no
+entra, y el argumento de D-51 —«H15.0 sola no muestra nada»— se sostiene solo
+para H15.0 sin H15.2.
+
+### Justificacion
+
+**Una condición evaluable vale más que una condición estricta.** D-51 era
+estricta en el momento equivocado: fijó una reunión inexistente. Ponerle fecha y
+registro la hace cumplible sin tocar su fondo, que sigue siendo correcto.
+
+**El orden protege lo que la rúbrica mide.** Primero los cierres de evidencia y
+OE3, que son prerrequisito; después lo que se ve; al final lo que hay que
+remedir. El corte del 22 existe para que la decisión de parar no se tome el 23
+por cansancio, que es cuando peor se decide —el mismo argumento con el que D-51
+se escribió hoy y no el 23.
+
+**Diferir sigue sin ser descartar, y ahora se puede comprobar.** D-27 fijó el
+precedente: condición medible y momento de evaluación. D-51 tenía la primera y
+le faltaba el segundo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| **Ignorar D-51 y trabajar las siete** | Deja una decisión aceptada contradicha por los hechos, sin registro de por qué. Es exactamente lo que D-27 existe para no repetir |
+| **Derogar D-51** | Su aritmética sigue siendo cierta: 213,5 h no caben en diez días. Derogarla diría que cabe todo, y el 23 alguien descubriría que no |
+| **Corregir solo la palabra «retrospectiva»** | Arregla la condición y deja sin escribir que hoy se decidió intentarlas. Es la mitad del registro, y la mitad que no se escribe es la que nadie recuerda |
+| **Fijar el corte el 23 en vez del 22** | Gana un día de trabajo y pierde el día del cartel. El cartel no tiene sustituto: es lo único que el jurado ve antes de que alguien hable |
+| **Reactivar las siete en paralelo, sin orden** | Siete frentes abiertos a diez días es la forma más segura de que ninguno cierre. De a una, cada historia fusionada es una ganancia que no se pierde si el reloj gana |
+
+### Consecuencias
+
+**`backlog.csv` no se toca.** Las siete siguen en el Sprint 4 con sus puntos y
+sus issues abiertas (#312, #313, #314, #298, #300, #299, #301), igual que las
+dejó D-51.
+
+**Cuando se informe el avance hay que decir las dos cifras de D-51** —133 puntos
+comprometidos para el 24 y 39 con fecha de revisión— hasta que el corte del 22
+diga cuántos de esos 39 entraron de verdad. Informar solo el total subiría el
+porcentaje sin trabajo nuevo, que es el error que D-51 evitó y que esta decisión
+no debe reintroducir por la puerta de atrás.
+
+**Se pierde una cosa y conviene escribirla:** el cartel deja de ser la primera
+condición y pasa a ser lo último que se toca. Si el 23 el cartel encuentra un
+problema grande —el QR, las figuras a 300 ppi, el cuerpo a 28 pt—, ya no queda
+margen detrás. Es el riesgo que se acepta a cambio de que el cartel describa el
+sistema que de verdad se va a mostrar.
+
+### Medicion
+
+    Al 2026-09-14, diez dias antes de la feria
+
+    Reactivadas en orden      7 historias   39 pts   60,9 h
+    Prerrequisito             H11.7, H4.4, H4.5   (H11.6 cerrada el 2026-09-14)
+    Orden                     H14.5, H1.16, H3.11, H15.0, H15.2, H15.1, H3.10
+    Corte                     2026-09-22 al cierre del dia
+    Evaluacion de lo diferido 2026-09-25, por escrito en docs/03
+
+    Avance al escribirse      79 de 103 historias   401 de 514 pts (78,0 %)
