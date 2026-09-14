@@ -5,11 +5,11 @@ author:
   - "Luis Alejandro Luna García"
   - "Avril Madrigal Elizondo"
 institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
-date: "30 de agosto de 2026"
+date: "10 de septiembre de 2026"
 lang: es
 ---
 
-# Estimación de riesgo climático por distrito con datos abiertos: el caso del cantón de Tilarán, Costa Rica
+# ¿Bastan los datos abiertos para estimar riesgo climático por distrito? Un estudio de caso en el cantón de Tilarán, Costa Rica
 
 ::: no-entregable
 
@@ -20,41 +20,34 @@ lang: es
 
 > ## Estado de este documento
 >
-> **Borrador de trabajo, 26 de agosto de 2026.** Contiene las secciones que ya no
-> van a cambiar y **declara vacías las que dependen de resultados que todavía no
-> existen**.
+> **Versión de entrega, 10 de septiembre de 2026.** Reescrito sobre la versión
+> del 30 de agosto para incorporar la retroalimentación docente del 27 de agosto
+> (`docs/evidencias/entregables/retroalimentacion-docente-2026-08-27.md`) y los
+> resultados cerrados desde entonces: los tres algoritmos entrenados y afinados
+> (H3.3 a H3.8), la decisión de modelabilidad de la sequía (D-34), la regla de
+> escritura (D-39, D-42), la importancia de variables y las explicaciones
+> locales (H4.1, H4.2) y el despliegue público con datos reales.
 >
-> | Sección | Estado |
+> **Qué cambió respecto de la versión anterior, y por qué:**
+>
+> | Cambio | Motivo |
 > |---|---|
-> | I. Introducción | Redactada |
-> | II. Trabajo relacionado | Redactada, sobre H10.5a y H10.5b |
-> | III. Metodología | Redactada. **Ampliada el 26 de agosto** con el etiquetado, la partición y las dos líneas base |
-> | IV. Arquitectura | Redactada |
-> | V. Hallazgos sobre disponibilidad de datos | **Redactada. Es el aporte que ya existe.** Siete subsecciones desde el 26 de agosto |
-> | VI. Resultados | **Parcial desde el 27 de agosto.** Seis subsecciones con lo medido; VI-E declara lo que falta y VI-F trae la validación externa contra 46 eventos reales |
-> | VII. Discusión | **Vacía. Necesita los tres algoritmos (H3.3 a H3.5)** |
-> | VIII. Limitaciones | Redactada, se amplía con resultados |
-> | IX. Conclusiones | **Redactada el 27 de agosto** sobre lo medido. Cinco subsecciones; IX-E declara lo que falta |
+> | Tres preguntas de investigación numeradas, y cada una se responde en VI | «Plantear preguntas de investigación y responderlas en el desarrollo» |
+> | Introducciones en II y en I-C | Pedidas el 27 de agosto |
+> | La metodología abre diciendo cómo resuelve el problema de I-A | «Metodología = cómo vamos a resolver el problema» |
+> | Se retiró la sección de arquitectura, la verificación continua y el anexo de procedencia de cifras | «Documentación técnica no va en IEEE». Están en `docs/17-documento-tecnico.md` |
+> | Seis figuras, cada una con su tabla y referida desde el texto | «Tabular los datos para hacer los gráficos», «poner ver figura tal» |
+> | La hipótesis H1 se reporta **rechazada** con la medición cerrada | «No mostrar avances donde no hemos llegado». Ningún algoritmo supera a la línea base fuera del ruido |
+> | Conclusiones reescritas desde lo medido; el trabajo futuro va aparte | «La conclusión sale de la investigación realizada» |
 >
-> **Qué cambió el 26 de agosto.** Cerraron el etiquetado de la variable objetivo,
-> la partición temporal y las dos líneas base. La sección III describía un
-> modelado que todavía no existía cuando se escribió, y en particular decía «una
-> línea base climatológica» cuando son dos. La sección V ganó el hallazgo G, que
-> es el más generalizable de todos los que trae este trabajo.
+> **Lo que este documento NO afirma, a propósito.** No reporta la medición
+> exploratoria de H3.9 (calendario y geografía en la matriz), porque la historia
+> está abierta y no está en producción. Cuando cierre, entra a V-D con su tabla.
 >
-> **Y desde hoy las cifras de este documento las cruza una máquina.** Era el único
-> documento del proyecto sin ese control, y ocho días bastaron para que **cinco de
-> sus cifras dejaran de ser ciertas**. El anexo del final ya no es una promesa:
-> cada número que declara lo comprueba `verificar_documentacion.py` en cada
-> ejecución del pipeline.
->
-> Las secciones vacías declaran **qué van a contener y qué hace falta para
-> escribirlas**. Un apartado en blanco sin explicación es indistinguible de un
-> olvido.
->
-> **Ninguna cifra de este documento está escrita de memoria.** Todas salen de una
-> herramienta del repositorio o de una fuente citada, y la sección de verificación
-> al final dice de cuál.
+> **Las cifras.** Las que la integración continua puede recalcular las vigila
+> `verificar_documentacion.py`. Las que salen del conjunto etiquetado —que no se
+> versiona— están transcritas de las evidencias que se citan al pie de cada
+> tabla, y las dos figuras nuevas se dibujan desde `docs/figuras/datos/`.
 
 :::
 
@@ -62,32 +55,79 @@ lang: es
 
 ## Resumen
 
-Se presenta el diseño y la construcción de un sistema de estimación de riesgo
-climático a escala distrital para el cantón de Tilarán, Guanacaste, Costa Rica,
-construido exclusivamente sobre datos abiertos. El sistema estima tres eventos
-—lluvia intensa, sequía e incendio forestal— para cada uno de los ocho distritos
-del cantón, a un horizonte de siete días, comparando tres algoritmos de
-aprendizaje supervisado contra una línea base climatológica bajo validación
-temporal por ventana expansiva.
+Este trabajo pregunta si los datos climáticos y satelitales de acceso abierto
+bastan para estimar el nivel de riesgo de lluvia intensa, sequía e incendio
+forestal **por distrito** en el cantón de Tilarán, Guanacaste, Costa Rica, a un
+horizonte de siete días. Se construyó un sistema completo sobre esas fuentes
+—precipitación de CHIRPS, reanálisis de NASA POWER, focos de calor de FIRMS y
+geometrías oficiales del SNIT—, se etiquetó la variable objetivo con umbrales
+tomados de estándares publicados, se validó ese etiquetado contra 46 eventos
+históricos con daños documentados, y se compararon tres algoritmos supervisados
+—regresión logística, Random Forest y XGBoost— contra dos líneas base bajo
+validación temporal por ventana expansiva, con F1-macro como métrica y con la
+regla de decisión fijada antes de entrenar.
 
-El trabajo reporta, además del sistema, **seis hallazgos medidos sobre la
-disponibilidad y la aptitud de los datos abiertos globales a escala cantonal**,
-obtenidos durante la construcción y verificados con herramientas que se publican
-con el proyecto. Cuatro de esos hallazgos habrían producido resultados
-aparentemente válidos y silenciosamente incorrectos.
+Los resultados responden en tres planos. Primero, cuatro de las cinco variables
+climáticas consideradas **no distinguen distritos**: la celda del reanálisis
+global cubre el cantón entero, y solo la precipitación cae en una celda distinta
+por distrito. Segundo, la hipótesis de que un modelo supervisado supera a la
+línea base climatológica **se rechaza**: sobre 99 296 filas y 34 años, ningún
+algoritmo la supera fuera de la dispersión entre pliegues en lluvia intensa ni
+en incendio, y la sequía no alcanza el mínimo de episodios independientes que
+el propio diseño exigía para modelarse (13 episodios en 34 años, 2 en el peor
+pliegue). Tercero, el etiquetado sí reconoce los eventos reales: marca riesgo
+en la semana previa a un evento histórico 4,74 veces más a menudo que en una
+semana cualquiera en lluvia intensa y 6,31 veces en sequía.
+
+El aporte no es el modelo, que no gana: es la medición de por qué no gana, con
+siete hallazgos sobre la aptitud de los datos abiertos globales a escala
+cantonal, cuatro de los cuales habrían producido resultados aparentemente
+válidos y silenciosamente incorrectos. El sistema está publicado con datos
+reales y sirve, para lluvia intensa e incendio, la estimación del estimador
+más simple que la medición no pudo distinguir de los demás.
 
 *Palabras clave:* riesgo climático, datos abiertos, aprendizaje automático,
-resolución espacial, SPI, Costa Rica.
+línea base climatológica, resolución espacial, SPI, validación temporal, Costa
+Rica.
 
 ---
 
 ## I. Introducción
 
-### A. Problema
+### A. Definición del problema
 
-El 5 de octubre de 2017, la tormenta tropical Nate cruzó el cantón de Tilarán.
-Los siete distritos con registro reportaron daños **ese mismo día**, y lo que
-reportaron no se parece:
+**Contexto.** El cantón de Tilarán, en la vertiente del embalse Arenal, tiene
+un régimen de precipitación abundante que lo distingue del resto de Guanacaste,
+y tres afectaciones recurrentes: la lluvia intensa, que satura el suelo,
+provoca deslizamientos y corta caminos rurales; el déficit hídrico de la
+estación seca; y los incendios forestales que la acompañan. Las decisiones que
+esos eventos exigen —evacuar, cerrar un paso, mover ganado, adelantar una
+cosecha, asignar cuadrillas— las toman la Municipalidad, su Comité Municipal
+de Emergencias y los productores, **y las toman por distrito**, porque el
+cantón tiene ocho distritos con relieve, uso del suelo y exposición distintos.
+
+**El problema.** La información para anticipar esos eventos existe y es
+pública: series climáticas de reanálisis, precipitación satelital, detección
+de focos de calor y los registros históricos de daños. Pero llega en tres
+condiciones que la vuelven inutilizable para decidir por distrito. Primero,
+**está dispersa** entre instituciones y formatos, sin un tratamiento que la
+traduzca a una respuesta concreta: qué tan expuesto está cada distrito esta
+semana. Segundo, **los avisos operativos se emiten a escala nacional o
+regional** (sección II), de modo que un valor único para todo el cantón es a la
+vez exagerado para unos distritos e insuficiente para otros. Tercero, **las
+fuentes abiertas de cobertura global se distribuyen en celdas más grandes que
+un distrito de Tilarán**, así que ni siquiera está establecido que contengan la
+diferencia entre distritos que se necesita. La consecuencia es operativa: sin
+una lectura anticipada y desagregada, la respuesta institucional se activa
+cuando el evento ya ocurrió.
+
+**Evidencia de que la escala importa.** El 5 de octubre de 2017 la tormenta
+tropical Nate cruzó el cantón. Los siete distritos con registro reportaron
+daños **ese mismo día**, y lo que reportaron no se parece (Tabla I).
+
+**Tabla I.** Daños por distrito el 5 de octubre de 2017, tormenta tropical Nate.
+Fuente: catálogo de eventos históricos de este trabajo, compilado desde
+DesInventar Costa Rica `[37]`.
 
 | Distrito | Daño principal | Pérdidas |
 |---|---|---|
@@ -99,71 +139,92 @@ reportaron no se parece:
 | Arenal | socavación de calzada, cuatro fincas de ganado | **1 808 USD** |
 | Líbano | cortes totales de carretera por socavación | 15 400 m de vía |
 
-En total, **1,26 millones de dólares y 223 km de vías dañadas en un día**. Y
-entre el distrito más afectado y el menos afectado hay un factor de
+En total, **1,26 millones de dólares y 223 km de vías dañadas en un día**, y
+entre el distrito más afectado y el menos afectado un factor de
 **cuatrocientos**, que la Fig. 1 hace visible en escala logarítmica: en escala
-lineal seis de las siete barras quedan pegadas al cero y se pierde justamente lo
-que importa, que es el rango.
+lineal seis de las siete barras quedan pegadas al cero y se pierde justamente
+lo que importa, que es el rango. El Instituto Meteorológico Nacional emitió
+aviso; lo que ese aviso no podía decir es que en Quebrada Grande había que
+mover ganado lechero y en Arenal vigilar una calzada.
 
 ![Pérdidas por distrito el 5 de octubre de 2017, tormenta tropical Nate](figuras/nate-por-distrito.png)
 
-Líbano no aparece en la figura porque su ficha reporta el daño en metros de vía
-—15 400— y no en dólares. Reportó ese mismo día, como los demás.
+**Fig. 1.** Pérdidas por distrito el 5 de octubre de 2017, en escala logarítmica.
+Datos de la Tabla I. Líbano no aparece porque su ficha reporta el daño en metros
+de vía y no en dólares; Cabeceras no tiene ficha para este evento, y la ausencia
+de ficha es ausencia de reporte, no de lluvia (ver VIII-C).
 
-Y son **siete distritos y no ocho**: Cabeceras no tiene ficha para este evento.
-Eso no significa que no le pasara nada. El catálogo registra daño que alguien
-reportó, y la ausencia de ficha es ausencia de reporte, no de lluvia. Es la misma
-advertencia de la sección VIII-bis-C, aplicada al caso que abre el documento.
+No es un evento aislado. El catálogo de este trabajo reúne **46 registros de 29
+eventos con daños documentados en Tilarán entre 1970 y 2026**, incluido un
+fallecido por deslizamiento en Río Chiquito en 1976, y los siete distritos con
+registro aparecen en él.
 
-Ahí está el problema, y no es la falta de un pronóstico. El Instituto
-Meteorológico Nacional emitió aviso; lo que ese aviso no podía decir es que en
-Quebrada Grande había que mover ganado lechero y en Arenal vigilar una calzada.
-**Un valor único para todo el cantón es simultáneamente exagerado para unos
-distritos e insuficiente para otros**, y quien decide —evacuar, cerrar un paso,
-adelantar una cosecha— decide por distrito.
+**Enunciado.** El problema que este trabajo aborda no es la falta de datos ni la
+falta de un pronóstico, sino **la ausencia de un método reproducible que
+integre las fuentes abiertas disponibles y las traduzca a un nivel de riesgo por
+distrito y por semana, y la incertidumbre previa sobre si esas fuentes tienen la
+resolución para hacerlo**. Los beneficiarios directos son la Municipalidad de
+Tilarán y su Comité Municipal de Emergencias; los indirectos, los productores
+agropecuarios y las asociaciones de acueductos comunales del cantón. El problema
+tiene, entonces, tres partes que hay que separar y responder por su cuenta: si
+el dato *resuelve* el distrito, si un modelo *aprende* algo que el calendario
+no diga ya, y si la variable objetivo con la que se entrena *reconoce* los
+eventos que de verdad ocurrieron.
 
-No es un evento aislado. El catálogo de este trabajo reúne **46 eventos con
-daños documentados en Tilarán entre 1970 y 2026**, incluido un fallecido por
-deslizamiento en Río Chiquito en 1976. Los siete distritos aparecen.
+### B. Preguntas de investigación e hipótesis
 
-Las herramientas de alerta disponibles operan a escala nacional o regional. La
-pregunta de este proyecto no es si se puede estimar riesgo climático —eso está
-resuelto— sino **si esa estimación se puede llevar hasta el distrito, para un
-cantón concreto, usando únicamente datos abiertos y sin infraestructura de
-observación propia**.
+La pregunta general es:
 
-Y hay una razón para dudar antes de empezar, que es la que vuelve interesante la
-pregunta: **los datos abiertos globales se distribuyen en celdas más grandes que
-un distrito de Tilarán.** Si la fuente no distingue lo que hay que distinguir,
-ningún modelo lo recupera. La sección V lo mide.
+> ¿En qué medida permiten los datos climáticos y satelitales de acceso abierto
+> estimar el nivel de riesgo de lluvia intensa, sequía e incendio forestal por
+> distrito en el cantón de Tilarán, con un desempeño superior al de una línea
+> base climatológica?
 
-### B. Pregunta de investigación
+Se descompone en tres preguntas, cada una con una sección que la responde:
 
-> ¿Permiten los datos abiertos globales disponibles estimar el nivel de riesgo de
-> lluvia intensa, sequía e incendio forestal **por distrito** en el cantón de
-> Tilarán, con un desempeño superior al de una línea base climatológica?
+- **PI1.** ¿Distinguen las fuentes abiertas globales entre los ocho distritos
+  del cantón? Es una pregunta sobre el dato, anterior a cualquier modelo. Se
+  responde en la sección IV y se discute en VI-A.
+- **PI2.** ¿Supera un modelo supervisado, entrenado sobre variables derivadas de
+  esas fuentes, a una línea base construida solo con el calendario? Se responde
+  en V-B a V-F y se discute en VI-B.
+- **PI3.** ¿Reconoce la variable objetivo —construida con umbrales publicados—
+  los eventos con daños que ocurrieron de verdad en el cantón? Se responde en V-G
+  y se discute en VI-C.
 
-La pregunta está formulada de modo que **las dos respuestas son informativas**. Si
-los modelos superan la línea base, el resultado es un sistema utilizable. Si no la
-superan, el resultado es que los datos abiertos globales no bastan a escala
-cantonal, y eso responde igual de bien.
+**Hipótesis H1.** Un modelo supervisado entrenado sobre variables derivadas de
+fuentes abiertas alcanza un F1-macro superior al de una línea base construida a
+partir de la normal climatológica 1991–2020, a un horizonte de siete días.
 
-Esa simetría no es retórica: la sección V muestra que parte de la respuesta
-negativa **ya está medida**, antes de entrenar ningún modelo.
+La hipótesis se declaró **refutable por diseño** antes de entrenar: se fijó la
+métrica, la partición temporal, la regla que decide cuándo una diferencia cuenta
+y el mínimo de datos por debajo del cual un evento no se modela. Con eso, las
+dos respuestas son informativas. Si los modelos superan la línea base, el
+resultado es un sistema utilizable. Si no la superan, el resultado es que en
+este cantón y a siete días la estacionalidad explica casi todo lo que estas
+fuentes permiten explicar, y eso responde igual de bien.
 
-### C. Aporte
+### C. Aportes
 
-El trabajo aporta en tres planos que conviene distinguir, porque tienen distinto
-grado de madurez: uno de ingeniería, que está construido y desplegado; uno
-empírico, que está medido y es el que ya se sostiene solo; y uno comparativo, que
-tiene fijado el método y espera los modelos.
+Los aportes se separan en tres planos porque tienen distinta naturaleza: uno es
+un artefacto, otro es una medición sobre los datos y el tercero es un resultado
+experimental. Conviene no confundirlos, porque el segundo se sostiene con
+independencia del tercero.
 
-1. Un sistema completo, reproducible y desplegable, construido sobre datos
-   abiertos y publicado con su procedencia.
-2. Seis hallazgos medidos sobre la aptitud de esos datos a escala cantonal, con
-   las herramientas que los producen.
-3. Una comparación de tres algoritmos contra una línea base climatológica bajo
-   validación temporal estricta, para tres eventos distintos.
+1. **Un sistema completo, reproducible y publicado**, construido exclusivamente
+   sobre datos abiertos, que sirve por distrito y por día la estimación del
+   estimador que la medición eligió, y que declara cuándo no tiene estimación en
+   vez de rellenarla. Su arquitectura, tecnologías, verificación y despliegue
+   están en la documentación técnica que acompaña a este artículo `[38]`; aquí
+   solo entra lo que hace falta para entender la medición.
+2. **Siete hallazgos medidos sobre la aptitud de los datos abiertos globales a
+   escala cantonal** (sección IV), con las herramientas que los producen. Cuatro
+   de ellos habrían producido resultados con forma válida y contenido
+   equivocado.
+3. **Una comparación de tres algoritmos contra dos líneas base bajo validación
+   temporal estricta, con la regla de decisión fijada antes de entrenar**, cuyo
+   resultado es negativo y se reporta como tal (sección V), junto con una
+   validación externa del etiquetado que no requiere modelo (V-G).
 
 ---
 
@@ -173,7 +234,10 @@ Esta sección sitúa el trabajo en tres coordenadas: qué sistema opera hoy en C
 Rica para el evento mejor cubierto, qué se ha establecido sobre el fenómeno más
 estudiado de la región, y qué queda sin ocupar entre ambos. El orden es
 deliberado: primero lo que existe y funciona, después lo que la literatura da por
-resuelto, y solo al final el vacío que este trabajo aborda.
+resuelto, y solo al final el vacío que este trabajo aborda. La revisión cubrió
+literatura indexada y tesis de posgrado del país, y cada referencia entró con su
+contenido verificado; este documento cita las que sostienen una afirmación
+concreta.
 
 ### A. Existe un sistema nacional, y declara sus límites
 
@@ -191,15 +255,23 @@ Un índice meteorológico de peligro no es una estimación de riesgo, y al depen
 estaciones no produce un valor por distrito. Son cosas distintas.
 
 **Y no las reemplaza.** El SATIF lleva cinco años operando con respaldo
-institucional; este proyecto es un prototipo de un trimestre sin validación
-externa. La comparación honesta es de naturaleza, no de calidad.
+institucional; este proyecto es un prototipo de un trimestre. La comparación
+honesta es de naturaleza, no de calidad.
 
 ### B. La sequía en el Pacífico Norte está estudiada
 
 El Centro de Investigaciones Geofísicas de la Universidad de Costa Rica tiene
 trabajo sostenido sobre sequía en Guanacaste, y el SPI está establecido como el
-índice pertinente para la región `[15]`. Este proyecto no discute esa elección: la
-adopta.
+índice pertinente para la región `[15]`. Ese trabajo asocia índices de sequía con
+impactos socioproductivos en tres cantones de la provincia usando, entre otras
+fuentes, el mismo inventario de desastres que emplea este proyecto. Este
+proyecto no discute esa elección de índice: la adopta, y toma de `[15]` la
+escala de seis meses como la que mejor representa la estación lluviosa de la
+vertiente del Pacífico.
+
+Sobre la relación entre el ENOS y la precipitación del Área de Conservación
+Guanacaste existe además evidencia regional `[16]`, que este trabajo no
+incorpora al modelado y anota como línea futura (sección X).
 
 ### C. Ya existe estimación de riesgo por distrito en Costa Rica
 
@@ -216,7 +288,7 @@ De ese trabajo se toman dos resultados que este proyecto no vuelve a discutir:
   tiende a subestimar en la mayoría de las estaciones de validación.
 - **Ajusta mejor en zonas de relieve suave que en zonas montañosas**, donde el
   relieve gobierna el patrón de lluvia. Tilarán es montañoso, y eso entra en las
-  amenazas a la validez.
+  amenazas a la validez (VIII-A).
 
 ### D. El vacío que este trabajo ocupa
 
@@ -224,281 +296,291 @@ Dado ese antecedente, el aporte no puede formularse como «estimar riesgo por
 distrito», que ya está hecho. Lo que no se localizó es trabajo publicado que, en
 un cantón costarricense, **compare algoritmos supervisados contra una línea base
 climatológica bajo validación temporal**, con datos exclusivamente abiertos, y
-que **valide la variable objetivo antes de entrenar**.
+que **valide la variable objetivo antes de entrenar**. La Tabla II resume las
+diferencias con `[29]`, que son de método más que de tema.
 
-Las diferencias con `[29]` son de método más que de tema:
+**Tabla II.** Diferencias metodológicas con el antecedente más cercano.
 
 | | Rojas Morales `[29]` | Este trabajo |
 |---|---|---|
 | Alcance | 459 distritos, un evento | 8 distritos, tres eventos |
 | Modelo | Probit, un ajuste | Tres algoritmos contra dos líneas base |
-| Validación | Ajuste sobre el período completo | Ventana expansiva, cinco pliegues |
-| Verdad de terreno | Se asume | Se contrasta contra 46 eventos antes de modelar |
-| Operación | Estudio retrospectivo | Sistema que se ejecuta y publica |
+| Validación | Ajuste sobre el período completo | Ventana expansiva, cinco pliegues, con embargo |
+| Verdad de terreno | Se asume | Se contrasta contra 46 registros antes de modelar |
+| Operación | Estudio retrospectivo | Sistema publicado que se ejecuta y sirve |
 
 La formulación es deliberada: **«no se localizó» no equivale a «no existe»**. La
 búsqueda cubrió literatura indexada, y `[29]` es precisamente una tesis de
 posgrado que **no** apareció en la primera revisión y sí en la segunda. Eso es un
 dato sobre el alcance de la búsqueda, no sobre la literatura.
 
+En el plano metodológico, este trabajo se apoya en resultados establecidos que
+no reproduce: la validación cruzada para series temporales `[11]` y sus
+extensiones a datos con estructura espacial `[32]`, las métricas para clases
+desbalanceadas `[12]`, `[20]`, el problema del cambio de soporte al llevar una
+celda a una unidad administrativa `[30]`, `[31]`, y la evidencia de que los
+errores de etiqueta invierten el orden de una comparación de modelos `[33]`.
+
 ---
 
 ## III. Metodología
 
-La sección I planteó un problema con dos partes: estimar riesgo climático **por
-distrito** para un cantón concreto, y hacerlo **solo con datos abiertos**. Esta
-sección describe cómo se resuelve cada una.
+La sección I-A planteó un problema con tres partes: saber si el dato **resuelve**
+el distrito, saber si un modelo **aprende** algo que el calendario no diga ya, y
+saber si la variable objetivo **reconoce** los eventos reales. Esta sección
+describe cómo se resuelve cada parte, en ese orden, y cierra diciendo qué
+sección responde qué pregunta.
 
-La escala distrital se resuelve eligiendo fuentes cuya celda quepa dentro de un
-distrito, y declarando cuáles no lo hacen. La restricción de datos abiertos se
-resuelve con una cadena que va de la fuente pública al indicador estandarizado y
-de ahí a una variable objetivo etiquetada, sin ninguna instrumentación propia. Y
-como la pregunta exige comparar contra una referencia, la sección cierra fijando
-la validación temporal y las dos líneas base contra las que se mide todo lo demás.
+La primera parte se resuelve **midiendo la resolución de cada fuente contra la
+geometría oficial del cantón** antes de usarla, y declarando cuáles no distinguen
+distritos en vez de descartarlas en silencio (III-B, IV-A). La segunda se
+resuelve con un **diseño experimental fijado antes de entrenar**: partición
+temporal por ventana expansiva, dos líneas base, una métrica, una regla que dice
+cuándo una diferencia cuenta y un mínimo de datos por debajo del cual un evento
+no se modela (III-E). La tercera se resuelve **contrastando el etiquetado contra
+un catálogo independiente de eventos históricos** antes de que exista modelo
+alguno (III-F). Es una metodología de investigación con un artefacto en el
+medio: el sistema existe para producir la medición, no al revés. Lo que del
+sistema no hace falta para seguir la medición —contratos entre módulos,
+esquema de datos, interfaz de programación, integración continua,
+despliegue— se documenta aparte `[38]`.
 
 ### A. Área de estudio
 
 Cantón de Tilarán, provincia de Guanacaste, código 508 de la División Territorial
-Administrativa. Ocho distritos, códigos 50801 a 50808.
+Administrativa. Ocho distritos, códigos 50801 a 50808: Tilarán, Quebrada Grande,
+Tronadora, Santa Rosa, Líbano, Tierras Morenas, Arenal y Cabeceras.
 
 Las geometrías provienen de la capa distrital del **Sistema Nacional de
-Información Territorial (SNIT)**, servicio WFS del IGN, filtradas por código de
-cantón. La carga es transaccional e idempotente y deja registro de procedencia con
-URL, fecha, sumas de verificación y número de entidades devueltas.
-
-**Extensión medida del cantón:** 30,7 × 36,6 km, o 1124 km² de caja envolvente,
-con 669,23 km² de superficie efectiva y una ocupación del 59,5 %.
+Información Territorial (SNIT)** `[8]`, filtradas por código de cantón, con
+registro de procedencia —fecha, sumas de verificación y número de entidades
+devueltas—. **Extensión medida:** 30,7 × 36,6 km de caja envolvente, 669,23 km²
+de superficie efectiva.
 
 ### B. Fuentes de datos
 
-| Variable | Fuente | Resolución | Justificación |
+Todas las fuentes son públicas y gratuitas, sin credenciales de pago ni
+instrumentación propia (Tabla III). La ventana temporal es **1991–2025**: la
+línea base climatológica se define sobre la normal 1991–2020 `[6]` y con menos
+registro no se puede calcular como está declarada.
+
+**Tabla III.** Fuentes de datos, resolución y aptitud para distinguir distritos.
+
+| Variable | Fuente | Resolución | ¿Distingue distritos? |
 |---|---|---|---|
-| Precipitación | CHIRPS | 0,05° ≈ 5,5 km | Es la única que distingue distritos. Sección V-A |
-| Temperatura, humedad, radiación, viento | NASA POWER (MERRA-2) | 0,625° × 0,5° | No definen ningún umbral del sistema |
-| Focos de calor | NASA FIRMS | 375 m | — |
-| Geometrías distritales | SNIT, IGN | vectorial | Fuente oficial |
+| Precipitación | CHIRPS v2 `[28]` | 0,05° ≈ 5,5 km | **Sí**: ocho celdas distintas (IV-A) |
+| Temperatura, humedad, radiación, viento | NASA POWER, MERRA-2 `[1]` | 0,625° × 0,5° ≈ 68 × 55 km | **No**: una celda cubre el cantón (IV-A) |
+| Focos de calor | NASA FIRMS `[2]`, `[14]` | 1 km (MODIS, desde 2001) y 375 m (VIIRS, desde 2012) | Puntual |
+| Geometrías distritales | SNIT, IGN `[8]` | vectorial | Fuente oficial |
 
-**La fuente es híbrida por una razón medida, no por conveniencia.** El motivo está
-en la sección V-A y quedó registrado como decisión de arquitectura.
+**La fuente de precipitación es distinta de la del resto de variables por una
+razón medida, no por conveniencia**: el motivo está en IV-A. Las dos fuentes no
+son intercambiables —para un mismo día y punto, POWER reportó 0,0 mm y CHIRPS
+18,72 mm— y por eso no se mezclan en una misma serie.
 
-Ventana temporal: **1991-2025**, 35 años. No es arbitraria: la línea base
-climatológica se define sobre la normal 1991-2020 y con menos registro no se puede
-calcular como está declarada.
+### C. Índices derivados y umbrales
 
-> **Las dos fuentes no son intercambiables.** Para un mismo día y punto, POWER
-> reportó 0,0 mm y CHIRPS 18,72 mm. No es un error de ninguna de las dos: son
-> productos distintos con procesos de asimilación distintos. Mezclarlas en una
-> misma serie produciría discontinuidades que el modelo leería como señal.
+Sobre las series se calculan dos familias de índices, ambas tomadas de
+estándares publicados:
 
-### C. Procesamiento de señales
+- **SPI** (Standardized Precipitation Index) `[4]`, `[24]`, por convolución de
+  ventana móvil sobre el acumulado mensual, con ajuste gamma **por mes
+  calendario** y corrección para ceros mediante distribución mixta
+  `H(x) = q + (1−q)·G(x)` `[27]`. La escala de integración es de **seis meses**;
+  la elección entre 3, 6 y 12 meses se hizo midiendo (V-G) y no por convención.
+- **Percentiles 95 y 99 del acumulado de 72 horas** de precipitación, por
+  distrito, sobre el período base 1991–2020, siguiendo el criterio de percentiles
+  extremos del ETCCDI `[18]` pero **no su índice R95p**, que se define sobre
+  precipitación diaria de días húmedos. La diferencia está medida en IV-D.
 
-Se implementa filtrado de ruido con **Savitzky-Golay**, elegido sobre la media
-móvil porque preserva los máximos: sobre un pico aislado conserva el 48,6 % de la
-amplitud contra el 20,0 % de la media móvil. En un sistema cuyos umbrales se
-definen sobre percentiles extremos, achatar los picos sesga los umbrales de forma
-sistemática.
-
-**El filtro no se aplica a la precipitación**, y esa decisión se tomó midiendo. El
-resultado está en la sección V-B.
-
-Índices derivados:
-
-- **SPI** a 1 y 3 meses, por convolución de ventana móvil sobre el acumulado
-  mensual, con ajuste gamma y corrección para ceros mediante distribución mixta
-  `H(x) = q + (1−q)·G(x)` `[4]`.
-- **Percentiles 95 y 99 del acumulado de 72 horas**, por distrito, sobre el
-  período base 1991-2020.
-
-> **Precisión terminológica.** El umbral de lluvia intensa **no es el índice R95p
-> del ETCCDI**, aunque siga su criterio de percentiles extremos. R95p se define
-> sobre precipitación diaria de días húmedos; este umbral, sobre acumulado de 72
-> horas. La diferencia está medida en la sección V-D.
+Para el resto de variables se implementa filtrado de ruido con Savitzky-Golay,
+elegido sobre la media móvil porque preserva los máximos (conserva el 48,6 % de
+la amplitud de un pico aislado contra el 20,0 % de la media móvil). **El filtro
+no se aplica a la precipitación**, y esa decisión se tomó midiendo (IV-B).
 
 ### D. Etiquetado de la variable objetivo
 
-Tres niveles —bajo, medio, alto— por evento y distrito:
+La variable objetivo son tres niveles —bajo, medio, alto— por evento, distrito y
+día, y describe la ventana de los siete días siguientes. Los umbrales están en la
+Tabla IV.
+
+**Tabla IV.** Umbrales de la variable objetivo, por evento.
 
 | Evento | Umbral | Origen |
 |---|---|---|
-| Lluvia intensa | Percentiles 95 y 99 del acumulado de 72 h, por distrito | Criterio de percentiles extremos del ETCCDI `[18]` |
-| Sequía | SPI-6: alto si ≤ −1,5; medio si −1,5 < SPI ≤ −1,0 | McKee et al. `[4]`, adoptado por la OMM. **La escala se eligió midiendo**, ver VI-E |
-| Incendio forestal | Focos FIRMS en ventana de 7 días: **alto si hay al menos un foco**. No existe nivel medio | **Criterio del equipo**, corregido tras medir. No hay estándar equivalente |
+| Lluvia intensa | Percentiles 95 (medio) y 99 (alto) del acumulado de 72 h, por distrito | Criterio de percentiles extremos del ETCCDI `[18]` |
+| Sequía | SPI-6: alto si ≤ −1,5; medio si −1,5 < SPI ≤ −1,0 | McKee et al. `[4]`, adoptado por la OMM `[24]` |
+| Incendio forestal | Al menos un foco de calor en la ventana de 7 días: alto. No existe nivel medio | **Criterio del equipo**, corregido tras medir. No hay estándar equivalente |
 
 El umbral de incendio es el único propio y se declara como tal en el sistema y en
-la interfaz. Se somete a validación externa con el Comité Municipal de Emergencias.
+la interfaz. **Y es el único de los tres que la medición obligó a rehacer.** La
+definición original —bajo si 0 focos, medio si entre 1 y el percentil 90, alto por
+encima— no producía tres clases sobre estos datos sino dos: con **242 focos en 24
+años** y entre el 97 % y el 99,9 % de ventanas vacías, el percentil 90 vale 0,0
+en los ocho distritos y la condición intermedia queda vacía. Los dos umbrales
+tomados de estándares publicados resistieron la verificación; el propio, no.
 
-**Y es el único de los tres que la medición obligó a rehacer.** La definición
-original —bajo si 0, medio si 1 ≤ n ≤ P90, alto si n > P90— no producía tres
-clases sobre estos datos sino dos: con **242 focos en 24 años** y entre el 97 % y
-el 99,9 % de ventanas vacías, el percentil 90 vale 0,0 en los ocho distritos y la
-condición intermedia queda vacía. Los dos umbrales tomados de estándares
-publicados resistieron la verificación; el propio, no.
+El alcance del evento de incendio se acota además a **tres de los ocho
+distritos** —Santa Rosa, Líbano y Tierras Morenas, que concentran el 88 % de los
+focos—. Los otros cinco se reportan como «sin datos suficientes»: dos de ellos
+registran un solo foco en veinticuatro años.
 
-El alcance del evento se acota además a **tres de los ocho distritos** —Santa
-Rosa, Líbano y Tierras Morenas, que concentran el 88 % de los focos—. Los otros
-cinco se reportan como «sin datos suficientes»: dos de ellos registran **un solo
-foco en veinticuatro años**.
+Dos reglas transversales gobiernan el etiquetado. **La ausencia de dato es
+ausencia, nunca cero**: un período sin observación devuelve etiqueta nula, no
+«bajo» (el hallazgo IV-G muestra lo que cuesta olvidarlo). Y **la unidad de
+muestra son episodios, no filas**: un solo foco de calor marca siete filas como
+«alto», y una sequía que pega en los ocho distritos a la vez es una sequía, no
+ocho. Los episodios se cuentan **a nivel cantón** —una racha de días en que
+algún distrito está en alto— porque los ocho distritos comparten el fenómeno
+meteorológico y, para cuatro de las cinco variables, literalmente la misma celda
+de la fuente.
 
-El etiquetado produce **99 296 filas**: ocho distritos por 12 412 fechas, de
-1991-01-01 a 2024-12-24. Los tres eventos resultan modelables, incluido el
-incendio, que era el que más probabilidades tenía de no serlo:
+### E. Diseño experimental: cómo se responde PI2
 
-| Evento | Filas sin dato | Filas en alto | % observado | Episodios |
-|---|---|---|---|---|
-| Lluvia intensa | 0 | 3 195 | 3,22 % | 496 |
-| Sequía | 664 | 7 290 | 7,39 % | 110 |
-| Incendio | 29 216 | 865 | 1,23 % | 106 |
+Todo lo que sigue se fijó **antes de entrenar el primer modelo**, y se declara en
+ese orden porque el orden es la garantía.
 
-**La unidad de muestra son episodios, no filas**, y la distinción no es cosmética.
-Un solo foco de calor marca siete filas como «alto»: es la misma detección vista
-desde siete fechas distintas, con etiqueta idéntica y casi todas las
-características compartidas. Contar filas sobreestima la muestra por un factor de
-hasta siete, y una partición que corte por el medio de un episodio deja el mismo
-evento a ambos lados del corte. El caso extremo es la sequía, cuyos episodios
-promedian **66,3 filas** —más de dos meses consecutivos— porque el índice no
-cambia dentro del mes.
+**Algoritmos.** Tres, elegidos por familia y no por moda: regresión logística
+`[17]` como modelo lineal interpretable, Random Forest `[9]` como ensamble por
+agregación robusto ante ruido, y XGBoost `[5]` como ensamble por refuerzo, el
+estado del arte en tabulares. Implementados sobre scikit-learn `[19]` y la
+biblioteca de XGBoost. Los hiperparámetros se afinaron sobre una rejilla
+declarada y acotada (28 combinaciones), usando **únicamente la ventana de
+entrenamiento del primer pliegue**, que es la única enteramente anterior a todos
+los bloques de prueba; los estimadores afinados son los que se reportan y los que
+escribe el sistema.
 
-El reparto por distrito reproduce el criterio de acotamiento **sin que esté
-programado**, y cae dentro de la banda medida de forma independiente sobre los
-focos cargados: Santa Rosa 2,93 %, Líbano 2,59 % y Tierras Morenas 2,56 %, contra
-un rango esperado de 2,6 % a 2,9 %.
+**Matriz de características.** 27 columnas derivadas de cuatro variables diarias
+—precipitación, temperatura máxima, humedad relativa y viento— mediante rezagos
+de uno a tres días y medias móviles de 3, 7 y 30 días. Ninguna columna dice qué
+día del año es ni de qué distrito se trata; esa es una decisión de diseño cuya
+consecuencia se discute en VI-B.
 
-### E. Modelos y validación
+**Dos líneas base, no una.** La **trivial** predice siempre la clase mayoritaria
+del entrenamiento y es el piso absoluto. La **climatológica** predice, para cada
+distrito y mes calendario, la clase de mayor *realce* —tasa en esa celda dividida
+por la tasa en todo el entrenamiento—. No se define como la clase modal, que es la
+formulación de manual, porque sobre estos datos esa formulación degenera en la
+trivial: con clases positivas de entre el 1 % y el 7 %, «bajo» es la clase modal
+en las noventa y seis celdas de distrito por mes. Ambas miran **solo el
+calendario**; en cuanto una línea base usa precipitación deja de ser línea base.
 
-Se comparan **tres algoritmos** —Regresión Logística, Random Forest y XGBoost—
-contra **dos líneas base**, no una. La métrica principal es **F1-macro**, por el
-desbalance entre clases.
+**Métrica.** F1-macro `[12]`, por el desbalance entre clases `[20]`. La trivial no
+es un artificio retórico: sobre incendio alcanza F1-macro 0,494 acertando el
+98,8 % de las filas, porque la clase minoritaria es el 1,23 % del conjunto. Un
+informe que reportara solo exactitud haría parecer excelente a un modelo que no
+predice nada.
 
-| Línea base | Qué predice | Para qué sirve |
-|---|---|---|
-| **Trivial** | siempre la clase mayoritaria del entrenamiento | el piso absoluto |
-| **Climatológica** | la clase de mayor realce en ese distrito y ese mes calendario | el piso informado |
+**Partición temporal.** Ventana expansiva `[11]` con **cinco pliegues**, cada uno
+entrena con todo el pasado disponible y evalúa el bloque siguiente. El corte
+aleatorio está prohibido: sobre una serie temporal permite que el modelo vea el
+futuro y produce métricas altas sin significado. Tres propiedades adicionales,
+que la implementación obligó a fijar: un **embargo de siete días** entre
+entrenamiento y prueba, porque la etiqueta de la fila *t* describe la ventana
+(*t*, *t*+7]; **cortes en frontera de mes calendario**, porque el SPI-6 no cambia
+dentro del mes; y **cada evento se parte sobre su propio período observado**,
+porque el archivo de focos empieza en 2001 y no en 1991.
 
-**La trivial no es un artificio retórico.** Sobre el evento de incendio alcanza
-**F1-macro 0,494** acertando el 98,8 % de las filas, porque la clase minoritaria
-es el 1,23 % del conjunto observado. Un informe que reportara solo exactitud haría
-parecer excelente a un modelo que no predice nada, y ese es exactamente el número
-que hay que superar.
+**Regla de decisión.** Se fijó antes de mirar ningún resultado: *si la ventaja de
+un estimador sobre el siguiente es menor que lo que ese mismo estimador se mueve
+entre pliegues, no se declara ganador.* Con cinco pliegues correlacionados esa es
+toda la resolución disponible, y **no se reportan pruebas de significancia**:
+cinco pliegues de ventana expansiva no son cinco muestras independientes, y un
+valor *p* calculado sobre ellos sonaría riguroso sin serlo. Se reportan la
+media y el rango entre pliegues.
 
-La climatológica **no puede definirse como la clase más frecuente** del
-distrito-mes, que es la formulación de manual: sobre estos datos degenera en la
-trivial por construcción. Con una clase minoritaria de entre el 1 % y el 7 %, la
-clase modal es «bajo» en las **noventa y seis** celdas de distrito por mes. Se
-define entonces sobre el **realce** de cada clase respecto de su propia tasa base,
-que sí discrimina sin dejar de mirar únicamente el calendario.
+**Qué estimador escribe.** Cuando ningún estimador gana fuera del ruido, el
+sistema publica la estimación del **más simple** de los que quedan dentro del
+ruido del mejor, con un orden de simplicidad fijo: climatológica, regresión
+logística, Random Forest, XGBoost. La trivial nunca escribe, porque «siempre
+bajo» convertiría la ausencia de señal en riesgo bajo; y nadie escribe por
+debajo del piso trivial. La regla se recalcula en cada corrida.
 
-**La validación es por ventana expansiva y el corte aleatorio está prohibido.** Una
-partición aleatoria sobre una serie temporal permite que el modelo vea el futuro:
-produce métricas altas y sin significado. La prohibición está codificada en los
-contratos del proyecto y verificada automáticamente.
+**Mínimo para modelar.** Un evento no se modela si tiene **menos de 30 episodios
+independientes en total, o menos de 10 en el entrenamiento de cualquier
+pliegue**. El umbral se escribió antes de contar, para que la decisión no
+dependiera del resultado.
 
-La partición son **cinco pliegues expansivos** —cada uno entrena con todo el
-pasado disponible y evalúa el bloque siguiente— con tres propiedades que la
-implementación obligó a fijar:
+### F. Validación externa del etiquetado: cómo se responde PI3
 
-1. **Un embargo de siete días entre entrenamiento y prueba.** La etiqueta de la
-   fila `t` describe la ventana `(t, t+7]`, así que pegar los conjuntos filtraría
-   el futuro aunque el corte pareciera limpio.
-2. **Los cortes caen en frontera de mes calendario.** El SPI-6 no cambia dentro
-   del mes: un episodio de sequía ocupa **100,1 filas consecutivas** en promedio, y
-   cortar a mitad de mes dejaría el mismo valor del índice a ambos lados.
-3. **Cada evento se parte sobre su propio período observado.** La serie climática
-   arranca en 1991 y el archivo de focos de calor en 2001, de modo que el evento
-   de incendio se particiona sobre 2001-2024. Partirlo sobre la serie completa
-   dejaría el primer bloque de entrenamiento **sin un solo episodio observado**.
+Antes de que exista un modelo hay una pregunta previa: ¿la verdad de terreno
+reconoce los eventos que de verdad ocurrieron? Northcutt et al. `[33]` auditaron
+los conjuntos de prueba de diez de los repositorios más usados en aprendizaje
+automático, encontraron un 3,4 % de error de etiqueta en promedio, y mostraron
+que con suficiente proporción de etiquetas mal puestas **el orden del ranking de
+modelos se invierte**. Comparar tres algoritmos sobre una variable objetivo no
+auditada es comparar contra un criterio que puede estar ordenando al revés.
 
-Las dos primeras se escribieron por separado y resultan no ser independientes: con
-el corte en frontera de mes, exigir que la etiqueta de sequía no mire dentro de la
-prueba equivale a exigir que `t+7` caiga en un mes anterior, y el embargo colapsa
-de los treinta y ocho días que su alcance sugiere a siete.
+Se compiló un **catálogo de 46 registros de 29 eventos históricos** con daños
+documentados en Tilarán entre 1970 y 2026, principalmente desde DesInventar
+Costa Rica `[37]` —41 de los 46 registros, con distrito explícito— y, para dos
+eventos fuera de su cobertura, desde prensa nacional y partes de la Comisión
+Nacional de Emergencias. Un evento del día *E* se considera anunciado si alguna
+etiqueta en la ventana [*E*−7, *E*−1] marcaba riesgo medio o alto. Se reporta la
+**cobertura** (fracción de eventos anunciados) con su intervalo de Wilson al 95 %
+`[34]`, la **tasa base** (fracción de días cualesquiera con marca) y el **realce**,
+que es el cociente entre ambas y la métrica que importa: una cobertura alta se
+consigue marcando siempre; el realce, no. **No se reporta precisión**, porque el
+catálogo registra daños reportados y está incompleto por construcción: una
+marca sin registro no es un falso positivo.
 
----
+### G. Correspondencia entre preguntas, métodos y secciones
 
-## IV. Arquitectura del sistema
+La Tabla V resume qué método responde cada pregunta y en qué sección se lee la
+respuesta; es la guía de lectura del resto del documento.
 
-### A. Estructura
+**Tabla V.** Qué sección responde cada pregunta, y con qué.
 
-Seis módulos con **interfaces congeladas antes de implementar**, cada una con un
-simulado que la cumple:
-
-```
-extraccion  ->  almacenamiento  ->  senales  ->  modelado  ->  api  ->  visor
-   (ETL)        (PostgreSQL/          (SPI,      (3 algoritmos   (REST)  (mapa)
-                  PostGIS)         percentiles)   + linea base)
-```
-
-Cada contrato se declara como `Protocol` de PEP 544 con verificación estructural en
-tiempo de ejecución. El propósito es que **nadie quede bloqueado esperando código
-ajeno**: se trabaja contra el simulado y se sustituye por el módulo real en una
-línea.
-
-### B. Tres invariantes verificadas automáticamente
-
-El proyecto declara tres reglas que ninguna implementación puede violar, y las
-comprueba en integración continua:
-
-1. **La ausencia de dato es `None`, nunca `0`.** Un cero es una medición; una
-   ausencia no lo es. Confundirlos convierte una estación seca en un mes sin
-   lluvia registrada.
-2. **No hay estimación sin modelo entrenado detrás.** El sistema devuelve nivel
-   nulo antes que un valor por defecto, y la interfaz lo distingue visualmente del
-   riesgo bajo.
-3. **La validación temporal no admite fuga.** Ver III-E.
-
-### C. Verificación continua
-
-Cada cambio pasa por cinco trabajos de integración continua y **ocho controles**
-que comprueban desde la coherencia de los contratos hasta que las cifras escritas
-en la documentación sigan siendo ciertas.
-
-Ese último control existe por una razón: **contar a mano falló cinco veces en dos
-días** durante la construcción, y uno de esos errores infló el avance reportado en
-un documento ya entregado. La corrección no fue pedir más cuidado.
+| Pregunta | Método | Se responde en | Se discute en |
+|---|---|---|---|
+| PI1 · ¿el dato resuelve el distrito? | Medición de la resolución de cada fuente contra la geometría oficial | IV-A, IV-C, IV-G | VI-A |
+| PI2 · ¿el modelo supera al calendario? | Tres algoritmos contra dos líneas base, cinco pliegues, regla de decisión previa | V-B a V-F | VI-B |
+| PI3 · ¿la etiqueta reconoce los eventos reales? | Contraste contra 46 registros históricos, cobertura y realce | V-G | VI-C |
 
 ---
 
-## V. Hallazgos sobre la disponibilidad de datos a escala cantonal
+## IV. Hallazgos sobre la aptitud de los datos abiertos a escala cantonal
 
-**Esta sección es el aporte que el proyecto ya tiene, con independencia de cómo
-salgan los modelos.** Los seis hallazgos se obtuvieron durante la construcción, se
-midieron con herramientas que se publican con el proyecto, y **cuatro de ellos
-habrían producido resultados aparentemente válidos y silenciosamente
-incorrectos**.
+**Esta sección responde PI1 y es el aporte que se sostiene con independencia de
+cómo salgan los modelos.** Los siete hallazgos se obtuvieron durante la
+construcción, se midieron con herramientas que se publican con el proyecto, y
+**cuatro de ellos (B, C, D y G) habrían producido resultados aparentemente
+válidos y silenciosamente incorrectos**.
 
 ### A. Las fuentes climáticas globales de reanálisis no resuelven el cantón
 
 NASA POWER sirve MERRA-2 en una malla de 0,625° × 0,5°, unos **68 × 55 km** a la
 latitud de Tilarán. El cantón mide 669,23 km² y **cabe entero dentro de una sola
-celda**.
-
-Comprobado empíricamente: dos puntos separados dentro del cantón devuelven valores
-idénticos hasta el último decimal, e incluso la misma elevación.
+celda**. Comprobado empíricamente: dos puntos separados dentro del cantón
+devuelven valores idénticos hasta el último decimal, e incluso la misma
+elevación.
 
 **La consecuencia no es pérdida de precisión, es imposibilidad.** Dos de los tres
 eventos se definen sobre precipitación. Con una sola celda, los ocho distritos
 habrían dado el mismo riesgo siempre, **por construcción**, y el sistema habría
 respondido su propia pregunta de investigación por artefacto de la fuente.
 
-CHIRPS, a 0,05°, sí distingue: los ocho distritos caen en **ocho celdas distintas**,
-con una diferencia del 20,3 % en el acumulado semanal entre los extremos. Y el
-orden entre distritos **se invierte entre días**, lo que descarta que sea un sesgo
-constante del método y confirma variación espacial real.
+CHIRPS, a 0,05°, sí distingue: los ocho distritos caen en **ocho celdas
+distintas**, con una diferencia del 20,3 % en el acumulado semanal entre los
+extremos. Y el orden entre distritos **se invierte entre días**, lo que descarta
+que sea un sesgo constante del método y confirma variación espacial real.
 
-*Reproducible con `verificar_resolucion_fuente.py`, publicada con el proyecto.*
-
-> **Detalle metodológico que costó una corrección.** La primera versión de la
-> herramienta suponía que todas las mallas se anclan igual. No es cierto: POWER
-> ancla los **centros** de celda en múltiplos del paso y CHIRPS ancla los
-> **bordes**. Con el supuesto equivocado la herramienta contradecía la observación
-> directa. Se corrigió y se le agregó una autoprueba contra el dato observado.
+Un detalle metodológico que costó una corrección: las mallas no se anclan igual.
+POWER ancla los **centros** de celda en múltiplos del paso y CHIRPS ancla los
+**bordes**. La primera versión de la herramienta de medición suponía lo
+contrario y contradecía la observación directa; se corrigió y se le agregó una
+autoprueba contra el dato observado.
 
 ### B. Filtrar la precipitación destruye los índices que se calculan sobre ella
 
 El filtro de ruido de la sección III-C es correcto para variables con ruido
 instrumental. Aplicado a la precipitación produce series que **no son series de
-lluvia**:
+lluvia** (Tabla VI).
 
-| Efecto sobre 35 años de serie diaria | Magnitud |
+**Tabla VI.** Efecto de un filtro Savitzky-Golay (ventana 7, orden 2) sobre 35
+años de precipitación diaria.
+
+| Efecto | Magnitud |
 |---|---|
 | Días con precipitación negativa | **12,47 %**, mínimo −13,47 mm |
 | Días secos que pasan a contar como húmedos | **31,62 %** |
@@ -507,25 +589,21 @@ lluvia**:
 
 No es un defecto de implementación: los coeficientes de Savitzky-Golay para
 ventana 7 y orden 2 son **negativos en los extremos**, así que un día contiguo a un
-aguacero recibe contribución negativa. Es una propiedad del método.
-
-El 31,62 % es el más grave de los dos. El umbral de día húmedo del ETCCDI es
-exactamente 1 mm: filtrar **reescribe el denominador** de los índices.
-
-Resultado que cierra la discusión: con ventana 3 y polinomio de orden 2 el filtro
-**no cambia nada**, porque con tres puntos una parábola pasa exactamente por los
-tres. *La única configuración que no daña la precipitación es aquella en la que el
-filtro no hace nada.*
-
-*Reproducible con `medir_efecto_filtro.py`, publicada con el proyecto.*
+aguacero recibe contribución negativa. Es una propiedad del método. El 31,62 % es
+el más grave de los dos: el umbral de día húmedo del ETCCDI es exactamente 1 mm,
+y filtrar **reescribe el denominador** de los índices. Con ventana 3 y orden 2 el
+filtro no cambia nada, porque con tres puntos una parábola pasa exactamente por
+los tres: *la única configuración que no daña la precipitación es aquella en la
+que el filtro no hace nada.*
 
 ### C. Un SPI sin ajuste por mes calendario mide estacionalidad, no anomalía
 
-El SPI ajusta una distribución gamma **por cada mes calendario**: los eneros contra
-la distribución histórica de los eneros. Eso es lo que lo convierte en un índice de
-anomalía `[4]`.
+El SPI ajusta una distribución gamma **por cada mes calendario**: los eneros
+contra la distribución histórica de los eneros `[24]`. Eso es lo que lo convierte
+en un índice de anomalía. Con ajuste único para toda la serie, sobre 35 años de
+régimen del Pacífico Norte, el resultado es el de la Tabla VII.
 
-Con ajuste único para toda la serie, sobre 35 años de régimen del Pacífico Norte:
+**Tabla VII.** SPI medio por estación según el tipo de ajuste.
 
 | | Ajuste único | Ajuste por mes |
 |---|---|---|
@@ -533,65 +611,56 @@ Con ajuste único para toda la serie, sobre 35 años de régimen del Pacífico N
 | SPI medio en estación lluviosa | **+0,60** | −0,00 |
 
 Un índice de anomalía cuya media es −0,84 en una estación y +0,60 en la otra no
-está midiendo anomalía. Y el dato que lo remata: **de los 99 meses que el ajuste
-único declara en sequía, los 99 caen en estación seca.** El índice no detecta
-sequía, detecta que es verano.
-
-La correlación entre ambos métodos es **0,425**, lo que impide tratarlos como dos
-versiones de lo mismo con distinta precisión.
+está midiendo anomalía. **De los 99 meses que el ajuste único declara en sequía,
+los 99 caen en estación seca**: el índice no detecta sequía, detecta que es
+verano. La correlación entre ambos métodos es 0,425, lo que impide tratarlos como
+dos versiones de lo mismo con distinta precisión.
 
 **Dónde se paga.** Una etiqueta de sequía correlacionada con el mes calendario
 haría que un modelo entrenado sobre ella aprendiera el calendario en lugar del
-clima, **y en la evaluación se vería bien**, porque la estación seca es predecible.
-Es la misma familia de resultado engañoso que la fuga temporal.
-
-*Reproducible con `medir_spi_por_mes.py`, publicada con el proyecto.*
+clima, **y en la evaluación se vería bien**, porque la estación seca es
+predecible. Es la misma familia de resultado engañoso que la fuga temporal.
 
 ### D. El percentil del acumulado de 72 h no es el índice R95p
 
 Dos cantidades que el proyecto llegó a nombrar igual, medidas sobre el mismo
-período base de 30 años:
+período base de 30 años (Tabla VIII).
+
+**Tabla VIII.** Percentiles de precipitación según la definición.
 
 | | P95 | P99 |
 |---|---|---|
-| ETCCDI, diario sobre días húmedos | 39,90 mm | 54,86 mm |
-| Acumulado de 72 h | 63,40 mm | 87,70 mm |
+| ETCCDI, diario sobre días húmedos `[18]` | 39,90 mm | 54,86 mm |
+| Acumulado de 72 h (este trabajo) | 63,40 mm | 87,70 mm |
 
 Aplicar el umbral equivocado **multiplica por 8,5** los días declarados en riesgo
-alto: de 110 a 934 sobre 10 956 ventanas.
-
-El umbral del proyecto no cambia —el acumulado de 72 h es el adecuado para riesgo
-de inundación, porque un evento de lluvia intensa dura más de un día—. Lo que
-cambió fue el nombre. **Un umbral atribuido a una fuente equivocada es peor que un
-umbral sin citar.**
-
-*Reproducible con `medir_percentiles.py`, publicada con el proyecto.*
+alto: de 110 a 934 sobre 10 956 ventanas. El umbral del proyecto no cambia —el
+acumulado de 72 h es el adecuado para riesgo de inundación, porque un evento de
+lluvia intensa dura más de un día—; lo que cambió fue el nombre. **Un umbral
+atribuido a una fuente equivocada es peor que un umbral sin citar.**
 
 ### E. No hay registro histórico de incendios forestales en el cantón
 
-DesInventar Costa Rica devuelve 98 fichas para Tilarán entre 1968 y 2017, cada una
-con distrito explícito. **Ninguna es un incendio forestal.** Las cuatro fichas de
-tipo FIRE son incendios estructurales.
+DesInventar Costa Rica `[37]` devuelve 98 fichas para Tilarán entre 1968 y 2017,
+cada una con distrito explícito. **Ninguna es un incendio forestal.** La base
+distingue el tipo *FIRE* del tipo *FORESTFIRE*, y las cuatro fichas *FIRE* de
+Tilarán son incendios estructurales —locales comerciales, una bodega—.
 
 Consecuencia directa: el contraste del componente de incendio contra eventos
-históricos **no se puede hacer con registro documental**. Queda como limitación
-declarada y obliga a apoyarse en los focos FIRMS.
+históricos **no se puede hacer con registro documental**, y no por una limitación
+de este trabajo sino porque ese registro no contiene el fenómeno. Queda como
+limitación declarada (VII-B).
 
 ### F. La sequía histórica no está desagregada por distrito
 
 Las sequías de 1972, 1973, 1976, 1977, 1982 y 1983 existen en el registro **con el
 campo de distrito vacío**. La de 2014 sí está desagregada, y solo porque una
 declaratoria de emergencia obligó a inventariar la afectación finca por finca.
-
 De ahí sale la observación más general de esta sección:
 
 > **La disponibilidad de datos históricos a escala distrital no depende de la
 > severidad del evento, sino de si existió un instrumento administrativo que
 > obligara a levantarlos.** Es un sesgo de registro, no de ocurrencia.
-
-*Fuente de E y F:* el catálogo de eventos históricos compilado para este
-trabajo desde DesInventar Costa Rica `[26]`, con 46 registros de 29 eventos
-distintos entre 1970 y 2026.
 
 ### G. Dos fuentes con distinta fecha de inicio producen una ausencia que parece un dato
 
@@ -608,210 +677,259 @@ no hubiera incendios: era que **no había satélite observando**.
 
 Son **29 216 filas, el 29,4 % del conjunto etiquetado**, afirmando ausencia de
 evento sobre un período sin observación. El efecto sobre la clase minoritaria es
-directo:
+directo: el incendio en alto pasa del 0,87 % sobre las 99 296 filas al 1,23 %
+sobre las 70 080 observadas. Y un modelo entrenado sobre el conjunto sin corregir
+habría aprendido que la década de los noventa era segura.
 
-    incendio en alto, sobre las 99 296 filas         0,87 %
-    incendio en alto, sobre las 70 080 observadas    1,23 %
-
-Y un modelo entrenado sobre ese conjunto habría aprendido que la década de los
-noventa era segura.
-
-Lo instructivo es que **el criterio que lo prohíbe ya estaba escrito y verificado**.
-El etiquetado exige explícitamente que la ausencia de dato no se convierta en una
+Lo instructivo es que **el criterio que lo prohíbe ya estaba escrito y
+verificado**: el etiquetado exige que la ausencia de dato no se convierta en una
 clase, y su comprobación automática aplicaba esa regla a la precipitación y al
-índice de sequía —donde funcionaba, produciendo etiquetas nulas— pero no al
-incendio, que es el único de los tres eventos cuya fuente empieza en otra fecha.
-
-También estaba puesta la cota del extremo derecho: el etiquetado se acota a 2024
-porque los focos terminan antes que la serie climática. **Una cota puesta en un
-extremo invita a suponer que el otro no hace falta.**
-
-La corrección consiste en declarar el período de cobertura del instrumento como
-una constante explícita, y devolver etiqueta nula fuera de él. No se infiere del
-dato cargado: inferirla del mínimo de las detecciones diría que un distrito sin
-focos nunca fue observado, que es la misma confusión en la otra dirección.
+índice de sequía, pero no al incendio, que es el único de los tres eventos cuya
+fuente empieza en otra fecha. La corrección consiste en declarar el período de
+cobertura del instrumento como una constante explícita y devolver etiqueta nula
+fuera de él. No se infiere del dato cargado: inferirla del mínimo de las
+detecciones diría que un distrito sin focos nunca fue observado, que es la misma
+confusión en la otra dirección.
 
 ---
 
-## VI. Resultados
+## V. Resultados
 
-> **PARCIAL, desde el 30 de agosto de 2026.** Se reporta lo que está medido —el
-> piso contra el que se comparará todo— y se declara lo que falta.
->
-> **Lo que hay:** el etiquetado de la variable objetivo, la partición temporal,
-> las dos líneas base y el arnés de comparación.
->
-> **Lo que falta:** los tres entrenamientos —Regresión Logística, Random Forest y
-> XGBoost— y, con ellos, las matrices de confusión y la importancia de variables.
-> Se detalla en la subsección VI-E.
->
-> **Ninguna cifra de esta sección proviene de los simulados.** El sistema opera
-> hoy contra datos simulados y lo declara en pantalla; esos valores existen para
-> construir la representación visual y no aparecen aquí. Todo lo que sigue sale
-> del conjunto etiquetado, derivado de las series climáticas y del archivo de
-> focos de calor descritos en la sección III.
+Todas las cifras de esta sección salen del conjunto etiquetado real —derivado de
+las series climáticas y del archivo de focos de calor descritos en III-B— y del
+arnés de comparación aplicado a los cinco estimadores por igual. Ninguna proviene
+de datos simulados. Se reportan media y rango entre pliegues, sin pruebas de
+significancia, por lo dicho en III-E.
 
-### A. El dato sobre el que se mide
+### A. El conjunto sobre el que se mide
 
-El etiquetado produce **99 296 filas** —ocho distritos × días, de 1991 a
-2025— con tres etiquetas por fila, una por evento.
+El etiquetado produce **99 296 filas**: ocho distritos por 12 412 fechas, del 1
+de enero de 1991 al 24 de diciembre de 2024, con tres etiquetas por fila. La
+Tabla IX resume la distribución de clases y la Fig. 2 el período que describe
+cada etiqueta.
 
-La distribución de clases es fuertemente desbalanceada, y esa es la primera
-condición que gobierna todo lo demás:
+**Tabla IX.** Distribución de la clase positiva y unidades de muestra, por
+evento. La cobertura es el período que describen las etiquetas; la serie
+climática llega a 2025 pero el etiquetado se acota al 24 de diciembre de 2024
+porque el archivo de focos termina antes. Los episodios se cuentan a nivel
+cantón (III-D); entre paréntesis, la cuenta por distrito que los infla.
 
-| Evento | Clase positiva | Cobertura temporal |
-|---|---|---|
-| Lluvia intensa | percentil 95 y 99 del acumulado de 72 h | 1991–2025 |
-| Sequía | SPI-6 ≤ −1,0 (medio) y ≤ −1,5 (alto), por mes calendario | 1991–2025 |
-| Incendio | binario, ≥ 1 foco en la ventana de 7 días | **2001–2024** |
+| Evento | Cobertura | Filas sin dato | Filas en alto (% observado) | Episodios, cantón (por distrito) |
+|---|---|---|---|---|
+| Lluvia intensa | 1991–2024 | 0 | 3 195 (3,22 %) | **163** (496) |
+| Sequía | 1991–2024 | — | — | **13** (78) |
+| Incendio | **2001–2024** | 29 216 | 865 (1,23 %) | **67** (106) |
 
-La ventana del incendio no arranca en 1991 porque el archivo FIRMS de MODIS
-C6.1 empieza en 2001. Etiquetar como «bajo» los diez años anteriores habría
-producido **29 216 filas falsamente negativas, el 29,4 % del conjunto**; se
-detectó al revisar la distribución de clases, y las filas fuera de cobertura
-devuelven ausencia, no cero: un período no observado no es un período sin
-eventos.
-
-El incendio se estima además solo en **Santa Rosa, Líbano y Tierras Morenas**,
-porque en los demás la señal es demasiado escasa para sostener una estimación.
-
-La Fig. 2 muestra el período que describe cada etiqueta. La franja con trama es
-la década en que el archivo de focos no existe, y es la razón de que el
-componente de incendio sea el más débil de los tres.
+El conteo por distrito sobreestima la muestra por factores distintos —3,0× en
+lluvia, 6,0× en sequía, 1,6× en incendio—, así que no solo infla: **distorsiona
+la comparación entre eventos**. Seis de las trece sequías del período pegan en
+los ocho distritos a la vez.
 
 ![Período que describe cada etiqueta, por evento](figuras/cobertura-datos.png)
 
-### B. La partición temporal, y un resultado que no se esperaba
+**Fig. 2.** Período que describe cada etiqueta. La franja con trama es la década
+en que el archivo de focos no existe (IV-G), y es la razón de que el componente
+de incendio sea el más débil de los tres.
 
-La validación es por ventana expansiva (Bergmeir y Benítez, 2012) `[4]`, con
-**cinco pliegues** y cortes en frontera de mes.
+### B. La sequía no alcanza el mínimo para modelarse
 
-El embargo entre entrenamiento y prueba **no se fijó como constante: se calcula**
-a partir de hasta dónde mira la etiqueta de la última fila de entrenamiento. Los
-criterios de aceptación, escritos antes de implementar, estimaron tres valores
-distintos; la medición dio uno solo:
+El criterio de III-E exige 30 episodios independientes en total y 10 en el
+entrenamiento de cualquier pliegue. La Tabla X y la Fig. 3 muestran la cuenta.
 
-| Evento | Embargo estimado | Embargo calculado |
-|---|---|---|
-| Incendio | 7 días | 7 días |
-| Lluvia intensa | 9 días | **7 días** |
-| Sequía | 38 días | **7 días** |
+**Tabla X.** Episodios independientes a nivel cantón en el entrenamiento de cada
+pliegue, contra el mínimo del criterio.
 
-Las dos correcciones tienen la misma causa —se supuso el alcance en vez de
-calcularlo— pero la de la sequía es la interesante. La etiqueta de sequía sí
-alcanza el fin del mes que contiene a *t+7*; lo que ocurre es que **el corte en
-frontera de mes absorbe ese alcance**: con el corte ahí, exigir que la etiqueta
-no mire dentro de la prueba equivale a exigir que *t+7* caiga en un mes anterior.
+| Evento | Pliegue 1 | Pliegue 2 | Pliegue 3 | Pliegue 4 | Pliegue 5 | Mínimo | Total | ¿Modelable? |
+|---|---|---|---|---|---|---|---|---|
+| Lluvia intensa | 31 | 60 | 89 | 109 | 129 | 31 | 163 | Sí |
+| Sequía | 2 | 3 | 3 | 6 | 9 | **2** | **13** | **No** |
+| Incendio | 16 | 21 | 28 | 44 | 55 | 16 | 67 | Sí |
 
-Los dos criterios se escribieron por separado y juntos resultan más baratos que
-cada uno por su lado. No estaba previsto.
+![Episodios a nivel cantón por pliegue de entrenamiento](figuras/episodios-por-pliegue.png)
 
-### C. Las dos líneas base
+**Fig. 3.** Episodios a nivel cantón en el entrenamiento de cada pliegue, en
+escala logarítmica, contra el mínimo de 10 que exige el criterio. Datos de la
+Tabla X.
 
-El contraste se hace contra dos referencias, y las dos se reportan:
+**La sequía no falla por poco: falla en los cinco pliegues.** El más rico tiene 9
+y el umbral es 10; el total, 13, no llega a la mitad de los 30 exigidos. No es un
+problema de ingeniería: las sequías son raras, una cada 2,6 años en 34 años de
+serie. Y es un compromiso medido entre detectar y modelar: la misma escala del
+índice que hizo pasar la validación externa de 0 de 7 a 7 de 7 (V-G) alargó las
+rachas —de 66 a 100 filas por episodio— y redujo los episodios independientes
+por debajo del umbral. Bajar el umbral se descartó porque se fijó antes de ver
+el dato precisamente para esto, y ya no sería de 10 a 9: sería de 10 a 2.
 
-- **Trivial:** siempre la clase mayoritaria del entrenamiento.
-- **Climatológica:** la clase de mayor **realce** en ese distrito y ese mes
-  calendario, donde realce(clase) = tasa en la celda ÷ tasa en todo el
-  entrenamiento.
+Para la sequía, entonces, **PI2 no se puede responder con estos datos**, y el
+sistema publicado la muestra como «sin estimación» en vez de rellenarla con la
+clase mayoritaria.
 
-La climatológica se definió por realce y no por clase modal tras medir que la
-segunda **degenera en la trivial**: con clases positivas entre el 1 % y el 7 %,
-«bajo» es la clase modal en las noventa y seis celdas distrito-mes, y las dos
-líneas base daban F1-macro idéntico hasta el tercer decimal en los cinco
-pliegues. Una línea base indistinguible del piso absoluto no sirve como piso
-informado.
+### C. Las dos líneas base: qué informa el mes, por evento
 
-Ambas miran **solo el calendario**: distrito y fecha. Ninguna variable
-meteorológica entra. En cuanto una línea base usa precipitación deja de ser línea
-base y el contraste compara dos modelos en vez de comparar un modelo contra el
-almanaque.
+La Tabla XI y la Fig. 4 reportan las dos líneas base sobre los cinco pliegues.
 
-### D. Qué informa el mes, por evento
-
-Medido sobre los cinco pliegues, con F1-macro:
+**Tabla XI.** F1-macro de las dos líneas base: media sobre los cinco pliegues
+y, entre paréntesis, rango entre pliegues.
 
 | Evento | Trivial | Climatológica | Diferencia | Veredicto |
 |---|---|---|---|---|
-| **Lluvia intensa** | 0,309 ± 0,005 | **0,346 ± 0,010** | **+0,036** | la climatológica gana |
-| **Sequía** | 0,333 ± 0,087 | 0,272 ± 0,055 | −0,061 | empate técnico |
-| **Incendio** | 0,494 ± 0,003 | 0,500 ± 0,049 | +0,006 | empate técnico |
+| Lluvia intensa | 0,309 (0,015) | **0,346 (0,027)** | **+0,036** | la climatológica gana |
+| Sequía | 0,333 (0,252) | 0,272 (0,126) | −0,061 | empate técnico |
+| Incendio | 0,494 (0,009) | 0,500 (0,138) | +0,006 | empate técnico |
 
-**El criterio de decisión se fijó antes de mirar los datos:** si la ventaja de un
-estimador sobre el siguiente es menor que lo que ese mismo estimador se mueve
-entre pliegues, no se declara ganador. Con cinco pliegues correlacionados esa es
-toda la resolución disponible.
+![F1-macro de las dos líneas base, con la dispersión entre pliegues](figuras/lineas-base.png)
+
+**Fig. 4.** F1-macro de las dos líneas base con la dispersión entre pliegues.
+Datos de la Tabla XI. En lluvia intensa los intervalos no se tocan; en sequía e
+incendio se solapan por completo.
 
 **Lluvia intensa.** El mes informa. La ventaja (+0,036) supera el rango entre
 pliegues de la climatológica (0,027). Es el único de los tres eventos donde el
 calendario, por sí solo, aporta capacidad predictiva medible.
 
 **Sequía.** El mes no informa, **y eso confirma que el ajuste del índice
-funciona.** El SPI-6 se calibra por mes calendario precisamente para remover la
-estacionalidad; si la climatológica predijera bien la sequía, sería señal de que
-ese ajuste no está operando, y el defecto habría reaparecido un nivel más arriba.
-La línea base climatológica queda **0,070 por debajo** del piso trivial.
+funciona**: el SPI-6 se calibra por mes calendario precisamente para remover la
+estacionalidad, y si la climatológica predijera bien la sequía sería señal de
+que ese ajuste no está operando.
 
-La Fig. 3 hace visible por qué dos de los tres veredictos son empates. Las barras
-de error son la dispersión entre pliegues: en lluvia intensa los intervalos no se
-tocan, y en sequía e incendio se solapan por completo.
+**Incendio.** El rango de la climatológica entre pliegues (0,138) es
+veintitrés veces su ventaja sobre la trivial (+0,006). **La medición no tiene
+resolución para distinguir las dos hipótesis.** Con tres distritos, una clase
+positiva del 1,23 % y veinticuatro años de cobertura, es un límite del dato
+disponible, no un hallazgo sobre el clima.
 
-![F1-macro de las dos líneas base, con la dispersión entre pliegues](figuras/lineas-base.png)
+### D. Tres algoritmos contra las líneas base
 
-**Incendio.** Es el resultado que exige más cuidado al enunciar. Los criterios
-previos esperaban que el mes informara —la estación seca del Pacífico Norte está
-bien delimitada— y la diferencia medida fue de +0,006. Pero la afirmación
-defendible no es «el mes no informa sobre el incendio», sino esta:
+La Tabla XII y la Fig. 5 reportan los tres algoritmos, con hiperparámetros
+afinados como se describe en III-E, contra las dos líneas base, sobre los mismos
+cinco pliegues.
 
-> **La dispersión de la línea base climatológica entre pliegues (0,138) es
-> veintitrés veces su ventaja sobre la trivial (+0,006). La medición no tiene
-> resolución para distinguir las dos hipótesis.**
+**Tabla XII.** F1-macro de los cinco estimadores por evento (media y rango entre
+pliegues), y veredicto de la regla de decisión. La sequía se reporta solo con
+sus líneas base porque no se modela (V-B).
 
-Con tres distritos, una clase positiva del 1,23 % y veinticuatro años de
-cobertura, el diseño experimental no alcanza. Es un límite del dato disponible,
-no un hallazgo sobre el clima.
+| Evento | Estimador | F1-macro | Rango entre pliegues | |
+|---|---|---|---|---|
+| Lluvia intensa | Climatológica | **0,346** | 0,027 | escribe |
+| | XGBoost | 0,327 | 0,057 | |
+| | Random Forest | 0,322 | 0,048 | |
+| | Trivial | 0,309 | 0,015 | piso |
+| | Regresión logística | 0,305 | 0,045 | |
+| | *Veredicto* | *empate técnico: la climatológica saca +0,019 a XGBoost y se mueve 0,027* | | |
+| Incendio | Random Forest | **0,557** | 0,055 | |
+| | XGBoost | 0,544 | 0,057 | |
+| | Regresión logística | 0,530 | 0,061 | escribe |
+| | Climatológica | 0,500 | 0,138 | |
+| | Trivial | 0,494 | 0,009 | piso |
+| | *Veredicto* | *empate técnico: Random Forest saca +0,013 a XGBoost y se mueve 0,055* | | |
+| Sequía | Trivial | 0,333 | 0,252 | piso |
+| | Climatológica | 0,272 | 0,126 | |
+| | *Veredicto* | *no modelable; ningún estimador elegible alcanza el piso* | | |
 
-### E. Lo que falta, y por qué no se rellena
+![Tres algoritmos contra dos líneas base](figuras/comparativa-algoritmos.png)
 
-**Los tres algoritmos comparados —Regresión Logística, Random Forest y
-XGBoost— no están entrenados.** Sin ellos no hay matrices de confusión, ni curvas
-de desempeño, ni importancia de variables, ni explicaciones locales con SHAP.
+**Fig. 5.** Los tres algoritmos contra las dos líneas base, con el rango entre
+pliegues como barra de error. Datos de la Tabla XII. El borde grueso marca el
+estimador que escribe la estimación publicada.
 
-Lo que sí está decidido y verificado es **cómo se van a comparar**. El arnés de
-comparación fija, para los cinco estimadores por igual, tres cosas: la partición
-temporal, la métrica y el tratamiento de las predicciones ausentes —una fila sin
-predicción no se evalúa y se cuenta aparte, para no castigar a un estimador por
-declarar que no sabe—. Los tres pendientes están declarados dentro del propio
-registro de estimadores, de modo que la tabla no pueda leerse como completa.
+**En ninguno de los dos eventos modelables la regla declara un ganador, y en
+ninguno un algoritmo supera a la climatológica por más de lo que la
+climatológica se mueve entre pliegues.** En lluvia intensa la climatológica
+queda además *por encima* de los tres algoritmos afinados, y su ventaja (+0,019)
+no alcanza su propio rango (0,027). En incendio el bosque queda primero por
+media, con una ventaja sobre el siguiente (+0,013) cuatro veces menor que su
+rango (0,055); frente a la climatológica saca +0,057, apenas por encima de su
+propio rango y muy por debajo del rango de la climatológica (0,138), que es la
+referencia contra la que se formuló H1. Con cinco pliegues correlacionados, una
+diferencia de ese tamaño en incendio no distingue hipótesis (V-C).
 
-**Una advertencia metodológica que queda fijada para cuando se llene.** Los
-resultados de esta sección se reportarán **sin prueba de significancia**. Cinco
-pliegues de una serie temporal no son cinco muestras independientes: la ventana
-es expansiva, los conjuntos de entrenamiento se solapan por construcción y las
-métricas están correlacionadas. Una prueba que suponga independencia produciría
-un valor *p* que suena riguroso y no lo es. Se reportarán la media, la desviación
-y los cinco valores individuales.
+Tres observaciones sobre cómo se llegó a esa tabla, que importan para leerla:
 
-### F. Validación externa del etiquetado contra eventos reales
+1. **El afinado empeoró a XGBoost en lluvia intensa** (de 0,371 con parámetros de
+   fábrica a 0,327). La búsqueda solo pudo mirar la ventana del primer pliegue
+   —cinco años y medio— y eligió la esquina más regularizada de su rejilla, que
+   sobre treinta y cuatro años subajusta. Se aplicó igual, porque decidir después
+   de ver el resultado es lo que el diseño existe para impedir; y no cambia quién
+   escribe, porque XGBoost no escribía antes ni escribe ahora.
+2. **El bosque de fábrica en incendio estaba degenerado, no flojo.** Sus cinco
+   valores por pliegue eran los de la trivial, decimal por decimal: con
+   profundidad sin límite sobre un evento raro, memorizaba el entrenamiento y en
+   la prueba predecía siempre la clase mayoritaria. Limitar la profundidad a 6 y
+   exigir 20 filas por hoja lo hizo aprender: +0,063, el efecto más grande de
+   todo el afinado.
+3. **En las seis búsquedas de hiperparámetros, todas las combinaciones de la
+   rejilla cayeron dentro del ruido de la mejor.** Con tres pliegues internos
+   sobre una ventana corta, el rango entre pliegues es mayor que toda la
+   dispersión de la rejilla. La búsqueda no pudo separar una combinación de otra
+   y decidió el desempate por simplicidad; presentar la esquina ganadora como un
+   ajuste fino sería falso.
 
-Antes de que exista un modelo hay una pregunta previa que casi nunca se plantea:
-**¿la verdad de terreno reconoce los eventos que de verdad ocurrieron?** Si las
-etiquetas no los reconocen, ningún modelo entrenado sobre ellas podrá hacerlo.
+### E. Qué estimador escribe la estimación publicada
 
-Que la pregunta se omita no es una impresión de este trabajo. Northcutt *et al.*
-`[33]` auditaron los conjuntos de prueba de diez de los repositorios más usados
-en aprendizaje automático y encontraron un **3,4 % de error de etiqueta en
-promedio** —6 % en el conjunto de validación de ImageNet—, en datos que llevaban
-años usándose como referencia. Su resultado central es el que obliga a hacer esta
-sección: con suficiente proporción de etiquetas mal puestas, **el orden del
-*ranking* de modelos se invierte**, y un modelo de menor capacidad resulta más
-útil en la práctica que uno de mayor capacidad. Comparar tres algoritmos sobre
-una variable objetivo no auditada es, entonces, comparar contra un criterio que
-puede estar ordenando al revés.
+La regla de III-E, aplicada a la Tabla XII, da: en **lluvia intensa** escribe la
+**climatológica**, porque nadie gana fuera del ruido y es la más simple de las
+que quedan dentro. En **incendio** escribe la **regresión logística**: el bosque
+afinado subió el techo de la banda de ruido a 0,502 y la climatológica, en
+0,500, quedó fuera por **0,002**; la regresión es la más simple de las que
+quedan dentro. En **sequía** no escribe nadie.
 
-Se contrastó el etiquetado contra el catálogo de **46 eventos históricos de
-Tilarán** extraídos de DesInventar Costa Rica. Un evento del día *E* se considera
-anunciado si alguna etiqueta en la ventana previa marcaba riesgo medio o alto.
+Ese segundo resultado hay que enunciarlo con cuidado. **La regresión logística
+no le gana a la climatológica** —0,530 ± 0,061 contra 0,500 ± 0,138— y escribe
+porque quedó dentro de la banda de *otro* estimador, no porque haya demostrado
+nada. Cambió quién escribe por afinar un modelo que no escribe. Se aplicó la
+regla tal como estaba escrita y el borde queda registrado como una debilidad de
+la regla a decidir por sus propios méritos, sin este resultado a la vista.
+
+Cada estimación publicada declara quién la escribió y con qué cifras, de modo
+que se puede reproducir y se puede retirar. La tubería que aplica la regla y
+escribe las filas se describe en `[38]`.
+
+### F. Lo que los modelos usan, y lo que explican
+
+Dos mediciones independientes, hechas sobre los estimadores afinados, confirman
+desde otro ángulo el resultado de la Tabla XII.
+
+**Importancia de variables por permutación.** Sobre el conjunto de prueba de cada
+pliegue, con cinco repeticiones por columna, **ningún modelo se apoya en ninguna
+de las 27 columnas de forma estable entre pliegues** (Tabla XIII): de seis
+combinaciones, cinco no tienen una sola columna cuya caída media supere su propio
+rango, y la sexta tiene exactamente una, y es *negativa* —permutar la media
+móvil de tres días de la temperatura máxima *mejora* a la regresión logística en
+incendio, en los cinco pliegues—. Sobre 162 columnas evaluadas, que una cruce su
+banda es lo que se espera por azar; es una pista para revisar, no una
+conclusión. XGBoost en incendio, además, **no usa ninguna de las seis columnas
+de precipitación**: permutarlas no cambió una sola predicción.
+
+**Tabla XIII.** Columnas cuya importancia por permutación supera su propio rango
+entre pliegues, de 27.
+
+| Evento | Regresión logística | Random Forest | XGBoost |
+|---|---|---|---|
+| Lluvia intensa | 0 | 0 | 0 |
+| Incendio | 1 (negativa) | 0 | 0 |
+
+**Explicaciones locales con SHAP** `[10]`. Se explicaron cuatro predicciones por
+estimador y evento, elegidas por una regla fijada antes de mirarlas que obligaba
+a incluir un acierto y un falso positivo. **La explicación de un acierto y la de
+un error son indistinguibles**: para el bosque en lluvia intensa, distrito
+50808, las mismas ocho columnas en el mismo orden y con los mismos valores hasta
+el tercer decimal explican un acierto (P = 0,720) y un falso positivo cuatro
+días antes (P = 0,704). Lo mismo ocurre con XGBoost y con la regresión en
+incendio. Las cuatro figuras del acierto, solas, se ven convincentes; el hallazgo
+aparece únicamente al poner el error al lado.
+
+Un modelo que distinguiera algo produciría explicaciones distintas para un
+acierto y un error; estos producen la misma. Es la confirmación local de lo que
+la importancia global midió y de lo que la Tabla XII dice por otro camino.
+
+### G. Validación externa del etiquetado contra eventos reales
+
+Esta subsección responde PI3 y **no requiere modelo**. Se contrastó el etiquetado
+contra el catálogo de 46 registros de III-F, con la ventana estricta de siete
+días (Tabla XIV, Fig. 6).
+
+**Tabla XIV.** Cobertura, tasa base y realce del etiquetado sobre los eventos
+históricos, ventana [*E*−7, *E*−1]. Intervalos de Wilson al 95 %.
 
 | Evento | Registros | Contrastables | Detecta | Cobertura (IC 95 %) | Tasa base | **Realce** |
 |---|---|---|---|---|---|---|
@@ -819,350 +937,312 @@ anunciado si alguna etiqueta en la ventana previa marcaba riesgo medio o alto.
 | Sequía | 7 | 7 | 7 | 100,0 % [64,6 %, 100 %] | 15,9 % | **6,31×** |
 | Incendio | 1 | 0 | — | — | 2,7 % | — |
 
-**Las coberturas se acompañan de su intervalo de Wilson al 95 %.** Reportarlas
-como valores puntuales las hacía parecer tan firmes como la tasa base, y no lo
-son: la cobertura sale de 34 y 7 observaciones, la tasa base de casi cien mil.
-Con esos tamaños el intervalo de Wald —el que suele escribirse— tiene cobertura
-errática y colapsa a un punto cuando la proporción es 0 o 1 `[34]`.
-
-La Fig. 4 pone la cobertura al lado de la tasa base, que es lo que vuelve
-interpretable al realce. El incendio no aparece: su único registro en el catálogo
-es posterior a la serie etiquetada.
-
 ![Cobertura contra tasa base, y el realce resultante](figuras/contraste-catalogo.png)
 
-**La métrica que importa es el realce, no la cobertura.** Una cobertura alta se
-consigue marcando siempre; el realce —cuántas veces más frecuente es la marca
-ante un evento real que en un día cualquiera— no.
+**Fig. 6.** Cobertura contra tasa base, y el realce resultante. Datos de la Tabla
+XIV. El incendio no aparece: su único registro en el catálogo es de 2026,
+posterior a la serie etiquetada, lo que confirma la limitación anticipada en
+IV-E antes de medir.
 
-**No se reporta precisión, y la omisión es deliberada.** El catálogo registra
-daños reportados, no fenómenos, y está incompleto por construcción: una marca sin
-registro no es un falso positivo, puede ser un evento real que nadie reportó.
-Calcular precisión contra un catálogo incompleto produce un número que aparenta
-rigor y está mal por definición.
+Las coberturas salen de 34 y 7 observaciones; la tasa base, de casi cien mil.
+Por eso se acompañan de su intervalo de Wilson y no del de Wald, que con esos
+tamaños tiene cobertura errática y colapsa a un punto cuando la proporción es 0
+o 1 `[34]`. El realce de sequía de esta tabla (6,31×, tasa base 15,9 %) y el de
+la Tabla XV (6,50, tasa base 15,4 %) provienen de dos herramientas distintas
+—el contraste general y la comparación de escalas— que cuentan la tasa base
+sobre conjuntos de días ligeramente distintos; la diferencia no altera ninguna
+conclusión y se declara en vez de unificarse a mano.
 
-#### El cero de la sequía no eran dos relojes: era la escala del índice
+**La escala del SPI se eligió con este contraste.** Con SPI-3 la sequía daba **0
+de 7**, y la marca más cercana quedaba a −37 días, *el mismo −37 en los ocho
+distritos*. Una coincidencia de fechas se dispersa entre distritos; un valor
+idéntico en los ocho es la firma de algo estructural. Medidas las tres escalas
+contra el mismo catálogo (Tabla XV), SPI-6 y SPI-12 detectan los siete con la
+ventana estricta: el SPI-3 no fallaba por un desajuste de relojes, fallaba
+porque **sale de sequía antes de que el daño se declare** —integra tres meses, y
+para el 30 de septiembre de 2014 las lluvias de setiembre ya lo habían
+recuperado mientras la declaratoria se emitía—.
 
-Con SPI-3 y ventana de siete días la sequía daba **0 de 7**. La lectura inicial
-fue que el catálogo registra la fecha de la **declaratoria administrativa**
-—emitida después de evaluar los daños— mientras el índice marca el mes en que
-cae bajo el umbral, y que por tanto la pregunta no era contestable a siete días.
-Se agregó entonces una ventana ampliada del tamaño del período de integración
-del índice, con la que el SPI-3 recuperaba los siete.
+**Tabla XV.** Las tres escalas del SPI contra el mismo catálogo, ventana
+estricta.
 
-**Esa explicación era cómoda y estaba incompleta.** El detalle que no encajaba
-es que la marca más cercana quedaba a **−37 días, el mismo −37 en los ocho
-distritos**. Una coincidencia de fechas se dispersa entre distritos; un valor
-idéntico en los ocho es la firma de algo estructural.
-
-Al medir las tres escalas del índice contra el mismo catálogo, con intervalo de
-Wilson al 95 %:
-
-| Escala | Cobertura a 7 días | Realce | Episodios |
+| Escala | Cobertura a 7 días | Realce (IC 95 %) | Episodios por distrito |
 |---|---|---|---|
-| SPI-3 | 0 % [0 %, 35,4 %] | 0,00 [0,00, **2,38**] | 204 |
+| SPI-3 | 0 % [0 %, 35,4 %] | 0,00 [0,00, 2,38] | 204 |
 | SPI-6 | 100 % [64,6 %, 100 %] | 6,50 [4,13, 6,59] | 129 |
 | SPI-12 | 100 % [64,6 %, 100 %] | 5,39 [3,43, 5,46] | 68 |
 
-**SPI-6 y SPI-12 detectan los siete con la ventana estricta**, sin ampliar nada.
-El intervalo del SPI-3 queda enteramente por debajo del de las otras dos, y el
-1,0 cae dentro del rango de su realce: ante el único episodio que el catálogo
-permite probar, marcaba con la misma frecuencia que un día cualquiera.
+El resultado es asimétrico y así hay que leerlo. Los siete registros son *una
+fecha en siete distritos*, así que el tamaño de muestra efectivo está más cerca
+de uno: el 0 % del SPI-3, fallando de forma idéntica en los ocho distritos,
+**basta para descartarlo**; el 100 % de las otras dos **no corona a ninguna**.
+Entre SPI-6 y SPI-12 el catálogo no decide, y se adoptó SPI-6 por número de
+episodios y porque es la escala que `[15]` toma para la estación lluviosa de la
+vertiente del Pacífico. Ese criterio no es evidencia externa y se declara como
+tal.
 
-La causa es física y se puede enunciar: **el SPI-3 sale de sequía antes de que
-el daño se declare.** Integra tres meses, y para el 30 de septiembre de 2014 las
-lluvias de setiembre ya lo habían recuperado mientras la declaratoria se emitía.
-
-**El resultado es asimétrico, y así hay que leerlo.** Los siete registros son
-*una fecha en siete distritos*, no siete episodios independientes: el tamaño de
-muestra efectivo está más cerca de uno. Por eso el 100 % de SPI-6 y SPI-12 **no
-corona a ninguna de las dos** —confirmar con una observación no establece nada
-general— mientras que el 0 % del SPI-3, fallando de forma idéntica en los ocho
-distritos, **sí basta para descartarlo**. Falsar es más barato que confirmar.
-
-Entre SPI-6 y SPI-12 el catálogo no decide: sus intervalos se solapan. Se adoptó
-**SPI-6** por número de episodios —129 contra 68, casi el doble de muestra
-efectiva para el modelado posterior— con menor tasa base para la misma
-detección, y porque es la escala que `[15]` toma para la estación lluviosa de la
-vertiente del Pacífico. **Ese criterio no es evidencia externa y se declara como
-tal.**
-
-#### Los fallos de lluvia intensa apuntan a un desfase, no a una omisión
-
-De los 12 eventos no detectados, **9 tenían una marca a 14 días o menos, y en 9
-de los 12 la marca llegó *después* del evento**. El patrón admite tres
-explicaciones que este contraste no puede separar: imprecisión de fecha en la
-fuente —DesInventar suele registrar la fecha del reporte—, que el máximo del
+**Los fallos de lluvia intensa apuntan a un desfase, no a una omisión.** De los 12
+eventos no detectados, 9 tenían una marca a 14 días o menos, y en 9 de los 12 la
+marca llegó *después* del evento. El patrón admite tres explicaciones que este
+contraste no separa: imprecisión de fecha en la fuente, que el máximo del
 acumulado de 72 h caiga uno o dos días después del daño, o daño sin extremo
-meteorológico sobre una cuenca ya saturada.
-
-Distinguirlas requeriría la serie horaria y las fichas completas. Queda anotado
-como línea abierta.
-
-#### Lo que esto establece, y lo que no
-
-Establece un **piso para los modelos**: el etiquetado alcanza realce 4,74× en
-lluvia intensa sobre eventos reales verificados por una fuente externa. Un modelo
-que no lo supere no está aportando sobre la verdad de terreno.
-
-No establece nada sobre incendio —el único registro del catálogo es de 2026,
-posterior a la serie— lo que confirma la limitación anticipada en V-E antes de
-medir.
-
-### G. Qué responde esto de la pregunta de investigación
-
-La pregunta de la sección I-B tiene dos partes, y **la evidencia reunida responde
-una y deja la otra abierta**. Conviene separarlas porque se responden con cosas
-distintas.
-
-**«¿Permiten los datos abiertos globales estimar por distrito?»** — Respondida, y
-la respuesta es **parcialmente no, con una excepción**. De las cinco variables
-climáticas consideradas, cuatro provienen de reanálisis global cuya celda cubre
-el cantón entero: temperatura, humedad relativa, viento y radiación **toman el
-mismo valor en los ocho distritos**. Solo la precipitación, con una celda de
-0,05°, cae dentro de cada distrito por separado.
-
-Esa parte de la respuesta **no depende de ningún modelo** y no va a cambiar: es
-una propiedad de las fuentes, medida sobre la geometría del cantón.
-
-**«¿Con un desempeño superior al de una línea base climatológica?»** — **Abierta.**
-Requiere los tres algoritmos entrenados. Lo que sí quedó fijado es contra qué se
-mide: la sección VI-D reporta el piso por evento, y la VI-F establece que el
-etiquetado alcanza un realce de 4,74× sobre eventos históricos verificados por
-una fuente externa.
-
-**Y hay una tercera cosa que la pregunta no anticipaba**, y que la medición
-obligó a formular: en dos de los tres eventos, la dispersión entre pliegues
-supera a la diferencia entre estimadores. Es decir que, con el dato disponible,
-**el diseño experimental no tiene resolución para responder la segunda parte en
-sequía ni en incendio**, por bien entrenados que estén los modelos. Solo en
-lluvia intensa la comparación va a poder distinguir.
-
-Esa limitación no se puede resolver con mejor modelado. Se resolvería con más
-años de cobertura para el incendio, o con una definición de sequía que produzca
-episodios menos correlacionados entre pliegues.
-
-## VII. Discusión
-
-> **VACÍA. Depende de los tres entrenamientos.**
->
-> La sección VI ya reporta el piso —qué informa el calendario, por evento— pero
-> la discusión compara **modelos** contra ese piso, y los modelos no existen.
-> Escribirla ahora sería discutir un contraste que no se hizo.
->
-> **Qué va a contener:**
->
-> 1. Respuesta a la pregunta de investigación, en la dirección que resulte.
-> 2. Interpretación física de las variables que resulten importantes, contrastada
->    contra lo que la literatura de la sección II establece para el Pacífico Norte.
-> 3. Comparación de naturaleza —no de calidad— con el SATIF.
-> 4. Contraste de las estimaciones contra el catálogo de eventos históricos, con la
->    salvedad de V-E: el contraste será sólido para lluvia intensa, débil para
->    sequía e inexistente para incendio.
->
-> **Ya está decidido cómo se redacta el caso negativo.** Si los modelos no superan
-> la línea base, la sección lo reporta como respuesta a la pregunta y no como
-> fracaso del sistema, apoyándose en los hallazgos de la sección V, que apuntan en
-> esa dirección desde antes de entrenar.
+meteorológico sobre una cuenca ya saturada. Se retoma en VIII-A.
 
 ---
 
-## VIII. Limitaciones
+## VI. Discusión
 
-### A. El riesgo por distrito descansa hoy sobre una sola variable
+Esta sección responde las tres preguntas de I-B con lo medido en IV y V, en el
+orden en que se plantearon, y después dice por qué el resultado negativo es
+informativo y cómo se sitúa frente al trabajo relacionado.
+
+### A. PI1: las fuentes abiertas globales resuelven el distrito solo en una variable
+
+**Respuesta: parcialmente no, con una excepción.** De las cinco variables
+climáticas consideradas, cuatro provienen de un reanálisis global cuya celda
+cubre el cantón entero: temperatura, humedad, viento y radiación toman el mismo
+valor en los ocho distritos, medido sobre 102 272 días-distrito con **0,00 % de
+días con al menos dos valores distintos**. Solo la precipitación, con una celda
+de 0,05°, cae en cada distrito por separado y varía entre ellos el 61,62 % de
+los días (IV-A).
+
+Esa respuesta **no depende de ningún modelo y no va a cambiar**: es una propiedad
+de las fuentes, medida sobre la geometría oficial del cantón. Y tiene una
+consecuencia sobre todo lo demás: la afirmación «riesgo por distrito» de este
+sistema se sostiene sobre una única variable. Es la limitación más importante
+del trabajo y está medida, no supuesta (VII-A).
+
+### B. PI2 y la hipótesis H1: el modelo no supera al calendario, y H1 se rechaza
+
+**Respuesta: no, en ninguno de los dos eventos modelables; y en el tercero la
+pregunta no se puede plantear.** Con la métrica, la partición y la regla de
+decisión fijadas antes de entrenar, ningún algoritmo supera a la línea base
+climatológica por más de lo que esta se mueve entre pliegues (Tabla XII). En
+lluvia intensa la climatológica queda incluso por encima de los tres; en
+incendio la diferencia entre el primero y la climatológica (+0,057) cae dentro
+del rango de esta última, que es de 0,138, y la regla no declara ganador. En
+sequía, los 13 episodios en 34 años no alcanzan el mínimo que el diseño exigía
+(Tabla X).
+
+**La hipótesis H1 se rechaza.** No se rechaza por falta de intento: se
+entrenaron los tres algoritmos, se afinaron sus hiperparámetros sobre una
+ventana limpia, y se midieron sobre 99 296 filas con la misma partición y la
+misma métrica que las líneas base. Se rechaza porque, en este cantón y a siete
+días, **la estacionalidad explica casi todo lo que estas fuentes permiten
+explicar**, y un almanaque de treinta y cinco años por distrito y mes resulta
+tan bueno como un ensamble de árboles que mira las variables meteorológicas de
+los treinta días anteriores.
+
+Hay una razón estructural que la medición hace visible. La climatológica *es* el
+calendario, y los modelos compiten contra ella sin poder verlo: la matriz de
+27 columnas no contiene el día del año ni el distrito (III-E). Es decir, se les
+pidió que reconstruyeran la estación a partir de temperatura, humedad y lluvia
+recientes, y la reconstruyeron aproximadamente igual de bien que quien la lee
+del almanaque. Que la comparación sea *justa* en ese sentido —todos los
+estimadores ven lo mismo excepto la fecha— es lo que hace informativo el empate:
+lo que las variables meteorológicas de corto plazo aportan **por encima** de la
+estacionalidad, a siete días, no es distinguible del ruido entre pliegues con
+34 años de datos.
+
+Dos resultados independientes son coherentes con esa lectura y la refuerzan
+(V-F). Ningún modelo se apoya en ninguna columna de forma estable entre
+pliegues, y la explicación local de un acierto es indistinguible de la de un
+error. **Un modelo que no gana no debería tener una explicación nítida**, y si
+la tuviera habría que sospechar de ella antes que celebrarla.
+
+Lo que el diseño **no** permite afirmar también hay que decirlo. No se puede
+afirmar que ningún modelo pueda ganar: en dos de los tres eventos la dispersión
+entre pliegues supera a la diferencia entre estimadores, así que el diseño no
+tiene resolución para declarar ganador aunque lo hubiera. Eso no se arregla
+entrenando mejor; se arreglaría con más cobertura temporal para el incendio o
+con una definición de sequía que produzca episodios menos correlacionados entre
+pliegues.
+
+### C. PI3: la variable objetivo reconoce los eventos reales
+
+**Respuesta: sí, para los dos eventos contrastables.** El etiquetado marca riesgo
+en la semana previa a un evento histórico 4,74 veces más a menudo que en una
+semana cualquiera en lluvia intensa, y 6,31 veces en sequía (Tabla XIV). Para el
+incendio no hay registro histórico contra el cual contrastar, y no por una
+limitación de este trabajo sino porque el inventario nacional no contiene el
+fenómeno (IV-E).
+
+Esto establece un **piso interpretable** que no requiere modelo: un modelo que no
+supere ese realce sobre eventos reales no está aportando sobre la verdad de
+terreno. Y sirvió para algo que no se había previsto: descartar la escala del
+índice de sequía que la convención sugería (Tabla XV). Con SPI-3, la más común en
+la literatura de sequía agrícola, el contraste daba cero de siete, y la
+explicación cómoda —un desajuste entre la fecha del índice y la de la
+declaratoria— no explicaba que la marca más cercana quedara a exactamente −37
+días en los ocho distritos. Someter esa explicación a una medición que pudiera
+refutarla es lo que mostró que el índice de tres meses sale de sequía antes de
+que el daño se declare.
+
+Que PI3 se responda afirmativamente mientras PI2 se responde negativamente **no es
+una contradicción**: dice que la etiqueta describe bien lo que ocurrió, y que lo
+que ocurrió es, a siete días, mayormente estacional.
+
+### D. Por qué el resultado negativo es más informativo que el que se esperaba
+
+Un modelo que superara a la línea base por 0,02 de F1-macro habría producido un
+sistema con «aprendizaje automático» en la pantalla y una explicación de
+importancia de variables de aspecto razonable. Cuatro de los siete hallazgos de
+la sección IV muestran cuánto cuesta un resultado así cuando la variable
+objetivo está mal construida: filtrar la precipitación, ajustar el SPI sin
+separar meses, confundir dos percentiles del mismo nombre o etiquetar como «sin
+evento» una década sin satélite **no habrían hecho fallar nada**. Habrían
+producido métricas plausibles sobre una variable objetivo equivocada, y —por lo
+que muestra `[33]`— posiblemente el orden inverso entre algoritmos.
+
+El resultado que sí se obtuvo es más modesto y más sólido: en este cantón, con
+estas fuentes y a este horizonte, la estacionalidad domina, el modelo no la
+supera, y el sistema publicado lo dice. El estimador que escribe la estimación
+para lluvia intensa es la climatológica, y cada fila publicada lleva su nombre,
+la fecha de la corrida, el F1-macro y el veredicto «empate técnico». **Lo que se
+pierde —que el mapa no lleve un modelo de aprendizaje— se pierde por una razón
+medida, no por una omisión.**
+
+### E. Frente al trabajo relacionado
+
+Rojas Morales `[29]` estima riesgo por lluvia extrema para los 459 distritos con
+la misma fuente de precipitación y una unidad administrativa idéntica, y valida
+su ajuste sobre el período completo. Este trabajo, sobre ocho distritos y con
+validación temporal, encuentra que la señal de corto plazo no supera a la
+estacional; ambos resultados son compatibles, porque `[29]` no compara contra
+una línea base climatológica y este trabajo no incorpora variables
+socioeconómicas ni biofísicas, que en `[29]` explican buena parte del índice.
+Los dos sesgos de CHIRPS que `[29]` documenta —peor ajuste en montaña y
+subestimación en época seca— se dan aquí y fijan la dirección del error
+esperado (VIII-A).
+
+Frente al SATIF `[25]`, la comparación es de naturaleza y no de calidad: aquel es
+un índice meteorológico de peligro operado por estaciones, este es una
+estimación estadística por distrito sobre fuentes satelitales. Que el componente
+de incendio sea el más débil de este trabajo (VII-B) es coherente con que el
+SATIF no dependa de un registro histórico de incendios que, como muestra IV-E,
+no existe a escala cantonal.
+
+### F. De hallazgo a decisión: lo que la evidencia cambió en el sistema
+
+Ninguno de los resultados anteriores se archivó: cada uno se tradujo en una
+decisión concreta que se puede comprobar contra el sistema construido (Tabla
+XVI). La tabla existe para que se vea dónde termina el dato y dónde empieza la
+decisión, que es la distinción que este trabajo más cuida.
+
+**Tabla XVI.** Qué decisión salió de cada hallazgo, y dónde se comprueba.
+
+| Hallazgo | Decisión tomada | Dónde se comprueba |
+|---|---|---|
+| Cuatro de cinco variables no distinguen distritos (IV-A) | La precipitación se toma de CHIRPS y no del reanálisis; las otras cuatro se conservan como contexto y la limitación se declara | Tabla III; VII-A |
+| Filtrar la precipitación destruye los índices (IV-B) | La precipitación no se filtra; el filtro se aplica solo al resto de variables | III-C |
+| El SPI con ajuste único mide estacionalidad (IV-C) | El SPI se ajusta por mes calendario | III-C, Tabla VII |
+| El percentil de 72 h no es R95p (IV-D) | Se conserva el umbral y se corrige su atribución | Tabla IV |
+| Una década sin satélite parecía una década sin incendios (IV-G) | El período de cobertura de cada fuente es una constante explícita; fuera de él la etiqueta es nula | Tabla IX, Fig. 2 |
+| El SPI-3 sale de sequía antes de que el daño se declare (V-G) | La escala del índice pasa a seis meses | Tabla XV |
+| 13 episodios de sequía, 2 en el peor pliegue (V-B) | La sequía no se modela; el sistema la publica como «sin estimación» en vez de rellenarla con la clase mayoritaria | Tabla X, Fig. 3 |
+| Ningún algoritmo supera a la climatológica fuera del ruido (V-D) | Escribe el estimador más simple dentro del ruido: la climatológica en lluvia intensa; cada fila publicada lleva el veredicto | Tabla XII, V-E |
+| El umbral propio de incendio no producía tres clases (III-D) | El evento pasa a binario y se acota a los tres distritos con señal | Tabla IV |
+| La explicación de un acierto es indistinguible de la de un error (V-F) | No se construyó una vista de explicación por variable; la ficha de cada distrito muestra el estimador que escribió y su desempeño medido | V-E |
+
+---
+
+## VII. Limitaciones
+
+Esta sección enumera **lo que el sistema no hace**. La siguiente enumera algo
+distinto: por qué las conclusiones podrían estar equivocadas aun siendo correcto
+todo el cálculo.
+
+### A. El riesgo por distrito descansa sobre una sola variable
 
 De las cinco variables climáticas, **solo la precipitación tiene resolución
-suficiente para distinguir distritos** (sección V-A). Temperatura, humedad,
-radiación y viento son, para este cantón, constantes en el eje espacial: **0,00 %
-de días con al menos dos valores distintos entre los ocho distritos**, sobre
-102 272 días-distrito. La precipitación varía en el **61,62 %**.
-
-No son parecidas entre distritos: son idénticas. La causa la escribe la propia
-carga en su registro, una vez por distrito: «POWER reutiliza la celda
-(−85,0 · 10,5), ya descargada».
-
-La afirmación "riesgo por distrito" se sostiene sobre esa única variable. Es la
-limitación más importante del trabajo y está medida, no supuesta.
+suficiente para distinguir distritos** (IV-A, VI-A). Las otras cuatro no son
+parecidas entre distritos: son idénticas. La afirmación «riesgo por distrito» se
+sostiene sobre esa única variable, y es la limitación más importante del trabajo.
 
 ### B. El componente de incendio es el más débil de los tres
 
 Concentra tres debilidades a la vez: **no tiene estándar internacional** para su
-umbral, **no tiene registro histórico** contra el cual validarse (V-E), y su
-volumen de datos de entrenamiento es el más escaso de los tres.
+umbral, **no tiene registro histórico** contra el cual validarse (IV-E), y su
+volumen de datos es el más escaso: 242 focos en 24 años, tres distritos, una
+clase positiva del 1,23 % y entre 33 y 38 ventanas positivas por distrito. Con
+eso, la comparación de algoritmos **no es concluyente para este evento** (V-C), y
+se declaró que podía no serlo antes de medir ningún resultado, para que la
+elección de modelo no se justificara a posteriori.
 
-**Y la segunda es más severa de lo que «no tiene registro» deja ver.** No se
-trata de que el catálogo empiece tarde o que el único evento quede fuera de la
-serie etiquetada, que es como se describía hasta ahora. Al compilar el catálogo
-se encontró que DesInventar distingue el tipo `FIRE` del tipo `FORESTFIRE`, y
-que **en cincuenta y seis años de registro las cuatro fichas `FIRE` de Tilarán
-son incendios estructurales** —locales comerciales, una bodega—: **ninguna es
-forestal**.
+Hay además una heterogeneidad instrumental dentro de la propia serie: el archivo
+de focos es solo MODIS de 2001 a 2011 (69 focos, 6,3 por año) y MODIS más VIIRS
+de 2012 a 2024 (173 focos, 13,3 por año) `[14]`. El salto de 2,1× es del sensor,
+no del clima; por eso ninguna variable de tendencia temporal entra al modelo de
+incendio y toda afirmación sobre tendencia se restringe a 2012–2024. Restringir
+la serie a la era VIIRS habría costado la mitad de las ventanas positivas —de
+38, 33 y 34 a 20, 18 y 18 en los tres distritos— y con veinte no se valida.
 
-El único evento de incendio del catálogo de este trabajo no proviene de
-DesInventar sino de **prensa**, y es de 2026, posterior a la serie etiquetada.
+### C. La sequía no se modela, pero sí se mide
 
-La consecuencia se enuncia sin rodeos: **el componente de incendio no admite
-validación contra el registro histórico de desastres, y no por una limitación de
-este trabajo sino porque ese registro no contiene el fenómeno.** El contraste
-tendrá que apoyarse en los focos de FIRMS, que son detección satelital y no daño
-reportado, y esa sustitución cambia lo que se puede afirmar: se estaría validando
-contra otra medición del mismo cielo, no contra una consecuencia observada en
-tierra.
+La sequía queda fuera del modelado por número de episodios (V-B). El índice que
+la define sí se calcula con la lluvia que ya cayó y es un hecho observado, del
+mismo tipo que «ayer llovieron 12 mm»; el sistema puede mostrar el valor del
+índice y su categoría estándar sin fingir que predice. Lo que no puede hacer,
+con estos datos, es estimar su nivel a siete días.
 
-**Ya no está supuesto: está medido.** El riesgo R16 se cerró el 20 de agosto con
-**242 focos de FIRMS en 24 años** dentro del cantón. De ahí salieron tres hechos:
+### D. La latencia de las fuentes limita la operación con dato final
 
-- El umbral por percentiles del conteo **no producía tres clases sino dos**. El
-  P90 vale 0,0 en los ocho distritos, porque entre el 97 % y el 99,9 % de las
-  ventanas de 7 días están vacías. Se corrigió a un objetivo binario.
-- **Cinco de los ocho distritos no tienen datos suficientes**, y dos de ellos
-  registran **un solo foco en veinticuatro años**. El alcance del evento se acotó
-  a Santa Rosa, Líbano y Tierras Morenas, que concentran el 88 %.
-- Con 33 a 38 ventanas positivas por distrito, **la comparación de algoritmos
-  puede no ser concluyente para este evento**. Se declaró antes de medir ningún
-  AUC, para que la elección de modelo no se justifique a posteriori.
+Medida contra la documentación oficial de cada proveedor (Tabla XVII), la
+precipitación final de CHIRPS llega entre 21 y 51 días después del día que
+describe. El SPI-6 mira una ventana de 180 días que termina hoy, así que **entre
+el 12 % y el 28 % de esa ventana no es dato final** al momento de estimar. La
+fracción mejoró al pasar de SPI-3 a SPI-6 —era del 23 % al 57 %— como efecto
+secundario de una decisión tomada por otro motivo, y conviene no presentarlo
+como argumento a favor de la escala. El producto preliminar de CHIRPS no es el
+mismo dato menos pulido: para Costa Rica se queda sin la corrección por
+estaciones, que es justamente lo que se valoró de la fuente.
 
-De los tres umbrales del trabajo, los dos tomados de estándares publicados
-resistieron la verificación. **El único que fijó el equipo, no.**
+**Tabla XVII.** Latencia declarada por cada fuente.
 
-### C. Las dos deudas de verificación bibliográfica, saldadas
-
-Se declararon el 19 de agosto en lugar de resolverse por conveniencia, y se
-pagaron el 22 leyendo WMO-No. 1090 completo. El resultado no fue el esperado en
-ninguno de los dos casos.
-
-**1. El ajuste por mes calendario sí tiene respaldo, y está en otra sección.** La
-5.1.1 describe el SPI de 1 mes como la comparación del total de noviembre de un
-año contra los totales de noviembre de todos los años del registro; la 5.1.2 dice
-lo equivalente para el trimestre y la 5.1.5 para los doce meses. Es
-**descriptivo, no imperativo** —la guía nunca escribe «ajústese por mes
-calendario»— pero define el conjunto de comparación como el mismo mes a través de
-los años, que es el fundamento del ajuste por mes calendario. La cita se
-restituye acotada a eso.
-
-Lo buscábamos en la sección 6, que es donde no está.
-
-**2. La fuente del tratamiento de ceros no era la que se creía, y había una
-atribución falsa que nadie había detectado.** El código atribuía a WMO-No. 1090
-la distribución mixta `H(x) = q + (1−q)·G(x)`. **La guía no contiene ninguna
-fórmula**: su sección 6 remite a McKee et al. (1993, 1995) y a Edwards y McKee
-(1997) para el procedimiento de cálculo.
-
-La atribución correcta es Stagge et al. (2015). Y la verificación se declara
-parcial: **el artículo está tras muro de pago y no se leyó**; lo que se leyó es la
-documentación de `fitSCI` del paquete R `SCI`, firmada por dos de sus cinco
-autores. Además, el `q/2` que usa esta implementación **no es la fórmula de
-Stagge sino su límite** cuando el tamaño de muestra crece: la forma exacta es
-`(n0 + 1) / (2(n + 1))`. Con 35 años la diferencia es despreciable, y se documenta
-como simplificación y no como equivalencia.
-
-**Lo que esto deja como aprendizaje metodológico.** El 19 de agosto se retiró una
-atribución a esa fuente por no poder confirmarla, y **se dejó en pie otra a la
-misma fuente, en el mismo archivo, ochenta líneas más abajo, sin revisarla**.
-Retirar una cita dudosa no sirve si no se revisan sus vecinas, y una revisión que
-no declara su alcance no permite saber qué quedó sin mirar.
-
-**Ninguna de las dos afectaba a los resultados**: la decisión de V-C se sostiene
-sobre la medición, no sobre la cita. Lo que sí habría llegado al documento es una
-atribución falsa.
-
-### C-bis. La latencia de las fuentes, y dos propiedades que no conocíamos
-
-Medida el 23 de agosto contra la documentación oficial de cada proveedor, porque
-nunca se había comprobado **cuándo llega el dato**.
-
-| Fuente | Alimenta | Latencia |
+| Fuente | Alimenta | Latencia declarada |
 |---|---|---|
 | FIRMS | Incendio | ~3 horas |
 | POWER | Temperatura, humedad, viento, radiación | días, en el producto reciente |
 | CHIRPS final | Precipitación → sequía y lluvia intensa | **21 a 51 días** |
 
-**1. La sequía no se puede estimar con dato final en tiempo operativo.** El
-SPI-6 mira una ventana de 180 días que termina hoy, y CHIRPS final llega en la
-tercera semana del mes siguiente: **entre el 12 % y el 28 % de esa ventana no es
-dato final** al momento de estimar.
+POWER, además, cambia de modelo a mitad de la serie —MERRA-2 en el histórico,
+GEOS-5.12.4 FP-IT en los últimos meses— de modo que un modelo entrenado sobre la
+serie operaría sobre otro producto, y la frontera cae justamente en el dato que
+el sistema usaría en producción. Esa heterogeneidad no está cuantificada.
 
-La fracción **mejoró** al pasar de SPI-3 a SPI-6 —era del 23 % al 57 % sobre los
-90 días de la escala anterior— porque la misma latencia pesa menos sobre una
-ventana más larga. Es un efecto secundario de una decisión que se tomó por otro
-motivo, y conviene no presentarlo como un argumento a favor de la escala: no lo
-fue, se descubrió después.
+### E. Las mediciones de IV-B y IV-C son sobre series sintéticas
 
-Y el producto rápido no es el mismo dato menos pulido: es **«GTS and Mexico
-only»**, así que para Costa Rica se queda sin la corrección por estaciones, que es
-precisamente lo que se valoró de CHIRPS frente a una estimación satelital
-cualquiera.
+Ambas se hicieron sobre series generadas con el régimen del Pacífico Norte,
+porque las series reales no estaban descargadas al medirlas. **Miden una
+propiedad del método**, que no depende de los valores exactos del cantón, y las
+herramientas quedan publicadas para repetirlas sobre los datos reales.
 
-**2. POWER cambia de modelo a mitad de la serie.** El histórico proviene de
-**MERRA-2**; los últimos meses, de **GEOS-5.12.4 FP-IT**. Un modelo entrenado
-sobre la serie se entrenaría con uno y operaría con el otro, y la frontera cae
-justamente en el dato que el sistema usaría en producción.
+### F. Las estimaciones publicadas no se renuevan solas todavía
 
-Es la misma heterogeneidad instrumental que la sección V-E documenta para FIRMS
-—MODIS hasta 2011, MODIS+VIIRS después— pero en la fuente que se daba por
-homogénea, y **no está medida**: cuantificar el solape requiere descargarlo y
-compararlo.
+El sistema está publicado con datos reales, pero la corrida que escribe las
+estimaciones cubre hasta siete días después de su ejecución y hoy es un comando
+manual. El escritor de lluvia intensa, al depender solo del calendario, proyecta
+hasta ese horizonte; el de incendio necesita la matriz de características y solo
+escribe días que la tienen. Un servicio de ejecución programada está diseñado y
+no desplegado al cierre de este documento (sección X).
 
-**3. La producción de CHIRPS v2 termina después de diciembre de 2026.** No afecta
-al trabajo, que concluye antes, pero sí a cualquier afirmación sobre que el
-sistema sea utilizable por la Municipalidad más allá de esa fecha sin migrar a
-CHIRPS v3.
+### G. Sin validación con usuarios todavía
 
-**Alcance de la verificación:** son las latencias que cada fuente **declara**;
-no se midieron empíricamente descargando archivos y comparando fechas.
-
-### D. Las mediciones de V-B y V-C son sobre series sintéticas
-
-Ambas se hicieron sobre series generadas con el régimen del Pacífico Norte, porque
-las series reales no estaban descargadas al medirlas. **Miden una propiedad del
-método**, que no depende de los valores exactos del cantón, y las herramientas
-quedan publicadas para repetirlas sobre los datos reales.
-
-### E. Sin validación externa todavía
-
-La validación con el Comité Municipal de Emergencias y el cálculo del puntaje SUS
-no se han realizado.
-
-### F. El sistema no está publicado, y esa es la limitación más grande
-
-GeoGuardian se desplegó sobre Kubernetes local con k3d: el
-curso exige orquestación de contenedores y tres entornos, y operar un clúster
-gestionado excedía el presupuesto del equipo. La decisión se cumple —los tres
-entornos existen y funcionan— pero **"producción" es un espacio de nombres dentro
-de un clúster que corre en una computadora del equipo.** No hay dominio ni acceso
-externo.
-
-La consecuencia es de fondo y no de infraestructura. Un sistema cuyo propósito es
-que un comité de emergencias consulte el riesgo del día **no cumple ese propósito
-si la única forma de consultarlo es que alguien lleve una computadora.** La
-arquitectura no es el obstáculo: la API no guarda estado, la ingesta es idempotente
-y el visor llega a la API por una ruta relativa justamente para funcionar detrás de
-cualquier servidor. El obstáculo es el tiempo y el costo de operación dentro
-de un trimestre.
-
-Dentro del alcance se publica el visor como sitio estático con los datos declarados
-como simulados, que es posible sin servicio por la degradación descrita en la
-sección IV.
-Queda como trabajo futuro, en este orden: publicar la API y la base, automatizar la
-ingesta diaria, y solo entonces retirar el aviso de simulación. Los tres pasos
-dependen de que exista un modelo entrenado; publicar antes sería publicar un mapa
-que no estima nada.
+La sesión de usabilidad con el Comité Municipal de Emergencias, el puntaje SUS
+`[7]`, `[36]` y la sesión de contraste entre la estimación y lo que la gente
+vivió tienen sus materiales preparados y no se han realizado.
 
 ---
 
-## VIII-bis. Amenazas a la validez
+## VIII. Amenazas a la validez
 
-La sección anterior enumera **lo que el sistema no hace**. Esta enumera algo
-distinto y menos cómodo: **por qué las conclusiones de este trabajo podrían
-estar equivocadas**, aun siendo correcto todo el cálculo.
-
-Se separan a propósito. Una limitación se resuelve con más trabajo; una amenaza
-a la validez puede seguir ahí después de todo el trabajo del mundo, y lo único
-honesto es declararla.
+Una limitación se resuelve con más trabajo; una amenaza a la validez puede
+seguir ahí después de todo el trabajo del mundo, y lo único honesto es
+declararla.
 
 ### A. La serie diaria de CHIRPS no se mide: se reparte
 
-Es la amenaza más seria y la descubrimos leyendo la fuente primaria. Los autores
+Es la amenaza más seria y se descubrió leyendo la fuente primaria. Los autores
 de CHIRPS escriben `[28]`:
 
 > «The basic time step of the CHIRP is the pentad. All other time steps are
@@ -1172,78 +1252,57 @@ de CHIRPS escriben `[28]`:
 
 Es decir: **el día de CHIRPS es el total de cinco días repartido entre ellos
 según la forma que da un modelo de reanálisis.** La etiqueta de lluvia intensa
-de este trabajo se construye sobre acumulados de 72 h de esa serie, o sea sobre
-un reparto interno al péntada cuya distribución temporal no proviene de la
-observación.
+se construye sobre acumulados de 72 h de esa serie, o sea sobre un reparto
+interno al péntada cuya distribución temporal no proviene de la observación.
 
-**El efecto se ve en nuestros propios datos.** De los 12 eventos de lluvia no
+**El efecto se ve en los propios datos.** De los 12 eventos de lluvia no
 detectados, nueve tenían una marca a catorce días o menos, y en nueve la marca
-llegó *después* del evento. Un error de fecha por debajo del péntada es
-exactamente lo que este diseño produce.
+llegó *después* del evento (V-G). Un error de fecha por debajo del péntada es
+exactamente lo que este diseño produce. La consecuencia práctica: el etiquetado
+de lluvia es más confiable sobre **si** ocurrió un episodio que sobre **qué día**
+ocurrió, y como el horizonte del sistema es de siete días, ese desfase cabe
+entero dentro del horizonte.
 
-La consecuencia práctica: el etiquetado de lluvia es más confiable sobre **si**
-ocurrió un episodio que sobre **qué día** ocurrió. Y como el horizonte del
-sistema es de siete días, ese desfase cabe entero dentro del horizonte.
-
-**Y hay una segunda amenaza sobre la misma fuente, que es geográfica.** Rojas
-Morales `[29]` validó CHIRPS v2 contra estaciones terrestres en Costa Rica y
-reporta dos sesgos con dirección conocida: el ajuste es **peor en zonas
-montañosas** que en relieve suave, porque el relieve gobierna el patrón de
-lluvia a una escala más fina que la celda; y en **época seca** tiende a
-subestimar en la mayoría de las estaciones.
-
-Las dos condiciones se cumplen aquí. Tilarán es montañoso —los ocho distritos
-reparten la vertiente de la cordillera—, y la estación seca es justamente la
-ventana donde se mide la sequía. Esto no invalida el etiquetado, pero fija la
-dirección del error esperado en vez de dejarlo abierto: **en época seca la
-precipitación estimada tiende a quedar por debajo de la real**, lo que empuja el
-SPI hacia abajo y hace que el sistema marque sequía antes y más seguido que lo
-que justifica la observación. Un falso positivo de sequía es el error barato de
-los dos; el punto es que la asimetría está declarada y no descubierta después.
+Hay una segunda amenaza sobre la misma fuente, geográfica. Rojas Morales `[29]`
+validó CHIRPS v2 contra estaciones terrestres en Costa Rica y reporta dos sesgos
+con dirección conocida: peor ajuste en zonas montañosas y subestimación en época
+seca. Las dos condiciones se cumplen aquí. Esto no invalida el etiquetado, pero
+fija la dirección del error esperado: **en época seca la precipitación estimada
+tiende a quedar por debajo de la real**, lo que empuja el SPI hacia abajo y hace
+que el sistema marque sequía antes y más seguido de lo que justifica la
+observación. Un falso positivo de sequía es el error barato de los dos; el punto
+es que la asimetría está declarada y no descubierta después.
 
 ### B. La validación cruzada bloquea el tiempo y no el espacio
 
 El diseño experimental corta en frontera de mes y aplica un embargo de siete
 días, lo que impide que una fila de entrenamiento mire dentro del bloque de
-prueba **en el eje temporal**.
-
-No hace nada equivalente en el eje espacial. Los ocho distritos comparten celdas
-de las fuentes gruesas, de modo que dos filas del mismo día en distritos vecinos
-**no son observaciones independientes**. Roberts et al. `[32]` muestran que
-ignorar una estructura de dependencia al validar **subestima el error
-predictivo**, y —esto es lo incómodo— que la subestimación no se detecta mirando
-los residuos del modelo ajustado.
-
-No se corrigió aquí. Se declara, y queda como el primer cambio que le
-corresponde al diseño de la partición.
+prueba **en el eje temporal**. No hace nada equivalente en el eje espacial: los
+ocho distritos comparten celdas de las fuentes gruesas, de modo que dos filas del
+mismo día en distritos vecinos no son observaciones independientes. Roberts et
+al. `[32]` muestran que ignorar una estructura de dependencia al validar
+**subestima el error predictivo**, y que la subestimación no se detecta mirando
+los residuos del modelo ajustado. No se corrigió aquí; se declara. Y apunta en
+una dirección precisa: si las cifras de la Tabla XII están sesgadas, lo están
+**a favor** de los modelos, no de la línea base, con lo que el rechazo de H1 no
+se debilita.
 
 ### C. El catálogo registra daños donde hay gente que los reporte
 
 El contraste contra eventos reales es la única validación externa de este
 trabajo, y su fuente tiene un sesgo conocido: DesInventar cataloga cuando hubo
-**pérdidas reportadas**, no cuando ocurrió un fenómeno. Un aguacero idéntico
-sobre un potrero sin infraestructura no entra.
-
-Se ve en la propia distribución: **19 de los 46 registros son de Tilarán
-centro**, el distrito con más población y más camino. No es que ahí llueva más.
-
-Por eso se mide cobertura y **no se reporta precisión**: una marca sin registro
-en el catálogo no es un falso positivo, puede ser un evento real que nadie
-reportó. Calcular precisión contra un catálogo incompleto produce un número que
-aparenta rigor y está mal por construcción.
+**pérdidas reportadas**, no cuando ocurrió un fenómeno. Se ve en la propia
+distribución: **19 de los 46 registros son de Tilarán centro**, el distrito con
+más población y más camino. No es que ahí llueva más. Por eso se mide cobertura
+y **no se reporta precisión** (III-F).
 
 ### D. El veredicto sobre la escala del SPI descansa sobre un solo episodio
 
 Los siete registros de sequía del catálogo son **una fecha, 2014-09-30, en siete
-distritos**. No son siete episodios independientes: el tamaño de muestra
-efectivo está más cerca de uno.
-
-El intervalo de Wilson los cuenta como siete extracciones independientes, así
-que los intervalos de cobertura reportados en VI-E son **optimistas**. La
-consecuencia es asimétrica y se reporta como tal: descartar el SPI-3 —que falló
-de forma idéntica en los ocho distritos— es defendible con un episodio; coronar
-al SPI-6 o al SPI-12 no lo sería. Entre esas dos, la elección se tomó **por
-número de episodios y no por evidencia externa**, y así está declarada.
+distritos**. El intervalo de Wilson los cuenta como siete extracciones
+independientes, así que los intervalos de cobertura de la Tabla XV son
+**optimistas**. La consecuencia es asimétrica y se reporta como tal: descartar el
+SPI-3 es defendible con un episodio; coronar al SPI-6 o al SPI-12 no lo sería.
 
 ### E. Asignar una celda de 5,5 km a un distrito más chico es una operación con nombre
 
@@ -1251,237 +1310,213 @@ Lo que este sistema hace con cada fuente es *downscaling*: inferir el valor de
 una unidad pequeña a partir de un dato definido sobre una unidad mayor. Gotway y
 Young `[31]` lo clasifican dentro del **problema de cambio de soporte**, y lo
 emparentan con el **problema de la unidad de área modificable** de Openshaw
-`[30]`: los resultados de un análisis dependen de las unidades sobre las que se
-agregó, y esas unidades son arbitrarias.
-
-Aquí la asignación se hace de la forma más simple —el valor de la celda que
-contiene al distrito— sin modelo de desagregación. Es defendible por
+`[30]`. Aquí la asignación se hace de la forma más simple —el valor de la celda
+que contiene al distrito— sin modelo de desagregación. Es defendible por
 transparencia y **no es neutral**: hereda la heterogeneidad interna de la celda
-sin representarla.
-
-Esta amenaza y el hallazgo central del trabajo son la misma cosa vista desde dos
-lados. Que cuatro de cinco variables no distingan distritos es la manifestación
-medible de este problema en un caso concreto.
+sin representarla. Esta amenaza y el hallazgo IV-A son la misma cosa vista desde
+dos lados.
 
 ### F. El catálogo lo construyó una sola persona
 
-Las 46 fichas se extrajeron y codificaron por un único integrante del equipo, sin
-segunda lectura independiente ni medida de acuerdo entre codificadores. Las
+Las 46 fichas se extrajeron y codificaron por un único integrante del equipo,
+sin segunda lectura independiente ni medida de acuerdo entre codificadores. Las
 decisiones de asignar un evento a un distrito y de clasificarlo por tipo son
 juicios, y no hay forma de saber cuánto variarían con otro lector.
 
-Es una debilidad estándar de este tipo de trabajo y se declara porque afecta a la
-única validación externa que el proyecto tiene.
+### G. La ventana del afinado es corta por una razón que no se negocia
+
+Los hiperparámetros se buscaron sobre la ventana de entrenamiento del primer
+pliegue —cinco años y medio— porque es la única enteramente anterior a todos los
+bloques de prueba. Unos parámetros elegidos sobre una muestra chica pueden no ser
+los mejores para la grande, y es esperable que pidan más regularización de la
+necesaria; es exactamente lo que le pasó a XGBoost en lluvia intensa (V-D). Lo
+correcto sería una validación anidada, que cuesta cinco veces más y deja un
+juego de parámetros por pliegue. Se declara, no se hizo.
+
+---
 
 ## IX. Conclusiones
 
-Estas conclusiones se apoyan **solo en lo que se midió**. La comparación de los
-tres algoritmos contra la línea base todavía no se hizo, y por eso no aparece
-aquí ninguna afirmación sobre desempeño de modelos. Lo que sigue se sostiene con
-independencia de cómo salga esa comparación.
+Estas conclusiones se apoyan **solo en lo que se midió**, y cada una remite a la
+sección que la sostiene.
 
 ### A. La resolución espacial de la fuente decide el problema antes que el modelo
 
-De las cinco variables climáticas consideradas, **cuatro no distinguen entre
-distritos**: la celda del reanálisis global mide 68 × 55 km y cubre el cantón
-entero, de modo que temperatura, humedad, viento y radiación toman el mismo valor
-en los ocho. Solo la precipitación, con una celda de 0,05°, cae por separado en
-cada distrito.
-
-**Contado por columna del conjunto de datos son seis de siete**, porque la
-temperatura se almacena en tres —máxima, mínima y media— que provienen de la
-misma celda y por tanto comparten el defecto. Las dos formas de contar describen
-la misma medición; se usa la de cinco porque agrupa por magnitud física, que es
-como se razona sobre el problema, y se declara la otra porque es la que aparece
-en el reporte de calidad de datos.
-
-La consecuencia es más general que este cantón: **en un problema a escala
+De las cinco variables climáticas consideradas, cuatro no distinguen entre
+distritos y solo la precipitación cae por separado en cada uno (IV-A, VI-A). La
+consecuencia es más general que este cantón: **en un problema a escala
 subcantonal, la elección de fuente no es un paso preparatorio sino la decisión
 que fija el techo de todo lo demás.** Ningún algoritmo puede recuperar una
 diferencia entre distritos que el dato de entrada no contiene.
 
-### B. Cuatro de los seis hallazgos habrían pasado desapercibidos
+### B. En este cantón y a siete días, el calendario explica casi todo lo que estas fuentes permiten explicar
 
-Es la observación que este trabajo considera más transferible. Los seis hallazgos
-de la sección V no se encontraron leyendo documentación de las fuentes: aparecieron
-al medir, y **cuatro de ellos producen resultados con forma válida y contenido
-equivocado**:
+La hipótesis H1 se rechaza (VI-B). Tres algoritmos de familias distintas,
+afinados y evaluados bajo validación temporal estricta sobre 99 296 filas y 34
+años, no superan a una línea base que solo mira el distrito y el mes calendario,
+en ninguno de los dos eventos modelables; en lluvia intensa quedan por debajo de
+ella. Dos mediciones independientes —importancia de variables y explicaciones
+locales— son coherentes con ese resultado: ningún modelo se apoya en ninguna
+variable de forma estable, y la explicación de un acierto es indistinguible de
+la de un error (V-F).
 
-- Filtrar la precipitación antes de calcular índices de extremos **elimina los
-  extremos**: se midió una reducción de amplitud del 48,6 % y la desaparición de
-  los 37 eventos del período.
-- Un SPI sin ajuste por mes calendario **mide estacionalidad, no anomalía**, y en
-  un régimen con estación seca marcada señalaría sequía todos los años en los
-  mismos meses.
-- El percentil del acumulado de 72 h **no es** el índice R95p de días húmedos; se
-  midió una diferencia de 8,5× en la clase resultante.
-- Dos fuentes con distinta fecha de inicio producen una **ausencia que parece un
-  dato**: etiquetar como «sin evento» la década anterior al inicio del archivo de
-  focos habría introducido 29 216 filas falsamente negativas, el 29,4 % del
-  conjunto.
+El resultado se sostiene porque la regla que lo declara se fijó antes de
+entrenar. **Si hoy se relajara para que ganara un modelo, la tabla dejaría de
+significar lo que dice.**
 
-Ninguno de los cuatro habría hecho fallar nada. Habrían producido métricas
-plausibles sobre una variable objetivo mal construida.
+### C. La sequía no es modelable con 34 años de datos, y saberlo es un resultado
 
-### C. La verdad de terreno se puede validar antes de existir un modelo, y conviene hacerlo
+Trece episodios independientes en 34 años, dos en el peor pliegue de
+entrenamiento, contra un mínimo de diez fijado antes de contar (V-B). No es un
+problema de ingeniería: las sequías son raras. Y es un compromiso medido entre
+detectar y modelar: la escala del índice que hace que el etiquetado reconozca
+los siete registros históricos es la misma que deja los episodios por debajo del
+umbral. El sistema muestra «sin estimación» en vez de rellenar con la clase
+mayoritaria.
+
+### D. La verdad de terreno se puede validar antes de existir un modelo, y conviene hacerlo
 
 Contrastar el etiquetado contra un catálogo independiente de eventos históricos
-—46 registros de DesInventar Costa Rica— dio un realce de **4,74× en lluvia
-intensa** y de **6,31× en sequía**, frente a la frecuencia base de marca.
+dio un realce de 4,74× en lluvia intensa y de 6,31× en sequía frente a la
+frecuencia base de marca (V-G, VI-C). Ese contraste no requiere modelo,
+establece un piso interpretable y descartó una escala del índice de sequía que la
+convención sugería. De ahí salen dos lecciones que se separan a propósito:
+contrastar contra registros institucionales exige alinear qué fecha registra
+cada fuente; y **una explicación que salva el resultado merece más sospecha que
+una que lo condena**, porque hace que el problema deje de serlo sin haberlo
+medido.
 
-Ese contraste **no requiere modelo** y establece un piso interpretable: un modelo
-que no supere ese realce no está aportando sobre la verdad de terreno. En un
-proyecto donde el modelado llega tarde, es una forma de tener evidencia externa
-antes de tenerlo.
+### E. Cuatro de los siete hallazgos habrían pasado desapercibidos
 
-La práctica tiene respaldo en la literatura, y el respaldo es más fuerte de lo
-que el proyecto suponía al adoptarla: `[33]` documenta que las etiquetas mal
-puestas no degradan las métricas de forma visible sino que **invierten el orden
-de la comparación**. Un trabajo que compara algoritmos sin auditar su variable
-objetivo no obtiene un resultado peor —obtiene un resultado plausible y
-posiblemente al revés—.
+Es la observación que este trabajo considera más transferible (IV, VI-D).
+Filtrar la precipitación antes de calcular índices de extremos elimina los
+extremos; un SPI sin ajuste por mes calendario mide estacionalidad; el percentil
+del acumulado de 72 h no es el índice R95p; y dos fuentes con distinta fecha de
+inicio producen una ausencia que parece un dato. Ninguno de los cuatro habría
+hecho fallar nada: habrían producido métricas plausibles sobre una variable
+objetivo mal construida.
 
-**Y sirvió para algo que no se había previsto: descartar un parámetro del
-etiquetado.** Con la escala del índice fijada por convención —SPI-3, la más
-común en la literatura de sequía agrícola— el contraste daba cero de siete. La
-primera explicación fue un desajuste de relojes: el catálogo registra la
-**declaratoria administrativa**, emitida al final del episodio. Esa lectura era
-cómoda y no explicaba el detalle que importaba: la marca más cercana quedaba a
-**−37 días, el mismo −37 en los ocho distritos.** Un desajuste de fechas se
-dispersa; un valor idéntico en los ocho es la firma de algo estructural.
+### F. Con el dato disponible, dos de los tres eventos no admiten la comparación
 
-Medidas las tres escalas contra el mismo catálogo, SPI-6 y SPI-12 detectaban los
-siete **sin ampliar la ventana**. El SPI-3 no fallaba por el reloj: fallaba
-porque sale de sequía antes de que el daño se declare.
+Es una conclusión sobre el diseño experimental, no sobre el clima (V-C, VI-B).
+En sequía e incendio, la dispersión entre pliegues supera a la diferencia entre
+estimadores —en incendio, por un factor de veintitrés—. Eso no se arregla
+entrenando mejor. **Reportarlo es preferible a presentar una diferencia que el
+diseño no sostiene.**
 
-De ahí salen dos lecciones que se separan a propósito:
+---
 
-1. **Contrastar contra registros institucionales exige alinear qué fecha registra
-   cada fuente**, que es lo que se creyó al principio y sigue siendo cierto.
-2. **Una explicación que salva el resultado merece más sospecha que una que lo
-   condena.** La hipótesis del reloj hacía que el cero dejara de ser un problema,
-   y por eso mismo había que someterla a una medición que pudiera refutarla.
+## X. Trabajo futuro
 
-**El resultado es asimétrico y así se reporta.** Los siete registros son *una
-fecha en siete distritos*: el tamaño de muestra efectivo está más cerca de uno.
-Eso basta para **descartar** una escala que falla de forma idéntica en los ocho,
-y no basta para **coronar** a ninguna de las dos que aciertan. Falsar es más
-barato que confirmar, y conviene no cobrar como confirmación lo que solo fue una
-refutación.
+Lo que sigue **no** es conclusión: es lo que las conclusiones dejan abierto, y
+se separa para no confundirlo con lo medido.
 
-### D. Con el dato disponible, dos de los tres eventos no admiten la comparación
-
-Es una conclusión sobre el diseño experimental, no sobre el clima. En sequía e
-incendio, **la dispersión entre pliegues supera a la diferencia entre
-estimadores**: en incendio es veintitrés veces mayor. Con tres distritos, una
-clase positiva del 1,23 % y veinticuatro años de cobertura, la medición no tiene
-resolución para distinguir hipótesis.
-
-Eso no se arregla entrenando mejor. Se arreglaría con más cobertura temporal, o
-con una definición de evento que produzca episodios menos correlacionados entre
-pliegues. **Reportarlo es preferible a presentar una diferencia que el diseño no
-sostiene.**
-
-### E. Lo que queda abierto
-
-La segunda mitad de la pregunta de investigación —si los modelos superan la línea
-base— requiere los tres algoritmos entrenados. El método de comparación está
-fijado y verificado: misma partición, misma métrica, mismo trato de las
-predicciones ausentes para todos los estimadores.
-
-Por lo dicho en IX-D, **esa respuesta va a ser concluyente solo para lluvia
-intensa.**
+1. **Darle al modelo el calendario y la geografía.** La comparación de V-D es
+   justa pero asimétrica: la climatológica ve el mes y los modelos no. Una
+   medición exploratoria con seno y coseno del día del año y la posición del
+   distrito en la matriz está en curso; cuando cierre, la tabla de V-D se
+   recalcula con la misma regla, diga lo que diga.
+2. **El ENOS como característica.** Para la vertiente del Pacífico, El Niño y La
+   Niña modulan la estación seca `[16]`; el calendario dice qué mes es, el índice
+   ONI diría que este marzo no es como los otros. Su efecto esperado está sobre
+   la sequía, que no se modela, así que se medirá donde sí se puede: en lluvia
+   intensa.
+3. **Recontar los episodios de sequía sobre una serie más larga.** A la misma
+   tasa, 75 años darían unos 29 episodios, pegados al umbral de 30, pero el
+   mínimo por pliegue seguiría en torno a 5 contra los 10 exigidos. La predicción
+   honesta es que no destraba; medido vale más que supuesto.
+4. **Renovar las estimaciones sin intervención manual** (VII-F), y **realizar la
+   validación con usuarios** (VII-G), que no cambia ninguna cifra de este
+   documento pero es la única forma de saber si la pantalla se entiende.
+5. **Bloquear también el espacio en la validación cruzada** (VIII-B) y hacer el
+   afinado con validación anidada (VIII-G). Son los dos cambios que le
+   corresponden al diseño experimental antes que a los modelos.
 
 ---
 
 ## Referencias
 
-> **Pendiente de composición.** La bibliografía reúne 36 referencias, de las
-> cuales 28 están verificadas con su DOI comprobado contra la editorial: son las
-> **28
-> fichas verificadas**. Este documento cita 12 de forma directa; las restantes
-> sostienen el documento de investigación, las fichas de contenido y las
-> bitácoras. El listado formal en formato IEEE se compone aquí al cerrar el
-> documento.
+La bibliografía reúne 38 referencias, 29 con ficha de contenido cuyo DOI o
+fuente se comprobó contra la editorial. Este documento cita 31 de forma directa,
+y son las que se listan; las restantes sostienen el estado del arte y las
+fichas de contenido del proyecto. La numeración es la del fichero bibliográfico
+del proyecto y se conserva para trazabilidad, por eso no es consecutiva.
 
----
+[1] NASA Langley Research Center, "POWER Data Access Viewer and API Documentation," Prediction of Worldwide Energy Resources Project.
 
-## Anexo · De dónde sale cada cifra de este documento
+[2] NASA LANCE, "Fire Information for Resource Management System (FIRMS): API and Archive Download," NASA Earthdata.
 
-Ninguna está escrita de memoria, **y desde el 26 de agosto de 2026 eso no es una
-declaración de intenciones**: las cifras marcadas con `verificar_documentacion.py`
-las recalcula esa herramienta desde el repositorio en cada ejecución del pipeline,
-y el documento hace fallar la integración continua si alguna se desfasa.
+[4] T. B. McKee, N. J. Doesken y J. Kleist, "The relationship of drought frequency and duration to time scales," in Proc. 8th Conf. Applied Climatology, Anaheim, CA, EE. UU., 1993, pp. 179-184.
 
-El control se agregó porque hacía falta: entre el 18 y el 26 de agosto, **cinco de
-las cifras de este anexo dejaron de ser ciertas** sin que nadie lo notara.
+[5] T. Chen y C. Guestrin, "XGBoost: A scalable tree boosting system," in Proc. 22nd ACM SIGKDD Int. Conf. Knowledge Discovery and Data Mining, San Francisco, CA, EE. UU., 2016, pp. 785-794.
 
-| Cifra | Decía el 18 | Valía el 26 |
-|---|---|---|
-| Referencias | 18 | **27** |
-| Referencias con ficha | 18 | **19** |
-| Comprobaciones de contratos | 33 | **47** |
-| Trabajos de integración continua | 5 | **6** |
-| Controles de cifras | 8 | **20** |
+[6] World Meteorological Organization, WMO Guidelines on the Calculation of Climate Normals, WMO-No. 1203. Ginebra, Suiza: WMO, 2017.
 
-**Y el control siguió sirviendo.** Al ampliar la bibliografía el 30 de agosto,
-las mismas dos cifras volvieron a desfasarse —de 27 a 35 referencias y de 19 a 27
-fichas— y esta vez la herramienta lo señaló en el acto, con el número correcto al
-lado. La diferencia entre las dos ocasiones no es que nadie se distrajera la
-segunda vez: es que la segunda vez había una máquina mirando.
+[7] J. Brooke, "SUS: A quick and dirty usability scale," in Usability Evaluation in Industry, P. W. Jordan et al., Eds. Londres, Reino Unido: Taylor & Francis, 1996, pp. 189-194.
 
-Es el mismo defecto que este trabajo documenta en otras partes: un dato con forma
-válida y contenido falso, que ninguna validación detecta porque nadie escribió la
-validación.
+[8] Sistema Nacional de Información Territorial, "Servicios OGC del Instituto Meteorológico Nacional," SNIT, Costa Rica.
 
-| Cifra | Origen |
-|---|---|
-| 669,23 km²; 30,7 × 36,6 km; 59,5 % | Medición sobre la carga de las geometrías del SNIT |
-| 68 × 55 km, celda POWER | `verificar_resolucion_fuente.py` |
-| 8 celdas CHIRPS, 20,3 % | Medición propia sobre ClimateSERV |
-| 0,0 mm contra 18,72 mm | La misma medición |
-| 48,6 % contra 20,0 % de amplitud | `medir_efecto_filtro.py`, y comprobado contra el coeficiente teórico 17/35 |
-| 12,47 %; 31,62 %; −53,6 %; 0 de 37 | `medir_efecto_filtro.py` |
-| −0,84; +0,60; 99 de 99; 0,425 | `medir_spi_por_mes.py` |
-| 39,90 / 54,86 / 63,40 / 87,70 mm; 8,5× | `medir_percentiles.py` |
-| 98 fichas, 46 registros, 29 eventos | Catálogo de eventos históricos compilado para este trabajo `[26]` |
-| 36 referencias, 28 con ficha | Fichero bibliográfico del proyecto |
-| 47 comprobaciones, 8 trabajos de CI, 21 controles | `verificar_documentacion.py` |
-| Cita textual del SATIF | Sitio del IMN, verificada palabra por palabra `[25]` |
-| 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
-| F1-macro de las dos líneas base, sección VI-D | `comparar.py` |
-| 23 veces la ventaja, incendio | La misma corrida: rango 0,138 ÷ ventaja 0,006 |
-| Cobertura, tasa base y realce de VI-F; los −37 días | `contrastar_catalogo.py` |
+[9] L. Breiman, "Random forests," Machine Learning, vol. 45, no. 1, pp. 5-32, 2001.
 
-**Tres cifras de la sección VI no las puede recalcular la integración continua**,
-y conviene decir cuáles y por qué:
+[10] S. M. Lundberg y S.-I. Lee, "A unified approach to interpreting model predictions," in Proc. 31st Int. Conf. Neural Information Processing Systems (NeurIPS), Long Beach, CA, EE. UU., 2017.
 
-| Cifra | Por qué no |
-|---|---|
-| 99 296 filas etiquetadas | El conjunto etiquetado es un artefacto derivado de la base y no se versiona |
-| 29 216 filas, 29,4 % | La misma razón |
-| Los F1-macro de la tabla VI-D | La misma razón |
+[11] C. Bergmeir y J. M. Benítez, "On the use of cross-validation for time series predictor evaluation," Information Sciences, vol. 191, pp. 192-213, 2012.
 
-**Lo que sí comprueba la máquina en cada ejecución** es que el arnés que las
-produce sigue siendo correcto: `verificar_h36.py` corre con etiquetas sintéticas
-deterministas cuando el artefacto real no está, y verifica que todos los
-estimadores vean los mismos pliegues, que la métrica sea una sola y que dos
-corridas den lo mismo. La reproducibilidad de las cifras está garantizada; su
-recálculo automático requiere la base levantada.
+[12] M. Sokolova y G. Lapalme, "A systematic analysis of performance measures for classification tasks," Information Processing & Management, vol. 45, no. 4, pp. 427-437, 2009.
 
-La trazabilidad de esas tres la da el manifiesto del conjunto de datos, que
-registra con SHA-256 las fuentes de las que se deriva, de modo que cualquiera
-pueda reconstruirlo y obtener los mismos números.
+[14] L. Giglio, W. Schroeder y C. O. Justice, "The collection 6 MODIS active fire detection algorithm and fire products," Remote Sensing of Environment, vol. 178, pp. 31-41, 2016.
+
+[15] L. E. Quesada-Hernández, H. G. Hidalgo y E. J. Alfaro, "Asociación entre algunos índices de sequía e impactos socio-productivos en el Pacífico Norte de Costa Rica," Revista de Ciencias Ambientales, vol. 54, no. 1, pp. 16-32, 2020.
+
+[16] M. Vega Araya, "El fenómeno ENOS y el análisis de la variabilidad de las series de tiempo de precipitación en el Área de Conservación Guanacaste, Costa Rica," Revista Geográfica de América Central, no. 72, pp. 491-513, 2024.
+
+[17] D. W. Hosmer, S. Lemeshow y R. X. Sturdivant, Applied Logistic Regression, 3rd ed. Hoboken, NJ, EE. UU.: John Wiley & Sons, 2013.
+
+[18] X. Zhang et al., "Indices for monitoring changes in extremes based on daily temperature and precipitation data," WIREs Climate Change, vol. 2, no. 6, pp. 851-870, 2011.
+
+[19] F. Pedregosa et al., "Scikit-learn: Machine learning in Python," Journal of Machine Learning Research, vol. 12, pp. 2825-2830, 2011.
+
+[20] H. He y E. A. Garcia, "Learning from imbalanced data," IEEE Transactions on Knowledge and Data Engineering, vol. 21, no. 9, pp. 1263-1284, 2009.
+
+[24] M. Svoboda, M. Hayes y D. Wood, Standardized Precipitation Index User Guide, WMO-No. 1090. Ginebra, Suiza: World Meteorological Organization, 2012.
+
+[25] Instituto Meteorológico Nacional y Sistema Nacional de Áreas de Conservación, "Sistema de Alerta Temprana de Incendios Forestales (SATIF)," CONIFOR Costa Rica. [En línea]. Disponible: https://www.imn.ac.cr/alerta
+
+[27] J. H. Stagge, L. M. Tallaksen, L. Gudmundsson, A. F. Van Loon y K. Stahl, "Candidate distributions for climatological drought indices (SPI and SPEI)," International Journal of Climatology, vol. 35, no. 13, pp. 4027-4040, 2015.
+
+[28] C. Funk et al., "The climate hazards infrared precipitation with stations—a new environmental record for monitoring extremes," Scientific Data, vol. 2, art. 150066, 2015.
+
+[29] N. Rojas Morales, "Índices distritales de riesgo de desastres por eventos lluviosos extremos en Costa Rica," tesis de Magister Scientiae, Centro Agronómico Tropical de Investigación y Enseñanza (CATIE), Turrialba, Costa Rica, 2018.
+
+[30] S. Openshaw, The Modifiable Areal Unit Problem, Concepts and Techniques in Modern Geography (CATMOG) 38. Norwich, Reino Unido: Geo Books, 1984.
+
+[31] C. A. Gotway y L. J. Young, "Combining incompatible spatial data," Journal of the American Statistical Association, vol. 97, no. 458, pp. 632-648, 2002.
+
+[32] D. R. Roberts et al., "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure," Ecography, vol. 40, no. 8, pp. 913-929, 2017.
+
+[33] C. G. Northcutt, A. Athalye y J. Mueller, "Pervasive label errors in test sets destabilize machine learning benchmarks," in Proc. 35th Conf. Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track, 2021.
+
+[34] L. D. Brown, T. T. Cai y A. DasGupta, "Interval estimation for a binomial proportion," Statistical Science, vol. 16, no. 2, pp. 101-133, 2001.
+
+[36] M. D. R. Sevilla-Gonzalez, L. Moreno Loaeza, L. S. Lazaro-Carrera, B. Bourguet Ramirez, A. Vázquez Rodríguez, M. L. Peralta-Pedrero y P. Almeda-Valdes, "Spanish version of the System Usability Scale for the assessment of electronic tools: Development and validation," JMIR Human Factors, vol. 7, no. 4, e21161, 2020.
+
+[37] UNDRR, "DesInventar Sendai: Sistema de inventario de desastres, base nacional de Costa Rica," desinventar.net. Consulta del 18 de agosto de 2026, filtro provincia Guanacaste, cantón Tilarán.
+
+[38] A. J. Rodríguez Zamora, C. A. Ubau Calvo, L. A. Luna García y A. Madrigal Elizondo, "GeoGuardian · Documentación técnica del MVP," Universidad Invenio, Costa Rica, 2026. Documento 2 de esta misma entrega.
 
 ---
 
 ## Disponibilidad de código y datos
 
-El código, las herramientas de medición citadas a lo largo del texto y el visor
-se publican con licencia abierta en
-`https://github.com/HumanoidCat/geoguardian`. El visor está desplegado como sitio
-estático.
+El código, las herramientas de medición citadas a lo largo del texto, las tablas
+de las que salen las figuras y el visor se publican con licencia abierta en
+`https://github.com/HumanoidCat/geoguardian`. El sistema está desplegado con
+datos reales en `https://visor-production-40b5.up.railway.app/`, y una versión
+del visor con datos declarados como simulados —la degradación que el propio
+sistema ejerce cuando no alcanza la API— en `https://humanoidcat.github.io/geoguardian/`.
 
-Las series climáticas y el archivo de focos de calor provienen de fuentes
-públicas y se citan en la sección III; el manifiesto del conjunto consolidado
-permite reconstruirlo y verificar que coincide.
+Las series climáticas y el archivo de focos de calor provienen de las fuentes
+públicas citadas en III-B; el manifiesto del conjunto consolidado, con sumas
+SHA-256 de cada fuente, permite reconstruirlo y verificar que coincide. El
+conjunto etiquetado es un artefacto derivado y se regenera desde la base con las
+herramientas publicadas.

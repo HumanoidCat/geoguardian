@@ -1,0 +1,4 @@
+evento,pliegue_1,pliegue_2,pliegue_3,pliegue_4,pliegue_5,total_canton,umbral_minimo_por_pliegue,umbral_total
+lluvia_intensa,31,60,89,109,129,163,10,30
+sequia,2,3,3,6,9,13,10,30
+incendio,16,21,28,44,55,67,10,30
