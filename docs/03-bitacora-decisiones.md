@@ -5068,6 +5068,28 @@ Open-Meteo sirve reanalisis ERA5-Land: **5 dias** de atraso y archivo **desde
 1950**. Gana en las dos cosas. Pero su malla es de 0,1 grados -unos 11 km- contra
 los 0,05 -unos 5,5 km- de CHIRPS, y el canton mide 30,7 por 36,6 km.
 
+> **Enmienda del 2026-09-14, al implementar H1.16.** Este parrafo nombra
+> **ERA5-Land** como la fuente de la serie larga, y eso resulto no ser posible.
+> Medido ese dia contra `archive-api.open-meteo.com`: pidiendo
+> `models=era5_land` con `daily=precipitation_sum`, la API devuelve los dias
+> pedidos y **`null` en todos ellos**, en el punto del canton y en cualquier otro
+> punto del mundo que se pruebe. ERA5-Land no sirve precipitacion diaria por esta
+> via. **ERA5 si**, y es el modelo que H1.16 declara.
+>
+> Cambia la malla: **0,25 grados -unos 28 km- en vez de 0,1**. No cambia la
+> decision, y conviene ver por que no. La decision se apoyaba en que la malla era
+> **demasiado gruesa** para hablar por distrito; con ERA5 es aun mas gruesa, asi
+> que el argumento no se debilita, se refuerza: el test repetido sobre la malla
+> que de verdad se uso da **3 celdas para 8 distritos**, contra las 6 de
+> ERA5-Land. Cinco distritos compartirian el mismo valor todos los dias. Y el uso
+> que si se le dio -contar episodios de sequia a nivel canton, donde **D-34** ya
+> decidio que el canton es una sola unidad- no depende de la malla.
+>
+> Lo que **no** cambia: el atraso de 5 dias y el archivo desde 1950, los dos
+> confirmados con la corrida real de H1.16. Lo que **si** hay que leer distinto:
+> las filas `ERA5-Land` de la tabla de la Medicion valen para la malla que se
+> midio ese dia, no para la fuente que quedo. Ver la nota al pie de esa tabla.
+
 **D-15 previo exactamente esta situacion.** Adopto CHIRPS *condicionado a repetir
 el mismo test de resolucion sobre la fuente nueva antes de escribir el extractor*,
 porque una resolucion nominal mejor no es prueba de diferenciacion real.
@@ -5155,6 +5177,41 @@ La medicion preliminar del mismo dia, hecha con centroides ponderados por area
 sobre el GeoJSON de respaldo, **dio las mismas seis celdas y las mismas dos
 colisiones**. Dos metodos distintos, mismo resultado: eso es lo que hace confiable
 al numero, no que lo diga el guion oficial.
+
+**Nota del 2026-09-14 (enmienda).** La tabla de arriba mide **ERA5-Land**, que no
+llego a usarse: no sirve precipitacion diaria por esta API. La fuente que quedo es
+**ERA5**, de malla **0,25 grados**, y su test de resolucion se agrego a la misma
+herramienta:
+
+    docs/herramientas/verificar_resolucion_fuente.py --malla era5
+    contra geo.distrito, 2026-09-14
+
+    ERA5   0,25 grados   3 celdas para 8 distritos
+      celda (380, 402): 50801 Tilaran, 50802 Quebrada Grande, 50804 Santa Rosa,
+                        50805 Libano, 50806 Tierras Morenas
+      celda (381, 402): 50803 Tronadora, 50807 Arenal
+      celda (381, 401): 50808 Cabeceras
+
+**Cinco distritos en una sola celda.** La tabla de arriba, con ERA5-Land, daba
+seis celdas y dos colisiones y ya alcanzaba para decidir. Con la fuente que de
+verdad se uso el resultado es peor, no mejor, asi que la decision de no entrar por
+distrito se sostiene con mas margen del que tenia cuando se escribio.
+
+El anclaje de esa malla no se asumio, se observo: pidiendo el punto del canton
+-10.486735 / -84.900749- con `models=era5`, Open-Meteo devolvio la respuesta
+etiquetada con la celda **10,5 / -85,0**, que es la que da el anclaje al centro.
+La `autoprueba()` de la herramienta lo comprueba antes de imprimir nada, igual que
+hace con la observacion de I-05.
+
+**Y el modelo hay que declararlo siempre.** Medido el mismo dia sobre el mismo
+punto y el mismo dia calendario, pidiendo el pronostico:
+
+    models=best_match    celda 10.4394 / -84.9296    5,20 mm   86 % de probabilidad
+    models=icon_seamless celda 10.5000 / -84.8750   10,50 mm   30 % de probabilidad
+
+El doble de lluvia y un tercio de probabilidad, porque son celdas distintas de
+modelos distintos, y `best_match` ademas no dice cual eligio. Es la misma razon
+por la que **D-50** prohibe dejarselo a la API.
 
 ---
 
