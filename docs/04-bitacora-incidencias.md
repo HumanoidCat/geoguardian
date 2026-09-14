@@ -4041,7 +4041,17 @@ que esa linea de procedencia era confiable.
 
 ---
 
-## I-54 · La misma pregunta a la API publicada devuelve dos respuestas distintas segun desde donde se pregunte
+## I-54 · RETIRADA · «La misma pregunta a la API devuelve dos respuestas distintas»
+
+> **RETIRADA el 2026-09-14, por partir de un hecho falso.** El defecto que
+> describe **no existe**. Lo que fallaba era la herramienta con la que se midio,
+> no el sistema medido. Se conserva entera -con sus dos correcciones- porque el
+> recorrido de tres hipotesis sucesivas construidas sobre una medicion mala es
+> precisamente lo que esta bitacora existe para no repetir. Ver **el cierre** al
+> final de la entrada.
+>
+> Misma figura que **D-28**, revertida por D-30 el 2026-08-27, tambien por partir
+> de un hecho falso. Se retira, no se borra.
 
 **Fecha.** 2026-09-14.
 
@@ -4189,3 +4199,53 @@ Necesita el TCP proxy un rato.
 **El impacto no cambia, y sigue siendo el mismo del 24**: el visor dice «Datos
 reales» y puede estar mostrando una estimacion calculada dias antes, sin que nada
 en la pantalla lo diga. Lo que cambia es que ahora se sabe donde arreglarlo.
+
+### Cierre del 2026-09-14, 12:10 UTC · no habia defecto
+
+Con el proxy TCP abierto y la consola del servicio, se leyo la tabla directamente
+en produccion. Distrito 50804, `lluvia_intensa`:
+
+       fecha    |        algoritmo         |             version_modelo              |         estimado_en          | filas
+    ------------+--------------------------+-----------------------------------------+------------------------------+-------
+     2026-09-17 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-18 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-19 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-20 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-21 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+
+**Una fila por fecha, todas de la corrida de esa madrugada.** Y preguntandole a
+la API publicada desde un navegador en el mismo minuto, las cinco fechas
+devuelven `climatologica@2026-09-14`. Base y API coinciden exactamente.
+
+**Que estaba mal, entonces.** Las lecturas «viejas» salieron todas de **una sola
+herramienta de consulta web**, que guarda en cache las respuestas por URL y
+descarta los parametros que se le agregan para evitarlo. Las fechas que parecian
+desfasadas eran entradas de esa cache, creadas en momentos distintos: por eso
+tres «versiones del modelo» en cuatro fechas seguidas. Las lecturas hechas desde
+el navegador **siempre** fueron correctas, incluidas las de la primera noche.
+
+**Lo que hay que aprender, que es lo unico que justifica dejar la entrada.**
+
+1. **Una medicion desde fuera dice que algo se ve raro, no por que.** De aqui
+   salieron tres explicaciones sucesivas -un intermediario que cachea, filas
+   duplicadas, y otra vez el intermediario- y las tres se escribieron **sin
+   abrir el DDL ni el codigo**. `006_analitico_riesgo.sql` declara
+   `PRIMARY KEY (codigo_distrito, fecha, tipo_evento)` desde el 2026-08-27: los
+   duplicados eran imposibles y el archivo lo decia.
+2. **Con una sola herramienta no se detecta que la herramienta es el problema.**
+   La discrepancia aparecio justamente al comparar dos clientes; se leyo como
+   «el sistema contesta distinto segun quien pregunte» cuando decia «uno de los
+   dos clientes miente». Dos instrumentos que no coinciden obligan a sospechar
+   de los instrumentos antes que del objeto.
+3. **La consola del servicio estaba a dos clics.** El acceso directo a la base
+   existia todo el tiempo y no se uso hasta despues de tres hipotesis. Cuando la
+   pregunta es «que dice la tabla», la respuesta se le pide a la tabla.
+
+**Impacto en el producto.** Ninguno. No se cambio codigo, ni esquema, ni
+configuracion. El costo fue una manana de trabajo del PM y dos correcciones
+fechadas en esta entrada.
+
+**Lo que si quedo, y es util.** Al buscar la tabla aparecio que el servidor tiene
+**tres bases** -`postgres`, `railway` y `geoguardian`- y que `analitico.riesgo`
+vive en `geoguardian`. `DATABASE_URL`, la variable que Railway deja a la vista,
+apunta a `railway`, que esta vacia. Queda anotado en el paso 2c del runbook.

@@ -5517,9 +5517,11 @@ historia diferida reabre solo si se cumplen las tres:
 1. **El cartel (H10.6) está cerrado con evidencia**, incluidos los defectos que
    su evidencia abierta ya nombra: el QR del repositorio, «trabajo futuro» y el
    cuerpo a 28 pt.
-2. **H11.6 y H11.7 están cerradas**, con los dos apagones medidos y **I-54
-   resuelta** — la API no puede seguir sirviendo dos vistas distintas de la misma
-   tabla.
+2. **H11.6 y H11.7 están cerradas**, con los dos apagones medidos. *(Esta
+   condición exigía además resolver I-54. **I-54 fue retirada el 2026-09-14 por
+   partir de un hecho falso** — no había tal defecto — así que esa parte se cae
+   sola y no se sustituye por nada: la decisión no se endurece por la puerta de
+   atrás.)*
 3. **OE3 está cerrado**: H4.4 y H4.5 con evidencia archivada.
 
 Si las tres se cumplen, reabre **una** línea, la que más aporte a la rúbrica, y
