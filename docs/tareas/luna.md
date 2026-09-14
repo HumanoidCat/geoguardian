@@ -215,8 +215,54 @@
 
 ## Sprint 4 (semanas 10-11) — 32.0 h
 
-- [ ] **H12.4** · Diagnostico guiado a partir de la bitacora de incidencias
+- [x] **H12.4** · Diagnostico guiado a partir de la bitacora de incidencias (2026-09-13)
   - `E12` · 5 pts · 7.8 h · rubrica: Troubleshoot · depende de: H12.1 · **bloquea a: H12.5**
+  - horas: estimada n/d (no se registro una estimacion propia antes de
+    arrancar; las 7.8 h de arriba las deriva el backlog de los puntos) . real 8.3
+  - **Que bitacora**: el titulo del backlog dice «de incidencias», que es el
+    nombre de `04-bitacora-incidencias.md`, escrito a mano. **No es esa.** Es
+    `control.bitacora_etl`, la de H12.1, confirmado por el PM el 2026-09-13.
+  - **RESULTADO: en su primera corrida diagnostico hacia atras la causa de
+    I-52.** La senal `[ausente] estimacion.riesgo · sin corrida` dice por que
+    `analitico.riesgo` estaba vacia en la base local el 08: la cadena de
+    estimacion nunca habia corrido ahi. Averiguarlo a mano costo cinco dias.
+  - **SEGUNDO RESULTADO, y es el util: la tabla real desmintio el modelo con el
+    que se escribio la herramienta.** Comparaba `filas_leidas` contra `filas`
+    como si una contuviera a la otra, y son etapas distintas —lo que trajo la
+    fuente contra lo que se escribio—. La corrida 63 da 1944 y 1712: una razon
+    de **1,135**, que bajo esa suposicion era imposible. Lo pedido esta en
+    `ventana_desde` y `ventana_hasta`, dos columnas que la primera version ni
+    consultaba.
+  - **El verificador no podia detectarlo**, porque el sabotaje se construyo con
+    la misma suposicion que el detector: 17 comprobaciones en verde sobre una
+    premisa falsa. Es la leccion de H4.2 aparecida en otro sitio. Lo delato
+    consultar la tabla completa **por otro motivo**, no ninguna comprobacion.
+  - Tercera: la corrida 39, la del propio I-43, tiene `filas_leidas` nulo y la
+    primera version **la dejaba pasar en silencio**. De ahi salen CA-14 y la
+    senal `cobertura no declarada`: una corrida que no se puede juzgar no es una
+    corrida sana, es una corrida sin medir.
+  - Cuarta, en pequeno: se etiqueto como «corrida 63 real» una ventana
+    reconstruida que daba 1944 de 1944, un 100 % demasiado limpio. La medida
+    llega al 2026-09-05 y da **87,1 %**. Corregida y anotada, no borrada.
+  - El umbral de 0,5 **tiene argumento medido y no hipotetico**: a la corrida 63,
+    que esta sana, le faltan 288 series que son 36 dias por 8 distritos, la
+    latencia de D-40. Con 0,9 una corrida buena real se marcaria.
+  - Por decision del PM del 2026-09-13, **opcion (b)**: diagnostica con lo que
+    hay y declara donde esta ciega. `sqlstate`, `version_codigo` y
+    `reportado_por` siguen en 0 de 3; las llena `ingestar.py` (H1.14) y entra
+    despues del 24 por solicitud de cambio.
+  - **No necesito excepcion de propiedad**: todo vive en `backend/calidad/` y
+    `backend/tests/`, las dos mias.
+  - Hallazgo para el CI, que no es de esta historia: **`ci.yml` no invoca
+    `verificar_h41`, `h42`, `h12_1`, `h3_7`, `h12_3` ni `h12_4`.** Esos
+    verificadores solo corren cuando alguien se acuerda, que es la misma forma
+    de I-52. Por eso H12.4 deja ademas **16 pruebas en `backend/tests/`**, que el
+    CI si ejecuta. Reportado al PM: `ci.yml` es suyo.
+  - Hallazgo abierto: la corrida **62** lleva 168 h `en_curso` sin `filas`, sin
+    `mensaje` y sin fin, con la misma ventana que la 63, que arranco tres
+    minutos despues y cerro bien. Apunta a **interrupcion** y no a cierre
+    olvidado, y la causa queda por confirmar en vez de cerrarse con la
+    explicacion que suena mejor.
 
 - [ ] **H9.2a** · Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS
   - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.2b**
