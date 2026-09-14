@@ -4115,3 +4115,77 @@ que es justamente a quien hay que creerle.
 habia escrito el 09-20. **Era falso**: la corrida escribio lo que dijo, y la
 tabla lo tiene. Lo que fallaba era el camino de vuelta. Queda dicho aqui porque
 la sospecha llego a escribirse.
+
+### Correccion del 2026-09-14, 09:30 UTC · la causa era otra, y la accion propuesta no servia
+
+La corrida del cron de las 09:00 UTC permitio volver a sondear, y lo que aparecio
+descarta la explicacion de arriba. **No hay ningun intermediario guardando la
+respuesta.** Medido desde **un solo cliente**, en el mismo minuto, sobre el
+distrito 50804 y `lluvia_intensa`:
+
+| `fecha` | `version_modelo` que devuelve la API |
+|---|---|
+| 2026-09-18 | `climatologica@2026-09-13` |
+| 2026-09-19 | `climatologica@2026-09-12` |
+| 2026-09-20 | `climatologica@2026-09-14` |
+| 2026-09-21 | `climatologica@2026-09-14` |
+
+**Tres versiones distintas del modelo en cuatro fechas consecutivas, pedidas al
+mismo tiempo y desde el mismo sitio.** Ninguna cache produce eso: una cache
+devuelve una respuesta vieja entera, no una fecha vieja entre dos frescas. Y la
+corrida de hoy escribio del 2026-09-14 al 2026-09-21 -consta en el registro,
+`escritas 104384`- asi que el 18 y el 19 estaban dentro de su ventana y debieron
+quedar en `@2026-09-14`.
+
+**Causa raiz, ahora si.** Cada corrida **deja una fila nueva** en
+`analitico.riesgo` en vez de reemplazar la del dia anterior, y la API devuelve
+**una cualquiera** de las que existen para ese distrito, esa fecha y ese evento.
+Las fechas que solo escribio una corrida (el 20 y el 21, que entraron por primera
+vez ayer y hoy) salen frescas porque no hay de donde elegir. Las que llevan
+varias corridas encima (el 18, el 19) salen con la version que le toco.
+
+Encaja con todo lo de arriba, incluido lo que no encajaba antes:
+
+- **Por que sobrevivio a tres reinicios de `api`.** No era estado del proceso:
+  son filas en la base.
+- **Por que dos clientes veian cosas distintas.** No era la red ni la geografia:
+  eran dos conexiones eligiendo filas distintas del mismo monton.
+- **Por que 40 peticiones seguidas daban lo mismo.** Dentro de una conexion la
+  eleccion es estable; cambia entre conexiones.
+
+**`retirar_otros_escritores` (D-48) no cubre esto.** Esa funcion retira a los
+*otros algoritmos*, que es lo que I-37 pedia. Aqui el escritor es siempre el
+mismo -la climatologica- y lo que se acumula son **sus propias corridas**.
+
+**La accion que proponia la version anterior de esta incidencia -mandar
+`Cache-Control: no-store`- no habria arreglado nada**, porque no hay cache. Queda
+anotado: la primera lectura fue «dos redes ven cosas distintas» y de ahi salio
+una explicacion razonable y falsa. La medicion que la tumbo es de un solo
+cliente, y se pudo hacer porque una corrida nueva movio las fechas.
+
+**Lo que falta para cerrarla**, y es una sola consulta contra la base publicada:
+
+    SELECT codigo_distrito, fecha, tipo_evento, algoritmo, version_modelo, COUNT(*)
+    FROM analitico.riesgo
+    WHERE codigo_distrito = '50804'
+      AND tipo_evento = 'lluvia_intensa'
+      AND fecha BETWEEN '2026-09-18' AND '2026-09-21'
+    GROUP BY 1,2,3,4,5
+    ORDER BY fecha;
+
+Si el 18 y el 19 traen mas de una fila y el 20 y el 21 una sola, queda probado.
+Necesita el TCP proxy un rato.
+
+**El arreglo, cuando se confirme**, tiene dos mitades y conviene las dos:
+
+  1. **Que la base no pueda tener duplicados**: indice unico sobre
+     (`codigo_distrito`, `fecha`, `tipo_evento`) y el `ON CONFLICT` apuntando a
+     esa clave, para que cada corrida **reemplace** en vez de agregar. Es
+     migracion, y hay que decidir que se hace con las filas que ya estan.
+  2. **Que la API no pueda elegir mal**: que la consulta ordene por la corrida
+     mas reciente y se quede con esa. Es defensa en profundidad; sin la 1 no
+     alcanza, porque la tabla sigue creciendo una copia por dia.
+
+**El impacto no cambia, y sigue siendo el mismo del 24**: el visor dice «Datos
+reales» y puede estar mostrando una estimacion calculada dias antes, sin que nada
+en la pantalla lo diga. Lo que cambia es que ahora se sabe donde arreglarlo.
