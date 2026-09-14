@@ -570,8 +570,30 @@
 
 ## Sprint 4 (semanas 10-11) — 177.6 h
 
-- [ ] **H10.5c** · Redactar el documento IEEE completo
+- [x] **H10.5c** · Redactar el documento IEEE completo (2026-09-14)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
+  - horas: estimada 21.1 . real 2.0
+  - Estuvo abierta desde el 2026-08-26 por su propio **CA-8**, que exigia tener escritas
+    VI, VII y IX. Se escribieron el 2026-09-11. Lo que faltaba hoy no era redactar: era
+    que el documento dijera lo que el sistema hace **hoy**.
+  - **Ocho afirmaciones corregidas:** la nota que excluia a H3.9; el ancho de la matriz
+    (27 a 32 columnas, con la advertencia de que V-F se midio sobre 27); la comparacion
+    con la matriz simetrica (**Tabla XIII** nueva); quien escribe la estimacion de
+    incendio (pasa a la climatologica, y se dice que cambio dos veces sin que nadie
+    mejorara); el argumento estructural de **VI-B**, que deja de apoyarse en una
+    asimetria y pasa a apoyarse en una medicion; el incendio declarado incontrastable en
+    **VI-C** y **IV-E**; el contraste de las estimaciones publicadas (**Tabla XVII**
+    nueva, de H4.4); y **VII-F**, que decia que las estimaciones no se renuevan solas.
+  - **Defecto introducido por esta misma edicion y corregido:** las dos tablas nuevas
+    quedaron fuera de orden (XII, XVIII, XIII...). Se renumero el bloque XIII a XIX y se
+    arrastraron las referencias; **tres estaban partidas por un salto de linea** y la
+    primera pasada no las alcanzo. Comprobado: 19 encabezados en orden, 0 referencias
+    sin tabla, 0 tablas sin referencia.
+  - Sin referencias nuevas, a proposito: 31 citas directas antes y despues, que es lo
+    que `verificar_documentacion` vigila.
+  - **Queda con nombre:** reconstruir el PDF con `armar_entrega.py` (el texto crecio unas
+    1.900 palabras) y hacer el cartel **despues**, porque dos correcciones cambian frases
+    que su borrador usa.
 
 - [x] **H4.4** · Contrastar estimaciones contra el catalogo y analizar fallos (2026-09-14)
   - `E4` · 10 pts · 26.4 h · rubrica: OE3 · depende de: H4.3, H3.6 · **bloquea a: H4.5**
