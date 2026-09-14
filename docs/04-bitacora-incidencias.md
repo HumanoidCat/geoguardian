@@ -4038,3 +4038,80 @@ plausible— aparecida en la configuracion.
 mas un aviso al PM diciendo que lo que se le habia anunciado como error no lo
 era. Y una comprobacion de menos en el repertorio: durante cinco dias se creyo
 que esa linea de procedencia era confiable.
+
+---
+
+## I-54 · La misma pregunta a la API publicada devuelve dos respuestas distintas segun desde donde se pregunte
+
+**Fecha.** 2026-09-14.
+
+**Quien lo detecto.** El sondeo del horizonte de `analitico.riesgo` contra el
+sitio publicado, hecho para averiguar por que la corrida del 2026-09-13 decia
+`hasta 2026-09-20 / escritas 104376` y la API parecia no tenerlo.
+
+**Que paso.** A la misma hora (entre las 05:50 y las 06:10 UTC), contra la misma
+direccion `https://visor-production-40b5.up.railway.app/api/riesgos`, dos
+clientes en redes distintas reciben datos distintos:
+
+| `fecha` | Desde el navegador (Costa Rica) | Desde la otra red |
+|---|---|---|
+| 2026-09-13 | `climatologica@2026-09-13` | `climatologica@2026-09-13` |
+| 2026-09-19 | `climatologica@2026-09-13` | **`climatologica@2026-09-12`** |
+| 2026-09-20 | `climatologica@2026-09-13`, nivel `alto` en 50804 | **ocho filas con `nivel` en `null`** |
+| 2026-09-21 | ocho filas con `nivel` en `null` | - |
+
+Leido del lado del navegador, el horizonte es **2026-09-13 a 2026-09-20**: siete
+dias por delante de la corrida del 13, que es exactamente lo que el registro
+declaro. Leido desde la otra red, el ultimo dia con estimacion es el **09-19** y
+la version es la del **12**.
+
+Esa segunda vista no es basura ni un error de lectura: **es el estado exacto de
+la tabla antes de la corrida del 2026-09-13**, que escribio del 13 al 20. O sea
+que alguien esta sirviendo una respuesta de hace unas veintiuna horas.
+
+**Lo que se descarto, y como.**
+
+- *La cache del navegador.* Todas las peticiones se hicieron con
+  `cache: 'no-store'`.
+- *Una cache por URL del lado que consulta.* La respuesta vieja se obtuvo con
+  **tres URL distintas** para la misma consulta (con un parametro extra, y con
+  los parametros en otro orden). Las tres devolvieron lo mismo.
+- *Que la API conteste distinto de una peticion a otra.* Cuarenta peticiones
+  seguidas al 09-19 y cuarenta al 09-20 devolvieron **lo mismo las ochenta
+  veces**.
+- *Que sea estado del proceso de `api`.* La vista vieja **sobrevivio a tres
+  reinicios** del servicio `api` esa misma madrugada.
+
+**Causa raiz.** No establecida, y conviene no inventarla. Lo que queda en pie
+despues de los descartes es que algo **entre el cliente y la aplicacion** guarda
+una copia de la respuesta. Y hay un dato que lo hace verosimil: las respuestas de
+`/api/riesgos` **no llevan cabecera `Cache-Control`** (tampoco `Age`; el
+servidor se identifica como `railway-hikari`). Una respuesta `200` sin
+`Cache-Control` puede ser almacenada por cualquier intermediario que decida
+hacerlo, y el tiempo que la guarde lo elige el.
+
+**Accion propuesta.** Dos cosas, en este orden:
+
+  1. **Que `/api/riesgos` y `/api/salud` declaren `Cache-Control: no-store`.**
+     Es una linea en la API y quita el permiso que hoy se esta dando sin querer.
+     No depende de saber quien es el intermediario: si nadie puede guardar la
+     respuesta, el sintoma no puede ocurrir.
+  2. **Comprobarlo desde fuera de la red de casa**: el mismo
+     `/api/riesgos?fecha=<hoy+7>&tipo_evento=lluvia_intensa` desde un telefono
+     con datos moviles, antes y despues del arreglo. Antes tiene que verse la
+     discrepancia; despues, no.
+
+**Impacto, y por que no puede esperar al 24.** El visor declara `Datos reales ·
+API` en las dos vistas: **nunca dice que lo que muestra es de ayer**. Un
+visitante de la feria conectado desde otra red puede ver las estimaciones del dia
+anterior y **un dia menos de horizonte**, mientras el cartel y el documento
+afirman siete dias. Es el caso peor de todos los que este proyecto ha tratado de
+evitar: no es que el sistema se equivoque, es que se equivoca **diciendo que esta
+bien**. La red de seguridad del CA-8 de H11.7 -sondear el 2026-09-24 el dia 22 y
+la manana del 24- pasa desde la maquina de casa y puede fallar para el visitante,
+que es justamente a quien hay que creerle.
+
+**Lo que no era.** Se habia anotado durante la noche que la corrida del 13 no
+habia escrito el 09-20. **Era falso**: la corrida escribio lo que dijo, y la
+tabla lo tiene. Lo que fallaba era el camino de vuelta. Queda dicho aqui porque
+la sospecha llego a escribirse.

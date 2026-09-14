@@ -5437,3 +5437,184 @@ cualquiera.
       historical fcst   desde 2017 (ECMWF) · corrida mas cercana al dia: NO sirve para entrenar
     D-47, 2026-09-09    malla ~9 km: 7 celdas para 8 distritos, 1 colision (preliminar)
     Peticiones/dia      8 distritos x 48 refrescos = 384, con cache de 30 min
+
+---
+
+## D-51 · Lo que el 24 no necesita se difiere ahora y por escrito, y lo que sí necesita se nombra
+
+**Fecha.** 2026-09-14. **Historias.** H15.0, H15.1, H15.2, H3.10, H3.11, H1.16, H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-27 (el alcance diferido se registra con condición de reactivación medible), D-50 (E15 entra como épica), D-34 (la sequía no se modela), D-07 (la ausencia se dibuja).
+
+### Contexto
+
+Quedan **27 historias abiertas, 213,5 h nominales y diez días** hasta el Invenio
+Fest del 2026-09-24. De esas horas, **137,0 son del PM**. No hay reparto que
+acomode eso: la semana que viene tiene, siendo generosos, unas 40 h de trabajo
+real disponible, y una parte se va en el cartel, en los ensayos y en la feria
+misma.
+
+Esto ya pasó una vez. La acción **A1.1** quitó 118 de 310 puntos el 3 de agosto,
+y **D-27** tuvo que escribirse tres semanas después precisamente porque aquel
+recorte vivía en un acta de ceremonia: un registro de lo que se acordó un día, no
+una lista que alguien pueda consultar. La diferencia de hoy es que el recorte se
+escribe donde se busca, **antes** de que el calendario lo imponga.
+
+Y hay una razón de fondo para hacerlo hoy y no el 23: un alcance que nadie
+declaró cerrado no se comporta como cerrado. Se sigue mirando, se sigue
+estimando, y cada vez que se mira cuesta atención que el cartel necesita.
+
+### Decision
+
+**1. Se difieren siete historias: 39 puntos, 60,9 h.**
+
+| Historia | Pts | Horas | Por qué el 24 no la necesita |
+|---|---|---|---|
+| H15.0 · la API sirve el pronóstico | 5 | 7,8 | D-50 la creó **como backlog**, trece días antes de la feria. Nunca estuvo en el camino del 24 |
+| H15.1 · el pronóstico como característica | 8 | 12,5 | Ídem. Además depende de H15.0 |
+| H15.2 · el clima de la semana en el visor | 8 | 12,5 | Ídem. Es la más vistosa de las tres y por eso la más peligrosa: entraría a medias |
+| H3.10 · el ENSO entra al modelo | 5 | 7,8 | El documento IEEE **ya la declara trabajo futuro** en X.2 |
+| H3.11 · recontar sequía sobre la serie larga | 3 | 4,7 | El documento IEEE **ya la declara trabajo futuro** en X.3 |
+| H1.16 · Open-Meteo como serie larga (D-47) | 5 | 7,8 | Habilita a H3.11, que se difiere. Sola no cambia nada de lo que se muestra |
+| H14.5 · la tarjeta de sequía dice el índice | 5 | 7,8 | Mejora una tarjeta que **hoy ya es honesta**: dice que no se estima, amparada en D-34 y D-07. Cambiarla la semana de la feria arriesga la coherencia del discurso a cambio de un número más |
+
+Las tres primeras suman 32,8 h; las tres siguientes, 20,3; H14.5, 7,8.
+
+**2. H4.4 y H4.5 NO se difieren, y esa es la parte importante de esta decisión.**
+
+Son 31,7 h y son las dos historias abiertas más caras del PM después del cartel,
+así que la tentación de meterlas en la tabla de arriba es evidente. No entran,
+por una razón que no admite matices: **son las dos últimas historias de OE3**.
+H4.1, H4.2 y H4.3 están cerradas; si estas dos se difieren, el objetivo
+específico 3 queda sin historia que lo cierre, y un objetivo declarado sin cerrar
+pesa más en la nota que siete historias diferidas con motivo.
+
+Hay además un argumento que no es de rúbrica. H4.4 contrasta las estimaciones
+contra el **catálogo de doce eventos históricos reales** que Luna construyó en
+H4.3, cerrada el 2026-08-18. Es la única pieza del proyecto que puede decir «el
+sistema dijo esto, y esto fue lo que pasó». En una feria, eso vale más que
+cualquier gráfico de F1.
+
+**Lo que sí se hace es reducir su alcance**, usando la palanca que
+`docs/tareas/alejandro.md` ya tenía anotada desde el 11 de agosto:
+
+- **H4.4 se acota** a contrastar los eventos del catálogo contra lo que el
+  escritor vigente (la línea base climatológica, D-39) estimó para esas fechas, y
+  a clasificar los fallos. El análisis por algoritmo, que es lo que infla la
+  estimación de 26,4 h, se recorta: el arnés de H3.9 ya publicó esa comparación.
+- **H4.5 se escribe sobre ese contraste** y sobre lo que V-D y IX del documento
+  ya concluyen (H1 rechazada). Sus 5,3 h se mantienen.
+
+Si al evaluar el punto 3 resultara que H4.4 no cabe ni acotada, se parte como
+decía la palanca: el contraste contra el catálogo vuelve a Luna, que lo conoce
+porque lo construyó.
+
+**3. La condición de reactivación es una, y se evalúa en un momento fijado.**
+
+Se evalúa en la **retrospectiva de la semana 12**, después de la feria. Una
+historia diferida reabre solo si se cumplen las tres:
+
+1. **El cartel (H10.6) está cerrado con evidencia**, incluidos los defectos que
+   su evidencia abierta ya nombra: el QR del repositorio, «trabajo futuro» y el
+   cuerpo a 28 pt.
+2. **H11.6 y H11.7 están cerradas**, con los dos apagones medidos y **I-54
+   resuelta** — la API no puede seguir sirviendo dos vistas distintas de la misma
+   tabla.
+3. **OE3 está cerrado**: H4.4 y H4.5 con evidencia archivada.
+
+Si las tres se cumplen, reabre **una** línea, la que más aporte a la rúbrica, y
+se estima antes de comprometerla. No reabre el conjunto.
+
+**4. Lo que el 24 sí necesita, nombrado, para que este recorte no se lea como un recorte de todo.**
+
+Queda en pie, y es poco: **H10.6** (el cartel definitivo, 7,7 h), el cierre con
+evidencia de **H10.5c**, **H11.6**, **H11.7** y **H14.6**, **H4.4 acotada** y
+**H4.5**, y de las otras personas **H10.9** (el guion de demo y los tres ensayos,
+de Avril) y **H9.2a/H9.2b** (las sesiones de Luna, desbloqueadas desde el 11).
+
+### Justificacion
+
+**El recorte va a ocurrir igual; lo que se elige es si queda escrito.** Diez días
+y 213,5 h abiertas no caben. La única decisión real es si el alcance se retira
+por escrito hoy o se pierde por calendario el 23 sin que nadie pueda decir qué
+pasó. A1.1 ya enseñó el costo de lo segundo: el recorte del 3 de agosto vivió
+tres semanas en un acta de ceremonia hasta que D-27 tuvo que ir a buscarlo.
+
+**Un alcance sin declarar cuesta atención aunque no se trabaje.** Mientras las
+siete sigan sin condición ni fecha, cada revisión del tablero vuelve a
+evaluarlas. Esa atención es exactamente la que el cartel necesita, y el cartel no
+tiene sustituto: es lo único que el jurado ve antes de que alguien hable.
+
+**El criterio de corte es la rúbrica, no el tamaño.** Por eso H4.4 sobrevive
+siendo la historia más cara del backlog (26,4 h) y H14.5 se difiere siendo tres
+veces más barata. Cortar por horas habría hecho lo contrario y habría dejado OE3
+sin cerrar, que es el único daño de esta lista que no se puede reparar después
+del 24.
+
+**Diferir no es lo mismo que descartar, y la diferencia es la condición.** D-27
+fijó el precedente: alcance retirado con condición de reactivación medible y
+momento de evaluación. Sin esas dos cosas, «diferido» es una forma educada de
+decir que no se hizo.
+
+### Alternativas descartadas
+
+**No decidir nada y trabajar hasta donde alcance.** Es lo que pasa por defecto y
+es lo peor: el alcance se recorta igual, pero lo recorta el reloj, y lo que queda
+a medias queda a medias en público. Además obliga a decidir el 23, cansado, que
+es cuando peor se decide.
+
+**Diferir también H4.4 y H4.5, que es lo que más horas libera (31,7 h).** Deja
+OE3 sin historia que lo cierre, con H4.1, H4.2 y H4.3 ya cerradas. Un objetivo
+específico declarado y no cerrado pesa más que siete historias diferidas con
+motivo, y a diferencia de H14.5 no se puede recuperar después de la feria.
+
+**Cerrar H4.4 y H4.5 como están, sin acotarlas.** 31,7 h nominales contra las
+~40 h reales que quedan, compitiendo con el cartel. Acotar H4.4 al contraste
+contra el catálogo de H4.3 conserva lo que la rúbrica pide y lo que la feria
+aprovecha, y suelta el análisis por algoritmo, que el arnés de H3.9 ya publicó.
+
+**Borrar las siete del backlog y cerrar sus issues.** Sube el porcentaje de
+avance sin trabajo, que es precisamente el error que esta decisión existe para no
+cometer. Quedan abiertas.
+
+**Diferir H15.2 pero conservar H15.0 y H15.1.** Tentador porque H15.0 es barata
+(7,8 h), pero H15.0 sola no muestra nada: sirve una ruta que nadie consume. La
+épica entra entera o no entra.
+
+### Consecuencias
+
+**Las siete historias no se borran del backlog ni se cierran sus issues.** Siguen
+en el Sprint 4, con sus puntos, y `backlog.csv` no se toca. Esta decisión es su
+único registro, igual que D-27 fue el único registro de A1.1: borrarlas dejaría
+el proyecto declarando un avance que no tuvo, y el que las mire dentro de un mes
+no sabría que existieron.
+
+Lo que cambia es **lo comprometido para el 24**: de los 172 puntos del Sprint 4,
+la feria depende de **133**; los otros 39 quedan con fecha de revisión. Cuando se
+informe el avance hay que decirlo con esas dos cifras a la vista, porque si se
+informa solo la segunda el porcentaje sube sin que se haya hecho nada nuevo. Eso
+no sería velocidad, sería alcance retirado contado como progreso — y cambiar el
+error de D-27 por ese otro no vale la pena.
+
+E15 conserva sus tres issues abiertas (#312, #313, #314) y sus criterios de
+aceptación escritos, que es exactamente lo que D-50 quería: el pronóstico no se
+descarta, se pone en la fila con el trabajo ya hecho por delante.
+
+### Medicion
+
+    Al 2026-09-14, diez dias antes de la feria
+
+    Abierto total           27 historias   136 pts   213,5 h
+      de Alejandro          14 historias    77 pts   137,0 h
+      de las otras tres     13 historias    59 pts    76,5 h
+
+    Se difiere               7 historias    39 pts    60,9 h
+      E15 (H15.0/1/2)        3 historias    21 pts    32,8 h
+      X.2 y X.3 del IEEE     3 historias    13 pts    20,3 h   H3.10, H3.11, H1.16
+      H14.5                  1 historia      5 pts     7,8 h
+
+    No se difiere, por OE3   2 historias    12 pts    31,7 h   H4.4 acotada, H4.5
+
+    Sprint 4 comprometido   de 172 pts a 133 pts · de 35 historias a 28
+
+    Se evalua en la retrospectiva de la semana 12, despues del 24
