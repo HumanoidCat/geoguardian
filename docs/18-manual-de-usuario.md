@@ -1,60 +1,84 @@
+---
+author:
+  - "Avril Madrigal Elizondo"
+  - "Alejandro Josué Rodríguez Zamora"
+  - "César Andrés Ubau Calvo"
+  - "Luis Alejandro Luna García"
+institute: "Universidad Invenio · Ingeniería en Tecnologías de Información · III Trimestre 2026"
+date: "10 de septiembre de 2026"
+lang: es
+---
+
 # Manual de usuario · Visor GeoGuardian
 
 **Historia.** H10.3 · **Autora.** Avril Madrigal Elizondo · **Fecha.** 2026-09-02
-**Version del visor.** La publicada en `dev` al 2026-09-02
+**Version del visor.** Texto actualizado al 2026-09-10 sobre el visor publicado;
+**las capturas son de la version del 2026-09-02** y se renuevan en la siguiente
+revision de esta historia (la pantalla «Hoy en tu distrito» y el lago no aparecen
+en ellas todavia)
 
 Este manual es para quien **usa** el visor, no para quien lo programa. Si buscas
 como levantarlo, instalarlo o modificarlo, eso esta en `docs/10-manual-tecnico.md`.
 
 ---
 
-## Antes que nada: lo que este visor NO es
+## Antes que nada: dos direcciones, y cual estas viendo
+
+Hay **dos** visores publicados, y la franja de arriba dice cual tenes delante.
+
+| Direccion | Datos | Franja |
+|---|---|---|
+| `https://visor-production-40b5.up.railway.app/` | **Reales.** Lo que escribe la tuberia de estimacion sobre las series climaticas y los focos de calor del canton | Sin franja de demostracion. Muestra la fecha de la estimacion y, aparte, el ultimo dia con lluvia medida |
+| `https://humanoidcat.github.io/geoguardian/` | **De demostracion.** El visor sin servidor detras, sirviendo su respaldo estatico | La franja de la imagen de abajo, en todas las pantallas |
 
 ![Aviso de datos de demostracion](manual/capturas/02-aviso-datos-simulados.png)
-
-Esa franja aparece en todas las pantallas y dice la verdad:
 
 > **DATOS DE DEMOSTRACION.** Los niveles de riesgo son de prueba y no representan
 > riesgo real.
 
-**No hay un modelo entrenado todavia.** Los niveles que se ven —alto, medio,
-bajo— los genera un simulador para poder construir y revisar la aplicacion. **No
-son un pronostico y no sirven para tomar ninguna decision operativa.**
+Esa franja **no se puede ocultar desde la interfaz**, y eso es a proposito: un
+mapa de colores con nombres de distritos reales invita a creerle. Si la ves, el
+visor sirve para una sola cosa: mostrar como se usa. Si no la ves, lo que ves es
+la estimacion publicada, y conviene saber leerla (seccion 7).
 
-Mientras esa franja este en pantalla, el visor sirve para una sola cosa: mostrar
-como se va a ver y a usar el sistema cuando tenga datos reales. Nada mas.
-
-Se dice aca, arriba de todo, y no en una nota al pie, porque un mapa de colores
-con nombres de distritos reales invita a creerle. La franja no se puede ocultar
-desde la interfaz, y eso es a proposito.
+**Lo que la estimacion real es, y lo que no.** Para lluvia intensa e incendio,
+el sistema publica el nivel del estimador que la comparacion eligio; para
+lluvia intensa hoy es la **linea base climatologica** —lo que ese mes suele
+traer en ese distrito, sobre 35 anios de registro— porque ningun algoritmo de
+aprendizaje la supero fuera del ruido. No es un pronostico meteorologico ni
+reemplaza los avisos del Instituto Meteorologico Nacional. La sequia aparece
+**sin estimacion**: no hay suficientes episodios historicos para modelarla.
 
 ---
 
 ## 1 · Que muestra el visor
 
-El riesgo de tres eventos en los **ocho distritos del canton de Tilaran**:
+El riesgo de tres eventos en los **ocho distritos del canton de Tilaran**, para
+los siete dias siguientes a la fecha elegida:
 
-| Evento | Cuando se considera **alto** |
-|---|---|
-| **Sequia** | Indice SPI-3 menor o igual a −1,5 |
-| **Incendio forestal** | Al menos un foco de calor en los ultimos 7 dias |
-| **Lluvia intensa** | Acumulado de 72 horas por encima del percentil 99 |
+| Evento | Cuando se considera **medio** | Cuando se considera **alto** |
+|---|---|---|
+| **Lluvia intensa** | Acumulado de 72 horas por encima del percentil 95 del distrito | Por encima del percentil 99 |
+| **Sequia** | Indice SPI-6 entre −1,0 y −1,5 | SPI-6 menor o igual a −1,5 |
+| **Incendio forestal** | *No existe nivel medio* | Al menos un foco de calor en la ventana de 7 dias |
 
 Los umbrales no son inventados: los de sequia son los cortes de McKee y otros
-(1993), adoptados por la Organizacion Meteorologica Mundial. Cada uno aparece
-escrito en pantalla debajo del selector de evento, para que nunca haya que
-adivinar por que un distrito esta en rojo.
+(1993), adoptados por la Organizacion Meteorologica Mundial; los de lluvia
+siguen el criterio de percentiles extremos del ETCCDI. Cada uno aparece escrito
+en pantalla debajo del selector de evento, para que nunca haya que adivinar por
+que un distrito esta en rojo.
+
+**Incendio forestal solo se estima en tres distritos** —Santa Rosa, Libano y
+Tierras Morenas—, que concentran el 88 % de los focos de calor. Los otros cinco
+aparecen «sin estimacion» para ese evento; no es un fallo.
 
 ---
 
 ## 2 · Como abrirlo
 
 Se abre en el navegador, como cualquier pagina. No hay que instalar nada ni
-crear una cuenta.
-
-**La direccion te la da quien administre el sistema.** Todavia no hay una
-publicada de forma permanente: eso llega con las historias de despliegue H11.2 a
-H11.4.
+crear una cuenta. La direccion publica es
+`https://visor-production-40b5.up.railway.app/`, y funciona en un telefono.
 
 Si sos vos quien lo esta levantando en su propia maquina, las instrucciones estan
 en `docs/10-manual-tecnico.md`, que es el manual de quien lo instala. Este no.
@@ -67,9 +91,13 @@ en `docs/10-manual-tecnico.md`, que es el manual de quien lo instala. Este no.
 
 De arriba hacia abajo y de izquierda a derecha:
 
-1. **El titulo** y el aviso de datos de demostracion.
+1. **El titulo**, la fecha de la estimacion y el ultimo dia con lluvia medida
+   (o, en la copia de demostracion, la franja de aviso).
 2. **El selector de evento**: sequia, incendio forestal, lluvia intensa.
-3. **La fecha de la estimacion.**
+3. **La fecha de la estimacion**, y el boton **«Hoy en tu distrito»**, que abre
+   una pantalla que dice en palabras que viene esta semana en el distrito
+   elegido —*tranquilo*, *atento* o *cuidado*, junto al termino tecnico— y que
+   hacer. El mapa abre primero; esa pantalla esta a un clic.
 4. **El mapa** del canton, con cada distrito pintado segun su nivel.
 5. **A la derecha**, el control de capas, la leyenda, y la ficha del distrito que
    elijas.
@@ -85,9 +113,9 @@ De arriba hacia abajo y de izquierda a derecha:
 Los tres botones cambian **todo el mapa a la vez**. El que esta activo se ve en
 negro.
 
-Debajo aparece siempre la regla del evento elegido. En la imagen, para sequia:
-*«Indice SPI-3. Alto si el SPI es menor o igual a −1.5. Cortes de McKee et al.
-(1993), adoptados por la OMM.»*
+Debajo aparece siempre la regla del evento elegido. En la imagen, para sequia,
+la regla de la version del 2 de septiembre, con el indice a tres meses; hoy el
+indice es a seis meses y la regla en pantalla lo dice.
 
 **Una diferencia importante entre eventos:** incendio forestal **no tiene nivel
 medio**. Solo alto o bajo. No es un olvido: con los datos historicos disponibles
@@ -103,14 +131,10 @@ intensa si tienen los tres niveles.
 
 Cambiar la fecha recarga el mapa y el semaforo con la estimacion de ese dia.
 
-**No se puede elegir una fecha futura.** El propio visor lo explica:
-
-> No se puede elegir una fecha futura: el sistema no estima a futuro mientras no
-> exista un modelo entrenado.
-
-Un calendario que dejara pedir la semana que viene ofreceria una consulta que solo
-puede devolver vacio. Cuando exista el modelo con su horizonte de siete dias, el
-tope se movera.
+**La estimacion cubre hasta siete dias despues de la ultima corrida.** Mas alla
+de esa fecha no hay estimacion, y los distritos aparecen rayados; el visor dice
+cual es la ultima fecha disponible en vez de dejarte pedir una que solo puede
+devolver vacio.
 
 **Si el visor esta trabajando sin conexion con el servidor**, el selector se
 reemplaza por una explicacion en vez de quedar en gris: el respaldo tiene una sola
@@ -161,7 +185,9 @@ Lo que trae:
   numero aproximado.
 - **Coordenadas**, en dos formatos.
 - **El nivel de riesgo** del evento elegido, con su probabilidad y la version del
-  modelo que la produjo.
+  estimador que la produjo, por ejemplo
+  `climatologica@2026-09-05 f1=0.346 empate-tecnico`: quien la escribio, la fecha
+  de la corrida, su desempeno medido y el veredicto de la comparacion.
 
 ### Las coordenadas, y para que sirven
 
@@ -198,7 +224,9 @@ El porcentaje es la **probabilidad de que el evento alcance el nivel alto**. No 
 «que tan alto» es el riesgo ni una medida de intensidad: es una sola cosa, la
 posibilidad de llegar a ese nivel.
 
-Con datos de demostracion, ese numero tampoco significa nada real.
+Para la linea base climatologica, es la frecuencia con que ese distrito estuvo
+en nivel alto en ese mes calendario a lo largo del registro. En la copia de
+demostracion, ese numero no significa nada real.
 
 ---
 
@@ -240,6 +268,10 @@ los mismos: lo que cambia es el mapa de abajo.
   **opacidad** para poder ver el mapa de fondo a traves de ellos.
 - **Mapa de calor** — una superficie continua interpolada entre los ocho
   distritos. *Ver la advertencia de abajo.*
+- **Vegetacion (NDVI) y agua (NDWI)** — indices calculados desde imagenes
+  Sentinel-2, como contexto del terreno.
+- **Lago Arenal** — el agua dibujada encima de la coropleta, para que el
+  distrito de Tilaran no aparezca pintando 88 km² de lago con su nivel.
 - **Limites distritales** — solo el contorno, sin relleno.
 - **Nombres de distrito** — la etiqueta sobre cada poligono.
 
@@ -278,7 +310,7 @@ ajusta la vista para que el canton entero quepa en pantalla.
 ## Para quien lo revise
 
 Este manual describe el visor **tal como esta hoy**, incluido el defecto del mapa
-de calor. Se escribio asi a proposito: un manual que describe la version que
+de calor tal como estaba medido al 2 de septiembre. Se escribio asi a proposito: un manual que describe la version que
 uno quisiera tener, y no la que la persona tiene delante, hace perder mas tiempo
 del que ahorra.
 

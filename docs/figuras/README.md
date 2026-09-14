@@ -4,7 +4,8 @@
 python docs/herramientas/generar_figuras.py
 ```
 
-Necesita `matplotlib` y **el conjunto etiquetado cargado**.
+Necesita `matplotlib` y **el conjunto etiquetado cargado**. Con `--tabuladas`
+genera solo las dos que salen de `datos/`, sin base.
 
 ---
 
@@ -27,13 +28,20 @@ investigación están declaradas como no recalculables por la integración conti
 
 ---
 
-## Las tres
+## Las seis
 
-| Archivo | Qué muestra | Dónde se usa |
-|---|---|---|
-| `cobertura-datos.png` | El período que describe cada etiqueta, con la década sin datos de incendio | Fig. 1, sección VI-A |
-| `lineas-base.png` | F1-macro de las dos líneas base con la dispersión entre pliegues | Fig. 2, sección VI-D |
-| `contraste-catalogo.png` | Cobertura contra tasa base, y el realce resultante | Fig. 3, sección VI-F |
+| Archivo | Qué muestra | Dónde se usa | De dónde sale |
+|---|---|---|---|
+| `nate-por-distrito.png` | Pérdidas por distrito el 2017-10-05: el problema en un solo día | Fig. 1, sección I-A | Catálogo de eventos |
+| `cobertura-datos.png` | El período que describe cada etiqueta, con la década sin datos de incendio | Fig. 2, sección V-A | Conjunto etiquetado |
+| `episodios-por-pliegue.png` | Episodios a nivel cantón en cada pliegue de entrenamiento, contra el mínimo del criterio | Fig. 3, sección V-B | `datos/episodios-por-pliegue.csv` |
+| `lineas-base.png` | F1-macro de las dos líneas base con la dispersión entre pliegues | Fig. 4, sección V-C | Conjunto etiquetado |
+| `comparativa-algoritmos.png` | Los tres algoritmos contra las dos líneas base, con el rango entre pliegues | Fig. 5, sección V-D | `datos/comparativa-algoritmos.csv` |
+| `contraste-catalogo.png` | Cobertura contra tasa base, y el realce resultante | Fig. 6, sección V-G | Conjunto etiquetado |
+
+Las dos que salen de `datos/` se regeneran sin base con
+`python docs/herramientas/generar_figuras.py --tabuladas`. Sus tablas son
+transcripciones de corridas reales y `datos/README.md` dice de cuál.
 
 **Las barras de error de `lineas-base.png` son el punto de esa figura, no un
 adorno.** Sin ellas, dos de los tres veredictos de la sección VI-D —«empate

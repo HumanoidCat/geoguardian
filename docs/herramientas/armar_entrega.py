@@ -72,15 +72,36 @@ PIEZAS: list[tuple[Path, str, bool, Path | None]] = [
     # «Documentacion tecnica no va en IEEE».
     (
         GESTION / "17-documento-tecnico.pdf",
-        "2 - Documentacion tecnica.pdf",
+        "2 - Documentacion tecnica del MVP.pdf",
         True,
         RAIZ / "docs" / "17-documento-tecnico.md",
     ),
     (
         GESTION / "17-documento-tecnico.docx",
-        "2 - Documentacion tecnica.docx",
+        "2 - Documentacion tecnica del MVP.docx",
         False,
         RAIZ / "docs" / "17-documento-tecnico.md",
+    ),
+    # La guia de entregables de la carrera pide, ademas de la documentacion
+    # tecnica, el manual de usuario y el manual tecnico de instalacion. Entran
+    # desde el 2026-09-10, para la entrega de semana 12.
+    (
+        GESTION / "18-manual-de-usuario.pdf",
+        "3 - Manual de usuario del visor.pdf",
+        True,
+        RAIZ / "docs" / "18-manual-de-usuario.md",
+    ),
+    (
+        GESTION / "10-manual-tecnico.pdf",
+        "4 - Manual tecnico de instalacion.pdf",
+        True,
+        RAIZ / "docs" / "10-manual-tecnico.md",
+    ),
+    (
+        GESTION / "20-manual-de-operacion.pdf",
+        "5 - Manual de operacion.pdf",
+        False,
+        RAIZ / "docs" / "20-manual-de-operacion.md",
     ),
 ]
 
@@ -133,30 +154,40 @@ Avril Madrigal Elizondo
 QUE HAY EN ESTE ARCHIVO
 
   1 - Documento de investigacion IEEE.pdf
-      El articulo, en formato de conferencia IEEE a dos columnas.
+      El articulo, en formato de conferencia IEEE a dos columnas: tres
+      preguntas de investigacion, la hipotesis H1 -rechazada con la
+      medicion-, siete hallazgos sobre los datos abiertos, seis figuras con
+      sus tablas, y las conclusiones sobre lo medido.
 
-      La seccion VII, Discusion, esta declarada vacia: compara modelos contra
-      la linea base y los modelos todavia no estan entrenados. Todo lo demas
-      esta redactado, incluidas las Conclusiones, que se apoyan solo en lo
-      que se midio.
+  2 - Documentacion tecnica del MVP.pdf
+      Descripcion funcional y casos de uso, tecnologias con sus versiones,
+      arquitectura, modelo de datos, procesamiento y modelado, API, visor,
+      verificacion y evidencia de pruebas, despliegue, decisiones, y como
+      leer los identificadores. NO va en formato IEEE.
 
-  2 - Documentacion tecnica.pdf
-      Tecnologias con sus versiones, arquitectura, modelo de datos, contratos,
-      procesamiento, API, visor, verificacion, despliegue e instalacion.
-      NO va en formato IEEE.
+  3 - Manual de usuario del visor.pdf
+      Como se usa el visor publicado, pantalla por pantalla.
+
+  4 - Manual tecnico de instalacion.pdf
+      Levantar el sistema en una maquina limpia, paso a paso; verificado por
+      una persona ajena al proyecto.
+
+  5 - Manual de operacion.pdf  (si esta construido)
+      Como se atiende el sistema publicado dia a dia.
 
   diagramas/
-      Los seis diagramas de arquitectura en PNG, por si hacen falta sueltos.
+      Los diagramas de arquitectura en PNG, por si hacen falta sueltos.
 
 
 EL SISTEMA, EN LINEA
 
-  Repositorio   https://github.com/HumanoidCat/geoguardian
-  Visor         publicado con GitHub Pages desde el 20 de agosto
+  Repositorio       https://github.com/HumanoidCat/geoguardian
+  Visor, dato real  https://visor-production-40b5.up.railway.app/
+  Visor, demo       https://humanoidcat.github.io/geoguardian/
 
-  El visor publicado consulta la API, no la encuentra -no esta desplegada- y
-  degrada a un respaldo estatico de datos simulados, que declara en pantalla.
-  Es una limitacion declarada del MVP, no un defecto.
+  El segundo es el visor sin servidor detras: degrada a un respaldo estatico
+  de datos simulados y lo declara en pantalla. Es la degradacion que el
+  propio diseno exige, no un sobrante.
 
 
 COMO SE REPRODUCE TODO ESTO
@@ -164,9 +195,12 @@ COMO SE REPRODUCE TODO ESTO
   Los PDF no se editan: se generan desde los Markdown del repositorio.
 
       python docs/herramientas/generar_diagramas.py --png
-      python docs/herramientas/generar_figuras.py
+      python docs/herramientas/generar_figuras.py --tabuladas
       python docs/herramientas/construir_entregable.py docs/13-documento-ieee.md --ieee
       python docs/herramientas/construir_entregable.py docs/17-documento-tecnico.md
+      python docs/herramientas/construir_entregable.py docs/18-manual-de-usuario.md
+      python docs/herramientas/construir_entregable.py docs/10-manual-tecnico.md
+      python docs/herramientas/construir_entregable.py docs/20-manual-de-operacion.md
 
   Y este mismo archivo:
 
@@ -191,7 +225,7 @@ def main() -> int:
     def como_se_construyen() -> None:
         print("\n  Se construyen con:\n")
         print("      python docs/herramientas/generar_diagramas.py --png")
-        print("      python docs/herramientas/generar_figuras.py")
+        print("      python docs/herramientas/generar_figuras.py --tabuladas")
         print(
             "      python docs/herramientas/construir_entregable.py "
             "docs/13-documento-ieee.md --ieee"

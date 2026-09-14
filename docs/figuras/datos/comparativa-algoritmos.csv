@@ -1,0 +1,13 @@
+evento,estimador,f1_macro,rango_entre_pliegues,escribe
+lluvia_intensa,climatologica,0.346,0.027,si
+lluvia_intensa,xgboost,0.327,0.057,no
+lluvia_intensa,random_forest,0.322,0.048,no
+lluvia_intensa,trivial,0.309,0.015,no
+lluvia_intensa,regresion_logistica,0.305,0.045,no
+incendio,random_forest,0.5567,0.0547,no
+incendio,xgboost,0.5440,0.057,no
+incendio,regresion_logistica,0.5299,0.061,si
+incendio,climatologica,0.4996,0.138,no
+incendio,trivial,0.4938,0.009,no
+sequia,trivial,0.333,0.252,no
+sequia,climatologica,0.272,0.126,no

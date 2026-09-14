@@ -886,6 +886,63 @@ probablemente otro rango de edad y otra escolaridad. **Las propiedades
 psicométricas reportadas no se transfieren automáticamente**, y la evidencia de
 H9.2a debe decirlo.
 
+## Ficha agregada el 2026-09-10, al cerrar el documento de investigación
+
+**Por qué existe.** El documento IEEE citaba el catálogo de eventos históricos
+con el número `[26]`, que en este fichero es Hernández-Alpízar et al. (IA, ML y
+SIG en ingeniería ambiental). Era una atribución equivocada: la fuente del
+catálogo es DesInventar, y DesInventar **no tenía entrada**. Se agrega con
+número propio en vez de renumerar, para no romper las citas existentes.
+
+### [37] UNDRR — DesInventar Sendai, base nacional de Costa Rica
+
+```
+[37] UNDRR, "DesInventar Sendai: Sistema de inventario de desastres, base
+     nacional de Costa Rica," desinventar.net. Consulta del 18 de agosto
+     de 2026, filtro provincia Guanacaste, cantón Tilarán.
+```
+
+**Fuente verificada:** consultada directamente el 2026-08-18 al construir el
+catálogo de H4.3 (`docs/investigacion/catalogo-eventos.md`). Devolvió 98 fichas
+para Tilarán entre 1968 y 2017, cada una con distrito explícito. Es una base de
+datos consultable, no una publicación: se cita como recurso en línea con fecha
+de consulta, que es lo que el formato IEEE prevé para este caso.
+
+**Ficha de contenido**
+- *Qué es:* inventario histórico de desastres administrado por la Oficina de
+  las Naciones Unidas para la Reducción del Riesgo de Desastres (UNDRR), con
+  bases nacionales alimentadas por cada país. Registra pérdidas reportadas
+  —muertos, viviendas, hectáreas, vías, montos— por evento y unidad
+  administrativa, con un vocabulario propio de 29 tipos de evento.
+- *Por qué es relevante:* es la fuente principal del catálogo de 46 registros
+  contra el que se valida el etiquetado (41 de los 46), y la única fuente
+  pública que ofrece el distrito de forma sistemática. Es además la que emplea
+  `[15]` para Guanacaste, así que no es una elección por conveniencia.
+- *Lo que hay que arrastrar al documento:* registra **daños reportados, no
+  fenómenos**; distingue `FIRE` de `FORESTFIRE` y para Tilarán no contiene un
+  solo incendio forestal; y las sequías anteriores a 2014 tienen el campo de
+  distrito vacío. Las tres cosas están en las secciones IV-E, IV-F y VIII-C del
+  documento IEEE.
+- *Uso previsto:* citas de la Tabla I, de III-F y de IV-E del documento IEEE.
+
+**Entrada `[38]` · Equipo GeoGuardian — Documentación técnica del MVP** (sin ficha, ver abajo)
+
+```
+[38] A. J. Rodríguez Zamora, C. A. Ubau Calvo, L. A. Luna García y
+     A. Madrigal Elizondo, "GeoGuardian · Documentación técnica del MVP,"
+     Universidad Invenio, Costa Rica, 2026. Documento 2 de esta misma
+     entrega.
+```
+
+**Por qué existe.** El documento de investigación remite a la documentación
+técnica para todo lo que no hace falta para seguir la medición —contratos,
+esquema, API, integración continua, despliegue—, y una remisión sin entrada
+bibliográfica es una referencia a un documento que el lector no puede
+localizar. Se cita como documento de la misma entrega, que es la forma en que
+el ejemplo de estructura que compartió el profesor cita su propio manual
+técnico. No lleva ficha de contenido porque es un documento del equipo, no una
+fuente externa; se lista solo por número.
+
 ## Corrección de la ficha `[13]`
 
 **Detectada el 2026-08-22 al contrastar la lista de referencias de `[36]` con la
@@ -954,8 +1011,10 @@ número.
 | Fichas agregadas por la corrección de atribución de H2.3 | 1 (`[27]`) |
 | Fichas agregadas por la revisión del 2026-08-30 | 8 (`[28]` a `[35]`) |
 | Fichas agregadas por H9.1 | 1 (`[36]`) |
+| Ficha agregada al cerrar el documento IEEE, 2026-09-10 | 1 (`[37]`, DesInventar) |
+| Referencia a la documentación técnica de la misma entrega, 2026-09-11 | 1 (`[38]`, sin ficha: documento propio) |
 | Referencias previas listadas sin ficha | 8 (`[1]` a `[8]`) |
-| Total de la bibliografía | 36 |
+| Total de la bibliografía | 38 |
 | Referencias descartadas por no poder verificarse | 2 |
 | Fichas corregidas tras leer la fuente completa | 2 (`[24]`, `[15]`) |
 | Fichas corregidas por contraste con otra bibliografía | 1 (`[13]`, título invertido) |
