@@ -91,7 +91,7 @@ import csv
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
-from math import ceil
+from math import ceil, cos, pi, sin
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -139,6 +139,74 @@ REZAGOS_POR_PREFIJO: dict[str, tuple[int, ...]] = {
 #: exactamente lo que se evito al descartar `temp_min_c` y `temp_media_c`.
 #: Se detecto midiendo la matriz, no leyendo el codigo.
 SE_ACUMULAN = frozenset({"pp"})
+
+# ===========================================================================
+# EL CONTEXTO: CUANDO Y DONDE. HISTORIA H3.9
+# ===========================================================================
+#
+# Hasta H3.9 esta matriz tenia 27 columnas que salian de las cuatro variables de
+# arriba, y **ninguna decia que dia del ano era ni de que distrito se trataba**.
+#
+# Eso no es un olvido: era una decision, y esta escrita unas lineas mas arriba
+# -«el calendario de la linea base climatologica ya captura mejor»-. El problema
+# es la consecuencia: la climatologica **es** el calendario, asi que se le
+# entrego la estacionalidad y despues se le pidio a los modelos que le ganaran
+# sin poder verla. Y le perdian: 0.327 contra 0.346 en lluvia intensa.
+#
+# QUE ENTRA, Y POR QUE ESTAS CINCO Y NO MAS
+#
+# Se midieron cuatro variantes sobre el arnes de H3.6, con `fabricas()` -los
+# estimadores afinados que la tuberia usa de verdad, no los de fabrica; ver
+# I-49-:
+#
+#     columnas nuevas                          xgboost   desv
+#     ninguna                                    0.327   0.018
+#     seno, coseno, lon, lat                     0.348   0.016
+#     + tamano del distrito                      0.347   0.014
+#     + distancia al lago                        0.348   0.009
+#
+# **Todo el efecto del promedio esta en las primeras cuatro.** La distancia al
+# lago no aporta: la posicion ya la llevan `lon` y `lat`. Se descarto, y con ella
+# se cayo la unica columna que obligaba a leer un GeoJSON desde aca.
+#
+# El tamano se conserva porque **baja la desviacion entre pliegues** -de 0.016 a
+# 0.014- y sale de la misma consulta sin costo. Acertar mas parejo angosta la
+# banda de ruido, que es contra lo que D-39 decide quien escribe.
+#
+# NINGUNA FUENTE DE DATOS NUEVA. Las tres geograficas salen de `geo.distrito`,
+# que cargo H1.3 desde el WFS del SNIT.
+#: Angulo del dia del ano, en columnas que respetan que el ano es un ciclo.
+#:
+#: EL PAR Y NO EL NUMERO DEL DIA, Y ESTO NO ES ESTETICA. El 31 de diciembre y el
+#: 1 de enero son vecinos en el clima y estan a **365 unidades** de distancia en
+#: un entero. Un arbol partiria el ano justo en el punto donde no hay frontera.
+#: Con seno y coseno los dos dias quedan pegados, que es lo que el clima hace.
+#:
+#: 365.25 y no 365: el desfase de los bisiestos acumula un dia cada cuatro anos
+#: sobre una serie de treinta y cuatro.
+DIAS_DEL_ANO = 365.25
+
+#: Los estaticos del distrito: constantes en el tiempo, distintos entre distritos.
+#:
+#: `ST_PointOnSurface` y no `ST_Centroid`: el centroide de un poligono con forma
+#: de C **cae fuera del poligono**. Es el mismo defecto que H14.3 corrigio para
+#: las etiquetas del mapa, donde el centro de la caja envolvente ponia el nombre
+#: del lago sobre tierra firme.
+#:
+#: `::geography` para el area: sin el, `ST_Area` sobre EPSG:4326 devuelve grados
+#: cuadrados, que no son una superficie. La raiz del area en km da un tamano
+#: comparable entre distritos de forma distinta.
+SQL_ESTATICOS = """
+    SELECT codigo,
+           ST_X(ST_PointOnSurface(geometria)),
+           ST_Y(ST_PointOnSurface(geometria)),
+           SQRT(ST_Area(geometria::geography)) / 1000.0
+      FROM geo.distrito
+"""
+
+#: Los nombres van con prefijo, como las demas, porque terminan en la tabla de
+#: coeficientes de H4.1 y ahi hay que poder leer de donde salio cada fila.
+COLUMNAS_CONTEXTO = ("cal_seno", "cal_coseno", "geo_lon", "geo_lat", "geo_km_tam")
 
 
 def leer_mediciones(cursor, incluir_imputados: bool) -> tuple[dict[str, list[Punto]], dict]:
@@ -291,7 +359,57 @@ def sin_columnas_constantes(
     return limpia, constantes
 
 
-def rendimiento(matriz: dict[tuple[str, date], dict[str, float | None]]) -> dict[str, float]:
+def leer_estaticos(cursor) -> dict[str, tuple[float, float, float]]:
+    """Los tres estaticos de cada distrito, leidos de PostGIS. Historia H3.9.
+
+    Se leen de `geo.distrito` y no de `frontend/public/`, que es el respaldo de
+    H6.6 y no una fuente. La geometria viva es la que cargo H1.3.
+    """
+    cursor.execute(SQL_ESTATICOS)
+    return {str(codigo): (float(lon), float(lat), float(km)) for codigo, lon, lat, km in cursor}
+
+
+def agregar_contexto(
+    matriz: dict[tuple[str, date], dict[str, float | None]],
+    estaticos: dict[str, tuple[float, float, float]],
+) -> dict[tuple[str, date], dict[str, float | None]]:
+    """Le agrega a cada fila **cuando** y **donde**. Historia H3.9.
+
+    SE APLICA ANTES DE `sin_columnas_constantes` A PROPOSITO. Las tres
+    geograficas son constantes **dentro de** un distrito y distintas **entre**
+    distritos, asi que sobre la matriz entera no son constantes y ese filtro no
+    se las lleva. Aplicarlo despues seria confiar en el orden por casualidad.
+
+    UN DISTRITO SIN ESTATICOS CORTA LA CORRIDA, Y NO ES EXAGERACION. El estimador
+    **no imputa**: si estas columnas quedaran vacias, **todas** las filas de ese
+    distrito dejarian de servir para entrenar y para predecir, en silencio y sin
+    que ninguna cifra bajara de golpe. Prefiero que reviente aca.
+    """
+    faltan = sorted({codigo for codigo, _ in matriz} - set(estaticos))
+    if faltan:
+        raise ValueError(
+            f"geo.distrito no tiene geometria para {', '.join(faltan)}. "
+            "Sin ella, todas las filas de esos distritos quedarian inservibles. "
+            "Se cargan con H1.3: python -m infra.cargar_datos"
+        )
+
+    for (codigo, fecha), fila in matriz.items():
+        # `timetuple().tm_yday` y no un calculo propio: en un bisiesto el 1 de
+        # marzo es el dia 61 y no el 60, y equivocarse ahi corre la estacion un
+        # dia en nueve de cada treinta y cuatro anos de la serie.
+        angulo = 2 * pi * fecha.timetuple().tm_yday / DIAS_DEL_ANO
+        lon, lat, km = estaticos[codigo]
+        fila["cal_seno"] = sin(angulo)
+        fila["cal_coseno"] = cos(angulo)
+        fila["geo_lon"] = lon
+        fila["geo_lat"] = lat
+        fila["geo_km_tam"] = km
+    return matriz
+
+
+def rendimiento(
+    matriz: dict[tuple[str, date], dict[str, float | None]],
+) -> dict[str, float]:
     """Que fraccion de las filas tiene TODAS sus caracteristicas.
 
     Es la cifra que importa: el estimador **no imputa**, asi que una fila con una
@@ -388,7 +506,12 @@ def main() -> int:
         return 1
 
     try:
-        series, recuento = leer_mediciones(conexion.cursor(), args.incluir_imputados)
+        cursor = conexion.cursor()
+        series, recuento = leer_mediciones(cursor, args.incluir_imputados)
+        # Con el mismo cursor y en la misma conexion: dos consultas separadas
+        # podrian leer estados distintos de la base si alguien carga geometrias
+        # en el medio, y la matriz quedaria mezclando dos verdades.
+        estaticos = leer_estaticos(cursor)
     finally:
         conexion.close()
 
@@ -397,6 +520,7 @@ def main() -> int:
         return 1
 
     matriz = construir(series, args.minimo_observado)
+    matriz = agregar_contexto(matriz, estaticos)
     matriz, constantes = sin_columnas_constantes(matriz)
     columnas = escribir(matriz, args.salida)
     r = rendimiento(matriz)
@@ -410,8 +534,19 @@ def main() -> int:
     )
     print(f"  dias rellenados    {recuento.get('dias_rellenados', 0)}")
     print(f"  columnas           {len(columnas)}")
+    presentes = [c for c in COLUMNAS_CONTEXTO if c in columnas]
+    print(
+        f"  contexto (H3.9)    {len(presentes)} de {len(COLUMNAS_CONTEXTO)}: {', '.join(presentes)}"
+    )
     if constantes:
         print(f"  constantes fuera   {len(constantes)}: {', '.join(constantes)}")
+    perdidas = [c for c in COLUMNAS_CONTEXTO if c not in columnas]
+    if perdidas:
+        # Con un solo distrito en la base, las tres geograficas SI son
+        # constantes y el filtro se las lleva con razon. Decirlo evita que
+        # alguien busque el defecto en el codigo nuevo.
+        print(f"  AVISO: el filtro de constantes se llevo {', '.join(perdidas)}.")
+        print("         Pasa cuando la base trae un solo distrito. Con los ocho, no.")
     print(f"  filas en la matriz {r['filas']}")
     print(f"  filas COMPLETAS    {r['completas']}  ({r['porcentaje']:.1f} %)\n")
 

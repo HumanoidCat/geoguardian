@@ -1,6 +1,6 @@
 # Backlog completo
 
-**100 historias · 493 puntos · 718.2 horas** (incluye 20 % de revision)
+**103 historias · 514 puntos · 751.0 horas** (incluye 20 % de revision)
 
 Generado desde `docs/backlog.csv`, que es la fuente de verdad. Las issues de
 GitHub y los archivos de `docs/tareas/` salen de ahi. Si algo no coincide,
@@ -51,11 +51,11 @@ Capacidad comprometida: **18 h por semana**, o sea 36 h por sprint.
 
 | Persona | S0 | S1 | S2 | S3 | S4 | Total | Puntos |
 |---|---|---|---|---|---|---|---|
-| Alejandro | 35.9 | 36.4** | 103.6** | 59.4** | 144.8** | 380.1 | 254 |
+| Alejandro | 35.9 | 36.4** | 103.6** | 59.4** | 177.6** | 412.9 | 275 |
 | Cesar | 18.3 | 24.9 | 0.0 | 7.8 | 34.0 | 85.0 | 69 |
 | Luna | 25.9 | 34.3 | 31.0 | 40.5** | 32.0 | 163.7 | 96 |
 | Avril | 2.9 | 11.5 | 21.1 | 25.0 | 28.9 | 89.4 | 74 |
-| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 239.7 | **718.2** | **493** |
+| **Equipo** | 83.0 | 107.1 | 155.7 | 132.7 | 272.5 | **751.0** | **514** |
 
 Las celdas con `**` estan por encima del compromiso.
 
@@ -158,7 +158,7 @@ Las celdas con `**` estan por encima del compromiso.
 | **H9.1** Preparar SUS, guion de entrevista y dosier de 3 casos | luna | 5 | 4.8 | OE4 | - | H9.2a |
 | **H11.5** Publicar el visor como sitio estatico con datos declarados simulados | alejandro | 3 | 4.7 | CICD | H5.4, H6.6 | H9.2a |
 
-## Sprint 4 · semanas 10-11 · 32 historias · 239.7 h
+## Sprint 4 · semanas 10-11 · 35 historias · 272.5 h
 
 **Foco.** Documento IEEE, validacion externa y cierre  
 **Hito.** Segundo avance (semana 10) y feria (semana 12)
@@ -179,6 +179,9 @@ Las celdas con `**` estan por encima del compromiso.
 | **H3.11** Recontar los episodios de sequia sobre la serie larga | alejandro | 3 | 4.7 | OE2 | H1.16, H3.0 | — |
 | **H14.5** La tarjeta de sequia dice el indice medido, no un nivel estimado | alejandro | 5 | 7.8 | CG-1 | H14.2, H2.3 | — |
 | **H14.6** El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas | alejandro | 2 | 3.1 | OE2 | H11.7, H3.6 | — |
+| **H15.0** La API sirve el pronostico por distrito, con cache y sin mentir sobre la malla | alejandro | 5 | 7.8 | Arq | H6.3, H6.1, H8.3 | — |
+| **H15.1** El pronostico como caracteristica: el modelo ve el futuro por primera vez | alejandro | 8 | 12.5 | OE2 | H15.0, H3.9, H3.6, H11.7 | — |
+| **H15.2** El clima de la semana en el visor, con la misma honestidad que el riesgo | alejandro | 8 | 12.5 | CG-1 | H15.0, H14.2, H5.9 | — |
 | **H10.6** Cartel academico IEEE legible a 1.5 m | alejandro | 8 | 7.7 | IEEE | H10.5c | — |
 | **H10.9** Guion de demo y tres ensayos completos | avril | 4 | 10.6 | CG-6 | H10.3 | — |
 | **H12.2** Pantalla de monitoreo de pipelines y entornos dentro del visor | avril | 5 | 4.8 | Troubleshoot | H12.1 | — |

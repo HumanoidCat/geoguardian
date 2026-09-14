@@ -317,7 +317,10 @@ AFIRMACIONES = [
             ("docs/ARRANQUE.md", r"pasar las \*\*(\d+) verificaciones\*\*"),
             ("docs/02-contratos.md", r"ejecuta \*\*(\d+) comprobaciones\*\*"),
             ("docs/10-manual-tecnico.md", r"con \*\*(\d+) comprobaciones\*\*"),
-            ("docs/13-documento-ieee.md", r"\| (\d+) comprobaciones, \d+ trabajos de CI"),
+            # El anexo de procedencia de cifras se movio del IEEE al documento tecnico el
+            # 2026-09-10: «documentacion tecnica no va en IEEE» (retroalimentacion del
+            # 2026-08-27). El patron es el mismo; cambia el archivo.
+            ("docs/17-documento-tecnico.md", r"\| (\d+) comprobaciones, \d+ trabajos de CI"),
             ("docs/10-manual-tecnico.md", r"simulados y (\d+) comprobaciones automáticas"),
             # La hoja de verificacion de la seccion 10 lleva la cifra en la
             # columna de observaciones. Se agrego el 20 de agosto: decia 31
@@ -384,7 +387,7 @@ AFIRMACIONES = [
         [
             ("README.md", r"Integración continua \| (\w+) trabajos"),
             ("docs/10-manual-tecnico.md", r"Integración continua, (\w+) trabajos"),
-            ("docs/13-documento-ieee.md", r"comprobaciones, (\d+) trabajos de CI"),
+            ("docs/17-documento-tecnico.md", r"comprobaciones, (\d+) trabajos de CI"),
         ],
     ),
     # Se agrego al integrar D-17 y D-18: el manual tecnico decia 15 decisiones
@@ -394,7 +397,26 @@ AFIRMACIONES = [
     Afirmacion(
         "registros ADR",
         registros_adr,
-        [("docs/10-manual-tecnico.md", r"Las (\d+) decisiones de arquitectura")],
+        [
+            ("docs/10-manual-tecnico.md", r"Las (\d+) decisiones de arquitectura"),
+            # Las dos de `docs/17` se agregaron el 2026-09-13. El documento
+            # tecnico decia 47 decisiones con 50 en la bitacora, y esta
+            # herramienta daba verde: el conteo de ADR se vigilaba en
+            # `docs/10` y en ningun otro lado. Es I-16 otra vez -la cifra
+            # controlada en una sola de sus apariciones-, esta vez en el
+            # documento que se entrega.
+            ("docs/17-documento-tecnico.md", r"\n(\d+) decisiones registradas"),
+            ("docs/17-documento-tecnico.md", r"\| (\d+) decisiones, \d+ incidencias \|"),
+        ],
+    ),
+    # El conteo de incidencias vivia en INFORMATIVAS: se imprimia para redactar
+    # y no lo cruzaba nadie, porque no aparecia escrito en ningun documento. En
+    # cuanto `docs/17` lo escribio dejo de poder ser informativo, y llego mal
+    # -49 contra 51- por la misma razon que el de decisiones.
+    Afirmacion(
+        "incidencias registradas",
+        incidencias,
+        [("docs/17-documento-tecnico.md", r"\| \d+ decisiones, (\d+) incidencias \|")],
     ),
     # ----------------------------------------------------------------------- #
     # El documento IEEE, agregado por H10.5c
@@ -417,7 +439,7 @@ AFIRMACIONES = [
         "referencias citadas",
         referencias_citadas,
         [
-            ("docs/13-documento-ieee.md", r"\| (\d+) referencias, \d+ con ficha \|"),
+            ("docs/17-documento-tecnico.md", r"\| (\d+) referencias, \d+ con ficha \|"),
             # LA PROSA, QUE ESTUVO SIN VIGILAR HASTA EL 2026-08-30
             #
             # El documento declara el conteo en **dos** lugares: la tabla de
@@ -459,14 +481,17 @@ AFIRMACIONES = [
             # se retiro el 2026-08-27: el profesor pidio que el documento de
             # investigacion no cite rutas internas del repositorio. La cifra
             # sigue comprobandose por las otras dos apariciones.
-            ("docs/13-documento-ieee.md", r"\*\*(\d+)\n> fichas verificadas\*\*"),
+            # El bloque «**N\n> fichas verificadas**» desaparecio el 2026-09-10 con
+            # la reescritura del documento: la cifra vive ahora en la frase de la
+            # seccion de referencias y en el anexo del documento tecnico.
             ("docs/13-documento-ieee.md", r"\d+ referencias, (\d+) con ficha"),
+            ("docs/17-documento-tecnico.md", r"\d+ referencias, (\d+) con ficha"),
         ],
     ),
     Afirmacion(
         "controles de verificar_documentacion",
         controles_de_esta_herramienta,
-        [("docs/13-documento-ieee.md", r"trabajos de CI, (\d+) controles")],
+        [("docs/17-documento-tecnico.md", r"trabajos de CI, (\d+) controles")],
     ),
 ]
 
@@ -528,9 +553,7 @@ for _s in ("S0", "S1", "S2", "S3", "S4"):
 
 # Las cifras que no aparecen escritas en ningun documento pero conviene tener a
 # mano al redactar: la herramienta las imprime para que nadie las cuente a mano.
-INFORMATIVAS = [
-    ("incidencias registradas", incidencias),
-]
+INFORMATIVAS: list[tuple[str, object]] = []
 
 # Palabras que valen como numero en las tablas del README.
 NUMEROS_ESCRITOS = {
@@ -634,9 +657,10 @@ def main() -> int:
 
     problemas.extend(urls_prometidas_que_nadie_levanta())
 
-    print("\n  Para redactar, sin contar a mano:")
-    for nombre, calcular in INFORMATIVAS:
-        print(f"    {nombre}: {calcular()}")
+    if INFORMATIVAS:
+        print("\n  Para redactar, sin contar a mano:")
+        for nombre, calcular in INFORMATIVAS:
+            print(f"    {nombre}: {calcular()}")
 
     print(f"\n{revisadas} apariciones revisadas en la documentacion.")
 

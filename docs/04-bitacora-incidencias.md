@@ -3865,3 +3865,387 @@ servicio nuevo hay que mirarla entera, no solo el codigo de salida.
 escribe por D-34; incendio no corrio esa noche y sus filas siguen terminando el
 2024-12-24, como antes. La corrida siguiente, con la 019 aplicada, es la que
 cierra el CA-5 de H11.7.
+
+---
+
+## I-52 · Una historia figura desbloqueada con una dependencia que nadie escribio, dos veces
+
+**Fecha.** 2026-09-13, sobre hechos del **2026-08-23** y del **2026-09-08**.
+
+**Quien lo detecto.** Luna, las dos veces.
+
+**Que paso.**
+
+*Primera vez, 2026-08-23.* Al cerrar H9.1 el tablero mostro **H9.2b** como
+desbloqueada. Al ir a ejecutarla aparecio que el contraste no mide nada sin
+modelo: sin estimaciones, la frase «el mapa se equivoca en Quebrada Grande» no
+dice nada sobre el sistema. **La dependencia de H3.0 no estaba declarada en
+ningun lado.** Se agrego al backlog y a `docs/tareas/luna.md`.
+
+*Segunda vez, 2026-09-08.* H9.2b volvia a figurar desbloqueada, y esta vez con
+razon aparente: H9.2a y H3.0 cerradas, las dos. Antes de convocar participantes
+se consulto la base en vez de deducirlo del tablero:
+
+    A · analitico.riesgo
+      filas totales: 0
+
+**El codigo que escribe esa tabla existia y estaba cerrado. Nadie lo habia
+corrido.**
+
+**Causa raiz.** El backlog declara dependencias **entre historias**, y una
+historia cerrada garantiza que el **codigo existe**, no que se haya
+**ejecutado**. H3.0 cerrada significa que el etiquetado esta implementado; no
+significa que haya etiquetas escritas en la base.
+
+Entre «la historia esta cerrada» y «el dato esta en la base» hay un paso que el
+backlog **no puede expresar**, porque no es una historia: es un estado del
+sistema.
+
+**Por que la segunda vez es peor que la primera.** La primera fue un **olvido**:
+una dependencia real entre dos historias que nadie escribio al armar el backlog.
+Se corrige escribiendola, y se corrigio.
+
+La segunda no se corrige escribiendo nada, porque **la dependencia no es
+expresable en el formato**. Y se detecto por una sola razon: se consulto la base
+antes de convocar. Sin esa consulta se habria convocado a personas que vivieron
+eventos reales —el temporal de Nate, la sequia de 2014— para contrastar su
+memoria contra **una tabla vacia**. El costo no habria sido de horas: habria sido
+gastar el recurso mas escaso del proyecto, que son participantes dispuestos, en
+una sesion incapaz de medir nada.
+
+**Accion tomada.**
+
+1. **2026-08-23.** Se declaro la dependencia H9.2b → H3.0 en el backlog y en
+   `docs/tareas/luna.md`.
+2. **2026-09-08.** Se midio antes de comprometer, con un guion de solo lectura
+   que declara contra que base mide (**I-38**). Se reporto al PM con la cifra y
+   no con una impresion.
+3. **2026-09-11.** **H11.7** dejo el servicio `trabajos` reescribiendo
+   `analitico.riesgo` todos los dias a las 09:00 UTC. La dependencia deja de ser
+   un estado que alguien tiene que acordarse de producir.
+
+**Aprendizaje.**
+
+> **Una historia cerrada garantiza que el codigo existe, no que se haya corrido.**
+
+Antes de comprometer trabajo que depende de datos —y **sobre todo antes de
+convocar personas**— se consulta el estado real del sistema, no el tablero. El
+tablero dice quien termino que; no dice que hay en la base.
+
+Y el corolario: **una dependencia sobre un estado del sistema no se arregla
+anotandola, se arregla automatizando el estado.** Lo primero deja un recordatorio
+que alguien tiene que leer; lo segundo quita el paso. La solucion real fue H11.7,
+no el renglon que se escribio en agosto.
+
+Es la misma familia que **I-51**: alli un permiso se daba por probado porque
+nadie habia corrido la aplicacion completa con el rol que la aplicacion usa.
+Aqui una dependencia se daba por satisfecha porque nadie habia corrido el codigo
+que la satisface. **En los dos casos lo que faltaba no era codigo: era una
+ejecucion.**
+
+**Impacto.** Ninguna hora de ejecucion perdida: las dos veces se detecto
+**antes** de trabajar, que es el unico motivo por el que esta incidencia se puede
+escribir en tono tranquilo.
+
+Si costo **cinco dias de convocatoria**, entre el reporte del 2026-09-08 y la
+respuesta del 2026-09-13, con la feria del 24 de por medio. Las tres historias
+afectadas —H9.2b, H9.3 y H9.4— suman **16,3 h** y estuvieron en riesgo de no
+entrar al Sprint 4.
+
+---
+
+## I-53 · La funcion escrita para declarar la procedencia declaro una procedencia falsa
+
+**Fecha.** 2026-09-13
+
+**Quien lo detecto.** Luna, al correr el diagnostico de H12.4 contra la base con
+`docker compose ps` a la vista.
+
+**Que paso.** El 2026-09-08, `diagnostico_sprint4.py` imprimio:
+
+    base LOCAL: geoguardian en localhost:5432
+
+Sobre esa linea se «corrigio» la evidencia de H4.2, que decia `5433`, y se
+escribio ademas que el puerto se habia puesto **de memoria**.
+
+El 2026-09-13, el modulo de H12.4 —que vive dentro del repositorio— imprimio
+`localhost:5433`. Y las dos fuentes de verdad coinciden con eso:
+
+    docker compose ps           ->  geoguardian-db  0.0.0.0:5433->5432/tcp
+    findstr POSTGRES_PORT .env  ->  POSTGRES_PORT=5433
+
+**El valor original era el correcto. La correccion era el error.**
+
+**Causa raiz.** `_contra_que_base()` llamaba a `load_dotenv()` sin argumentos y
+despues releia `os.getenv("POSTGRES_PORT") or "5432"` por su cuenta.
+
+`find_dotenv()` busca el `.env` **desde el directorio del archivo que llama**,
+hacia arriba. Los once guiones de sonda viven fuera del repositorio, y por esa
+rama del arbol no hay ningun `.env`. La variable salia vacia y el codigo caia a
+su valor por defecto.
+
+La conexion funcionaba igual, porque `cadena_conexion()` esta en
+`basedatos/conexion.py`, dentro del repo, y su propio `load_dotenv()` si
+encuentra el archivo. Pero **`_contra_que_base()` se imprime antes de
+`conectar()`**: la linea de procedencia salia del defecto y el resto del guion
+trabajaba contra la base correcta.
+
+**El defecto no estaba en lo que la funcion hacia, sino en donde vivia el archivo
+que la llamaba.** Dos copias identicas del mismo codigo dan respuestas distintas
+segun su ruta.
+
+**Por que es peor que las tres veces anteriores.** `_contra_que_base()` se
+escribio el 2026-09-07 **para cumplir I-38**, despues de que un informe de CHIRPS
+no declarara contra que base media. Es el remedio contra declarar mal la
+procedencia, declarando mal la procedencia.
+
+Y las tres anteriores —las 1968 filas de `medicion_diaria`, el informe de CHIRPS
+y el puerto— fueron datos escritos **de memoria**. Esta salio de **un guion que
+se ejecuto**, que es justamente lo que se habia puesto como remedio. Una cifra
+que viene de una corrida **no se vuelve a cuestionar**, y por eso esta alcanzo a
+provocar una correccion falsa sobre un documento que estaba bien.
+
+**Accion tomada.**
+
+1. El commit `4f4da64` de `feature/lal-h4.2-shap` **se revirtio antes del
+   merge** (`1422c82`). En `dev` los dos documentos de H4.2 nunca dejaron de
+   decir `5433`: ninguna cifra equivocada llego a la rama principal.
+2. `_contra_que_base()` en `backend/calidad/diagnostico_bitacora.py` **ya no lee
+   variables de entorno**: toma host, puerto y base de lo que devuelve
+   `cadena_conexion()`, descartando la contrasena. Es correcta **por
+   construccion**, no por vivir en el lugar adecuado.
+3. Los once guiones de sonda de fuera del repositorio quedan **marcados como no
+   fiables para declarar procedencia**. Ninguna evidencia debe apoyarse en su
+   linea de procedencia sin contrastarla contra `docker compose ps`.
+
+**Aprendizaje.**
+
+> **Una funcion que declara la procedencia no puede tener su propia idea de cual
+> es. Le pregunta al mismo codigo que abre la conexion.**
+
+Y la de fondo, que vale para todo el proyecto:
+
+> **Un valor por defecto silencioso convierte «no encontre el dato» en «el dato
+> es este».**
+
+`os.getenv("POSTGRES_PORT") or "5432"` no distingue «no hay `.env`» de «el `.env`
+dice 5432», y las dos salen impresas con el mismo tono. Es la misma forma que
+**D-07** persigue en los datos —la ausencia no se rellena con un valor
+plausible— aparecida en la configuracion.
+
+**Impacto.** Una correccion falsa escrita en dos documentos de H4.2, en una rama,
+**detenida antes del merge**. Costo el tiempo de escribirla y el de deshacerla,
+mas un aviso al PM diciendo que lo que se le habia anunciado como error no lo
+era. Y una comprobacion de menos en el repertorio: durante cinco dias se creyo
+que esa linea de procedencia era confiable.
+
+---
+
+## I-54 · RETIRADA · «La misma pregunta a la API devuelve dos respuestas distintas»
+
+> **RETIRADA el 2026-09-14, por partir de un hecho falso.** El defecto que
+> describe **no existe**. Lo que fallaba era la herramienta con la que se midio,
+> no el sistema medido. Se conserva entera -con sus dos correcciones- porque el
+> recorrido de tres hipotesis sucesivas construidas sobre una medicion mala es
+> precisamente lo que esta bitacora existe para no repetir. Ver **el cierre** al
+> final de la entrada.
+>
+> Misma figura que **D-28**, revertida por D-30 el 2026-08-27, tambien por partir
+> de un hecho falso. Se retira, no se borra.
+
+**Fecha.** 2026-09-14.
+
+**Quien lo detecto.** El sondeo del horizonte de `analitico.riesgo` contra el
+sitio publicado, hecho para averiguar por que la corrida del 2026-09-13 decia
+`hasta 2026-09-20 / escritas 104376` y la API parecia no tenerlo.
+
+**Que paso.** A la misma hora (entre las 05:50 y las 06:10 UTC), contra la misma
+direccion `https://visor-production-40b5.up.railway.app/api/riesgos`, dos
+clientes en redes distintas reciben datos distintos:
+
+| `fecha` | Desde el navegador (Costa Rica) | Desde la otra red |
+|---|---|---|
+| 2026-09-13 | `climatologica@2026-09-13` | `climatologica@2026-09-13` |
+| 2026-09-19 | `climatologica@2026-09-13` | **`climatologica@2026-09-12`** |
+| 2026-09-20 | `climatologica@2026-09-13`, nivel `alto` en 50804 | **ocho filas con `nivel` en `null`** |
+| 2026-09-21 | ocho filas con `nivel` en `null` | - |
+
+Leido del lado del navegador, el horizonte es **2026-09-13 a 2026-09-20**: siete
+dias por delante de la corrida del 13, que es exactamente lo que el registro
+declaro. Leido desde la otra red, el ultimo dia con estimacion es el **09-19** y
+la version es la del **12**.
+
+Esa segunda vista no es basura ni un error de lectura: **es el estado exacto de
+la tabla antes de la corrida del 2026-09-13**, que escribio del 13 al 20. O sea
+que alguien esta sirviendo una respuesta de hace unas veintiuna horas.
+
+**Lo que se descarto, y como.**
+
+- *La cache del navegador.* Todas las peticiones se hicieron con
+  `cache: 'no-store'`.
+- *Una cache por URL del lado que consulta.* La respuesta vieja se obtuvo con
+  **tres URL distintas** para la misma consulta (con un parametro extra, y con
+  los parametros en otro orden). Las tres devolvieron lo mismo.
+- *Que la API conteste distinto de una peticion a otra.* Cuarenta peticiones
+  seguidas al 09-19 y cuarenta al 09-20 devolvieron **lo mismo las ochenta
+  veces**.
+- *Que sea estado del proceso de `api`.* La vista vieja **sobrevivio a tres
+  reinicios** del servicio `api` esa misma madrugada.
+
+**Causa raiz.** No establecida, y conviene no inventarla. Lo que queda en pie
+despues de los descartes es que algo **entre el cliente y la aplicacion** guarda
+una copia de la respuesta. Y hay un dato que lo hace verosimil: las respuestas de
+`/api/riesgos` **no llevan cabecera `Cache-Control`** (tampoco `Age`; el
+servidor se identifica como `railway-hikari`). Una respuesta `200` sin
+`Cache-Control` puede ser almacenada por cualquier intermediario que decida
+hacerlo, y el tiempo que la guarde lo elige el.
+
+**Accion propuesta.** Dos cosas, en este orden:
+
+  1. **Que `/api/riesgos` y `/api/salud` declaren `Cache-Control: no-store`.**
+     Es una linea en la API y quita el permiso que hoy se esta dando sin querer.
+     No depende de saber quien es el intermediario: si nadie puede guardar la
+     respuesta, el sintoma no puede ocurrir.
+  2. **Comprobarlo desde fuera de la red de casa**: el mismo
+     `/api/riesgos?fecha=<hoy+7>&tipo_evento=lluvia_intensa` desde un telefono
+     con datos moviles, antes y despues del arreglo. Antes tiene que verse la
+     discrepancia; despues, no.
+
+**Impacto, y por que no puede esperar al 24.** El visor declara `Datos reales ·
+API` en las dos vistas: **nunca dice que lo que muestra es de ayer**. Un
+visitante de la feria conectado desde otra red puede ver las estimaciones del dia
+anterior y **un dia menos de horizonte**, mientras el cartel y el documento
+afirman siete dias. Es el caso peor de todos los que este proyecto ha tratado de
+evitar: no es que el sistema se equivoque, es que se equivoca **diciendo que esta
+bien**. La red de seguridad del CA-8 de H11.7 -sondear el 2026-09-24 el dia 22 y
+la manana del 24- pasa desde la maquina de casa y puede fallar para el visitante,
+que es justamente a quien hay que creerle.
+
+**Lo que no era.** Se habia anotado durante la noche que la corrida del 13 no
+habia escrito el 09-20. **Era falso**: la corrida escribio lo que dijo, y la
+tabla lo tiene. Lo que fallaba era el camino de vuelta. Queda dicho aqui porque
+la sospecha llego a escribirse.
+
+### Correccion del 2026-09-14, 09:30 UTC · la causa era otra, y la accion propuesta no servia
+
+La corrida del cron de las 09:00 UTC permitio volver a sondear, y lo que aparecio
+descarta la explicacion de arriba. **No hay ningun intermediario guardando la
+respuesta.** Medido desde **un solo cliente**, en el mismo minuto, sobre el
+distrito 50804 y `lluvia_intensa`:
+
+| `fecha` | `version_modelo` que devuelve la API |
+|---|---|
+| 2026-09-18 | `climatologica@2026-09-13` |
+| 2026-09-19 | `climatologica@2026-09-12` |
+| 2026-09-20 | `climatologica@2026-09-14` |
+| 2026-09-21 | `climatologica@2026-09-14` |
+
+**Tres versiones distintas del modelo en cuatro fechas consecutivas, pedidas al
+mismo tiempo y desde el mismo sitio.** Ninguna cache produce eso: una cache
+devuelve una respuesta vieja entera, no una fecha vieja entre dos frescas. Y la
+corrida de hoy escribio del 2026-09-14 al 2026-09-21 -consta en el registro,
+`escritas 104384`- asi que el 18 y el 19 estaban dentro de su ventana y debieron
+quedar en `@2026-09-14`.
+
+**Causa raiz, ahora si.** Cada corrida **deja una fila nueva** en
+`analitico.riesgo` en vez de reemplazar la del dia anterior, y la API devuelve
+**una cualquiera** de las que existen para ese distrito, esa fecha y ese evento.
+Las fechas que solo escribio una corrida (el 20 y el 21, que entraron por primera
+vez ayer y hoy) salen frescas porque no hay de donde elegir. Las que llevan
+varias corridas encima (el 18, el 19) salen con la version que le toco.
+
+Encaja con todo lo de arriba, incluido lo que no encajaba antes:
+
+- **Por que sobrevivio a tres reinicios de `api`.** No era estado del proceso:
+  son filas en la base.
+- **Por que dos clientes veian cosas distintas.** No era la red ni la geografia:
+  eran dos conexiones eligiendo filas distintas del mismo monton.
+- **Por que 40 peticiones seguidas daban lo mismo.** Dentro de una conexion la
+  eleccion es estable; cambia entre conexiones.
+
+**`retirar_otros_escritores` (D-48) no cubre esto.** Esa funcion retira a los
+*otros algoritmos*, que es lo que I-37 pedia. Aqui el escritor es siempre el
+mismo -la climatologica- y lo que se acumula son **sus propias corridas**.
+
+**La accion que proponia la version anterior de esta incidencia -mandar
+`Cache-Control: no-store`- no habria arreglado nada**, porque no hay cache. Queda
+anotado: la primera lectura fue «dos redes ven cosas distintas» y de ahi salio
+una explicacion razonable y falsa. La medicion que la tumbo es de un solo
+cliente, y se pudo hacer porque una corrida nueva movio las fechas.
+
+**Lo que falta para cerrarla**, y es una sola consulta contra la base publicada:
+
+    SELECT codigo_distrito, fecha, tipo_evento, algoritmo, version_modelo, COUNT(*)
+    FROM analitico.riesgo
+    WHERE codigo_distrito = '50804'
+      AND tipo_evento = 'lluvia_intensa'
+      AND fecha BETWEEN '2026-09-18' AND '2026-09-21'
+    GROUP BY 1,2,3,4,5
+    ORDER BY fecha;
+
+Si el 18 y el 19 traen mas de una fila y el 20 y el 21 una sola, queda probado.
+Necesita el TCP proxy un rato.
+
+**El arreglo, cuando se confirme**, tiene dos mitades y conviene las dos:
+
+  1. **Que la base no pueda tener duplicados**: indice unico sobre
+     (`codigo_distrito`, `fecha`, `tipo_evento`) y el `ON CONFLICT` apuntando a
+     esa clave, para que cada corrida **reemplace** en vez de agregar. Es
+     migracion, y hay que decidir que se hace con las filas que ya estan.
+  2. **Que la API no pueda elegir mal**: que la consulta ordene por la corrida
+     mas reciente y se quede con esa. Es defensa en profundidad; sin la 1 no
+     alcanza, porque la tabla sigue creciendo una copia por dia.
+
+**El impacto no cambia, y sigue siendo el mismo del 24**: el visor dice «Datos
+reales» y puede estar mostrando una estimacion calculada dias antes, sin que nada
+en la pantalla lo diga. Lo que cambia es que ahora se sabe donde arreglarlo.
+
+### Cierre del 2026-09-14, 12:10 UTC · no habia defecto
+
+Con el proxy TCP abierto y la consola del servicio, se leyo la tabla directamente
+en produccion. Distrito 50804, `lluvia_intensa`:
+
+       fecha    |        algoritmo         |             version_modelo              |         estimado_en          | filas
+    ------------+--------------------------+-----------------------------------------+------------------------------+-------
+     2026-09-17 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-18 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-19 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-20 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+     2026-09-21 | linea_base_climatologica | climatologica@2026-09-14 f1=0.346 ...   | 2026-09-14 03:04:00.25673-06 |     1
+
+**Una fila por fecha, todas de la corrida de esa madrugada.** Y preguntandole a
+la API publicada desde un navegador en el mismo minuto, las cinco fechas
+devuelven `climatologica@2026-09-14`. Base y API coinciden exactamente.
+
+**Que estaba mal, entonces.** Las lecturas «viejas» salieron todas de **una sola
+herramienta de consulta web**, que guarda en cache las respuestas por URL y
+descarta los parametros que se le agregan para evitarlo. Las fechas que parecian
+desfasadas eran entradas de esa cache, creadas en momentos distintos: por eso
+tres «versiones del modelo» en cuatro fechas seguidas. Las lecturas hechas desde
+el navegador **siempre** fueron correctas, incluidas las de la primera noche.
+
+**Lo que hay que aprender, que es lo unico que justifica dejar la entrada.**
+
+1. **Una medicion desde fuera dice que algo se ve raro, no por que.** De aqui
+   salieron tres explicaciones sucesivas -un intermediario que cachea, filas
+   duplicadas, y otra vez el intermediario- y las tres se escribieron **sin
+   abrir el DDL ni el codigo**. `006_analitico_riesgo.sql` declara
+   `PRIMARY KEY (codigo_distrito, fecha, tipo_evento)` desde el 2026-08-27: los
+   duplicados eran imposibles y el archivo lo decia.
+2. **Con una sola herramienta no se detecta que la herramienta es el problema.**
+   La discrepancia aparecio justamente al comparar dos clientes; se leyo como
+   «el sistema contesta distinto segun quien pregunte» cuando decia «uno de los
+   dos clientes miente». Dos instrumentos que no coinciden obligan a sospechar
+   de los instrumentos antes que del objeto.
+3. **La consola del servicio estaba a dos clics.** El acceso directo a la base
+   existia todo el tiempo y no se uso hasta despues de tres hipotesis. Cuando la
+   pregunta es «que dice la tabla», la respuesta se le pide a la tabla.
+
+**Impacto en el producto.** Ninguno. No se cambio codigo, ni esquema, ni
+configuracion. El costo fue una manana de trabajo del PM y dos correcciones
+fechadas en esta entrada.
+
+**Lo que si quedo, y es util.** Al buscar la tabla aparecio que el servidor tiene
+**tres bases** -`postgres`, `railway` y `geoguardian`- y que `analitico.riesgo`
+vive en `geoguardian`. `DATABASE_URL`, la variable que Railway deja a la vista,
+apunta a `railway`, que esta vacia. Queda anotado en el paso 2c del runbook.

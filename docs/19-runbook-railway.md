@@ -211,6 +211,21 @@ De la pestana **Variables** del servicio se anotan, para el paso 4:
 `RAILWAY_PRIVATE_DOMAIN` (`postgis.railway.internal`), que es lo que va a leer
 la API.
 
+> **Aviso del 2026-09-14: `DATABASE_URL` no sirve para conectarse desde fuera, y
+> ademas apunta a la base equivocada.** Es la variable mas visible del servicio y
+> la trampa es doble: su host es `postgis.railway.internal`, que solo resuelve
+> dentro de Railway (`getaddrinfo failed` desde tu maquina), y su base es
+> `railway`, que por el 2b esta **vacia** -las tablas viven en `geoguardian`-.
+> Conectarse con ella «funciona» y despues falla con
+> `relation "analitico.riesgo" does not exist`, que se lee como un problema de
+> datos y no lo es. Este servidor tiene tres bases: `postgres`, `railway` y
+> `geoguardian`. Se arma la cadena con el host y el puerto del proxy de este
+> paso y **`geoguardian`** como nombre de base.
+>
+> Para una consulta suelta no hace falta nada de esto: la pestana **Console** del
+> servicio abre una terminal dentro del contenedor, donde `psql` ya tiene las
+> credenciales en el entorno y no hay que exponer la base.
+
 ---
 
 ## 3 · El servicio `api`
@@ -447,8 +462,14 @@ que es lo correcto y es justo lo que no se quiere mostrar.
 > escritor recibe las fechas hasta hoy + 7 y devuelve `None` donde falta dato.
 > Incendio llega ahora **hasta la ultima fecha con las cuatro variables
 > completas** -unas semanas atras, por el atraso de CHIRPS (D-40)-, y **no** hasta
-> hoy: para el dia de la feria la tarjeta de incendio dibuja ausencia, y esa es la
-> verdad del dato.
+> hoy, **mientras lo escriba un modelo con caracteristicas**.
+>
+> **Y desde H3.9 no lo escribe uno.** Con la matriz de 32 columnas la banda de
+> D-39 se abre y la climatologica entra en ella: escribe la climatologica, que
+> solo mira el calendario y llega a hoy + 7. Asi que en produccion incendio tiene
+> nivel hasta hoy + 7 en los tres distritos de D-25 y `null` en los otros cinco.
+> Que escritor esta activo se lee en `version_modelo` de cualquier fila de
+> `/api/riesgos?tipo_evento=incendio`; no se supone.
 
 ### El servicio
 
