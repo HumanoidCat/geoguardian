@@ -4249,3 +4249,61 @@ fechadas en esta entrada.
 **tres bases** -`postgres`, `railway` y `geoguardian`- y que `analitico.riesgo`
 vive en `geoguardian`. `DATABASE_URL`, la variable que Railway deja a la vista,
 apunta a `railway`, que esta vacia. Queda anotado en el paso 2c del runbook.
+
+---
+
+## I-55 · La API no vuelve sola cuando la base vuelve: una conexion para toda la vida del proceso
+
+**Fecha.** 2026-09-14.
+
+**Quien lo detecto.** Alejandro, midiendo el CA-5 de H11.6 en produccion. Y antes
+de medirlo lo predijo la lectura del codigo, que es la regla que dejo I-54.
+
+**Que paso.** Se reinicio `PostGIS` desde Railway para provocar el apagon de la
+base. Segun su registro, la base estuvo apagada de las 18:47:44Z a las 18:47:52Z
+del 2026-09-14: **7,5 segundos**. La API respondio `500 Internal Server Error` en
+`/api/salud` desde las 18:48:13Z hasta las 18:48:52Z en catorce lecturas seguidas,
+y seguia en 500 a las 18:50:16Z, **dos minutos y veinticuatro segundos despues de
+que la base volviera**. Durante todo ese tiempo el visor publicado cargaba el
+respaldo estatico del 2026-08-16 y lo declaraba, que es lo correcto (CA-5 y CA-7
+de H11.6). Se recupero solo al reiniciar `api` a las 18:50Z: `/api/salud` en 200
+desde las 18:50:39Z, con `modo: real` y `base_datos_conectada: true`.
+
+**Causa raiz.** `backend/api/dependencias.py` construye el repositorio una sola
+vez: `_repositorio_postgres()` lleva `@lru_cache(maxsize=1)` y devuelve un
+`RepositorioPostgres()` que abre su conexion en `__init__` con
+`conectar(autocommit=True)`. No hay reconexion en ningun sitio. Cuando la base se
+reinicia, esa conexion muere y el proceso se queda con ella para siempre:
+`esta_viva()` captura la excepcion y devuelve `False`, pero `ultima_ingesta()` la
+propaga a proposito -para no decir «nunca corrio» ante un error, I-41- y `/salud`
+termina en 500. Los otros endpoints fallan por la misma conexion. `modo_de()`
+tampoco ayuda: decide `real` por el tipo del repositorio, no porque la base
+conteste.
+
+**Accion tomada.** Reiniciar `api` (18:50Z), comprobado con diez lecturas en 200
+y una carga del visor en `Datos reales`. Regla nueva en el runbook, seccion «Lo
+que NO hay que hacer»: **despues de reiniciar `PostGIS`, reiniciar `api`**. El
+arreglo de fondo -reabrir la conexion cuando este cerrada, o abrir una por
+peticion- vive en `backend/api`, que es de Cesar, y se decide con el; esta entrada
+es el aviso, con la medicion, no una solicitud de cambio.
+
+**Aprendizaje.** Tres, y los tres se midieron con hora.
+
+1. **Un Restart en Railway deja el proceso apagado un segundo**, no veinte:
+   `api` paso de «Shutting down» a «Uvicorn running» entre las 18:46:00.445Z y las
+   18:46:01.410Z. La ventana de «20 a 30 segundos» que se anoto de madrugada era
+   el retraso del panel. Un Restart no sirve para medir un apagon largo, y por
+   eso el visor no cae al respaldo con uno: su limite son 3 s y hace bien.
+2. **Reiniciar la base en produccion tiene un costo que el panel no muestra**:
+   el visor queda en respaldo hasta que alguien reinicie `api`. Si Railway
+   reinicia `PostGIS` por su cuenta el dia de la feria, nadie va a recibir un
+   aviso; la red de seguridad del paso 9 del runbook (mirar el visor el 22 y la
+   manana del 24) es tambien para esto.
+3. **Leer el codigo antes de medir predijo las dos cosas** y convirtio una
+   medicion de ocho minutos en un resultado, en vez de en tres hipotesis. Es la
+   regla de I-54 funcionando la primera vez que se aplico.
+
+**Impacto.** Ocho minutos de medicion provocada (18:45Z a 18:53Z), con la API en
+500 unos tres minutos y el visor en respaldo declarado durante ese tiempo. Sin
+horas perdidas: la medicion era la que CA-5 pedia. El riesgo que deja abierto es
+operativo y esta descrito en el aprendizaje 2.

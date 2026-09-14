@@ -734,6 +734,12 @@ obligaria a CORS y a tocar archivo de Cesar, con solicitud de cambio-.
   si la anterior sigue corriendo, y no avisa.
 - **No borrar `frontend/public/simulados/*.json`.** Son la degradacion que exige
   la Definition of Done de H6.6, y el respaldo si Railway cae.
+- **No reiniciar `PostGIS` sin reiniciar `api` despues.** La API guarda una sola
+  conexion para toda la vida del proceso y no la reabre: con la base de vuelta
+  sigue respondiendo 500 y el visor se queda en el respaldo del 2026-08-16 hasta
+  que alguien reinicie `api`. Medido el 2026-09-14, ver **I-55**. Y un Restart
+  deja el proceso apagado **un segundo**, no veinte: no sirve para provocar un
+  apagon largo.
 
 ---
 

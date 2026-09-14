@@ -579,8 +579,24 @@
 - [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
 
-- [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
+- [x] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real (2026-09-14)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
+  - horas: estimada 7.8 . real 1.0
+  - Paso 1 de D-05: tres servicios en Railway, solo el visor con dominio, un solo
+    origen (D-23). Railway construye desde el repositorio y no desde ghcr.io por SHA:
+    **D-43**, con la perdida escrita. Criterios en
+    `docs/evidencias/sistemas-operativos/H11.6-criterios-aceptacion.md`, escritos el
+    2026-09-04 antes de crear nada; evidencia en `H11.6-publicacion.md`, con capturas.
+  - Los dos apagones se midieron el 2026-09-14 en produccion, con hora del registro
+    de cada servicio. **Un Restart deja el proceso apagado un segundo**, no veinte:
+    el visor no cae al respaldo y hace bien (LIMITE_MS 3 s). Con PostGIS apagada 7,5 s
+    la API respondio 500 y el visor **declaro el respaldo del 2026-08-16** (CA-5, y el
+    mismo camino de CA-7). Y la API **no se recupero sola** cuando la base volvio:
+    una conexion para toda la vida del proceso, sin reconexion. Queda como **I-55**
+    y como regla del runbook; el arreglo es de `backend/api`.
+  - CA-9 contra la pagina de uso de Railway: 0,91 USD al 2026-09-14; las tarifas por
+    minuto confirman los 5,16 USD/mes de la cuenta hecha con las metricas.
+  - Encontro cinco incidencias en el camino (I-35 a I-39) y una al cerrar (I-55).
 
 - [x] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono (2026-09-06)
   - `E5` · 13 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3, H5.7, H5.8, H7.1, H3.4
