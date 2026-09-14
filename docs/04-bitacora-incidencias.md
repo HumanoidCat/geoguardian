@@ -3868,6 +3868,179 @@ cierra el CA-5 de H11.7.
 
 ---
 
+## I-52 · Una historia figura desbloqueada con una dependencia que nadie escribio, dos veces
+
+**Fecha.** 2026-09-13, sobre hechos del **2026-08-23** y del **2026-09-08**.
+
+**Quien lo detecto.** Luna, las dos veces.
+
+**Que paso.**
+
+*Primera vez, 2026-08-23.* Al cerrar H9.1 el tablero mostro **H9.2b** como
+desbloqueada. Al ir a ejecutarla aparecio que el contraste no mide nada sin
+modelo: sin estimaciones, la frase «el mapa se equivoca en Quebrada Grande» no
+dice nada sobre el sistema. **La dependencia de H3.0 no estaba declarada en
+ningun lado.** Se agrego al backlog y a `docs/tareas/luna.md`.
+
+*Segunda vez, 2026-09-08.* H9.2b volvia a figurar desbloqueada, y esta vez con
+razon aparente: H9.2a y H3.0 cerradas, las dos. Antes de convocar participantes
+se consulto la base en vez de deducirlo del tablero:
+
+    A · analitico.riesgo
+      filas totales: 0
+
+**El codigo que escribe esa tabla existia y estaba cerrado. Nadie lo habia
+corrido.**
+
+**Causa raiz.** El backlog declara dependencias **entre historias**, y una
+historia cerrada garantiza que el **codigo existe**, no que se haya
+**ejecutado**. H3.0 cerrada significa que el etiquetado esta implementado; no
+significa que haya etiquetas escritas en la base.
+
+Entre «la historia esta cerrada» y «el dato esta en la base» hay un paso que el
+backlog **no puede expresar**, porque no es una historia: es un estado del
+sistema.
+
+**Por que la segunda vez es peor que la primera.** La primera fue un **olvido**:
+una dependencia real entre dos historias que nadie escribio al armar el backlog.
+Se corrige escribiendola, y se corrigio.
+
+La segunda no se corrige escribiendo nada, porque **la dependencia no es
+expresable en el formato**. Y se detecto por una sola razon: se consulto la base
+antes de convocar. Sin esa consulta se habria convocado a personas que vivieron
+eventos reales —el temporal de Nate, la sequia de 2014— para contrastar su
+memoria contra **una tabla vacia**. El costo no habria sido de horas: habria sido
+gastar el recurso mas escaso del proyecto, que son participantes dispuestos, en
+una sesion incapaz de medir nada.
+
+**Accion tomada.**
+
+1. **2026-08-23.** Se declaro la dependencia H9.2b → H3.0 en el backlog y en
+   `docs/tareas/luna.md`.
+2. **2026-09-08.** Se midio antes de comprometer, con un guion de solo lectura
+   que declara contra que base mide (**I-38**). Se reporto al PM con la cifra y
+   no con una impresion.
+3. **2026-09-11.** **H11.7** dejo el servicio `trabajos` reescribiendo
+   `analitico.riesgo` todos los dias a las 09:00 UTC. La dependencia deja de ser
+   un estado que alguien tiene que acordarse de producir.
+
+**Aprendizaje.**
+
+> **Una historia cerrada garantiza que el codigo existe, no que se haya corrido.**
+
+Antes de comprometer trabajo que depende de datos —y **sobre todo antes de
+convocar personas**— se consulta el estado real del sistema, no el tablero. El
+tablero dice quien termino que; no dice que hay en la base.
+
+Y el corolario: **una dependencia sobre un estado del sistema no se arregla
+anotandola, se arregla automatizando el estado.** Lo primero deja un recordatorio
+que alguien tiene que leer; lo segundo quita el paso. La solucion real fue H11.7,
+no el renglon que se escribio en agosto.
+
+Es la misma familia que **I-51**: alli un permiso se daba por probado porque
+nadie habia corrido la aplicacion completa con el rol que la aplicacion usa.
+Aqui una dependencia se daba por satisfecha porque nadie habia corrido el codigo
+que la satisface. **En los dos casos lo que faltaba no era codigo: era una
+ejecucion.**
+
+**Impacto.** Ninguna hora de ejecucion perdida: las dos veces se detecto
+**antes** de trabajar, que es el unico motivo por el que esta incidencia se puede
+escribir en tono tranquilo.
+
+Si costo **cinco dias de convocatoria**, entre el reporte del 2026-09-08 y la
+respuesta del 2026-09-13, con la feria del 24 de por medio. Las tres historias
+afectadas —H9.2b, H9.3 y H9.4— suman **16,3 h** y estuvieron en riesgo de no
+entrar al Sprint 4.
+
+---
+
+## I-53 · La funcion escrita para declarar la procedencia declaro una procedencia falsa
+
+**Fecha.** 2026-09-13
+
+**Quien lo detecto.** Luna, al correr el diagnostico de H12.4 contra la base con
+`docker compose ps` a la vista.
+
+**Que paso.** El 2026-09-08, `diagnostico_sprint4.py` imprimio:
+
+    base LOCAL: geoguardian en localhost:5432
+
+Sobre esa linea se «corrigio» la evidencia de H4.2, que decia `5433`, y se
+escribio ademas que el puerto se habia puesto **de memoria**.
+
+El 2026-09-13, el modulo de H12.4 —que vive dentro del repositorio— imprimio
+`localhost:5433`. Y las dos fuentes de verdad coinciden con eso:
+
+    docker compose ps           ->  geoguardian-db  0.0.0.0:5433->5432/tcp
+    findstr POSTGRES_PORT .env  ->  POSTGRES_PORT=5433
+
+**El valor original era el correcto. La correccion era el error.**
+
+**Causa raiz.** `_contra_que_base()` llamaba a `load_dotenv()` sin argumentos y
+despues releia `os.getenv("POSTGRES_PORT") or "5432"` por su cuenta.
+
+`find_dotenv()` busca el `.env` **desde el directorio del archivo que llama**,
+hacia arriba. Los once guiones de sonda viven fuera del repositorio, y por esa
+rama del arbol no hay ningun `.env`. La variable salia vacia y el codigo caia a
+su valor por defecto.
+
+La conexion funcionaba igual, porque `cadena_conexion()` esta en
+`basedatos/conexion.py`, dentro del repo, y su propio `load_dotenv()` si
+encuentra el archivo. Pero **`_contra_que_base()` se imprime antes de
+`conectar()`**: la linea de procedencia salia del defecto y el resto del guion
+trabajaba contra la base correcta.
+
+**El defecto no estaba en lo que la funcion hacia, sino en donde vivia el archivo
+que la llamaba.** Dos copias identicas del mismo codigo dan respuestas distintas
+segun su ruta.
+
+**Por que es peor que las tres veces anteriores.** `_contra_que_base()` se
+escribio el 2026-09-07 **para cumplir I-38**, despues de que un informe de CHIRPS
+no declarara contra que base media. Es el remedio contra declarar mal la
+procedencia, declarando mal la procedencia.
+
+Y las tres anteriores —las 1968 filas de `medicion_diaria`, el informe de CHIRPS
+y el puerto— fueron datos escritos **de memoria**. Esta salio de **un guion que
+se ejecuto**, que es justamente lo que se habia puesto como remedio. Una cifra
+que viene de una corrida **no se vuelve a cuestionar**, y por eso esta alcanzo a
+provocar una correccion falsa sobre un documento que estaba bien.
+
+**Accion tomada.**
+
+1. El commit `4f4da64` de `feature/lal-h4.2-shap` **se revirtio antes del
+   merge** (`1422c82`). En `dev` los dos documentos de H4.2 nunca dejaron de
+   decir `5433`: ninguna cifra equivocada llego a la rama principal.
+2. `_contra_que_base()` en `backend/calidad/diagnostico_bitacora.py` **ya no lee
+   variables de entorno**: toma host, puerto y base de lo que devuelve
+   `cadena_conexion()`, descartando la contrasena. Es correcta **por
+   construccion**, no por vivir en el lugar adecuado.
+3. Los once guiones de sonda de fuera del repositorio quedan **marcados como no
+   fiables para declarar procedencia**. Ninguna evidencia debe apoyarse en su
+   linea de procedencia sin contrastarla contra `docker compose ps`.
+
+**Aprendizaje.**
+
+> **Una funcion que declara la procedencia no puede tener su propia idea de cual
+> es. Le pregunta al mismo codigo que abre la conexion.**
+
+Y la de fondo, que vale para todo el proyecto:
+
+> **Un valor por defecto silencioso convierte «no encontre el dato» en «el dato
+> es este».**
+
+`os.getenv("POSTGRES_PORT") or "5432"` no distingue «no hay `.env`» de «el `.env`
+dice 5432», y las dos salen impresas con el mismo tono. Es la misma forma que
+**D-07** persigue en los datos —la ausencia no se rellena con un valor
+plausible— aparecida en la configuracion.
+
+**Impacto.** Una correccion falsa escrita en dos documentos de H4.2, en una rama,
+**detenida antes del merge**. Costo el tiempo de escribirla y el de deshacerla,
+mas un aviso al PM diciendo que lo que se le habia anunciado como error no lo
+era. Y una comprobacion de menos en el repertorio: durante cinco dias se creyo
+que esa linea de procedencia era confiable.
+
+---
+
 ## I-54 · La misma pregunta a la API publicada devuelve dos respuestas distintas segun desde donde se pregunte
 
 **Fecha.** 2026-09-14.
