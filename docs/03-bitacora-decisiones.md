@@ -3709,6 +3709,62 @@ amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
 decision depende del numero, no de una preferencia: **se rehace corriendo
 `generar_etiquetas.py`**.
 
+> **Enmienda del 2026-09-15. Esta clausula se ejercio, y la decision se sostiene.**
+>
+> H1.16 trajo la serie de ERA5 desde 1950: **28.011 dias, 76,7 anios** contra los
+> 34 sobre los que se escribio este ADR. **H3.11** rehizo la cuenta.
+>
+>     ventana        base del SPI   episodios   por pliegue        minimo
+>     1991-2026      1991-2026          11      4, 7, 7, 8, 11        4
+>     1991-2026      1950-2026          15      5, 9, 9, 11, 14       5
+>     1950-2026      1991-2026          11      0, 0, 0, 5, 8         0
+>     1950-2026      1950-2026      ->  24      1, 1, 7, 16, 20       1
+>
+> **24 contra el minimo de 30, y 1 contra el minimo de 10. No alcanza por los dos
+> lados.** La sequia sigue sin ser modelable, y ahora se sabe con el triple de
+> anios en vez de suponerse.
+>
+> **Tres cosas que esta medicion agrega y que este ADR no podia saber:**
+>
+> 1. **El metodo se valido.** Contar con la serie del canton sobre la ventana de
+>    este ADR da **11**, contra los 13 que estan escritos arriba. Son dos fuentes
+>    -CHIRPS a 0,05 grados contra ERA5 a 0,25- y dos ordenes de agregacion
+>    distintos -union de ocho distritos contra una sola serie-, y difieren en 2
+>    episodios sobre 13. Eso es lo que autoriza a poner el 24 al lado del 13.
+> 2. **El SPI no tiene periodo de referencia fijo**, y eso mueve el numero. La
+>    misma ventana de 1991-2026 da **11 con base corta y 15 con base larga**: un
+>    36 % mas de episodios sin cambiar un solo dia de la ventana. Medirlo aparte
+>    fue lo que impidio leer ese +4 como «mas anios trajeron mas sequias».
+> 3. **La tasa es la misma:** 0,309 episodios/anio sobre 35,6 anios y 0,313 sobre
+>    76,7. La serie larga no encuentra otro clima, encuentra lo mismo sobre mas
+>    anios.
+>
+> **Lo que empeora es el minimo por pliegue: de 2 a 1.** Los episodios no estan
+> repartidos parejo. Con la particion expansiva de H3.2, los entrenamientos
+> esperarian `4, 8, 12, 16, 20` a tasa uniforme y dan `1, 1, 7, 16, 20`: los dos
+> ultimos exactos y los dos primeros en un cuarto, con el quiebre cerca de 1988.
+>
+> **Eso NO se declara como un aumento de las sequias.** Tiene dos explicaciones
+> que este dato no separa -que el clima cambiara, o que ERA5 antes de la era
+> satelital no vea las sequias tempranas, porque una serie mas suave produce menos
+> extremos del SPI por construccion-. Lo que si se puede afirmar, y es lo que
+> importa para la decision: **entrenar sobre la mitad temprana no sirve venga de
+> donde venga el hueco**, y por eso el peor pliegue empeora aunque el total casi
+> se doble.
+>
+> **La clausula decia «se rehace corriendo `generar_etiquetas.py`» y eso no se
+> pudo.** Ese guion lee `crudo.medicion_diaria`, que esta por distrito, y
+> `crudo.serie_canton` **no tiene `codigo_distrito`** porque el CA-9 de H1.16 y
+> D-47 lo prohiben; ademas es el guion que produjo el 13 y tiene que seguir
+> produciendolo. Se rehizo con `backend/modelado/recontar_sequia_larga.py`, que
+> **importa** las funciones que deciden que es un episodio en vez de copiarlas, y
+> con una prueba que etiqueta cuarenta anios por las dos rutas y compara dia por
+> dia. Evidencia en
+> `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
+>
+> **La clausula sigue abierta con la misma condicion.** Si apareciera una serie
+> observada -no de reanalisis- para 1950-1990, valdria la pena volver a medir.
+
 ---
 
 ## D-35 · La clausula de reversion de D-33 se ejerce, y devuelve dos de las doce historias

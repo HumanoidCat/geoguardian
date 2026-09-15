@@ -793,8 +793,33 @@
     no existe, porque **D-34 ya cuenta a nivel canton**.
   - Bajo de 8 a 5 puntos: era la mitad del trabajo que parecia.
 
-- [ ] **H3.11** · Recontar los episodios de sequia sobre la serie larga
+- [x] **H3.11** · Recontar los episodios de sequia sobre la serie larga (2026-09-15)
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H1.16, H3.0
+  - horas: estimada 4.7 . real 4.0
+  - **24 episodios en 76,7 anios contra el minimo de 30, y 1 en el peor pliegue
+    contra el minimo de 10. NO alcanza por ninguno de los dos.** D-34 se sostiene,
+    y ahora con el triple de anios en vez de con 34.
+  - **Es la clausula de reversion de D-34 ejercida**, no una historia suelta: ese
+    ADR dejo escrito que si aparecia mas serie se volvia a medir porque la
+    decision depende del numero.
+  - **Tres controles hacen comparable el 24.** El metodo se valida -11 contra los
+    13 de D-34 sobre la ventana comun, con otra fuente y otro orden de
+    agregacion-; el efecto de la base del SPI se mide aparte -11 a 15 sobre la
+    MISMA ventana, un 36 % mas sin cambiar un dia-; y la tasa es la misma: 0,309
+    contra 0,313 episodios por anio.
+  - **El CA-1 se probo, no se afirmo.** `generar_etiquetas.py` no puede leer
+    `crudo.serie_canton` -no tiene `codigo_distrito`, CA-9 de H1.16- y ademas
+    tiene que seguir produciendo el 13, asi que no se toca. El recuento **importa**
+    sus funciones y una prueba etiqueta 40 anios por las dos rutas comparando dia
+    por dia: cero diferencias.
+  - **Hallazgo que el total tapaba:** los pliegues dan `1, 1, 7, 16, 20` donde una
+    tasa uniforme esperaria `4, 8, 12, 16, 20`. **No se declara como aumento de
+    las sequias**: puede ser clima o puede ser que ERA5 no vea las sequias antes
+    de la era satelital, y el dato no lo separa. Lo que si vale: entrenar sobre la
+    mitad temprana no sirve venga de donde venga el hueco.
+  - D-34 enmendada con fecha y el documento IEEE actualizado en cuatro pasajes
+    (CA-4 de los criterios).
+  - Evidencia en `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
   - **D-34 no dice que no haya datos: dice que hay 13 sequias en 34 anos**, una cada
     2.6 anos. Con 75 anos de ERA5 serian unas 29, pegado al umbral de 30, pero el
     minimo por pliegue seguiria en unas 6 contra las 10 que pide CA-6.
