@@ -225,14 +225,29 @@ def ca4_fuente_de_juguete(resultado: Resultado, fabrica) -> None:
     """
     archivo_nuevo = (DIR_ETL / "fuentes" / "prueba_fabrica.py").exists()
     registrada = "prueba" in fabrica.REGISTRO_CLIMA
+
+    # `firms-area` entra en la CONDICION, no solo en el detalle. Alejandro lo
+    # marco al revisar el PR #282 y tiene razon: se calculaba, se imprimia y no
+    # se comprobaba, asi que el criterio pasaba igual mostrando False. Es el
+    # mismo defecto de forma que este verificador corrige dos funciones mas
+    # arriba -afirmar en la salida algo que no entra en la condicion- y no tenia
+    # sentido arreglarlo alli y dejarlo aca.
     agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS
+
+    aviso = (
+        ""
+        if agregada_despues
+        else " · ATENCION: 'firms-area' ya no esta registrada. No significa que "
+        "alguien rompio la regla: significa que el ejemplo que probaba la "
+        "extensibilidad desaparecio, y hay que buscar otro o revisar por que se retiro"
+    )
 
     resultado.marcar(
         "CA-4 una fuente se agrega con su archivo y una entrada del registro",
-        archivo_nuevo and registrada,
+        archivo_nuevo and registrada and agregada_despues,
         f"la de juguete: archivo propio {archivo_nuevo}, en el registro {registrada} · "
         f"y una real agregada despues por H1.14 sin tocar cargadores: {agregada_despues} · "
-        "la comparacion byte por byte del 2026-09-03 esta en la evidencia, fechada",
+        "la comparacion byte por byte del 2026-09-03 esta en la evidencia, fechada" + aviso,
     )
 
 
