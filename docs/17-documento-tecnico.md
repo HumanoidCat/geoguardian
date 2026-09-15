@@ -687,7 +687,7 @@ calidad— y la distinción está escrita para no confundirlas.
 
 ### 10.1 Decisiones
 
-52 decisiones registradas, cada una con contexto, justificación, alternativas
+53 decisiones registradas, cada una con contexto, justificación, alternativas
 descartadas, consecuencias y medición. Las que más gobiernan el código:
 
 | ADR | Decisión |
