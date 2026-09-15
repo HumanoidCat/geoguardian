@@ -107,3 +107,13 @@ issues.json
 .coverage.*
 coverage.xml
 htmlcov/
+
+# Carpeta de trabajo del PM: borradores de mensajes al equipo, cuerpos de PR
+# antes de pegarlos, notas de medicion. Es privada y NO se versiona.
+#
+# Aparecia como `?? gestion/` en `git status`, o sea a un `git add -A` de entrar
+# al repositorio con todo adentro. Eso es exactamente la incidencia **I-47**, y
+# la regla de "nunca git add -A" la evita solo mientras nadie se equivoque una
+# vez. Ignorarla lo vuelve imposible en vez de improbable. Detectado el
+# 2026-09-14 al preparar el PR de H1.16.
+gestion/
