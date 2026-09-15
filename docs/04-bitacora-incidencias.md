@@ -4307,3 +4307,61 @@ es el aviso, con la medicion, no una solicitud de cambio.
 500 unos tres minutos y el visor en respaldo declarado durante ese tiempo. Sin
 horas perdidas: la medicion era la que CA-5 pedia. El riesgo que deja abierto es
 operativo y esta descrito en el aprendizaje 2.
+
+## I-56 · El generador de diagramas produce archivos distintos segun el sistema operativo
+
+**Fecha.** 2026-09-15.
+
+**Quien lo detecto.** Alejandro, al regenerar el entidad-relacion para que
+`crudo.serie_canton` -la tabla que agrego H1.16- entrara en el diagrama.
+
+**Que paso.** `generar_diagramas.py` corrio por primera vez en Windows. Los
+**siete** SVG salieron modificados, no solo el que la migracion 020 cambiaba, y
+el `entidad-relacion.svg` nuevo traia **84 apariciones de `Â`** en la columna de
+marcadores de las tablas. `componentes.svg`, cuyo contenido no cambio en nada,
+paso de 12.384 a 13.973 bytes.
+
+El verificador **no lo vio**, y con razon: `verificar_diagramas.py` compara el
+**contenido** -que cada tabla, columna y clave foranea esten- y el contenido
+estaba bien. Los siete dieron OK. El defecto era de codificacion, que ese
+verificador no mira.
+
+**Causa raiz.** `renderizar()` invocaba a Graphviz asi:
+
+    subprocess.run(["dot", "-Tsvg"], input=dot, capture_output=True, text=True)
+
+**`text=True` sin `encoding=`.** Python entonces codifica la entrada y decodifica
+la salida con la codificacion por omision de la maquina: **UTF-8 en Linux, cp1252
+en Windows**. Los diagramas llevan espacios duros -`\u00a0`, en la columna de
+marcadores de las tablas- y comillas angulares, asi que el viaje de ida y vuelta
+por la tuberia los rompe en Windows y no en Linux.
+
+Los SVG versionados se habian generado siempre en Linux. Por eso nadie lo vio
+hasta hoy: **el guion nunca habia corrido en Windows.**
+
+**Accion tomada.** Se le declara la codificacion a la tuberia:
+
+    subprocess.run([...], input=dot, capture_output=True, text=True, encoding="utf-8")
+
+Y los seis diagramas que la corrida de Windows habia ensuciado se restauraron con
+`git checkout --` en vez de commitearse: al PR de H1.16 entra **solo** el
+`entidad-relacion.svg`, que es el unico que esa historia cambia de verdad.
+
+**Aprendizaje.** Tres.
+
+1. **Un verificador que pasa no dice que el archivo este bien, dice que lo que
+   ese verificador mira esta bien.** Los siete diagramas dieron OK con 84
+   caracteres corruptos adentro. Lo que delato el problema fue mirar el
+   `git status` y preguntarse por que cambiaban siete archivos cuando la
+   historia tocaba uno.
+2. **`text=True` sin `encoding=` es una bomba de tiempo multiplataforma**, y este
+   repositorio la tenia en el unico guion cuyo producto se versiona. Vale la pena
+   buscar el patron en los demas.
+3. **Que una herramienta nunca haya corrido en la maquina de quien la usa no es
+   un detalle.** Graphviz estaba instalado pero fuera del PATH, asi que
+   `verificar_diagramas.py` -uno de los siete del CI- **nunca se habia podido
+   correr en local**. Un control que solo existe en el CI se descubre tarde y
+   siempre en el peor momento.
+
+**Impacto.** Un rojo en el CI del PR #330 y una hora de diagnostico. Sin danio en
+el repositorio: los archivos ensuciados no llegaron a commitearse.

@@ -753,9 +753,37 @@
   - La comparacion es contra H3.9, no contra la matriz vieja.
   - Criterios en `docs/evidencias/objetivos/H3.10-criterios-aceptacion.md`.
 
-- [ ] **H1.16** · Open-Meteo como serie larga del canton (D-47)
+- [x] **H1.16** · Open-Meteo como serie larga del canton (D-47) (2026-09-14)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H6.3 · **bloquea a: H3.11**
-  - **El test de D-15 ya corrio, el 2026-09-09**, contra `geo.distrito`: ERA5-Land
+  - horas: estimada 7.8 . real 3.0
+  - **La fuente que el ADR nombraba no servia.** ERA5-Land devuelve 200, los dias
+    pedidos y `null` en todos: no da precipitacion diaria por esta API, en ningun
+    punto del mundo. Medido el 2026-09-14. La serie la trae **ERA5**, y **D-47
+    quedo enmendado con fecha** en vez de corregido en silencio.
+  - **28.011 dias, de 1950-01-01 a 2026-09-09, en UNA peticion, en 3,25 s.** Un dia
+    sin dato, guardado como ausencia y no como cero (D-07).
+  - **El test de D-15 se repitio sobre la malla que de verdad se uso** y da **3
+    celdas para 8 distritos**, con cinco distritos en una sola. ERA5-Land daba 6 y
+    ya alcanzaba para decidir: el resultado es peor, asi que la decision de no
+    entrar por distrito queda con **mas margen** del que tenia. El anclaje de la
+    malla nueva no se asumio, se observo, y entro a la `autoprueba()`.
+  - **La decision queda en el esquema, no en la buena voluntad:** la tabla no tiene
+    columna `codigo_distrito`, el modelo va NOT NULL con CHECK contra `best_match`,
+    y el extractor **no se registra en la fabrica** a proposito. El verificador
+    nuevo barre cuatro carpetas y exige que ningun archivo fuera de una lista de
+    cinco nombre la serie ni el extractor.
+  - **Dos pruebas se reescribieron aqui mismo:** la original comprobaba el contador
+    de peticiones esperando que `consultar` fallara **sin red**. En una maquina con
+    internet daba rojo, y cuando pasaba era porque acababa de hacer una peticion de
+    verdad en una suite que promete no tocar la red.
+  - **Lo que NO consigue, y se declara:** nacio tambien para que la pantalla dejara
+    de mostrar fechas viejas y **no lo logra**. La lluvia por distrito sigue siendo
+    CHIRPS con 21 a 51 dias, porque ERA5 no puede entrar por distrito. Es el CA-10,
+    y la frescura queda abierta y sin dueno.
+  - Evidencia en `docs/evidencias/bases-de-datos/H1.16-serie-canton.md`.
+  - Criterios en `docs/evidencias/bases-de-datos/H1.16-criterios-aceptacion.md`.
+  - **Contexto previo, del 2026-09-09.** El test de D-15 corrio contra
+    `geo.distrito`: ERA5-Land
     pone los ocho distritos en **seis celdas** -Tilaran con Arenal, Quebrada Grande
     con Cabeceras-. Recibirian el mismo valor todos los dias del ano: **I-05** otra
     vez. Una medicion preliminar por otro metodo dio lo mismo.
@@ -763,10 +791,7 @@
     distrito -ni nivel, ni el SPI de H14.5, ni la matriz- y **si** entra como serie
     larga a nivel canton para contar episodios de sequia en H3.11. Ahi la colision
     no existe, porque **D-34 ya cuenta a nivel canton**.
-  - Baja de 8 a 5 puntos: es la mitad del trabajo que parecia.
-  - **Lo que NO consigue, y se declara:** nacio tambien para que la pantalla dejara
-    de mostrar fechas viejas y no lo logra. La frescura queda abierta.
-  - Criterios en `docs/evidencias/bases-de-datos/H1.16-criterios-aceptacion.md`.
+  - Bajo de 8 a 5 puntos: era la mitad del trabajo que parecia.
 
 - [ ] **H3.11** · Recontar los episodios de sequia sobre la serie larga
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H1.16, H3.0

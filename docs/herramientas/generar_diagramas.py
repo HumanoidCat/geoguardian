@@ -875,8 +875,19 @@ def renderizar(dot: str) -> str:
             "Falta Graphviz. En Windows: winget install Graphviz.Graphviz\n"
             "En Debian/Ubuntu: sudo apt install graphviz"
         )
+    # `encoding="utf-8"` NO es opcional y no estaba. Con `text=True` a secas,
+    # Python codifica la entrada y decodifica la salida con la codificacion de
+    # la maquina: UTF-8 en Linux, cp1252 en Windows. Los diagramas llevan
+    # espacios duros y comillas angulares, asi que el mismo guion producia SVG
+    # distintos segun el sistema operativo, y regenerarlos en Windows metia
+    # `Â` en 84 lugares del entidad-relacion. Incidencia **I-56**.
     proceso = subprocess.run(
-        ["dot", "-Tsvg"], input=dot, capture_output=True, text=True, check=False
+        ["dot", "-Tsvg"],
+        input=dot,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
     )
     if proceso.returncode != 0:
         raise RuntimeError(f"dot fallo:\n{proceso.stderr}")
