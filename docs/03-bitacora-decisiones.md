@@ -5863,3 +5863,120 @@ sistema que de verdad se va a mostrar.
     Evaluacion de lo diferido 2026-09-25, por escrito en docs/03
 
     Avance al escribirse      79 de 103 historias   401 de 514 pts (78,0 %)
+
+---
+
+## D-53 · El SPI-6 de la tarjeta se calcula al pedirlo, no se almacena
+
+**Fecha.** 2026-09-15. **Historia.** H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-32 (SPI-6), D-34 (medir no es modelar), D-40 (el atraso de CHIRPS), I-57.
+
+### Contexto
+
+H14.5 quiere que la tarjeta de sequia diga **el indice medido** en vez de quedarse
+en blanco. D-34 cerro la puerta a **modelar** la sequia; no a **medirla**: el SPI-6
+se calcula con lluvia que ya cayo, y es un hecho observado del mismo tipo que
+«ayer llovieron 12 mm».
+
+Al ir a buscar de donde lo lee el visor, no hay de donde:
+
+  * `contratos/esquemas.py` tiene `IndiceDerivado` con `spi_1m` y `spi_3m`, y
+    **no tiene `spi_6m`**, que es el que D-32 adopto;
+  * **la tabla `analitico.indice` no existe** en ninguna de las 21 migraciones;
+  * `guardar_indices` y `obtener_indices` existen en la interfaz y **lanzan**
+    `TablaPendiente` diciendo que la tabla llega con **H2.5**, que cerro el
+    2026-09-01 y nunca pudo traerla porque su historia era otra (**I-57**);
+  * ninguna de las seis rutas de la API expone indices.
+
+O sea: el contrato insinua una tabla que nadie construyo y cuyo dueno declarado no
+existe. Hay que decidir si se construye o si se resuelve de otra forma.
+
+### Decision
+
+**`obtener_indices` calcula el SPI-6 a partir de `crudo.medicion_diaria` en el
+momento de la consulta, y no se crea la tabla `analitico.indice`.**
+
+**El resultado se cachea por distrito, y la cache no es un adorno: es parte de la
+decision.** La clave es el distrito mas la fecha de la ultima ingesta, asi que el
+calculo ocurre una vez por distrito por ingesta y no una vez por visita.
+
+`guardar_indices` **sigue lanzando** `TablaPendiente`: no hay nada que guardar.
+Su mensaje deja de nombrar a H2.5 y pasa a nombrar a este ADR.
+
+### Justificacion
+
+**El indice es una funcion determinista de datos que ya estan guardados.**
+Almacenarlo es duplicar: el mismo dato en dos lugares, que es como aparecen las
+discrepancias. Si manana cambia la escala del SPI -ya paso una vez, D-32 lo movio
+de 3 a 6 meses- una tabla almacenada queda con valores viejos hasta que alguien
+la recalcule, y nadie se entera. Calculado al vuelo, el cambio de escala se
+propaga solo.
+
+**Y lo que la tarjeta necesita es un numero por distrito, no una serie.** Construir
+una tabla, su escritor, su paso en el trabajo diario y su migracion para servir
+ocho numeros que se derivan de datos ya presentes es infraestructura sin una
+pregunta que la pida -el mismo criterio con el que D-50 descarto bajar los GRIB de
+ECMWF-.
+
+**El costo se midio, y obligo a corregir la propia recomendacion.** Ver Medicion:
+**66 ms por distrito**, no «milisegundos» como se estimo al proponerlo. Eso no
+cambia la decision, pero convierte a la cache de conveniencia en requisito.
+
+### Alternativas descartadas
+
+**Crear `analitico.indice` con su escritor y su paso en el cron.** Es la
+arquitectura que el contrato insinua y deja el indice auditable con su fecha de
+calculo. Se descarta por costo contra beneficio a nueve dias de la feria: cinco
+piezas nuevas -migracion, escritor, paso del trabajo, ruta, tarjeta- para un dato
+derivado. **Queda como el camino natural si algun dia el indice deja de ser
+derivable**: por ejemplo si se quisiera conservar el valor que se publico un dia
+concreto aunque despues cambiara la serie.
+
+**Calcularlo en el navegador.** El SPI necesita ajustar una gamma sobre la
+distribucion historica del mes. Eso no es trabajo del visor, y ademas obligaria a
+bajar 35 anios de lluvia al telefono. Es D-23 otra vez.
+
+**Servirlo dentro de `Riesgo`.** Rompe D-34: esa forma trae `nivel` y
+`probabilidad`, y la sequia no puede tener ninguno de los dos. La tarjeta dice un
+hecho medido, no una estimacion, y la forma del dato tiene que decir lo mismo.
+
+**Agregarlo a `MedicionDiaria`.** Es un indice mensual, no una medicion diaria.
+Meterlo ahi repetiria el mismo valor en los ~30 dias del mes y mentiria sobre su
+cadencia.
+
+### Consecuencias
+
+  * **`contratos/esquemas.py` gana `spi_6m` en `IndiceDerivado`**, por adicion.
+    Va por **SC-12**, porque `contratos/` es archivo compartido.
+  * **Contratos pasa a 1.5.0.** D-50 ya habia anunciado ese salto para el
+    `Pronostico` de H15.0: es el mismo salto y ocurre una sola vez. Las
+    afirmaciones de version en `docs/10` y `docs/17` se actualizan con el.
+  * **Una ruta nueva** expone los indices de un distrito. Toca `backend/api/`,
+    que es de Cesar, bajo la excepcion acotada del PM: una historia, y se cierra
+    con ella.
+  * **H14.5 deja de ser una historia de frontend.** Resulto ser una rebanada
+    vertical -contrato, lectura, ruta y tarjeta- y se declara asi en su PR y en su
+    evidencia en vez de disimularlo.
+  * **La cache es obligatoria y se comprueba.** Un criterio de H14.5 mide la
+    segunda consulta contra la primera.
+  * **La fecha del dato viaja con el numero.** Con CHIRPS el ultimo mes puede
+    tener 21 a 51 dias de atraso (D-40): un indice sin fecha parece de hoy.
+  * **`analitico.indice` no se crea**, y `PENDIENTES` deja de nombrar a H2.5.
+
+### Medicion
+
+    Costo del SPI-6 de un distrito, medido el 2026-09-15 con el codigo del
+    proyecto -`acumulado_mensual` mas `CalculadorSPI().spi(..., 6, meses)`-
+    sobre una serie diaria de 13.027 dias (1991-2026, 428 meses):
+
+      20 corridas    mediana 66,4 ms    min 65,2    max 73,7
+      ocho distritos                    531 ms
+
+    Estimacion previa al medir: «milisegundos». **Equivocada por un factor de
+    ~66.** La medicion es la razon por la que la cache paso de conveniente a
+    obligatoria.
+
+    Lo que NO se midio todavia, y lo mide H14.5 contra la base real:
+      * el costo de la consulta a `crudo.medicion_diaria` de un distrito;
+      * el costo con la cache caliente, que es el caso normal.
