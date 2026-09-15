@@ -12,6 +12,9 @@ obligaria a editar todos los archivos de rutas, que es exactamente lo que el
 patron existe para evitar. El criterio CA-6 comprueba que ese import no exista, y
 el CA-7 comprueba que sustituir la implementacion funcione de verdad.
 
+H8.3 se apoya en la misma costura: la cache entra aqui, envolviendo el
+repositorio, y ningun endpoint se entera. Es CA-2 de esa historia.
+
 SOBRE EL MODO DE OPERACION
 
 `Salud.modo` no se escribe a mano. Se deriva de que implementacion devolvio esta
@@ -30,6 +33,12 @@ from contratos.enums import ModoOperacion
 from contratos.repositorio import Repositorio
 from contratos.simulados.datos import RepositorioSimulado
 
+from .cache import (
+    VARIABLE_ENCENDIDA,
+    RepositorioConCache,
+    cache_encendida,
+    crear_cache,
+)
 from .repositorio_postgres import RepositorioPostgres
 
 log = logging.getLogger(__name__)
@@ -57,12 +66,37 @@ def _repositorio_postgres() -> RepositorioPostgres:
     return RepositorioPostgres()
 
 
+@lru_cache(maxsize=1)
+def _repositorio_postgres_cacheado() -> RepositorioConCache:
+    """
+    Una sola cache para toda la vida del proceso.
+
+    `lru_cache` por la misma razon que las dos fabricas de arriba: una cache
+    construida por peticion no seria una cache, seria un diccionario vacio.
+
+    De aca sale ademas el techo de consumo. La cache vive en el proceso, asi que
+    con varios trabajadores de `uvicorn` hay varias caches y el consumo se
+    multiplica. CA-8 lo mide y CA-9 lo demuestra.
+
+    **EL SIMULADO NO SE ENVUELVE, Y NO ES UN OLVIDO.** `modo_de` y
+    `base_conectada`, aqui abajo, preguntan `isinstance(repositorio,
+    RepositorioSimulado)`. Un envoltorio no es un `RepositorioSimulado`, asi que
+    envolverlo haria que /salud respondiera `modo: real` mientras sirve datos
+    inventados. Seria **I-41 por tercera vez**: un campo de /salud que dice lo
+    que era cierto en otro momento. Ademas no habria nada que ahorrar: el
+    simulado no tiene base detras.
+    """
+    cache = crear_cache()
+    log.info("Cache de la API encendida. %s", cache.resumen())
+    return RepositorioConCache(_repositorio_postgres(), cache)
+
+
 def obtener_repositorio() -> Repositorio:
     """
     Devuelve la implementacion activa, elegida por configuracion.
 
-        GEOGUARDIAN_REPOSITORIO=postgres   -> RepositorioPostgres
-        cualquier otra cosa, o sin definir -> RepositorioSimulado
+        GEOGUARDIAN_REPOSITORIO=postgres   -> RepositorioPostgres, con cache
+        cualquier otra cosa, o sin definir -> RepositorioSimulado, sin cache
 
     **EL SIMULADO SIGUE SIENDO EL VALOR POR OMISION, Y ES DELIBERADO.**
 
@@ -74,9 +108,21 @@ def obtener_repositorio() -> Repositorio:
     Lo que H6.2 demuestra es que **la sustitucion funciona sin tocar un endpoint**.
     El dia que existan las tablas, esto pasa a `postgres` y nada mas cambia. Ver la
     cabecera de `repositorio_postgres.py` para la lista de que falta y quien lo trae.
+
+    SOBRE LA CACHE (H8.3)
+
+    La cache envuelve **solo** al repositorio contra PostgreSQL. El simulado no se
+    envuelve, por lo que explica `_repositorio_postgres_cacheado`.
+
+    `GEOGUARDIAN_CACHE=0` la apaga y el sistema se comporta como antes de H8.3.
+    Es la salida si algun dia la cache resulta ser el problema, y es como se mide
+    la linea base (CA-12).
     """
     if os.getenv(VARIABLE_REPOSITORIO, "").strip().lower() == "postgres":
         log.info("Repositorio contra PostgreSQL, elegido por %s", VARIABLE_REPOSITORIO)
+        if cache_encendida():
+            return _repositorio_postgres_cacheado()
+        log.info("Cache apagada por %s", VARIABLE_ENCENDIDA)
         return _repositorio_postgres()
     return _repositorio_simulado()
 
