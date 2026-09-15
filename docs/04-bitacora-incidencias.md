@@ -4400,9 +4400,30 @@ del codigo** contra el estado de esas historias.
 
 **Accion tomada.** `D-53` decide que `analitico.indice` **no se crea**: el SPI-6
 se calcula al pedirlo. El mapa deja de nombrar a H2.5 y pasa a nombrar al ADR, que
-es una referencia que no caduca. Las otras dos entradas -`analitico.evento` con
-H4.3 y `control.reporte_calidad` con H1.5- se revisaron en el mismo momento y
-**sus historias siguen abiertas**, asi que quedan como estan.
+es una referencia que no caduca.
+
+> **CORRECCION del 2026-09-15, el mismo dia.** Esta entrada decia que las otras
+> dos -`analitico.evento` con H4.3 y `control.reporte_calidad` con H1.5- «se
+> revisaron en el mismo momento y sus historias siguen abiertas». **Eso era
+> falso, y no se habia comprobado: se afirmo.** Al mirarlo de verdad:
+>
+>     H4.3  Catalogo de 12 o mas eventos historicos    [x] cerrada el 2026-08-18
+>     H1.5  Reporte formal de calidad de datos         [x] cerrada el 2026-08-30
+>
+> **Las TRES entradas del mapa nombran historias cerradas.** Ninguna de las tres
+> entrego su tabla, y ninguna tenia por que: H2.5 generaba caracteristicas, H4.3
+> produjo un catalogo de eventos y H1.5 un reporte de calidad. Son tres
+> documentos y ningun DDL.
+>
+> Eso no debilita el hallazgo: **lo agranda.** No es un puntero que se quedo
+> viejo, es que **el mapa entero envejecio sin que nadie lo notara**, y refuerza
+> el aprendizaje 1. Las dos entradas restantes quedan como estan hasta que
+> alguien decida que pasa con `analitico.evento` y `control.reporte_calidad`
+> -no se decide de paso en una correccion-, pero **su texto ya no se puede leer
+> como que esas historias vienen en camino**.
+>
+> La leccion del error es la misma que la de la incidencia: **se escribio «se
+> revisaron» sin haberlas revisado.** Comprobarlo costaba un `grep`.
 
 **Aprendizaje.** Dos.
 
