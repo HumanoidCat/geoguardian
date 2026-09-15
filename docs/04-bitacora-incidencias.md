@@ -4365,3 +4365,56 @@ Y los seis diagramas que la corrida de Windows habia ensuciado se restauraron co
 
 **Impacto.** Un rojo en el CI del PR #330 y una hora de diagnostico. Sin danio en
 el repositorio: los archivos ensuciados no llegaron a commitearse.
+
+## I-57 · El error que nombra a la historia culpable nombra a una que ya cerro
+
+**Fecha.** 2026-09-15.
+
+**Quien lo detecto.** Alejandro, al leer el contrato antes de escribir la
+solicitud de cambio de H14.5.
+
+**Que paso.** `backend/api/repositorio_postgres.py` tiene un mapa que sirve para
+que el error de una tabla que falta diga **que historia la va a traer**, en vez de
+parecer un defecto:
+
+    PENDIENTES = {
+        "guardar_indices": ("analitico.indice", "H2.5"),
+        "obtener_indices": ("analitico.indice", "H2.5"),
+        ...
+    }
+
+**H2.5 cerro el 2026-09-01.** Quien hoy se tope con `TablaPendiente` al pedir
+indices lee que espere a una historia que cerro hace dos semanas.
+
+**Causa raiz.** H2.5 nunca fue la historia de esa tabla. Su alcance es generar
+lags, acumulados y medias moviles en `backend/senales/caracteristicas.py`, y asi
+cerro y asi esta su evidencia. El mapa se escribio cuando el reparto era otro
+-H2.5 se traspaso desde Cesar el 2026-08-31 por D-33- y **no se reviso al cambiar
+el alcance**.
+
+La idea del mapa es buena: un error que nombra a su dueno vale mucho mas que uno
+que dice «no implementado». Lo que faltaba es que ese puntero **se comprobara**.
+Ningun verificador lo mira: `verificar_estado` cuadra el avance entre backlog,
+tareas y matriz, pero nada contrasta los nombres de historia que viven **dentro
+del codigo** contra el estado de esas historias.
+
+**Accion tomada.** `D-53` decide que `analitico.indice` **no se crea**: el SPI-6
+se calcula al pedirlo. El mapa deja de nombrar a H2.5 y pasa a nombrar al ADR, que
+es una referencia que no caduca. Las otras dos entradas -`analitico.evento` con
+H4.3 y `control.reporte_calidad` con H1.5- se revisaron en el mismo momento y
+**sus historias siguen abiertas**, asi que quedan como estan.
+
+**Aprendizaje.** Dos.
+
+1. **Un puntero a una historia dentro del codigo es una afirmacion sobre el
+   estado del proyecto, y caduca como cualquier otra.** Este repositorio vigila
+   con verificadores que el avance cuadre en cuatro lugares; este quinto lugar
+   -los nombres de historia embebidos en mensajes de error- no lo vigila nadie.
+   Se anota como candidato a control, no se resuelve hoy.
+2. **Referenciar una decision envejece mejor que referenciar una historia.** Una
+   historia cierra; un ADR sigue explicando por que las cosas son como son.
+
+**Impacto.** Ninguno en produccion: la ruta que usaria esas funciones no existe,
+asi que nadie llego a ver el mensaje. El costo fue de diagnostico, y de haber
+partido de un supuesto falso al planificar H14.5 -se creia que la tabla llegaba
+con una historia pendiente-.
