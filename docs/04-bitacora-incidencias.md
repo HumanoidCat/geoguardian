@@ -4850,3 +4850,127 @@ cuatro pasan.
 el diff, pero un binario en un diff no se revisa: seguirian sin mirarse, y son
 casi dos megabytes que cambiarian entera cada vez que alguien regenera. Tampoco comprueba que el PNG **se vea** bien: comprueba que salio del SVG
 que hay hoy. Que el SVG sea correcto es lo que hacen CA-1 a CA-9.
+
+---
+
+## I-60 · El visor publicado abria la serie de cada distrito en octubre de 2099
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** Alejandro, tomando capturas de H7.4 con la API local puesta
+en modo real por primera vez.
+
+**Que paso.** La ficha de cualquier distrito del **sitio publicado** mostraba esto:
+
+    Serie climatica de Libano
+    90 dias · 90 sin dato, dibujados como cortes en la linea y no como cero.
+    Datos disponibles del 2099-10-04 al 2100-01-01.
+    SERIE SIMULADA. Los valores los sortea el simulado de forma determinista.
+
+Una grafica vacia, situada en el ultimo trimestre del siglo, bajo un pie que
+afirmaba tener datos hasta el ano 2100, y una banda que declaraba inventadas unas
+observaciones que salian de PostgreSQL.
+
+**No es un defecto sino tres, y uno tapaba a otro.**
+
+### 1 · La ventana declarada era la pregunta, no la respuesta
+
+`GraficaSerie` hace una primera consulta de **descubrimiento** con dos fechas
+centinela -`1900-01-01` a `2100-01-01`- para que el origen declare que tramo
+tiene. Su propio comentario lo dice: *«la primera consulta pide todo para que el
+origen declare su ventana, y de ahi sale el encuadre inicial. Suponerla aqui seria
+repetir en el componente un dato que solo el origen conoce»*.
+
+El diseno era correcto. La rama de la API de `obtenerMediciones` lo rompia
+devolviendo el rango pedido:
+
+    // Contra la API la ventana pedida ES la que se puede servir: no hay tope.
+    return { filas, ventana: { desde, hasta }, origen }
+
+De ahi el 2099, que no es un dato sino una resta: el encuadre inicial son los
+noventa dias anteriores al fin de la ventana, y `2100-01-01` menos 89 dias es
+`2099-10-04`.
+
+**Por que nadie lo vio antes.** El respaldo estatico si declara su ventana de
+verdad, y hasta hoy el visor local siempre corrio contra el respaldo. El defecto
+solo aparece con la API contestando, que es **exactamente lo que hace el sitio
+publicado**. Nadie habia abierto la ficha de un distrito en el publicado.
+
+### 2 · La banda de «SERIE SIMULADA» no tenia condicion
+
+Se dibujaba siempre. No habia ningun `if`: era markup fijo dentro del bloque de
+resultados.
+
+Con la API en `modo: real` eso etiquetaba como inventadas unas mediciones reales.
+Es la mentira simetrica a **I-41** -donde `/salud` declaraba no tener base
+mientras servia datos de la base- y en la misma pantalla del mismo visor.
+
+El origen no sirve como senal, porque la API puede responder con el simulado
+detras. La senal correcta es `modo`, que es la que ya usan `AvisoModoSimulado`,
+`EstadoDatos` y `obtenerRiesgos`.
+
+### 3 · El tercero estaba escondido detras del primero
+
+Al corregir la ventana, la pestana empezo a congelarse al abrir una ficha.
+
+La consulta de descubrimiento pide de 1900 a 2100, y contra PostgreSQL eso son
+**unas trece mil filas** -la serie del distrito desde 1991-. El lienzo intentaba
+dibujarlas todas.
+
+Antes no pasaba **por culpa del defecto 1**: como la ventana era la pedida, el
+encuadre inicial caia en 2099, la segunda consulta devolvia cero filas y el lienzo
+nunca recibia nada. El primer defecto le tapaba la boca al tercero.
+
+Es la forma de defecto que este proyecto ya conoce por otra via: **arreglar uno
+puede destapar otro que vivia a su sombra**, y por eso el arreglo se prueba
+mirando, no razonando que ahora tiene que andar.
+
+### El arreglo costo tres intentos, y los dos primeros fallaron por lo mismo
+
+Se deja escrito entero porque el modo de fallo importa mas que el arreglo.
+
+**Primer intento: la ventana sale del tramo que el origen devolvio.** No funciono,
+y no podia funcionar. `SQL_MEDICIONES` usa `generate_series` con un LEFT JOIN, o
+sea que **devuelve una fila por cada dia pedido**, tenga medicion o no. El contrato
+lo exige -«el consumidor necesita ver los huecos»- y esta escrito con su motivo en
+el propio SQL. El tramo de las filas devueltas es, letra por letra, el tramo
+pedido: el mismo eco con otro disfraz.
+
+**Segundo intento: no dibujar la respuesta del descubrimiento.** Tampoco alcanzo.
+El bloqueo no era de dibujo: las trece mil filas seguian entrando al estado de
+React y al memo. La ficha tardaba tanto en abrir que **el clic parecia no hacer
+nada**, y asi se reporto.
+
+**Tercer intento, el que funciono**, con lo aprendido de los dos anteriores.
+
+**Lo que los dos primeros tienen en comun** es que se decidieron razonando sobre
+el sintoma en vez de abrir el SQL y preguntarle a la base. La regla del proyecto
+dice exactamente eso: *medir desde fuera dice que algo se ve raro, no por que;
+antes de proponer un arreglo se abre el codigo*. Al abrir `SQL_MEDICIONES` los dos
+defectos restantes se explicaron solos en una linea.
+
+| # | Que cambia | Donde |
+|---|---|---|
+| 1 | La ventana sale de los dias que traen **alguna medicion**, no de las filas devueltas; sin ninguno es nula y se declara | `frontend/src/datos/cliente.js` |
+| 1b | El descubrimiento se acota a **los ultimos dos anios** en vez de dos siglos, y la pantalla lo declara. Contra `generate_series`, pedir de 1900 a 2100 son unas **setenta y tres mil filas** generadas para averiguar dos fechas | `GraficaSerie.jsx` |
+| 1c | De la respuesta de descubrimiento se guardan **dos fechas y se descartan las filas** | `GraficaSerie.jsx` |
+| 2 | La ventana de descubrimiento se guarda una vez y no se encoge en cada consulta | `frontend/src/componentes/GraficaSerie.jsx` |
+| 3 | `obtenerMediciones` devuelve `simulado`, como ya hacia `obtenerRiesgos`, y la banda depende de el | los dos |
+| 4 | Mientras llega el descubrimiento, la pantalla dice que esta buscando el tramo | `GraficaSerie.jsx` |
+
+**Lo que se pierde y se declara.** Acotar el descubrimiento a dos anios significa
+que el selector no deja retroceder mas alla de eso, aunque la serie empiece en
+1991. El pie lo dice con esas palabras -«dentro de los ultimos 2 anios que
+consulta esta pantalla»- para no afirmar que ese es todo el dato que existe. El
+arreglo de fondo seria un endpoint que declare el tramo disponible sin traer
+filas; toca `backend/api/` y queda anotado.
+
+**Lo que este arreglo NO hace.** No agrega un endpoint que declare el tramo
+disponible, que seria lo correcto de fondo: hoy el cliente lo deduce pidiendo todo
+una vez. Eso toca `backend/api/`, y se deja anotado en vez de hacerse a ocho dias
+de la feria.
+
+**Consecuencia para H7.2.** La historia esta cerrada y su evidencia sigue siendo
+cierta para lo que midio -los huecos, el reparto del paquete, la linea cortada-,
+porque todo se midio contra el respaldo estatico. Lo que no cubrio ningun criterio
+fue **la misma pantalla contra la API**, y ahi es donde estaba el defecto.
