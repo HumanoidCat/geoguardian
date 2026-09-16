@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 275 puntos · 412.9 horas · 41.3 h por semana en promedio
+**Total asignado:** 285 puntos · 429.3 horas · 42.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 177.6 | 36 | SOBRECARGA +141.6 h |
+| S4 | semanas 10-11 | 194.0 | 36 | SOBRECARGA +158.0 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 177.6 h
+## Sprint 4 (semanas 10-11) — 194.0 h
 
 - [x] **H10.5c** · Redactar el documento IEEE completo (2026-09-14)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -906,6 +906,24 @@
     celda con otro, lo dice. Sin pronostico se dibuja la ausencia.
   - Criterios en `docs/evidencias/computacion-grafica/H15.2-criterios-aceptacion.md`.
   - Toca `frontend/`, y lo declara en el PR.
+
+- [ ] **H10.9** · Guion de demo y tres ensayos completos
+  - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+
+- [ ] **H7.3** · Historial de eventos filtrable y exportable
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+
+- [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
 
 ## Regla: lo hecho no se borra
 
