@@ -461,7 +461,7 @@ function leerRespaldoMediciones() {
  * dibujaria una continuidad que nadie observo. Ver el criterio CA-3 de H7.2.
  */
 export async function obtenerMediciones(codigo, desde, hasta) {
-  const { origen } = await resolverOrigen()
+  const { origen, salud } = await resolverOrigen()
 
   if (origen !== ORIGEN_API) {
     const paquete = await leerRespaldoMediciones()
@@ -482,7 +482,12 @@ export async function obtenerMediciones(codigo, desde, hasta) {
         return fila
       })
 
-    return { filas, ventana: { desde: paquete.desde, hasta: paquete.hasta }, origen }
+    return {
+      filas,
+      ventana: { desde: paquete.desde, hasta: paquete.hasta },
+      origen,
+      simulado: salud.modo === 'simulado',
+    }
   }
 
   const consulta = new URLSearchParams({ desde, hasta })
@@ -501,6 +506,27 @@ export async function obtenerMediciones(codigo, desde, hasta) {
     return fila
   })
 
-  // Contra la API la ventana pedida ES la que se puede servir: no hay tope.
-  return { filas, ventana: { desde, hasta }, origen }
+  // LA VENTANA LA DECLARA EL DATO, NO LA PETICION.
+  //
+  // Aqui decia «contra la API la ventana pedida ES la que se puede servir: no hay
+  // tope», y devolvia `{ desde, hasta }`, o sea la pregunta como si fuera la
+  // respuesta. **Era falso y se veia en el sitio publicado.**
+  //
+  // `GraficaSerie` hace su primera consulta con 1900-01-01 a 2100-01-01
+  // justamente para que el origen declare que tiene -lo dice su propio
+  // comentario-. Con el eco, la ventana declarada era 1900 a 2100, el encuadre
+  // inicial caia en los ultimos noventa dias de esa ventana, y la ficha de cada
+  // distrito abria en **octubre de 2099 con noventa dias sin dato**, bajo un pie
+  // que afirmaba «Datos disponibles del 2099-10-04 al 2100-01-01».
+  //
+  // Nunca se vio en desarrollo porque local servia el respaldo estatico, que si
+  // declara su ventana de verdad. Se vio al poner la API en modo real. I-60.
+  //
+  // Sin filas la ventana es nula y no se inventa: quien la consuma tiene que
+  // distinguir «no hay dato para este distrito» de «hay dato de 1900 a 2100».
+  const ventana = filas.length
+    ? { desde: filas[0].fecha, hasta: filas[filas.length - 1].fecha }
+    : { desde: null, hasta: null }
+
+  return { filas, ventana, origen, simulado: salud.modo === 'simulado' }
 }

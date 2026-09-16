@@ -60,6 +60,18 @@ export default function GraficaSerie({ codigo, nombre }) {
   const [variable, setVariable] = useState(VARIABLES[0])
   const [datos, setDatos] = useState(null)
   const [rango, setRango] = useState(null)
+  // LA VENTANA SE DESCUBRE UNA VEZ Y NO SE VUELVE A TOCAR.
+  //
+  // `datos.ventana` es ahora el tramo que el origen devolvio en ESA consulta, no
+  // el rango pedido (ver I-60 en cliente.js). Eso es lo correcto, pero significa
+  // que al pedir noventa dias la ventana de esa respuesta son esos noventa dias.
+  // Si los `min` y `max` de los selectores salieran de ahi, cada consulta
+  // encogeria los limites y seria imposible volver a mirar hacia atras: el
+  // selector se cerraria sobre si mismo.
+  //
+  // La ventana buena es la de la primera consulta, la de descubrimiento, que
+  // pide de 1900 a 2100 precisamente para averiguar el tramo entero.
+  const [ventana, setVentana] = useState(null)
   const [error, setError] = useState(null)
 
   // NINGUN `setState` SINCRONO EN EL CUERPO DEL EFECTO.
@@ -81,13 +93,27 @@ export default function GraficaSerie({ codigo, nombre }) {
 
     const desde = rango?.desde ?? '1900-01-01'
     const hasta = rango?.hasta ?? '2100-01-01'
+    // La primera consulta es de DESCUBRIMIENTO: sirve para saber que tramo tiene
+    // el origen, no para dibujarse. Contra la API trae la serie entera del
+    // distrito -unas trece mil filas desde 1991- y pintarlas congela la pestana.
+    //
+    // Antes esto no se notaba **por culpa del otro defecto**: la ventana era la
+    // pedida, el encuadre inicial caia en 2099 y la segunda consulta devolvia
+    // cero filas, asi que el lienzo nunca recibia nada. Al arreglar la ventana
+    // apareció lo que el defecto tapaba. I-60.
+    const descubriendo = !rango
 
     obtenerMediciones(codigo, desde, hasta)
       .then((respuesta) => {
         if (!vigente) return
         setError(null)
-        setDatos(respuesta)
-        if (!rango) {
+        setDatos({ ...respuesta, descubriendo })
+        // `hasta` nulo significa que el origen no tiene ninguna fila para este
+        // distrito. Entonces no hay encuadre posible y no se inventa uno: la
+        // pantalla lo dice abajo. Antes esto no podia ocurrir porque la ventana
+        // siempre traia fechas, aunque fueran las pedidas.
+        if (!rango && respuesta.ventana.hasta) {
+          setVentana(respuesta.ventana)
           setRango({
             desde: restarDias(respuesta.ventana.hasta, DIAS_INICIALES - 1),
             hasta: respuesta.ventana.hasta,
@@ -151,7 +177,7 @@ export default function GraficaSerie({ codigo, nombre }) {
           <input
             type="date"
             value={rango?.desde ?? ''}
-            min={datos?.ventana.desde}
+            min={ventana?.desde}
             max={rango?.hasta}
             onChange={(e) => setRango((r) => ({ ...r, desde: e.target.value }))}
           />
@@ -163,7 +189,7 @@ export default function GraficaSerie({ codigo, nombre }) {
             type="date"
             value={rango?.hasta ?? ''}
             min={rango?.desde}
-            max={datos?.ventana.hasta}
+            max={ventana?.hasta}
             onChange={(e) => setRango((r) => ({ ...r, hasta: e.target.value }))}
           />
         </label>
@@ -173,7 +199,11 @@ export default function GraficaSerie({ codigo, nombre }) {
 
       {!error && cargando && !datos && <p className="gs-estado">Cargando la serie...</p>}
 
-      {!error && datos && (
+      {!error && datos?.descubriendo && (
+        <p className="gs-estado">Buscando el tramo con datos de {nombre}...</p>
+      )}
+
+      {!error && datos && !datos.descubriendo && (
         <>
           <div className="gs-lienzo">
             <Suspense fallback={<p className="gs-estado">Cargando la grafica...</p>}>
@@ -187,14 +217,29 @@ export default function GraficaSerie({ codigo, nombre }) {
           </p>
 
           <p className="gs-pie gs-ventana">
-            Datos disponibles del {datos.ventana.desde} al {datos.ventana.hasta}
+            {ventana ? (
+              <>
+                Datos disponibles del {ventana.desde} al {ventana.hasta}
+              </>
+            ) : (
+              <>El origen no tiene ninguna medicion para este distrito</>
+            )}
             {datos.origen === ORIGEN_ESTATICO && ' · respaldo estatico, sin API'}.
           </p>
 
-          <p className="gs-simulado">
-            SERIE SIMULADA. Los valores los sortea el simulado de forma determinista;
-            no son observaciones reales.
-          </p>
+          {/* LA BANDA SOLO SI EL DATO ES SIMULADO DE VERDAD.
+              Estaba sin ninguna condicion: se dibujaba siempre. Con la API en
+              modo real eso declaraba inventadas unas observaciones medidas de
+              PostgreSQL, que es la mentira contraria a la de I-41 y en la misma
+              pantalla. El origen no sirve como senal -la API puede responder con
+              el simulado detras-, asi que se pregunta por `modo`, que es lo que
+              el resto del visor ya usa. I-60. */}
+          {datos.simulado && (
+            <p className="gs-simulado">
+              SERIE SIMULADA. Los valores los sortea el simulado de forma determinista;
+              no son observaciones reales.
+            </p>
+          )}
         </>
       )}
     </section>
