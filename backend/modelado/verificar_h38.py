@@ -11,6 +11,7 @@ la evidencia.
 
 from __future__ import annotations
 
+import ast
 import sys
 from pathlib import Path
 
@@ -293,11 +294,46 @@ def verificar() -> Criterios:
         " / ".join(fuera_de_rejilla),
     )
 
+    # ESTO SE CONTABA CON UNA SUBCADENA. Ver I-58.
+    #
+    # Decia `fuente.count("fabricas(") >= 2`. El criterio afirma que la tabla y el
+    # escritor salen por la MISMA puerta, y contar dos apariciones del nombre no
+    # dice nada de eso: **dos llamadas a `fabricas()` con argumentos distintos
+    # -evaluar un conjunto y escribir con otro, que es justo lo que este criterio
+    # existe para impedir- cumplen el conteo igual**.
+    #
+    # Ahora se leen las llamadas del AST y se comparan sus argumentos. Si las dos
+    # puertas no reciben lo mismo, no son la misma puerta.
     fuente = (RAIZ / "backend" / "modelado" / "estimar_riesgo.py").read_text(encoding="utf-8")
+    arbol = ast.parse(fuente)
+
+    llamadas = [
+        nodo
+        for nodo in ast.walk(arbol)
+        if isinstance(nodo, ast.Call)
+        and (
+            (isinstance(nodo.func, ast.Name) and nodo.func.id == "fabricas")
+            or (isinstance(nodo.func, ast.Attribute) and nodo.func.attr == "fabricas")
+        )
+    ]
+    firmas = {
+        ast.unparse(ast.Call(func=ast.Name(id="f"), args=c.args, keywords=c.keywords))
+        for c in llamadas
+    }
+    usa_la_otra_puerta = any(
+        isinstance(n, ast.Call)
+        and (
+            (isinstance(n.func, ast.Name) and n.func.id == "estimadores_disponibles")
+            or (isinstance(n.func, ast.Attribute) and n.func.attr == "estimadores_disponibles")
+        )
+        for n in ast.walk(arbol)
+    )
     r.comprobar(
         "la tuberia arma la tabla y el escritor por la MISMA puerta: nadie evalua uno y escribe otro",
-        fuente.count("fabricas(") >= 2 and "estimadores_disponibles(" not in fuente,
-        "estimar_riesgo.py deberia usar afinar.fabricas() en los dos sitios",
+        len(llamadas) >= 2 and len(firmas) == 1 and not usa_la_otra_puerta,
+        f"{len(llamadas)} llamadas a fabricas() con {len(firmas)} forma(s) de argumentos: "
+        f"{sorted(firmas)}. estimadores_disponibles(): {usa_la_otra_puerta}. "
+        "Las dos puertas tienen que recibir lo mismo",
     )
 
     return r
