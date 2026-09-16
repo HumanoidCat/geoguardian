@@ -1,183 +1,183 @@
-<svg width="816pt" height="612pt"
- viewBox="0.00 0.00 816.20 612.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 590.6)">
+<svg width="818pt" height="628pt"
+ viewBox="0.00 0.00 818.00 628.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 606.73)">
 <title>componentes</title>
-<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-590.6 794.6,-590.6 794.6,21.6 -21.6,21.6"/>
+<polygon fill="white" stroke="none" points="-21.6,21.6 -21.6,-606.73 796.6,-606.73 796.6,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_pres</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M20,-375C20,-375 578,-375 578,-375 584,-375 590,-381 590,-387 590,-387 590,-549 590,-549 590,-555 584,-561 578,-561 578,-561 20,-561 20,-561 14,-561 8,-555 8,-549 8,-549 8,-387 8,-387 8,-381 14,-375 20,-375"/>
-<text text-anchor="middle" x="48" y="-548.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Presentacion</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M20,-386.07C20,-386.07 580,-386.07 580,-386.07 586,-386.07 592,-392.07 592,-398.07 592,-398.07 592,-565.13 592,-565.13 592,-571.13 586,-577.13 580,-577.13 580,-577.13 20,-577.13 20,-577.13 14,-577.13 8,-571.13 8,-565.13 8,-565.13 8,-398.07 8,-398.07 8,-392.07 14,-386.07 20,-386.07"/>
+<text xml:space="preserve" text-anchor="middle" x="47.5" y="-562.68" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Presentacion</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_serv</title>
-<path fill="#e6eef7" stroke="#b9c0c8" d="M441,-127.5C441,-127.5 575,-127.5 575,-127.5 581,-127.5 587,-133.5 587,-139.5 587,-139.5 587,-325 587,-325 587,-331 581,-337 575,-337 575,-337 441,-337 441,-337 435,-337 429,-331 429,-325 429,-325 429,-139.5 429,-139.5 429,-133.5 435,-127.5 441,-127.5"/>
-<text text-anchor="middle" x="456.5" y="-324.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Servicio</text>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M443,-129.76C443,-129.76 577,-129.76 577,-129.76 583,-129.76 589,-135.76 589,-141.76 589,-141.76 589,-335.32 589,-335.32 589,-341.32 583,-347.32 577,-347.32 577,-347.32 443,-347.32 443,-347.32 437,-347.32 431,-341.32 431,-335.32 431,-335.32 431,-141.76 431,-141.76 431,-135.76 437,-129.76 443,-129.76"/>
+<text xml:space="preserve" text-anchor="middle" x="458.12" y="-332.87" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Servicio</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_dom</title>
-<path fill="#efe8f4" stroke="#b9c0c8" d="M607,-10C607,-10 753,-10 753,-10 759,-10 765,-16 765,-22 765,-22 765,-208 765,-208 765,-214 759,-220 753,-220 753,-220 607,-220 607,-220 601,-220 595,-214 595,-208 595,-208 595,-22 595,-22 595,-16 601,-10 607,-10"/>
-<text text-anchor="middle" x="623" y="-207.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Dominio</text>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M609,-9.74C609,-9.74 755,-9.74 755,-9.74 761,-9.74 767,-15.74 767,-21.74 767,-21.74 767,-214.54 767,-214.54 767,-220.54 761,-226.54 755,-226.54 755,-226.54 609,-226.54 609,-226.54 603,-226.54 597,-220.54 597,-214.54 597,-214.54 597,-21.74 597,-21.74 597,-15.74 603,-9.74 609,-9.74"/>
+<text xml:space="preserve" text-anchor="middle" x="624.88" y="-212.09" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Dominio</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_datos</title>
-<path fill="#e8f0e4" stroke="#b9c0c8" d="M285,-8C285,-8 409,-8 409,-8 415,-8 421,-14 421,-20 421,-20 421,-197 421,-197 421,-203 415,-209 409,-209 409,-209 285,-209 285,-209 279,-209 273,-203 273,-197 273,-197 273,-20 273,-20 273,-14 279,-8 285,-8"/>
-<text text-anchor="middle" x="295" y="-196.2" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Datos</text>
+<path fill="#e8f0e4" stroke="#b9c0c8" d="M287,-8C287,-8 411,-8 411,-8 417,-8 423,-14 423,-20 423,-20 423,-202.54 423,-202.54 423,-208.54 417,-214.54 411,-214.54 411,-214.54 287,-214.54 287,-214.54 281,-214.54 275,-208.54 275,-202.54 275,-202.54 275,-20 275,-20 275,-14 281,-8 287,-8"/>
+<text xml:space="preserve" text-anchor="middle" x="297.25" y="-200.09" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Datos</text>
 </g>
 <!-- visor -->
 <g id="node1" class="node">
 <title>visor</title>
-<polygon fill="white" stroke="#b9c0c8" points="327,-533 235,-533 235,-493 327,-493 327,-533"/>
-<text text-anchor="middle" x="281" y="-516" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="281" y="-505" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Visor React</text>
+<polygon fill="white" stroke="#b9c0c8" points="328.27,-547.63 235.72,-547.63 235.72,-506.35 328.27,-506.35 328.27,-547.63"/>
+<text xml:space="preserve" text-anchor="middle" x="282" y="-529.49" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="282" y="-517.49" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Visor React</text>
 </g>
 <!-- mapa -->
 <g id="node2" class="node">
 <title>mapa</title>
-<polygon fill="white" stroke="#b9c0c8" points="108,-434 16,-434 16,-383 108,-383 108,-434"/>
-<text text-anchor="middle" x="62" y="-417" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="62" y="-406" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">MapaCanton</text>
-<text text-anchor="middle" x="62" y="-395" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Leaflet</text>
+<polygon fill="white" stroke="#b9c0c8" points="108.28,-447.35 15.73,-447.35 15.73,-394.07 108.28,-394.07 108.28,-447.35"/>
+<text xml:space="preserve" text-anchor="middle" x="62" y="-429.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="62" y="-417.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">MapaCanton</text>
+<text xml:space="preserve" text-anchor="middle" x="62" y="-405.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Leaflet</text>
 </g>
 <!-- visor&#45;&gt;mapa -->
 <g id="edge1" class="edge">
 <title>visor&#45;&gt;mapa</title>
-<path fill="none" stroke="#5b636d" d="M234.82,-513C170.57,-513 62,-513 62,-513 62,-513 62,-465 62,-434.06"/>
+<path fill="none" stroke="#5b636d" d="M235.34,-527C170.76,-527 62,-527 62,-527 62,-527 62,-479.3 62,-447.81"/>
 </g>
 <!-- semaforo -->
 <g id="node3" class="node">
 <title>semaforo</title>
-<polygon fill="white" stroke="#b9c0c8" points="262,-434 144,-434 144,-383 262,-383 262,-434"/>
-<text text-anchor="middle" x="203" y="-417" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="203" y="-406" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">TableroSemaforo</text>
-<text text-anchor="middle" x="203" y="-395" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">tres eventos &#160;· &#160;H7.1</text>
+<polygon fill="white" stroke="#b9c0c8" points="263.4,-447.35 144.6,-447.35 144.6,-394.07 263.4,-394.07 263.4,-447.35"/>
+<text xml:space="preserve" text-anchor="middle" x="204" y="-429.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="204" y="-417.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">TableroSemaforo</text>
+<text xml:space="preserve" text-anchor="middle" x="204" y="-405.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">tres eventos &#160;· &#160;H7.1</text>
 </g>
 <!-- visor&#45;&gt;semaforo -->
 <g id="edge2" class="edge">
 <title>visor&#45;&gt;semaforo</title>
-<path fill="none" stroke="#5b636d" d="M248.5,-492.85C248.5,-476.13 248.5,-452.24 248.5,-434.15"/>
+<path fill="none" stroke="#5b636d" d="M249.56,-505.99C249.56,-489.3 249.56,-465.82 249.56,-447.72"/>
 </g>
 <!-- ficha -->
 <g id="node4" class="node">
 <title>ficha</title>
-<polygon fill="white" stroke="#b9c0c8" points="418,-434 298,-434 298,-383 418,-383 418,-434"/>
-<text text-anchor="middle" x="358" y="-417" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="358" y="-406" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">PanelDistrito</text>
-<text text-anchor="middle" x="358" y="-395" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">coordenadas &#160;· &#160;H5.6</text>
+<polygon fill="white" stroke="#b9c0c8" points="420.15,-447.35 299.85,-447.35 299.85,-394.07 420.15,-394.07 420.15,-447.35"/>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-429.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-417.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">PanelDistrito</text>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-405.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">coordenadas &#160;· &#160;H5.6</text>
 </g>
 <!-- visor&#45;&gt;ficha -->
 <g id="edge3" class="edge">
 <title>visor&#45;&gt;ficha</title>
-<path fill="none" stroke="#5b636d" d="M312.5,-492.85C312.5,-476.13 312.5,-452.24 312.5,-434.15"/>
+<path fill="none" stroke="#5b636d" d="M314.06,-505.99C314.06,-489.3 314.06,-465.82 314.06,-447.72"/>
 </g>
 <!-- cliente -->
 <g id="node5" class="node">
 <title>cliente</title>
-<polygon fill="white" stroke="#b9c0c8" points="582,-434 454,-434 454,-383 582,-383 582,-434"/>
-<text text-anchor="middle" x="518" y="-417" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="518" y="-406" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Cliente de datos</text>
-<text text-anchor="middle" x="518" y="-395" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">negocia origen &#160;· &#160;D&#45;23</text>
+<polygon fill="white" stroke="#b9c0c8" points="583.9,-447.35 456.1,-447.35 456.1,-394.07 583.9,-394.07 583.9,-447.35"/>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-429.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-417.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Cliente de datos</text>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-405.21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">negocia origen &#160;· &#160;D&#45;23</text>
 </g>
 <!-- visor&#45;&gt;cliente -->
 <g id="edge4" class="edge">
 <title>visor&#45;&gt;cliente</title>
-<path fill="none" stroke="#5b636d" d="M327.26,-513C396.23,-513 518,-513 518,-513 518,-513 518,-465 518,-434.06"/>
+<path fill="none" stroke="#5b636d" d="M328.74,-527C398.05,-527 520,-527 520,-527 520,-527 520,-479.3 520,-447.81"/>
 </g>
 <!-- api -->
 <g id="node6" class="node">
 <title>api</title>
-<polygon fill="white" stroke="#b9c0c8" points="570,-309 466,-309 466,-258 570,-258 570,-309"/>
-<text text-anchor="middle" x="518" y="-292" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="518" y="-281" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API FastAPI</text>
-<text text-anchor="middle" x="518" y="-270" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">OpenAPI &#160;· &#160;H6.1</text>
+<polygon fill="white" stroke="#b9c0c8" points="572.27,-317.82 467.73,-317.82 467.73,-264.54 572.27,-264.54 572.27,-317.82"/>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-299.68" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-287.68" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API FastAPI</text>
+<text xml:space="preserve" text-anchor="middle" x="520" y="-275.68" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">OpenAPI &#160;· &#160;H6.1</text>
 </g>
 <!-- cliente&#45;&gt;api -->
 <g id="edge5" class="edge">
 <title>cliente&#45;&gt;api</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M518,-382.9C518,-382.9 518,-316.06 518,-316.06"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="520.45,-316.06 518,-309.06 515.55,-316.06 520.45,-316.06"/>
-<text text-anchor="middle" x="548.5" y="-347.6" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">HTTP &#160;· &#160;/riesgos</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M520,-393.87C520,-393.87 520,-326.5 520,-326.5"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="522.45,-326.5 520,-319.5 517.55,-326.5 522.45,-326.5"/>
+<text xml:space="preserve" text-anchor="middle" x="550.75" y="-357.47" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">HTTP &#160;· &#160;/riesgos</text>
 </g>
 <!-- repositorio -->
 <g id="node7" class="node">
 <title>repositorio</title>
-<polygon fill="white" stroke="#b9c0c8" points="579,-186.5 437,-186.5 437,-135.5 579,-135.5 579,-186.5"/>
-<text text-anchor="middle" x="508" y="-169.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="508" y="-158.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Repositorio</text>
-<text text-anchor="middle" x="508" y="-147.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">patron Repository &#160;· &#160;H6.2</text>
+<polygon fill="white" stroke="#b9c0c8" points="581.02,-191.04 438.98,-191.04 438.98,-137.76 581.02,-137.76 581.02,-191.04"/>
+<text xml:space="preserve" text-anchor="middle" x="510" y="-172.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="510" y="-160.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Repositorio</text>
+<text xml:space="preserve" text-anchor="middle" x="510" y="-148.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">patron Repository &#160;· &#160;H6.2</text>
 </g>
 <!-- api&#45;&gt;repositorio -->
 <g id="edge6" class="edge">
 <title>api&#45;&gt;repositorio</title>
-<path fill="none" stroke="#5b636d" d="M518,-257.82C518,-257.82 518,-193.65 518,-193.65"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="520.45,-193.65 518,-186.65 515.55,-193.65 520.45,-193.65"/>
+<path fill="none" stroke="#5b636d" d="M520,-264.29C520,-264.29 520,-199.76 520,-199.76"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="522.45,-199.76 520,-192.76 517.55,-199.76 522.45,-199.76"/>
 </g>
 <!-- contratos -->
 <g id="node8" class="node">
 <title>contratos</title>
-<polygon fill="white" stroke="#b9c0c8" points="756.5,-69 603.5,-69 603.5,-18 756.5,-18 756.5,-69"/>
-<text text-anchor="middle" x="680" y="-52" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="680" y="-41" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Contratos</text>
-<text text-anchor="middle" x="680" y="-30" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Protocol congelados &#160;· &#160;D&#45;06</text>
+<polygon fill="white" stroke="#b9c0c8" points="758.65,-71.02 605.35,-71.02 605.35,-17.74 758.65,-17.74 758.65,-71.02"/>
+<text xml:space="preserve" text-anchor="middle" x="682" y="-52.88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="682" y="-40.88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Contratos</text>
+<text xml:space="preserve" text-anchor="middle" x="682" y="-28.88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Protocol congelados &#160;· &#160;D&#45;06</text>
 </g>
 <!-- api&#45;&gt;contratos -->
 <g id="edge10" class="edge">
 <title>api&#45;&gt;contratos</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M570.02,-283C590.51,-283 609.25,-283 609.25,-283 609.25,-283 609.25,-76.13 609.25,-76.13"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="611.7,-76.13 609.25,-69.13 606.8,-76.13 611.7,-76.13"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M572.57,-291C592.87,-291 611.29,-291 611.29,-291 611.29,-291 611.29,-79.76 611.29,-79.76"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="613.74,-79.76 611.29,-72.76 608.84,-79.76 613.74,-79.76"/>
 </g>
 <!-- base -->
 <g id="node11" class="node">
 <title>base</title>
-<path fill="white" stroke="#b9c0c8" d="M412.5,-66C412.5,-68.76 383.14,-71 347,-71 310.86,-71 281.5,-68.76 281.5,-66 281.5,-66 281.5,-21 281.5,-21 281.5,-18.24 310.86,-16 347,-16 383.14,-16 412.5,-18.24 412.5,-21 412.5,-21 412.5,-66 412.5,-66"/>
-<path fill="none" stroke="#b9c0c8" d="M412.5,-66C412.5,-63.24 383.14,-61 347,-61 310.86,-61 281.5,-63.24 281.5,-66"/>
-<text text-anchor="middle" x="347" y="-46.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«base de datos»</text>
-<text text-anchor="middle" x="347" y="-35.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">PostgreSQL + PostGIS</text>
+<path fill="white" stroke="#b9c0c8" d="M414.77,-67.6C414.77,-70.45 385.29,-72.76 349,-72.76 312.71,-72.76 283.23,-70.45 283.23,-67.6 283.23,-67.6 283.23,-21.16 283.23,-21.16 283.23,-18.31 312.71,-16 349,-16 385.29,-16 414.77,-18.31 414.77,-21.16 414.77,-21.16 414.77,-67.6 414.77,-67.6"/>
+<path fill="none" stroke="#b9c0c8" d="M414.77,-67.6C414.77,-64.75 385.29,-62.44 349,-62.44 312.71,-62.44 283.23,-64.75 283.23,-67.6"/>
+<text xml:space="preserve" text-anchor="middle" x="349" y="-46.88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«base de datos»</text>
+<text xml:space="preserve" text-anchor="middle" x="349" y="-34.88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">PostgreSQL + PostGIS</text>
 </g>
 <!-- repositorio&#45;&gt;base -->
 <g id="edge7" class="edge">
 <title>repositorio&#45;&gt;base</title>
-<path fill="none" stroke="#5b636d" d="M436.98,-154C419.54,-154 405.75,-154 405.75,-154 405.75,-154 405.75,-76.41 405.75,-76.41"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="408.2,-76.41 405.75,-69.41 403.3,-76.41 408.2,-76.41"/>
+<path fill="none" stroke="#5b636d" d="M438.62,-158C421.48,-158 408.02,-158 408.02,-158 408.02,-158 408.02,-79.82 408.02,-79.82"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="410.48,-79.82 408.03,-72.82 405.58,-79.82 410.48,-79.82"/>
 </g>
 <!-- modelado -->
 <g id="node9" class="node">
 <title>modelado</title>
-<polygon fill="white" stroke="#b9c0c8" points="735,-192 615,-192 615,-130 735,-130 735,-192"/>
-<text text-anchor="middle" x="675" y="-175" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="675" y="-164" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Modelado</text>
-<text text-anchor="middle" x="675" y="-153" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">etiquetado, particion,</text>
-<text text-anchor="middle" x="675" y="-142" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">comparacion</text>
+<polygon fill="white" stroke="#b9c0c8" points="736.77,-197.04 617.23,-197.04 617.23,-131.76 736.77,-131.76 736.77,-197.04"/>
+<text xml:space="preserve" text-anchor="middle" x="677" y="-178.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="677" y="-166.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Modelado</text>
+<text xml:space="preserve" text-anchor="middle" x="677" y="-154.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">etiquetado, particion,</text>
+<text xml:space="preserve" text-anchor="middle" x="677" y="-142.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">comparacion</text>
 </g>
 <!-- modelado&#45;&gt;contratos -->
 <g id="edge11" class="edge">
 <title>modelado&#45;&gt;contratos</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M675,-129.82C675,-129.82 675,-76.27 675,-76.27"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="677.45,-76.27 675,-69.27 672.55,-76.27 677.45,-76.27"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M677,-131.29C677,-131.29 677,-79.84 677,-79.84"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="679.45,-79.84 677,-72.84 674.55,-79.84 679.45,-79.84"/>
 </g>
 <!-- modelado&#45;&gt;base -->
 <g id="edge8" class="edge">
 <title>modelado&#45;&gt;base</title>
-<path fill="none" stroke="#5b636d" d="M614.79,-161C602.25,-161 592.75,-161 592.75,-161 592.75,-161 592.75,-35 592.75,-35 592.75,-35 419.53,-35 419.53,-35"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="419.53,-32.55 412.53,-35 419.53,-37.45 419.53,-32.55"/>
+<path fill="none" stroke="#5b636d" d="M617.13,-164C604.36,-164 594.62,-164 594.62,-164 594.62,-164 594.62,-53 594.62,-53 594.62,-53 423.66,-53 423.66,-53"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="423.66,-50.55 416.66,-53 423.66,-55.45 423.66,-50.55"/>
 </g>
 <!-- etl -->
 <g id="node10" class="node">
 <title>etl</title>
-<polygon fill="white" stroke="#b9c0c8" points="399,-181 307,-181 307,-141 399,-141 399,-181"/>
-<text text-anchor="middle" x="353" y="-164" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
-<text text-anchor="middle" x="353" y="-153" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ETL</text>
+<polygon fill="white" stroke="#b9c0c8" points="401.27,-185.04 308.73,-185.04 308.73,-143.76 401.27,-143.76 401.27,-185.04"/>
+<text xml:space="preserve" text-anchor="middle" x="355" y="-166.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«componente»</text>
+<text xml:space="preserve" text-anchor="middle" x="355" y="-154.9" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ETL</text>
 </g>
 <!-- etl&#45;&gt;contratos -->
 <g id="edge12" class="edge">
 <title>etl&#45;&gt;contratos</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M399.33,-167C414.49,-167 427.5,-167 427.5,-167 427.5,-167 427.5,-52 427.5,-52 427.5,-52 596.21,-52 596.21,-52"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="596.21,-54.45 603.21,-52 596.21,-49.55 596.21,-54.45"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M401.37,-171C416.54,-171 429.56,-171 429.56,-171 429.56,-171 429.56,-36 429.56,-36 429.56,-36 596.38,-36 596.38,-36"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="596.38,-38.45 603.38,-36 596.38,-33.55 596.38,-38.45"/>
 </g>
 <!-- etl&#45;&gt;base -->
 <g id="edge9" class="edge">
 <title>etl&#45;&gt;base</title>
-<path fill="none" stroke="#5b636d" d="M353,-140.8C353,-140.8 353,-78.34 353,-78.34"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="355.45,-78.34 353,-71.34 350.55,-78.34 355.45,-78.34"/>
+<path fill="none" stroke="#5b636d" d="M355,-143.49C355,-143.49 355,-81.65 355,-81.65"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="357.45,-81.65 355,-74.65 352.55,-81.65 357.45,-81.65"/>
 </g>
 </g>
 </svg>

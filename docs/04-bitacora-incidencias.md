@@ -4724,3 +4724,129 @@ no las demas- aplicada a los controles en vez de a los numeros.
 **Lo que este barrido NO cubre.** Se busco **una** forma de defecto. Que un
 verificador no la tenga no quiere decir que su criterio este bien medido; quiere
 decir que no falla de esta manera.
+
+---
+
+## I-59 · El documento muestra los PNG, y los PNG no los revisaba nadie
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** Alejandro, preparando el Pull Request de los seis SVG con
+deriva de version de Graphviz. Al listar `docs/diagramas/` para ver que entraba,
+las fechas de los PNG no cuadraban con las de los SVG.
+
+**Que paso.** Los siete diagramas existen dos veces: como **SVG**, versionado, y
+como **PNG**, excluido en `.gitignore` porque es un artefacto.
+
+Todo el control esta puesto sobre el SVG. `verificar_diagramas.py` corre en
+integracion continua con diez comprobaciones, CA-1 a CA-9, y todas miran el SVG. La revision de
+un Pull Request mira el SVG, que es texto y se lee en el diff.
+
+**Y el documento no muestra el SVG.**
+
+    docs/17-documento-tecnico.md    7 veces   ![...](diagramas/*.png)
+    docs/16-avance-semana8.md       6 veces   ![...](diagramas/*.png)
+
+De modo que el archivo que se revisa no es el que se lee, y el que se lee no lo
+miraba ningun control. Es la forma de I-04 -una copia que se desactualiza- pero
+montada sobre el mismisimo generador que se escribio para que I-04 no volviera a
+pasar. El `README.md` de la carpeta llegaba a afirmarlo: *"no hay copia que se
+desactualice porque no hay dos lugares donde vivan"*. Habia dos.
+
+### La medicion
+
+Para cada PNG se tomo su fecha de escritura y se comparo el **texto** del SVG tal
+como estaba en el ultimo commit anterior a esa fecha contra el texto del SVG de
+hoy. Solo texto: si las palabras cambiaron, el dibujo dice otra cosa.
+
+| Diagrama | PNG escrito | El SVG de entonces |
+|---|---|---|
+| `componentes` | 2026-08-29 | **33 textos contra 36** |
+| `secuencia-consulta-riesgo` | 2026-08-29 | **distinto** |
+| `entidad-relacion` | 2026-09-15 | igual |
+| `casos-de-uso` | 2026-09-03 | sin commit anterior a esa fecha |
+| `despliegue`, `flujo-datos`, `flujo-modelado` | 2026-08-29 | sin commit anterior a esa fecha |
+
+Lo que le falta a `componentes.png`, que el documento tecnico incrusta en su
+linea 210 y el avance en su linea 99:
+
+    falta:  PanelDistrito
+    falta:  TableroSemaforo
+    falta:  HTTP  ·  /riesgos
+    falta:  coordenadas  ·  H5.6
+    sobra:  HTTP  ·  /riesgo
+
+Y lo que dice `secuencia-consulta-riesgo.png`:
+
+    sobra:  GET /riesgo?evento=&fecha=
+    falta:  GET /riesgos?evento=&fecha=
+
+**`GET /riesgo` contra una API que expone `/riesgos` es el defecto que hizo nacer
+a CA-6.** Esta escrito en el encabezado de `verificar_diagramas.py`. Se corrigio
+el 2026-09-02, en el commit `2ecaa3d`, cuyo mensaje es *"H6.5: los diagramas dejan
+de mentir, y ahora hay quien lo compruebe"*. Se corrigio en el SVG. Catorce dias
+despues seguia en pie en los dos archivos que muestra el documento.
+
+Las cuatro filas de *"sin commit anterior a esa fecha"* no son una absolucion:
+quieren decir que el PNG es anterior al primer estado versionado de su SVG, o sea
+que no hay con que compararlo. No hay evidencia de que coincidan.
+
+### Dos cosas que conviene no perder de vista
+
+**Las fechas son de la maquina de Alejandro.** Los PNG no viajan, asi que esta
+tabla no se puede reproducir desde el repositorio: cada quien tiene los suyos.
+Eso empeora el defecto en lugar de acotarlo, porque **no existe un PNG
+autoritativo**: el documento sale distinto segun quien lo arme.
+
+**`--png` era una cosa que habia que acordarse.** El PNG solo se escribia con la
+bandera. Quien regeneraba sin ella dejaba el SVG al dia y el PNG viejo en disco,
+sin ningun aviso. Ese es el modo de fallo, y el proyecto ya tiene escrito -I-25,
+I-50- que un arreglo que depende de que alguien se acuerde no es un arreglo.
+
+### El arreglo
+
+1. **El olvido deja de ser posible.** `generar_diagramas.py` rehace todo PNG que
+   ya exista en disco, con bandera o sin ella. `--png` pasa a querer decir
+   *creamelos la primera vez*.
+2. **El olvido, si ocurre igual, se ve.** Nueva **CA-10** en
+   `verificar_diagramas.py`: cada PNG en disco tiene que salir del SVG de hoy. No
+   compara fechas -`git checkout` reescribe la fecha de un archivo sin que su
+   contenido cambie, y un control que se dispara por lo que no busca es I-13-,
+   sino la huella `sha256` que el generador graba en
+   `docs/diagramas/.origen-png.json` al escribir cada PNG. La huella normaliza los
+   saltos de linea, porque si no diria cosas distintas en Windows y en Ubuntu para
+   el mismo par de archivos, que es I-56.
+3. **CA-10 no mira ningun archivo en integracion continua**, y el verificador lo
+   imprime: el runner clona el repositorio y ahi no hay PNG. Sirve donde el
+   defecto puede existir, que es la maquina de quien arma el documento. Se declara
+   porque la leccion de I-58 es que una comprobacion vacia que no dice cuantos
+   elementos miro se lee como verde ganado.
+4. **El PNG deja de depender de una libreria que nadie declaro.** Al ir a
+   rehacerlos se midio que `cairosvg` -lo unico que sabia convertir el SVG a
+   PNG- **no estaba instalado en el entorno del proyecto ni nombrado en ningun
+   `requirements`**. Solo vivia en prosa, en el README de la carpeta. Pedir
+   `--png` escribia los siete SVG, imprimia una linea a mitad de la salida y no
+   hacia ni un PNG, con codigo de salida 0.
+
+   Seis de los siete diagramas los dibuja Graphviz, y Graphviz emite PNG:
+   `dot -Tpng -Gdpi=192` sale del **mismo DOT** que el SVG, con la herramienta
+   que el proyecto ya exige. Una dependencia menos, y un paso de conversion
+   menos entre la fuente y lo que se imprime.
+
+   El septimo, `secuencia-consulta-riesgo`, es SVG escrito a mano y no tiene DOT.
+   Ese sigue necesitando un rasterizador. Si falta, **se nombra al final, en voz
+   alta, y con `--png` se sale con codigo 1**: un no-hacer-nada silencioso es la
+   forma de esta misma incidencia, y repetirla dentro de su arreglo seria comico.
+5. Los siete PNG se rehacen antes de armar el documento de la feria.
+
+**Sabotaje.** CA-10 se probo contra siete escenarios fabricados antes de darla por
+buena: sin PNG (cero, el caso del CI), PNG al dia, **SVG cambiado sin rehacer el
+PNG**, PNG sin huella registrada -que es el caso de agosto que abrio esta
+incidencia-, registro ilegible, el mismo SVG con saltos de linea de Windows, y un
+PNG borrado a mano con su huella vieja detras. Los tres del medio caen, los otros
+cuatro pasan.
+
+**Lo que este arreglo NO hace.** No versiona los PNG. Versionarlos los pondria en
+el diff, pero un binario en un diff no se revisa: seguirian sin mirarse, y son
+casi dos megabytes que cambiarian entera cada vez que alguien regenera. Tampoco comprueba que el PNG **se vea** bien: comprueba que salio del SVG
+que hay hoy. Que el SVG sea correcto es lo que hacen CA-1 a CA-9.

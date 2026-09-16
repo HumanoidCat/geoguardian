@@ -1,208 +1,208 @@
-<svg width="1030pt" height="442pt"
- viewBox="0.00 0.00 1030.20 441.70" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 420.1)">
+<svg width="1031pt" height="518pt"
+ viewBox="0.00 0.00 1031.00 518.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 496.8)">
 <title>flujo_datos</title>
-<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-420.1 1008.6,-420.1 1008.6,21.6 -21.6,21.6"/>
+<polygon fill="white" stroke="none" points="-21.6,21.6 -21.6,-496.8 1009.7,-496.8 1009.7,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_fuentes</title>
-<path fill="#f2f2f4" stroke="#b9c0c8" d="M20,-69.5C20,-69.5 161,-69.5 161,-69.5 167,-69.5 173,-75.5 173,-81.5 173,-81.5 173,-378.5 173,-378.5 173,-384.5 167,-390.5 161,-390.5 161,-390.5 20,-390.5 20,-390.5 14,-390.5 8,-384.5 8,-378.5 8,-378.5 8,-81.5 8,-81.5 8,-75.5 14,-69.5 20,-69.5"/>
-<text text-anchor="middle" x="90.5" y="-377.7" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Fuentes abiertas &#160;· &#160;D&#45;01, D&#45;15</text>
+<path fill="#f2f2f4" stroke="#b9c0c8" d="M19.59,-133.2C19.59,-133.2 161.59,-133.2 161.59,-133.2 167.59,-133.2 173.59,-139.2 173.59,-145.2 173.59,-145.2 173.59,-455.2 173.59,-455.2 173.59,-461.2 167.59,-467.2 161.59,-467.2 161.59,-467.2 19.59,-467.2 19.59,-467.2 13.59,-467.2 7.59,-461.2 7.59,-455.2 7.59,-455.2 7.59,-145.2 7.59,-145.2 7.59,-139.2 13.59,-133.2 19.59,-133.2"/>
+<text xml:space="preserve" text-anchor="middle" x="90.59" y="-452.75" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Fuentes abiertas &#160;· &#160;D&#45;01, D&#45;15</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_base</title>
-<path fill="#e6eef7" stroke="#b9c0c8" d="M422,-108.5C422,-108.5 559,-108.5 559,-108.5 565,-108.5 571,-114.5 571,-120.5 571,-120.5 571,-338.5 571,-338.5 571,-344.5 565,-350.5 559,-350.5 559,-350.5 422,-350.5 422,-350.5 416,-350.5 410,-344.5 410,-338.5 410,-338.5 410,-120.5 410,-120.5 410,-114.5 416,-108.5 422,-108.5"/>
-<text text-anchor="middle" x="490.5" y="-337.7" font-family="Helvetica,Arial,sans-serif" font-size="11.00">PostgreSQL 16 + PostGIS 3.4</text>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M423,-123.2C423,-123.2 560.51,-123.2 560.51,-123.2 566.51,-123.2 572.51,-129.2 572.51,-135.2 572.51,-135.2 572.51,-363.2 572.51,-363.2 572.51,-369.2 566.51,-375.2 560.51,-375.2 560.51,-375.2 423,-375.2 423,-375.2 417,-375.2 411,-369.2 411,-363.2 411,-363.2 411,-135.2 411,-135.2 411,-129.2 417,-123.2 423,-123.2"/>
+<text xml:space="preserve" text-anchor="middle" x="491.75" y="-360.75" font-family="Helvetica,Arial,sans-serif" font-size="11.00">PostgreSQL 16 + PostGIS 3.4</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_modelo</title>
-<path fill="#efe8f4" stroke="#b9c0c8" d="M653.5,-223.5C653.5,-223.5 967,-223.5 967,-223.5 973,-223.5 979,-229.5 979,-235.5 979,-235.5 979,-295.5 979,-295.5 979,-301.5 973,-307.5 967,-307.5 967,-307.5 653.5,-307.5 653.5,-307.5 647.5,-307.5 641.5,-301.5 641.5,-295.5 641.5,-295.5 641.5,-235.5 641.5,-235.5 641.5,-229.5 647.5,-223.5 653.5,-223.5"/>
-<text text-anchor="middle" x="702" y="-294.7" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Modelado &#160;· &#160;epica E3</text>
+<path fill="#efe8f4" stroke="#b9c0c8" d="M655.76,-230.2C655.76,-230.2 968.1,-230.2 968.1,-230.2 974.1,-230.2 980.1,-236.2 980.1,-242.2 980.1,-242.2 980.1,-306.2 980.1,-306.2 980.1,-312.2 974.1,-318.2 968.1,-318.2 968.1,-318.2 655.76,-318.2 655.76,-318.2 649.76,-318.2 643.76,-312.2 643.76,-306.2 643.76,-306.2 643.76,-242.2 643.76,-242.2 643.76,-236.2 649.76,-230.2 655.76,-230.2"/>
+<text xml:space="preserve" text-anchor="middle" x="704.26" y="-303.75" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Modelado &#160;· &#160;epica E3</text>
 </g>
 <!-- chirps -->
 <g id="node1" class="node">
 <title>chirps</title>
-<path fill="white" stroke="#b9c0c8" d="M138,-362C138,-362 43,-362 43,-362 37,-362 31,-356 31,-350 31,-350 31,-327 31,-327 31,-321 37,-315 43,-315 43,-315 138,-315 138,-315 144,-315 150,-321 150,-327 150,-327 150,-350 150,-350 150,-356 144,-362 138,-362"/>
-<text text-anchor="middle" x="90.5" y="-347" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">CHIRPS 2.0</text>
-<text text-anchor="middle" x="90.5" y="-336" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">via ClimateSERV</text>
-<text text-anchor="middle" x="90.5" y="-325" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">0,05° &#160;· &#160;precipitacion</text>
+<path fill="white" stroke="#b9c0c8" d="M137.17,-437.4C137.17,-437.4 43,-437.4 43,-437.4 37,-437.4 31,-431.4 31,-425.4 31,-425.4 31,-399 31,-399 31,-393 37,-387 43,-387 43,-387 137.17,-387 137.17,-387 143.17,-387 149.17,-393 149.17,-399 149.17,-399 149.17,-425.4 149.17,-425.4 149.17,-431.4 143.17,-437.4 137.17,-437.4"/>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-420.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">CHIRPS 2.0</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-408.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">via ClimateSERV</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-396.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">0,05° &#160;· &#160;precipitacion</text>
 </g>
 <!-- etl -->
 <g id="node5" class="node">
 <title>etl</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M339,-237.5C339,-237.5 287,-237.5 287,-237.5 281,-237.5 275,-231.5 275,-225.5 275,-225.5 275,-213.5 275,-213.5 275,-207.5 281,-201.5 287,-201.5 287,-201.5 339,-201.5 339,-201.5 345,-201.5 351,-207.5 351,-213.5 351,-213.5 351,-225.5 351,-225.5 351,-231.5 345,-237.5 339,-237.5"/>
-<text text-anchor="middle" x="313" y="-222.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ETL</text>
-<text text-anchor="middle" x="313" y="-211.5" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">backend/etl</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M340,-297.4C340,-297.4 287.83,-297.4 287.83,-297.4 281.83,-297.4 275.83,-291.4 275.83,-285.4 275.83,-285.4 275.83,-271 275.83,-271 275.83,-265 281.83,-259 287.83,-259 287.83,-259 340,-259 340,-259 346,-259 352,-265 352,-271 352,-271 352,-285.4 352,-285.4 352,-291.4 346,-297.4 340,-297.4"/>
+<text xml:space="preserve" text-anchor="middle" x="313.92" y="-280.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ETL</text>
+<text xml:space="preserve" text-anchor="middle" x="313.92" y="-268.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">backend/etl</text>
 </g>
 <!-- chirps&#45;&gt;etl -->
 <g id="edge1" class="edge">
 <title>chirps&#45;&gt;etl</title>
-<path fill="none" stroke="#5b636d" d="M150.26,-318.5C212.49,-318.5 301,-318.5 301,-318.5 301,-318.5 301,-244.66 301,-244.66"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="303.45,-244.66 301,-237.66 298.55,-244.66 303.45,-244.66"/>
-<text text-anchor="middle" x="220" y="-328.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">precipitacion</text>
+<path fill="none" stroke="#5b636d" d="M149.42,-412.2C211.84,-412.2 301.1,-412.2 301.1,-412.2 301.1,-412.2 301.1,-306.2 301.1,-306.2"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="303.55,-306.2 301.1,-299.2 298.65,-306.2 303.55,-306.2"/>
+<text xml:space="preserve" text-anchor="middle" x="220.71" y="-399.35" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">precipitacion</text>
 </g>
 <!-- power -->
 <g id="node2" class="node">
 <title>power</title>
-<path fill="white" stroke="#b9c0c8" d="M153,-283C153,-283 28,-283 28,-283 22,-283 16,-277 16,-271 16,-271 16,-248 16,-248 16,-242 22,-236 28,-236 28,-236 153,-236 153,-236 159,-236 165,-242 165,-248 165,-248 165,-271 165,-271 165,-277 159,-283 153,-283"/>
-<text text-anchor="middle" x="90.5" y="-268" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">NASA POWER</text>
-<text text-anchor="middle" x="90.5" y="-257" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">0,5 x 0,625° &#160;· &#160;temperatura,</text>
-<text text-anchor="middle" x="90.5" y="-246" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">humedad, viento, radiacion</text>
+<path fill="white" stroke="#b9c0c8" d="M152.17,-355.4C152.17,-355.4 28,-355.4 28,-355.4 22,-355.4 16,-349.4 16,-343.4 16,-343.4 16,-317 16,-317 16,-311 22,-305 28,-305 28,-305 152.17,-305 152.17,-305 158.17,-305 164.17,-311 164.17,-317 164.17,-317 164.17,-343.4 164.17,-343.4 164.17,-349.4 158.17,-355.4 152.17,-355.4"/>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-338.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">NASA POWER</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-326.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">0,5 x 0,625° &#160;· &#160;temperatura,</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-314.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">humedad, viento, radiacion</text>
 </g>
 <!-- power&#45;&gt;etl -->
 <g id="edge2" class="edge">
 <title>power&#45;&gt;etl</title>
-<path fill="none" stroke="#5b636d" d="M159,-235.61C159,-227.29 159,-220 159,-220 159,-220 267.93,-220 267.93,-220"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="267.93,-222.45 274.93,-220 267.93,-217.55 267.93,-222.45"/>
+<path fill="none" stroke="#5b636d" d="M158.1,-304.66C158.1,-294.6 158.1,-285.4 158.1,-285.4 158.1,-285.4 266.89,-285.4 266.89,-285.4"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="266.89,-287.85 273.89,-285.4 266.89,-282.95 266.89,-287.85"/>
 </g>
 <!-- firms -->
 <g id="node3" class="node">
 <title>firms</title>
-<path fill="white" stroke="#b9c0c8" d="M140,-204C140,-204 41,-204 41,-204 35,-204 29,-198 29,-192 29,-192 29,-169 29,-169 29,-163 35,-157 41,-157 41,-157 140,-157 140,-157 146,-157 152,-163 152,-169 152,-169 152,-192 152,-192 152,-198 146,-204 140,-204"/>
-<text text-anchor="middle" x="90.5" y="-189" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">NASA FIRMS</text>
-<text text-anchor="middle" x="90.5" y="-178" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">MODIS C6.1 &#160;· &#160;focos</text>
-<text text-anchor="middle" x="90.5" y="-167" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">desde 2001</text>
+<path fill="white" stroke="#b9c0c8" d="M139.05,-273.4C139.05,-273.4 41.13,-273.4 41.13,-273.4 35.13,-273.4 29.13,-267.4 29.13,-261.4 29.13,-261.4 29.13,-235 29.13,-235 29.13,-229 35.13,-223 41.13,-223 41.13,-223 139.05,-223 139.05,-223 145.05,-223 151.05,-229 151.05,-235 151.05,-235 151.05,-261.4 151.05,-261.4 151.05,-267.4 145.05,-273.4 139.05,-273.4"/>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-256.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">NASA FIRMS</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-244.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">MODIS C6.1 &#160;· &#160;focos</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-232.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">desde 2001</text>
 </g>
 <!-- firms&#45;&gt;etl -->
 <g id="edge3" class="edge">
 <title>firms&#45;&gt;etl</title>
-<path fill="none" stroke="#5b636d" d="M152.23,-180C214.35,-180 301,-180 301,-180 301,-180 301,-194.14 301,-194.14"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="298.55,-194.14 301,-201.14 303.45,-194.14 298.55,-194.14"/>
+<path fill="none" stroke="#5b636d" d="M151.54,-266.2C151.54,-266.2 266.93,-266.2 266.93,-266.2"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="266.93,-268.65 273.93,-266.2 266.93,-263.75 266.93,-268.65"/>
 </g>
 <!-- snit -->
 <g id="node4" class="node">
 <title>snit</title>
-<path fill="white" stroke="#b9c0c8" d="M127.5,-125C127.5,-125 53.5,-125 53.5,-125 47.5,-125 41.5,-119 41.5,-113 41.5,-113 41.5,-90 41.5,-90 41.5,-84 47.5,-78 53.5,-78 53.5,-78 127.5,-78 127.5,-78 133.5,-78 139.5,-84 139.5,-90 139.5,-90 139.5,-113 139.5,-113 139.5,-119 133.5,-125 127.5,-125"/>
-<text text-anchor="middle" x="90.5" y="-110" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SNIT / IGN</text>
-<text text-anchor="middle" x="90.5" y="-99" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">limite distrital 5k</text>
-<text text-anchor="middle" x="90.5" y="-88" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">EPSG:4326</text>
+<path fill="white" stroke="#b9c0c8" d="M126.67,-191.4C126.67,-191.4 53.5,-191.4 53.5,-191.4 47.5,-191.4 41.5,-185.4 41.5,-179.4 41.5,-179.4 41.5,-153 41.5,-153 41.5,-147 47.5,-141 53.5,-141 53.5,-141 126.67,-141 126.67,-141 132.67,-141 138.67,-147 138.67,-153 138.67,-153 138.67,-179.4 138.67,-179.4 138.67,-185.4 132.67,-191.4 126.67,-191.4"/>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-174.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SNIT / IGN</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-162.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">limite distrital 5k</text>
+<text xml:space="preserve" text-anchor="middle" x="90.09" y="-150.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">EPSG:4326</text>
 </g>
 <!-- snit&#45;&gt;etl -->
 <g id="edge4" class="edge">
 <title>snit&#45;&gt;etl</title>
-<path fill="none" stroke="#5b636d" d="M139.58,-121C208.6,-121 326,-121 326,-121 326,-121 326,-194.43 326,-194.43"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="323.55,-194.43 326,-201.43 328.45,-194.43 323.55,-194.43"/>
-<text text-anchor="middle" x="220" y="-138.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">geometrias</text>
+<path fill="none" stroke="#5b636d" d="M139.03,-186.4C201.36,-186.4 301.1,-186.4 301.1,-186.4 301.1,-186.4 301.1,-250.22 301.1,-250.22"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="298.65,-250.22 301.1,-257.22 303.55,-250.22 298.65,-250.22"/>
+<text xml:space="preserve" text-anchor="middle" x="220.71" y="-203.35" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">geometrias</text>
 </g>
 <!-- geo -->
 <g id="node6" class="node">
 <title>geo</title>
-<path fill="#e8f0e4" stroke="#b9c0c8" d="M530,-322C530,-322 450,-322 450,-322 444,-322 438,-316 438,-310 438,-310 438,-287 438,-287 438,-281 444,-275 450,-275 450,-275 530,-275 530,-275 536,-275 542,-281 542,-287 542,-287 542,-310 542,-310 542,-316 536,-322 530,-322"/>
-<text text-anchor="middle" x="490" y="-307" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">geo</text>
-<text text-anchor="middle" x="490" y="-296" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">provincia, canton,</text>
-<text text-anchor="middle" x="490" y="-285" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">distrito</text>
+<path fill="#e8f0e4" stroke="#b9c0c8" d="M530.84,-345.4C530.84,-345.4 451.67,-345.4 451.67,-345.4 445.67,-345.4 439.67,-339.4 439.67,-333.4 439.67,-333.4 439.67,-307 439.67,-307 439.67,-301 445.67,-295 451.67,-295 451.67,-295 530.84,-295 530.84,-295 536.84,-295 542.84,-301 542.84,-307 542.84,-307 542.84,-333.4 542.84,-333.4 542.84,-339.4 536.84,-345.4 530.84,-345.4"/>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-328.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">geo</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-316.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">provincia, canton,</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-304.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">distrito</text>
 </g>
 <!-- etl&#45;&gt;geo -->
 <g id="edge5" class="edge">
 <title>etl&#45;&gt;geo</title>
-<path fill="none" stroke="#5b636d" d="M326,-237.68C326,-255.17 326,-279 326,-279 326,-279 430.66,-279 430.66,-279"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="430.66,-281.45 437.66,-279 430.66,-276.55 430.66,-281.45"/>
+<path fill="none" stroke="#5b636d" d="M327.1,-297.61C327.1,-299.76 327.1,-301.2 327.1,-301.2 327.1,-301.2 430.8,-301.2 430.8,-301.2"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="430.8,-303.65 437.8,-301.2 430.8,-298.75 430.8,-303.65"/>
 </g>
 <!-- crudo -->
 <g id="node7" class="node">
 <title>crudo</title>
-<path fill="white" stroke="#b9c0c8" d="M526.5,-243C526.5,-243 453.5,-243 453.5,-243 447.5,-243 441.5,-237 441.5,-231 441.5,-231 441.5,-208 441.5,-208 441.5,-202 447.5,-196 453.5,-196 453.5,-196 526.5,-196 526.5,-196 532.5,-196 538.5,-202 538.5,-208 538.5,-208 538.5,-231 538.5,-231 538.5,-237 532.5,-243 526.5,-243"/>
-<text text-anchor="middle" x="490" y="-228" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">crudo</text>
-<text text-anchor="middle" x="490" y="-217" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">medicion_diaria,</text>
-<text text-anchor="middle" x="490" y="-206" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">foco_calor</text>
+<path fill="white" stroke="#b9c0c8" d="M527.47,-263.4C527.47,-263.4 455.05,-263.4 455.05,-263.4 449.05,-263.4 443.05,-257.4 443.05,-251.4 443.05,-251.4 443.05,-225 443.05,-225 443.05,-219 449.05,-213 455.05,-213 455.05,-213 527.47,-213 527.47,-213 533.47,-213 539.47,-219 539.47,-225 539.47,-225 539.47,-251.4 539.47,-251.4 539.47,-257.4 533.47,-263.4 527.47,-263.4"/>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-246.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">crudo</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-234.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">medicion_diaria,</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-222.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">foco_calor</text>
 </g>
 <!-- etl&#45;&gt;crudo -->
 <g id="edge6" class="edge">
 <title>etl&#45;&gt;crudo</title>
-<path fill="none" stroke="#5b636d" d="M351.41,-219.5C351.41,-219.5 434.21,-219.5 434.21,-219.5"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="434.21,-221.95 441.21,-219.5 434.21,-217.05 434.21,-221.95"/>
+<path fill="none" stroke="#5b636d" d="M327.1,-258.73C327.1,-249.73 327.1,-241 327.1,-241 327.1,-241 434.38,-241 434.38,-241"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="434.38,-243.45 441.38,-241 434.38,-238.55 434.38,-243.45"/>
 </g>
 <!-- etiquetas -->
 <g id="node9" class="node">
 <title>etiquetas</title>
-<path fill="white" stroke="#b9c0c8" d="M714.5,-279C714.5,-279 661.5,-279 661.5,-279 655.5,-279 649.5,-273 649.5,-267 649.5,-267 649.5,-244 649.5,-244 649.5,-238 655.5,-232 661.5,-232 661.5,-232 714.5,-232 714.5,-232 720.5,-232 726.5,-238 726.5,-244 726.5,-244 726.5,-267 726.5,-267 726.5,-273 720.5,-279 714.5,-279"/>
-<text text-anchor="middle" x="688" y="-264" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Etiquetado</text>
-<text text-anchor="middle" x="688" y="-253" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.0</text>
-<text text-anchor="middle" x="688" y="-242" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">99 296 filas</text>
+<path fill="white" stroke="#b9c0c8" d="M715.93,-288.4C715.93,-288.4 663.76,-288.4 663.76,-288.4 657.76,-288.4 651.76,-282.4 651.76,-276.4 651.76,-276.4 651.76,-250 651.76,-250 651.76,-244 657.76,-238 663.76,-238 663.76,-238 715.93,-238 715.93,-238 721.93,-238 727.93,-244 727.93,-250 727.93,-250 727.93,-276.4 727.93,-276.4 727.93,-282.4 721.93,-288.4 715.93,-288.4"/>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-271.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Etiquetado</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-259.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.0</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-247.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">99 296 filas</text>
 </g>
 <!-- geo&#45;&gt;etiquetas -->
 <g id="edge8" class="edge">
 <title>geo&#45;&gt;etiquetas</title>
-<path fill="none" stroke="#5b636d" d="M542.02,-300.5C600.69,-300.5 688,-300.5 688,-300.5 688,-300.5 688,-286.05 688,-286.05"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="690.45,-286.05 688,-279.05 685.55,-286.05 690.45,-286.05"/>
+<path fill="none" stroke="#5b636d" d="M543.24,-320.2C602.15,-320.2 690.1,-320.2 690.1,-320.2 690.1,-320.2 690.1,-297.21 690.1,-297.21"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="692.55,-297.21 690.1,-290.21 687.65,-297.21 692.55,-297.21"/>
 </g>
 <!-- crudo&#45;&gt;etiquetas -->
 <g id="edge7" class="edge">
 <title>crudo&#45;&gt;etiquetas</title>
-<path fill="none" stroke="#5b636d" d="M538.69,-237.5C538.69,-237.5 642.44,-237.5 642.44,-237.5"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="642.44,-239.95 649.44,-237.5 642.44,-235.05 642.44,-239.95"/>
+<path fill="none" stroke="#5b636d" d="M539.83,-250.7C539.83,-250.7 642.87,-250.7 642.87,-250.7"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="642.87,-253.15 649.87,-250.7 642.87,-248.25 642.87,-253.15"/>
 </g>
 <!-- analitico -->
 <g id="node8" class="node">
 <title>analitico</title>
-<path fill="#f6ecdc" stroke="#b9c0c8" stroke-dasharray="5,2" d="M516.5,-164C516.5,-164 463.5,-164 463.5,-164 457.5,-164 451.5,-158 451.5,-152 451.5,-152 451.5,-129 451.5,-129 451.5,-123 457.5,-117 463.5,-117 463.5,-117 516.5,-117 516.5,-117 522.5,-117 528.5,-123 528.5,-129 528.5,-129 528.5,-152 528.5,-152 528.5,-158 522.5,-164 516.5,-164"/>
-<text text-anchor="middle" x="490" y="-149" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">analitico</text>
-<text text-anchor="middle" x="490" y="-138" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">riesgo</text>
-<text text-anchor="middle" x="490" y="-127" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">(sin duenio)</text>
+<path fill="#f6ecdc" stroke="#b9c0c8" stroke-dasharray="5,2" d="M517.34,-181.4C517.34,-181.4 465.17,-181.4 465.17,-181.4 459.17,-181.4 453.17,-175.4 453.17,-169.4 453.17,-169.4 453.17,-143 453.17,-143 453.17,-137 459.17,-131 465.17,-131 465.17,-131 517.34,-131 517.34,-131 523.34,-131 529.34,-137 529.34,-143 529.34,-143 529.34,-169.4 529.34,-169.4 529.34,-175.4 523.34,-181.4 517.34,-181.4"/>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-164.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">analitico</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-152.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">riesgo</text>
+<text xml:space="preserve" text-anchor="middle" x="491.26" y="-140.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">(sin duenio)</text>
 </g>
 <!-- api -->
 <g id="node11" class="node">
 <title>api</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M734,-47C734,-47 642,-47 642,-47 636,-47 630,-41 630,-35 630,-35 630,-12 630,-12 630,-6 636,0 642,0 642,0 734,0 734,0 740,0 746,-6 746,-12 746,-12 746,-35 746,-35 746,-41 740,-47 734,-47"/>
-<text text-anchor="middle" x="688" y="-32" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API REST</text>
-<text text-anchor="middle" x="688" y="-21" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">FastAPI &#160;· &#160;OpenAPI</text>
-<text text-anchor="middle" x="688" y="-10" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H6.1</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M736.18,-50.4C736.18,-50.4 643.51,-50.4 643.51,-50.4 637.51,-50.4 631.51,-44.4 631.51,-38.4 631.51,-38.4 631.51,-12 631.51,-12 631.51,-6 637.51,0 643.51,0 643.51,0 736.18,0 736.18,0 742.18,0 748.18,-6 748.18,-12 748.18,-12 748.18,-38.4 748.18,-38.4 748.18,-44.4 742.18,-50.4 736.18,-50.4"/>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-33.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API REST</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-21.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">FastAPI &#160;· &#160;OpenAPI</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-9.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H6.1</text>
 </g>
 <!-- analitico&#45;&gt;api -->
 <g id="edge11" class="edge">
 <title>analitico&#45;&gt;api</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M490,-116.82C490,-82.64 490,-23.5 490,-23.5 490,-23.5 622.93,-23.5 622.93,-23.5"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="622.93,-25.95 629.93,-23.5 622.93,-21.05 622.93,-25.95"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M491.1,-130.63C491.1,-92.51 491.1,-25.2 491.1,-25.2 491.1,-25.2 622.5,-25.2 622.5,-25.2"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="622.5,-27.65 629.5,-25.2 622.5,-22.75 622.5,-27.65"/>
 </g>
 <!-- modelo -->
 <g id="node10" class="node">
 <title>modelo</title>
-<path fill="white" stroke="#b9c0c8" d="M959,-279C959,-279 861,-279 861,-279 855,-279 849,-273 849,-267 849,-267 849,-244 849,-244 849,-238 855,-232 861,-232 861,-232 959,-232 959,-232 965,-232 971,-238 971,-244 971,-244 971,-267 971,-267 971,-273 965,-279 959,-279"/>
-<text text-anchor="middle" x="910" y="-264" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Estimadores</text>
-<text text-anchor="middle" x="910" y="-253" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.1 lineas base</text>
-<text text-anchor="middle" x="910" y="-242" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.3&#45;H3.5 pendientes</text>
+<path fill="white" stroke="#b9c0c8" d="M960.1,-288.4C960.1,-288.4 862.93,-288.4 862.93,-288.4 856.93,-288.4 850.93,-282.4 850.93,-276.4 850.93,-276.4 850.93,-250 850.93,-250 850.93,-244 856.93,-238 862.93,-238 862.93,-238 960.1,-238 960.1,-238 966.1,-238 972.1,-244 972.1,-250 972.1,-250 972.1,-276.4 972.1,-276.4 972.1,-282.4 966.1,-288.4 960.1,-288.4"/>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-271.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Estimadores</text>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-259.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.1 lineas base</text>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-247.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H3.3&#45;H3.5 pendientes</text>
 </g>
 <!-- etiquetas&#45;&gt;modelo -->
 <g id="edge9" class="edge">
 <title>etiquetas&#45;&gt;modelo</title>
-<path fill="none" stroke="#5b636d" d="M726.67,-255.5C726.67,-255.5 841.76,-255.5 841.76,-255.5"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="841.76,-257.95 848.76,-255.5 841.76,-253.05 841.76,-257.95"/>
+<path fill="none" stroke="#5b636d" d="M728.2,-263.2C728.2,-263.2 842.14,-263.2 842.14,-263.2"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="842.14,-265.65 849.14,-263.2 842.14,-260.75 842.14,-265.65"/>
 </g>
 <!-- modelo&#45;&gt;analitico -->
 <g id="edge10" class="edge">
 <title>modelo&#45;&gt;analitico</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M857,-231.79C857,-199.33 857,-145 857,-145 857,-145 535.58,-145 535.58,-145"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="535.58,-142.55 528.58,-145 535.58,-147.45 535.58,-142.55"/>
-<text text-anchor="middle" x="688" y="-193.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">pendiente</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M858.1,-237.74C858.1,-206.29 858.1,-156.9 858.1,-156.9 858.1,-156.9 538.33,-156.9 538.33,-156.9"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="538.33,-154.45 531.33,-156.9 538.33,-159.35 538.33,-154.45"/>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-198.35" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">pendiente</text>
 </g>
 <!-- visor -->
 <g id="node12" class="node">
 <title>visor</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M944.5,-87C944.5,-87 875.5,-87 875.5,-87 869.5,-87 863.5,-81 863.5,-75 863.5,-75 863.5,-52 863.5,-52 863.5,-46 869.5,-40 875.5,-40 875.5,-40 944.5,-40 944.5,-40 950.5,-40 956.5,-46 956.5,-52 956.5,-52 956.5,-75 956.5,-75 956.5,-81 950.5,-87 944.5,-87"/>
-<text text-anchor="middle" x="910" y="-72" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Visor</text>
-<text text-anchor="middle" x="910" y="-61" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">React + Leaflet</text>
-<text text-anchor="middle" x="910" y="-50" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">GitHub Pages</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M946.22,-91.4C946.22,-91.4 876.8,-91.4 876.8,-91.4 870.8,-91.4 864.8,-85.4 864.8,-79.4 864.8,-79.4 864.8,-53 864.8,-53 864.8,-47 870.8,-41 876.8,-41 876.8,-41 946.22,-41 946.22,-41 952.22,-41 958.22,-47 958.22,-53 958.22,-53 958.22,-79.4 958.22,-79.4 958.22,-85.4 952.22,-91.4 946.22,-91.4"/>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-74.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Visor</text>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-62.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">React + Leaflet</text>
+<text xml:space="preserve" text-anchor="middle" x="911.51" y="-50.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">GitHub Pages</text>
 </g>
 <!-- api&#45;&gt;visor -->
 <g id="edge12" class="edge">
 <title>api&#45;&gt;visor</title>
-<path fill="none" stroke="#5b636d" d="M746.04,-43.5C746.04,-43.5 856.48,-43.5 856.48,-43.5"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="856.48,-45.95 863.48,-43.5 856.48,-41.05 856.48,-45.95"/>
-<text text-anchor="middle" x="797.5" y="-43.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">/riesgo</text>
+<path fill="none" stroke="#5b636d" d="M748.66,-45.7C748.66,-45.7 855.83,-45.7 855.83,-45.7"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="855.83,-48.15 862.83,-45.7 855.83,-43.25 855.83,-48.15"/>
+<text xml:space="preserve" text-anchor="middle" x="799.55" y="-45.35" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">/riesgo</text>
 </g>
 <!-- respaldo -->
 <g id="node13" class="node">
 <title>respaldo</title>
-<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M728.5,-126C728.5,-126 647.5,-126 647.5,-126 641.5,-126 635.5,-120 635.5,-114 635.5,-114 635.5,-91 635.5,-91 635.5,-85 641.5,-79 647.5,-79 647.5,-79 728.5,-79 728.5,-79 734.5,-79 740.5,-85 740.5,-91 740.5,-91 740.5,-114 740.5,-114 740.5,-120 734.5,-126 728.5,-126"/>
-<text text-anchor="middle" x="688" y="-111" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Respaldo estatico</text>
-<text text-anchor="middle" x="688" y="-100" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">JSON simulado</text>
-<text text-anchor="middle" x="688" y="-89" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">D&#45;23</text>
+<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M730.18,-132.4C730.18,-132.4 649.51,-132.4 649.51,-132.4 643.51,-132.4 637.51,-126.4 637.51,-120.4 637.51,-120.4 637.51,-94 637.51,-94 637.51,-88 643.51,-82 649.51,-82 649.51,-82 730.18,-82 730.18,-82 736.18,-82 742.18,-88 742.18,-94 742.18,-94 742.18,-120.4 742.18,-120.4 742.18,-126.4 736.18,-132.4 730.18,-132.4"/>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-115.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Respaldo estatico</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-103.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">JSON simulado</text>
+<text xml:space="preserve" text-anchor="middle" x="689.84" y="-91.7" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">D&#45;23</text>
 </g>
 <!-- respaldo&#45;&gt;visor -->
 <g id="edge13" class="edge">
 <title>respaldo&#45;&gt;visor</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M740.61,-83C740.61,-83 856.42,-83 856.42,-83"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="856.42,-85.45 863.42,-83 856.42,-80.55 856.42,-85.45"/>
-<text text-anchor="middle" x="797.5" y="-105.1" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">si /api falla</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M742.65,-86.7C742.65,-86.7 855.86,-86.7 855.86,-86.7"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="855.86,-89.15 862.86,-86.7 855.86,-84.25 855.86,-89.15"/>
+<text xml:space="preserve" text-anchor="middle" x="799.55" y="-109.35" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">si /api falla</text>
 </g>
 </g>
 </svg>
