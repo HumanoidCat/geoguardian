@@ -98,6 +98,13 @@ RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+from backend.modelado.oni import (  # noqa: E402
+    COLUMNAS_ONI,
+    agregar_enso,
+    atraso_meses,
+    leer_oni,
+    ultima_fecha_cubierta,
+)
 from backend.senales.caracteristicas import (  # noqa: E402
     REZAGOS,
     VENTANAS,
@@ -486,6 +493,31 @@ def main() -> int:
             "ventana."
         ),
     )
+    p.add_argument(
+        "--hasta",
+        type=date.fromisoformat,
+        default=None,
+        metavar="AAAA-MM-DD",
+        help=(
+            "ultimo dia que entra a la matriz. Sirve para que dos matrices que "
+            "se van a comparar tengan EXACTAMENTE las mismas filas: si una "
+            "tuviera menos, la diferencia de desempeno podria venir de eso y no "
+            "de las columnas. Es el CA-4 de H3.10."
+        ),
+    )
+    p.add_argument(
+        "--con-enso",
+        action="store_true",
+        help=(
+            "agregar las tres columnas del indice ONI. POR OMISION NO ENTRAN, y "
+            "eso es el resultado de H3.10, no una comodidad: medidas contra la "
+            "matriz de H3.9 con el arnes de H3.6, ningun estimador mejora, cuatro "
+            "de seis empeoran y la dispersion entre pliegues sube tanto que el "
+            "veredicto de lluvia intensa pasa de tener ganador a empate tecnico. "
+            "La bandera existe para poder reproducir esa medicion, no para "
+            "produccion. Ver docs/evidencias/objetivos/H3.10-enso-no-entra.md."
+        ),
+    )
     args = p.parse_args()
 
     if args.minimo_observado is not None and not 0 < args.minimo_observado <= 1:
@@ -520,7 +552,24 @@ def main() -> int:
         return 1
 
     matriz = construir(series, args.minimo_observado)
+
+    fuera = 0
+    if args.hasta is not None:
+        antes = len(matriz)
+        matriz = {clave: fila for clave, fila in matriz.items() if clave[1] <= args.hasta}
+        fuera = antes - len(matriz)
+        if not matriz:
+            print(f"\n--hasta {args.hasta} deja la matriz vacia.\n")
+            return 1
+
     matriz = agregar_contexto(matriz, estaticos)
+    if args.con_enso:
+        # ANTES de `sin_columnas_constantes`, por lo mismo que `agregar_contexto`:
+        # las columnas del ENSO son constantes DENTRO de un mes y distintas ENTRE
+        # meses, asi que sobre la matriz entera no son constantes y el filtro no
+        # se las lleva. Aplicarlo despues seria confiar en el orden por
+        # casualidad. Historia H3.10.
+        matriz = agregar_enso(matriz, leer_oni())
     matriz, constantes = sin_columnas_constantes(matriz)
     columnas = escribir(matriz, args.salida)
     r = rendimiento(matriz)
@@ -538,6 +587,26 @@ def main() -> int:
     print(
         f"  contexto (H3.9)    {len(presentes)} de {len(COLUMNAS_CONTEXTO)}: {', '.join(presentes)}"
     )
+    fechas = [fecha for _codigo, fecha in matriz]
+    print(f"  rango              {min(fechas)} a {max(fechas)}")
+    if fuera:
+        print(f"  fuera de --hasta   {fuera} filas")
+    if not args.con_enso:
+        print("  ENSO (H3.10)       fuera. Es lo normal: medido, no mejora. Ver la evidencia")
+    else:
+        con_enso = [c for c in COLUMNAS_ONI if c in columnas]
+        print(
+            f"  ENSO (H3.10)       {len(con_enso)} de {len(COLUMNAS_ONI)}: "
+            f"{', '.join(con_enso)}"
+        )
+        # CA-7 de H3.10: el atraso de publicacion del indice, medido contra el
+        # archivo y no supuesto. Se imprime siempre, porque decide si el ENSO
+        # puede entrar a produccion aunque mejore el desempeno.
+        oni = leer_oni()
+        print(
+            f"  ONI publicado      hasta {ultima_fecha_cubierta(oni)}, "
+            f"{atraso_meses(oni, date.today())} meses atras de hoy"
+        )
     if constantes:
         print(f"  constantes fuera   {len(constantes)}: {', '.join(constantes)}")
     perdidas = [c for c in COLUMNAS_CONTEXTO if c not in columnas]
@@ -556,7 +625,16 @@ def main() -> int:
         print("    --minimo-observado 0.8 relaja las ventanas")
         print("    --incluir-imputados    usa lo que puso H1.4\n")
 
-    print(f"  escrito en {args.salida.relative_to(RAIZ)}\n")
+    # `relative_to` lanza ValueError cuando la salida queda fuera de RAIZ -por
+    # ejemplo con una ruta relativa-, y lo hacia DESPUES de escribir bien el
+    # archivo: el guion moria al imprimir. Es el mismo defecto que
+    # `generar_diagramas.py` ya habia encontrado y arreglado en su `mostrar()`;
+    # nadie habia barrido el resto del repositorio buscando el patron.
+    try:
+        donde = args.salida.resolve().relative_to(RAIZ)
+    except ValueError:
+        donde = args.salida.resolve()
+    print(f"  escrito en {donde}\n")
     return 0
 
 

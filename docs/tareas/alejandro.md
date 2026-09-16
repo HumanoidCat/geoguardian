@@ -745,8 +745,14 @@
   - Criterios en `docs/evidencias/objetivos/H3.9-criterios-aceptacion.md`, con la
     medicion exploratoria fechada **antes** de tocar `generar_caracteristicas.py`.
 
-- [ ] **H3.10** · El ENSO entra al modelo como caracteristica
+- [x] **H3.10** · El ENSO entra al modelo como caracteristica (2026-09-16)
   - `E3` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H3.9
+  - horas: estimada 7.8 . real 7.8
+  - Evidencia: `docs/evidencias/objetivos/H3.10-enso-no-entra.md`.
+  - **El ENSO no entra, y ese es el resultado.** Ningun estimador mejora, cuatro
+    de seis empeoran, y la dispersion entre pliegues sube tanto que el veredicto
+    de lluvia intensa pasa de tener ganador a empate tecnico. El CA-5 pedia que
+    el veredicto se escribiera gane o pierda.
   - El calendario dice que mes es; el ENSO dice que este marzo no es como los otros.
     Indice ONI de la NOAA: publico, mensual, desde 1950. El archivo se versiona, que
     ademas protege a la imagen de trabajos de H11.7, que corre sin nadie mirando.
