@@ -1898,3 +1898,242 @@ button.marca-semaforo:focus-visible {
   color: var(--texto-suave);
   margin: 0 0 8px;
 }
+
+/* ---------------------------------------------------------------------------
+   Historial de eventos documentados. H7.3.
+
+   Reusa los tokens y las formas del tablero del semaforo en vez de inventar
+   otras: son dos tablas de la misma aplicacion y no hay razon para que se vean
+   como de dos sitios distintos.
+   --------------------------------------------------------------------------- */
+
+.historial {
+  margin: 0 auto;
+  max-width: 1200px;
+  /* `width: 100%` NO es adorno: sin el, la pantalla se rompe a 390 px.
+
+     `.aplicacion` es `display: flex` en columna, asi que esta seccion es un
+     elemento flexible y el eje transversal es el horizontal. Los hermanos
+     -`.cabecera`, `.aviso-simulado`- se estiran al ancho del contenedor. Esta no,
+     **porque tiene `margin: 0 auto`**: un margen automatico en el eje transversal
+     desactiva el estirado, y el elemento pasa a dimensionarse por su contenido.
+     Con la tabla adentro eso son 890 px dentro de un padre de 375.
+
+     La consecuencia no era solo que se saliera: como la seccion medida 890, la
+     envoltura media 866 y la tabla tambien 866 -o sea que cabia-, el
+     `overflow-x: auto` de `.historial-desplazable` **no se activaba nunca**. El
+     desborde subia hasta el documento y aparecia barra horizontal en toda la
+     pagina, con los controles y los botones cortados.
+
+     Con `width: 100%` el ancho deja de depender del contenido: 375 en el
+     telefono, y en el escritorio 100% recortado por `max-width` a 1200 px, con
+     los margenes automaticos centrandolo como antes.
+
+     Medido en un viewport de 390 px de verdad. A 862 px no se nota, y el primer
+     diagnostico -que era `min-width: auto`, el defecto clasico de los elementos
+     flexibles- resulto equivocado: ponerlo en 0 no cambio nada. */
+  width: 100%;
+  min-width: 0;
+  padding: var(--espacio-4);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+}
+
+.historial-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.historial-titulo {
+  margin: 0;
+  font-size: var(--texto-md);
+  font-weight: 700;
+}
+
+.historial-subtitulo {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-md);
+}
+
+/* Los filtros envuelven en vez de desplazarse. Un control que se sale de la
+   pantalla no se encuentra; una fila que se parte en dos, si. */
+.historial-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  align-items: flex-end;
+  margin: var(--espacio-4) 0;
+  padding: var(--espacio-3);
+  background: var(--superficie-alterna);
+  border-radius: var(--radio);
+}
+
+.historial-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+/* El control se envuelve con su etiqueta en un <label>, asi que el area
+   pulsable incluye el texto. En el telefono eso es la diferencia entre acertar
+   y no acertar. */
+.historial-filtro select,
+.historial-filtro input {
+  min-height: 44px;
+  padding: var(--espacio-1) var(--espacio-2);
+  font-size: var(--texto-md);
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+}
+
+.historial-filtro select:focus-visible,
+.historial-filtro input:focus-visible {
+  outline: 3px solid var(--texto);
+  outline-offset: 2px;
+}
+
+/* `nowrap` y no `wrap`.
+   Con `wrap`, «Quitar filtros» y «Exportar» se apilaban uno encima del otro
+   aunque sobrara ancho: el contenedor de arriba envuelve, y al hacerlo le daba
+   a este bloque una anchura de una sola columna. Se vio en el visor levantado,
+   no leyendo el CSS. En el telefono la regla de `max-width: 600px` los vuelve a
+   apilar a proposito, que ahi si es lo que se quiere. */
+.historial-acciones {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--espacio-2);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.historial-acciones button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.historial-desplazable {
+  overflow-x: auto;
+}
+
+.tabla-historial {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+  text-align: left;
+}
+
+.historial-caption {
+  caption-side: top;
+  padding-bottom: var(--espacio-2);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  text-align: left;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+  padding: var(--espacio-2);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla-historial thead th {
+  border-bottom: 2px solid var(--borde-fuerte);
+  white-space: nowrap;
+}
+
+.tabla-historial tbody tr:nth-child(even) {
+  background: var(--superficie-alterna);
+}
+
+.historial-fecha {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.historial-fin {
+  display: block;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+/* La descripcion es lo unico que puede ser largo, asi que es lo unico que tiene
+   un ancho maximo: sin el, una ficha de DesInventar de 300 caracteres empuja la
+   columna de fuente fuera de la pantalla y la tabla deja de tener forma. */
+.historial-descripcion {
+  min-width: 22rem;
+  max-width: 40rem;
+}
+
+.historial-fuente {
+  min-width: 14rem;
+  color: var(--texto-suave);
+}
+
+.historial-severidad {
+  white-space: nowrap;
+}
+
+.historial-vacio {
+  margin: var(--espacio-4) 0;
+  padding: var(--espacio-3);
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  color: var(--texto);
+}
+
+.historial-procedencia {
+  margin: var(--espacio-4) 0 0;
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* A 390 px los filtros pasan a una columna y ocupan el ancho entero. Apilados y
+   anchos se aciertan con el pulgar; en dos columnas estrechas, no. */
+@media (max-width: 600px) {
+  .historial {
+    padding: var(--espacio-3);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .historial-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .historial-acciones {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .historial-acciones button {
+    flex: 1 1 auto;
+  }
+
+  /* La tabla sigue siendo una tabla y se desplaza, como la del semaforo. Se
+     probo antes convertir las filas en tarjetas con `display: block`, y eso le
+     quita a la tabla su semantica: quien navega con lector de pantalla pierde
+     la relacion entre la celda y su encabezado, que es justo lo que hace
+     legible una tabla de seis columnas. Desplazarse es peor de ver y mejor de
+     usar. */
+  .historial-descripcion {
+    min-width: 18rem;
+  }
+}

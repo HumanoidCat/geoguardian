@@ -919,11 +919,17 @@
     Invenio Fest. Los criterios de aceptacion y las horas del backlog no
     cambian: cambia quien la hace.
 
-- [ ] **H7.3** · Historial de eventos filtrable y exportable
+- [x] **H7.3** · Historial de eventos filtrable y exportable (2026-09-16)
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
   - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
     Invenio Fest. Los criterios de aceptacion y las horas del backlog no
     cambian: cambia quien la hace.
+  - horas: estimada n/d (recibida y arrancada el mismo dia, no se estimo) . real 0.9
+  - Criterios escritos antes del codigo:
+    `docs/evidencias/computacion-grafica/H7.3-criterios-aceptacion.md` (PR #342)
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.3-historial-eventos.md`
+  - No crea `analitico.evento`. El catalogo validado de H4.3 llega al visor por el
+    camino estatico de H6.6, con un generador y no una copia a mano.
 
 - [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
