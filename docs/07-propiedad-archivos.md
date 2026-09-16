@@ -1,5 +1,13 @@
 # Propiedad de archivos
 
+> **SUSPENDIDA HASTA EL 2026-09-25 POR D-54.** A ocho dias del Invenio Fest, el
+> Lead PM puede modificar cualquier carpeta sin solicitud de cambio y sin aviso
+> previo. **Lo que sigue en pie:** todo pasa por Pull Request hacia `dev` con su
+> revision y su CI; los archivos fuera de la carpeta propia se siguen declarando
+> al final del cuerpo del PR; y **no se toca la evidencia de otra persona**, que es
+> su registro de contribucion individual. La suspension vence sola el 2026-09-25 y
+> todo lo de abajo vuelve a regir. El motivo y las alternativas, en D-54.
+
 Un archivo, un dueno. Nadie modifica la carpeta de otra persona. Si necesitas un
 cambio fuera de tu carpeta, se pide, no se hace.
 
