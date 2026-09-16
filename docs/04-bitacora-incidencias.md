@@ -4577,6 +4577,120 @@ controles que afirman mas de lo que miden no puede permitirse afirmar mas de lo
 que midio. Se conto entre los ocho desde el principio y se sigue contando: lo que
 cambia es de que clase es.
 
+### Estado de los ocho, al 2026-09-16
+
+Los ocho estan corregidos, **cada uno con el sabotaje que demuestra que ahora cae**:
+
+| donde | antes | como se demostro |
+|---|---|---|
+| `verificar_h6_3.py` CA-4 | `agregada_despues` fuera de la condicion | PR #336, sabotaje del registro |
+| `verificar_h31.py` CA-5 | tautologia sobre el propio verificador | se le corta la particion y se le mete una fuga: **falla en los dos** |
+| `verificar_h1_9.py` #13 | `True` si el rol no existe | rama corregida; **afirmado y no comprobado** hasta correrlo con Postgres |
+| `verificar_h11.py` CA-7 | delegaba sin decirlo | 4 unidades saboteadas, las 4 rechazadas, sin red |
+| `verificar_h36.py` (x3) | subcadenas y un `all()` vacuo | espia que anota lo que recibe la linea base; particion recortada |
+| `verificar_h38.py` | `count("fabricas(") >= 2` | dos llamadas con argumentos distintos: **falla** |
+| `verificar_h1_16.py` | `"ninguno con" in fuente` | se ejecuta `leer()` con una serie toda nula |
+| `verificar_h61.py` CA-6 | dos cadenas literales | detecta `RepositorioPostgres` y el alias de modulo |
+
+**El de `verificar_h1_16.py` enseno algo al saboteario.** El primer arreglo pasaba
+**por el motivo equivocado**: el cuerpo de prueba no traia `latitude`, asi que
+saltaba antes otra guarda y el criterio habria seguido en verde aunque alguien
+borrara la que dice comprobar. Un arreglo sin sabotaje se parece demasiado a un
+arreglo.
+
+### Lo que el barrido encontro de paso, y no es lo mismo
+
+**A la mayoria de los verificadores no los corre nadie.** De los **58** del
+repositorio, **25 se ejecutaban en el CI y 33 no**.
+
+> **El primer conteo dijo «29 y 29» y estaba mal.** Buscaba el nombre del
+> verificador en el texto del archivo del CI, asi que contaba como «corre» a
+> cualquiera **mencionado en un comentario** —o peor, mencionado en un `echo` que
+> dice justamente que NO corre—. **Es el defecto de esta misma incidencia,
+> cometido al medirla.** El numero bueno sale de leer las invocaciones reales
+> (`python -m ...`) y no el archivo entero. Corregido el 2026-09-16.
+
+No todos pueden estar en el CI -varios piden credenciales, red o la base cargada-
+pero **ocho corrian limpios sin base y sin red**: los de H12.4, H4.1, H6.3, H12.3,
+H3.8, H3.3, H3.4 y H3.5.
+
+**Siete entraron al CI el 2026-09-16**, al trabajo `pruebas`, que es donde ya
+vivian los de H3.0, H3.1, H3.2, H3.6, H6.1 y H6.2. Cuestan **61 s medidos** -53 de
+ellos son H3.3, H3.4 y H3.5, que entrenan modelos de verdad-. **El CI pasa de 25 a
+32 verificadores ejecutados.**
+
+### El octavo no entro, y lo detecto el propio verificador
+
+El de **H12.3** se agrego junto con los otros siete. **Fallo en la primera
+corrida**, y por su CA-1: ese criterio exige que `ci.yml` y `cd.yml` **no
+mencionen el modulo de alertas**, porque ese flujo tiene que escuchar las
+corridas desde afuera y no quedar cableado adentro. Al agregar el paso, `ci.yml`
+pasaba a mencionarlo.
+
+**Se saco.** Aflojar el criterio de otra persona para que quepa un paso propio es
+exactamente lo contrario de lo que esta incidencia viene a arreglar.
+
+Hubo un segundo intento: dejar el paso fuera pero **explicar en un comentario** por
+que no estaba. Tambien fallo —el criterio compara texto, no invocaciones, asi que
+hasta un comentario que dice «esto no esta cableado» lo dispara—. La explicacion
+quedo escrita sin nombrar la ruta.
+
+**Que no sepa distinguir una llamada de una mencion es un hallazgo del mismo tipo
+que esta incidencia**, asi que se anoto sin tocar, para que lo decidiera alguien
+que no se beneficiara del cambio. **El PM autorizo afinarlo el 2026-09-16**, y se
+hizo con una condicion escrita: mas preciso, nunca mas flojo.
+
+La regla nueva es deliberadamente estricta. Cuenta como invocacion **toda linea
+que no sea un comentario ni un `echo`**; no se intenta entender YAML ni reconocer
+solo `run:` y `uses:`, porque una forma de invocacion no prevista es justamente lo
+que esta incidencia esta corrigiendo en otros sitios. Y lo que se nombra en prosa
+**se sigue reportando** en el detalle: se deja de fallar por ello, no de verlo.
+
+Comprobado con cinco sabotajes:
+
+    un paso ejecuta el modulo                         FALLA
+    lo llama como workflow reutilizable (uses:)       FALLA
+    lo invoca dentro de un bloque run multilinea      FALLA
+    lo menciona solo un comentario                    CUMPLE, y lo reporta
+    lo menciona solo un echo                          CUMPLE, y lo reporta
+
+**Y el arreglo NO consiguio lo que su autor queria.** El verificador de H12.3
+sigue sin poder entrar al CI: ejecutarlo **es** invocar algo de ese modulo, y el
+docstring del criterio es explicito -«ni ci.yml ni cd.yml saben que existe»-. Lo
+unico que la precision compro fue poder **explicar por escrito** por que no esta,
+sin que el comentario ponga el criterio en rojo. Se deja dicho aca porque es la
+prueba de que afinar no fue una excusa para acomodar el resultado.
+
+**Y sirve de contraejemplo util:** de los ocho sitios de esta incidencia, siete
+dejaban pasar algo malo. Este es lo contrario —es mas estricto de lo que su texto
+dice— y aun asi cumplio su funcion, que era avisar.
+
+Dos de esos ocho se acababan de arreglar -el CA-4 de H6.3 en el PR #336 y el de
+H3.8 en esta incidencia- y **sin este paso ninguno de los dos se habria vuelto a
+ejecutar nunca**.
+
+**Y el paso que declaraba las omisiones tambien afirmaba de mas.** Existia para
+que se viera que la omision era deliberada, y **declaraba tres** cuando eran
+treinta y tres. Un `echo` siempre sale verde, asi que era el lugar donde menos se
+notaba. Ahora declara el conteo y el motivo por familia.
+
+**Lo que sigue, y no se hizo aca:** doce de los que quedan fuera son de
+`basedatos/` y **no los bloquea el entorno** -el trabajo `pruebas` ya levanta
+PostGIS-, sino que les falta la carga de datos. Es el siguiente paso natural y no
+se toco a ocho dias de la feria.
+
+**Y uno de los que nadie corre esta fallando.** `infra/verificar_h116.py` tiene en
+rojo el criterio «el runbook nombra los valores, no los escribe»:
+`docs/19-runbook-railway.md` contiene dos hosts reales de Railway,
+`altaria.proxy.rlwy.net` y `acela.proxy.rlwy.net`, en sus lineas 194-195.
+
+**No se corrige aca, y a proposito.** Estan citados como ejemplos **historicos**
+—«el 2026-09-06 era X y el 09-07 Y»— para mostrar que el host cambia, que es lo
+contrario de escribir un valor como si fuera estable. Si eso cuenta o no como
+valor versionado es una decision del PM, no de quien barre. Lo que si es un
+hallazgo es que **lleva dias en rojo y nadie se entero**, porque el verificador no
+esta en el CI.
+
 **Causa raiz.** No es descuido de una persona. Son 56 verificadores escritos por
 cuatro personas a lo largo de diez semanas, y **nadie barrio nunca el patron**: el
 proyecto arreglaba cada aparicion cuando la tropezaba. El comentario del sabotaje
@@ -4589,10 +4703,12 @@ no las demas- aplicada a los controles en vez de a los numeros.
 **Que se hace.**
 
 1. El del PR #282 ya esta corregido y fusionado en el **PR #336**.
-2. **Los ocho los corrige el PM, en cualquier carpeta y sin pedir permiso.** Es lo
-   que habilita **D-54**: a ocho dias del Invenio Fest, esperar a que cada dueno
-   arregle su verificador cuesta mas que el control que la regla de propiedad da.
-   La regla vuelve sola despues de la feria.
+2. **Los ocho los corrigio el PM, en cualquier carpeta y sin pedir permiso.** Es
+   lo que habilita **D-54**: a ocho dias del Invenio Fest, esperar a que cada
+   dueno arregle su verificador cuesta mas que el control que la regla de
+   propiedad da. La regla vuelve sola despues de la feria. Los duenos se enteran
+   por la seccion de archivos fuera de carpeta del Pull Request, y si alguno
+   prefiere retomar el suyo se le devuelve.
 3. Cada arreglo entra **con su sabotaje**: se rompe a proposito lo que el criterio
    dice vigilar y se muestra que ahora si cae, como se hizo con el CA-5 de
    `verificar_h31`. Un arreglo sin sabotaje no se distingue de uno que sigue sin

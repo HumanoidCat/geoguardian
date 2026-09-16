@@ -239,10 +239,41 @@ def main() -> int:
         vistas["a"] == vistas["b"],
         f"a: {vistas['a']}\n        b: {vistas['b']}",
     )
+    # ESTO SE COMPROBABA CON UNA SUBCADENA. Ver I-58.
+    #
+    # Decia `"particionar" in inspect.getsource(mod.comparar)`. La mitad del
+    # criterio -«sale de H3.2»- quedaba cubierta de refilon, pero la otra mitad
+    # -«y no se recalcula aca»- no se comprobaba en absoluto: un `comparar()` que
+    # llamara a `particionar(...)` **y ademas** derivara sus propios cortes contiene
+    # igual la subcadena y salia en verde.
+    #
+    # Ahora se le cambia la particion por debajo y se mira si obedece. Si comparar
+    # usa lo que H3.2 le da, con dos pliegues tiene que evaluar dos; si se los
+    # calcula por su cuenta, seguira evaluando cinco y el criterio cae.
+    pedidas: list = []
+    original = mod.particionar
+
+    def particion_recortada(evento, *args, **kwargs):
+        pedidas.append(evento)
+        return original(evento, *args, **kwargs)[:2]
+
+    vistas_recortada: list[int] = []
+    mod.particionar = particion_recortada
+    try:
+        comparar(
+            TipoEvento.LLUVIA_INTENSA,
+            filas,
+            {"c": lambda: Testigo(vistas_recortada)},
+        )
+    finally:
+        mod.particionar = original
+
     comprobar(
         "la particion sale de H3.2 y no se recalcula aca",
-        "particionar" in inspect.getsource(mod.comparar),
-        "si comparar() derivara sus propios cortes, la tabla compararia conjuntos distintos",
+        bool(pedidas) and len(vistas_recortada) == 2,
+        f"se le pidio la particion a H3.2 {len(pedidas)} vez/veces y, dandole dos "
+        f"pliegues, comparar() evaluo {len(vistas_recortada)}. Si evalua mas, se "
+        f"esta cortando los suyos y la tabla compararia conjuntos distintos",
     )
 
     # ------------------------------------------------------------------ CA-2 - #
@@ -290,8 +321,18 @@ def main() -> int:
             not (set(faltantes) & set(disponibles)),
             "si entra a la tabla, tiene que salir de la lista de pendientes",
         )
+        # EL CONTEO VA EN LA DESCRIPCION A PROPOSITO. Ver I-58.
+        #
+        # Con matriz cargada `pendientes(True)` esta vacio, asi que este `all()`
+        # es vacuamente cierto y el criterio afirmaba haber revisado «cada
+        # pendiente» sin revisar ninguno. No es un falso verde -no hay nada malo
+        # que ocultar cuando la lista esta vacia- pero si una linea que dice mas
+        # de lo que hizo. Con el numero adentro, «cada uno de los 0 pendientes»
+        # se lee por lo que es. Es la guarda que `verificar_h32` ya pone en
+        # `len(ESTADISTICOS) >= 4`.
         comprobar(
-            f"[{etiqueta}] cada pendiente dice a que historia pertenece",
+            f"[{etiqueta}] cada uno de los {len(faltantes)} pendientes dice a que "
+            "historia pertenece",
             all("H3." in v for v in faltantes.values()),
         )
 
@@ -328,9 +369,54 @@ def main() -> int:
         _falla(lambda: DesdeLineaBase("x", LineaBaseTrivial).predecir(obs)),
         "devolver None sin ajustar se veria igual que 'no hay dato para ese distrito-mes'",
     )
+
+    # ESTO SE COMPROBABA CON UNA SUBCADENA DEL FUENTE. Ver I-58.
+    #
+    # Decia `"codigo_distrito, o.fecha" in inspect.getsource(...)`. Cualquier
+    # version de `predecir` que siguiera escribiendo ese texto en alguna parte y
+    # ademas le pasara `o.caracteristicas` a la linea base salia en verde.
+    #
+    # Ahora se le mete una linea base de mentira que anota **todo** lo que recibe,
+    # y se le dan observaciones CON caracteristicas. Si alguna se cuela, aparece.
+    class BaseEspia:
+        """Linea base falsa que registra lo que la envoltura le entrega."""
+
+        ajuste: list = []
+        predicciones: list = []
+
+        def ajustar(self, entrenamiento):
+            BaseEspia.ajuste = list(entrenamiento)
+            return self
+
+        def predecir(self, *args, **kwargs):
+            BaseEspia.predicciones.append((args, kwargs))
+            return NivelRiesgo.BAJO
+
+    con_rasgos = [
+        Observacion("50801", date(2020, 3, 1), {"pp_acum30": 120.0, "tmax_media30": 31.5}),
+        Observacion("50802", date(2020, 3, 2), {"pp_acum30": 4.0, "tmax_media30": 33.0}),
+    ]
+    BaseEspia.ajuste = []
+    BaseEspia.predicciones = []
+    espiada = DesdeLineaBase("espia", BaseEspia)
+    espiada.ajustar(con_rasgos, [NivelRiesgo.BAJO, NivelRiesgo.ALTO])
+    espiada.predecir(con_rasgos)
+
+    def _sin_rasgos(valores) -> bool:
+        return not any(isinstance(v, dict) for v in valores)
+
+    ajuste_limpio = bool(BaseEspia.ajuste) and all(
+        len(fila) == 3 and _sin_rasgos(fila) for fila in BaseEspia.ajuste
+    )
+    prediccion_limpia = bool(BaseEspia.predicciones) and all(
+        len(args) == 2 and not kwargs and _sin_rasgos(args)
+        for args, kwargs in BaseEspia.predicciones
+    )
     comprobar(
         "la envoltura descarta las caracteristicas, que es CA-1 de H3.1",
-        "codigo_distrito, o.fecha" in inspect.getsource(DesdeLineaBase.predecir),
+        ajuste_limpio and prediccion_limpia,
+        f"ajustar recibio {BaseEspia.ajuste}\n        "
+        f"predecir recibio {BaseEspia.predicciones}\n        "
         "una linea base que mira una variable meteorologica deja de ser linea base",
     )
 

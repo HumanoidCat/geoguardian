@@ -296,24 +296,68 @@ def ca6_sin_implementacion_concreta() -> Resultado:
     dependencias.py queda fuera a proposito: es el unico lugar donde se decide, y
     ese es justamente el punto del patron.
     """
+    # ESTO BUSCABA DOS CADENAS LITERALES. Ver I-58.
+    #
+    # Buscaba `"contratos.simulados"` y `"RepositorioSimulado"` linea por linea, y
+    # tenia dos huecos:
+    #
+    #   1. **No veia `RepositorioPostgres`**, que es la OTRA implementacion
+    #      concreta y la que de verdad corre en produccion. Un modulo de rutas que
+    #      la importara pasaba en verde.
+    #   2. Un alias -`from contratos import simulados` y despues
+    #      `simulados.RepositorioSimulado()`- tampoco aparecia.
+    #
+    # Ahora se leen los imports del AST, como ya hace `verificar_h8_4.py` para el
+    # mismo problema, y se busca **cualquier** implementacion concreta.
+    #
+    # LO QUE SE EXCLUYE, Y POR QUE. El criterio habla de los modulos que sirven
+    # endpoints. Antes se recorrian todos los `*.py` de la carpeta, incluidos los
+    # que **son** una implementacion concreta o la prueban, y solo no saltaban
+    # porque el control era ciego a `RepositorioPostgres`. Se declara en vez de
+    # depender de esa ceguera.
+    FUERA = {
+        "dependencias.py": "es el unico lugar donde se decide: ese es el patron",
+        "repositorio_postgres.py": "ES una implementacion concreta",
+        "test_repositorio_postgres.py": "prueba la implementacion concreta",
+        "verificar_h62.py": "verifica la implementacion concreta",
+        "verificar_h61.py": "este mismo archivo",
+    }
+    #: El protocolo se llama `Repositorio` a secas. Cualquier `Repositorio<Algo>`
+    #: es una implementacion, y los modulos de estas rutas no deben conocerla.
+    CONCRETOS = ("contratos.simulados", "backend.api.repositorio_postgres")
+
     hallazgos: list[str] = []
     revisados: list[str] = []
 
     for ruta in sorted(RAIZ_API.glob("*.py")):
-        if ruta.name in ("dependencias.py", "verificar_h61.py"):
+        if ruta.name in FUERA:
             continue
         revisados.append(ruta.name)
-        texto = ruta.read_text(encoding="utf-8")
-        prosa = _lineas_de_prosa(texto)
-        for n, linea in enumerate(texto.splitlines(), 1):
-            if n in prosa:
+        arbol = ast.parse(ruta.read_text(encoding="utf-8"))
+        for nodo in ast.walk(arbol):
+            if isinstance(nodo, ast.Import):
+                modulos = [alias.name for alias in nodo.names]
+                nombres: list[str] = []
+            elif isinstance(nodo, ast.ImportFrom):
+                modulos = [nodo.module or ""]
+                nombres = [alias.name for alias in nodo.names]
+            else:
                 continue
-            if "contratos.simulados" in linea or "RepositorioSimulado" in linea:
-                hallazgos.append(f"  {ruta.name}:{n}  {linea.strip()[:56]}")
+            por_modulo = [m for m in modulos if any(m.startswith(c) for c in CONCRETOS)]
+            # `from contratos import simulados` no nombra el modulo concreto en
+            # `nodo.module`, lo nombra en la lista de alias.
+            por_alias = [
+                n
+                for n in nombres
+                if (n.startswith("Repositorio") and n != "Repositorio") or n == "simulados"
+            ]
+            for encontrado in por_modulo + por_alias:
+                hallazgos.append(f"  {ruta.name}:{nodo.lineno}  importa {encontrado}")
 
     detalle = hallazgos or [
-        f"  ninguno de {len(revisados)} modulos conoce una implementacion concreta",
-        f"  revisados: {', '.join(revisados)}",
+        f"  ninguno de los {len(revisados)} modulos de rutas importa una "
+        f"implementacion concreta: {', '.join(revisados)}",
+        f"  fuera por declaracion: {', '.join(f'{k} ({v})' for k, v in FUERA.items())}",
     ]
     return Resultado("CA-6", "Los endpoints dependen del protocolo", not hallazgos, detalle)
 
