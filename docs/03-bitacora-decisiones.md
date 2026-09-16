@@ -5980,3 +5980,109 @@ cadencia.
     Lo que NO se midio todavia, y lo mide H14.5 contra la base real:
       * el costo de la consulta a `crudo.medicion_diaria` de un distrito;
       * el costo con la cache caliente, que es el caso normal.
+
+## D-54 · La regla de propiedad de carpetas se suspende hasta el Invenio Fest
+
+**Fecha.** 2026-09-16. **Historia.** Ninguna: es una decision de gestion.
+**Quien decide.** Alejandro, como Lead PM y Scrum Master.
+**Estado.** Aceptada, **con vencimiento**: el 2026-09-25 vuelve sola.
+**Revisa.** `docs/07-propiedad-archivos.md` entero. **Se apoya en.** D-33, D-37, I-58.
+
+### Contexto
+
+`07-propiedad-archivos.md` dice, desde el arranque del proyecto, que cada quien
+modifica solo sus carpetas y que un cambio fuera de ellas **se pide, no se hace**.
+La regla funciono: el archivo mismo cuenta que antes de existir hubo tres
+conflictos de fusion en dos dias y cuatro historias con el dueno desfasado.
+
+**Faltan ocho dias para el Invenio Fest** y quedan 18 historias abiertas de 103. Y
+el 2026-09-16 aparecio un caso que muestra el costo de la regla en este tramo:
+**I-58** encontro ocho controles que afirmaban en su texto algo que no entraba en
+su condicion. Cuatro de ellos viven en carpetas de otras personas. Bajo la regla,
+el PM tendria que escribir cuatro solicitudes de cambio, esperar cuatro
+respuestas y depender de que cuatro personas tengan tiempo esta semana — para
+arreglos de dos o tres lineas cada uno, en verificadores, que es donde menos
+riesgo hay de romper algo que este corriendo.
+
+Ese es el intercambio que esta decision resuelve: **el control que la regla da ya
+no compensa lo que la regla cuesta**, por ocho dias.
+
+### Decision
+
+**Hasta el 2026-09-25, el Lead PM puede modificar cualquier carpeta del
+repositorio sin solicitud de cambio y sin aviso previo.**
+
+Lo que **no** cambia, y es lo que evita que esto sea barra libre:
+
+1. **Todo sigue pasando por Pull Request hacia `dev`**, con su revision y su CI.
+   Se levanta el permiso de escribir, no el de fusionar sin mirar.
+2. **Los archivos fuera de la carpeta propia se siguen declarando** en una seccion
+   al final del cuerpo del PR, con que se le hizo a cada uno. La declaracion es lo
+   que hace que el dueno se entere; era lo util de la regla y se queda.
+3. **Sigue sin tocarse la evidencia de otra persona.** Es su registro de
+   contribucion individual y la rubrica lo evalua por separado.
+4. **Sigue valiendo para una sola persona.** Esto no autoriza a que cualquiera
+   toque cualquier carpeta: autoriza al PM, que es quien tiene la vista del
+   conjunto y quien responde por el atraso.
+
+### Justificacion
+
+**El intercambio, dicho con numeros.** Los cuatro hallazgos de I-58 que viven en
+carpetas ajenas suman unas doce lineas de arreglo, todas en verificadores: codigo
+que no corre en produccion y cuyo unico consumidor es el CI. El riesgo de tocarlo
+es de los mas bajos del repositorio. Contra eso, la regla pide cuatro solicitudes
+de cambio y cuatro esperas, en la semana con menos margen del trimestre.
+
+**Lo que la regla protegia sigue protegido por otra via.** `07-propiedad-archivos.md`
+dice que existe porque en dos dias hubo tres conflictos de fusion y cuatro duenos
+desfasados. Pero eso lo causaba **escribir a la vez sobre los mismos archivos**, y
+de eso ya se encargan el Pull Request, la revision y el CI, que no se levantan. La
+solicitud de cambio agrega aviso previo, no seguridad tecnica.
+
+**Y con fecha de vencimiento, no «por ahora».** Una suspension sin fecha es una
+derogacion disfrazada. La regla resolvio un
+problema real y va a volver a hacer falta; lo que sobra es el tramite en la
+ultima semana. El **2026-09-25**, el dia despues de la feria, vuelve sin que nadie
+tenga que acordarse de reponerla, y esta decision queda como el registro de por
+que estuvo levantada nueve dias.
+
+### Alternativas descartadas
+
+**Escribir las cuatro solicitudes de cambio.** Es lo que la regla pide. Se
+descarto por tiempo: cuatro documentos y cuatro esperas para doce lineas de
+arreglo, en la semana con menos margen del trimestre.
+
+**Dejar los cuatro hallazgos de I-58 sin arreglar y solo documentados.** Era la
+opcion anterior, y es la peor de las tres: uno de ellos —el criterio 13 de
+`verificar_h1_9.py`— es un control de **separacion de privilegios** que se pone en
+verde justamente cuando el rol que vigila no existe. Llegar a la feria con eso
+conocido y sin arreglar es peor que tocar la carpeta de otro.
+
+**Derogar la regla.** Se descarto por lo dicho arriba: el problema que resolvio es
+real y esta documentado con numeros en el propio `07-propiedad-archivos.md`.
+
+### Consecuencias
+
+- `docs/07-propiedad-archivos.md` cita esta decision arriba, para que nadie lea la
+  regla sin ver que esta suspendida.
+- **I-58** pasa de «se le pasan a sus duenos» a «los corrige el PM», y cada arreglo
+  entra con el sabotaje que demuestra que el criterio ahora si cae.
+- Los duenos se enteran por la seccion de archivos fuera de carpeta del PR, que no
+  se levanta. Si alguno prefiere retomar su arreglo, se le devuelve.
+- El 2026-09-25 la regla vuelve sin que nadie tenga que reponerla.
+
+### Medicion
+
+Esta decision se puede evaluar, y la evaluacion queda para despues de la feria:
+
+    archivos ajenos tocados por el PM durante la suspension
+    conflictos de fusion causados por esos cambios
+    regresiones atribuibles a ellos
+    objeciones de sus duenos al revisar el PR
+
+**Si los tres ultimos dan cero, la suspension no costo nada** y queda como
+antecedente de que la regla se puede levantar en la recta final. **Si alguno no da
+cero, queda escrito cual y por que**, y la proxima vez no se levanta.
+
+El numero de arranque es 0 en las cuatro filas, el 2026-09-16. La cuenta se cierra
+el 2026-09-25 en esta misma seccion.

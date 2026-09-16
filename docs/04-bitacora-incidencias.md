@@ -4439,3 +4439,172 @@ es una referencia que no caduca.
 asi que nadie llego a ver el mensaje. El costo fue de diagnostico, y de haber
 partido de un supuesto falso al planificar H14.5 -se creia que la tabla llegaba
 con una historia pendiente-.
+
+## I-58 · Ocho controles afirmaban en su texto algo que no entraba en su condicion
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** El primer caso lo marco un comentario de revision en el PR
+#282; el barrido de los otros siete salio al revisar el PR #336, que corregia ese
+primero.
+
+**Que paso.** Un verificador de criterios imprime dos cosas: **si el criterio
+cumple** y **un detalle** que explica por que. Cuando el detalle menciona un valor
+que la condicion no consulta, el criterio puede salir **CUMPLE mostrando `False`
+adentro**. El caso que abrio esto, en `backend/etl/fuentes/verificar_h6_3.py`:
+
+    agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS   # se calcula
+
+    resultado.marcar(
+        "CA-4 una fuente se agrega con su archivo y una entrada del registro",
+        archivo_nuevo and registrada,                            # no lo incluye
+        f"... y una real agregada despues: {agregada_despues} ...",   # lo imprime
+    )
+
+Se corrigio en el **PR #336**. Al cerrarlo quedo la pregunta de si era un caso
+aislado, y **no lo era**.
+
+**El barrido.** Se leyeron los **56 verificadores** del repositorio, uno por uno,
+buscando la misma forma: *el control afirma en su texto algo que su condicion no
+comprueba*. Aparecieron **siete sitios mas**. Cada uno se abrio y se leyo antes de
+anotarlo aca; ninguno sale de una busqueda de texto.
+
+### Los que no pueden fallar nunca
+
+**`backend/modelado/verificar_h31.py:203` — CA-5 de H3.1.** El peor de todos,
+porque es una tautologia:
+
+    comprobar(
+        "la particion se pide a H3.2, no se deriva aca",
+        "particionar" in inspect.getsource(sys.modules[__name__]),
+    )
+
+`sys.modules[__name__]` es **el propio verificador**, que importa `particionar` en
+su linea 46. La subcadena esta garantizada: la condicion es constante `True`. Si
+la linea base derivara sus propios cortes -justo la fuga que el criterio existe
+para impedir- saldria verde igual.
+
+**`basedatos/verificar_h1_9.py:318` — criterio 13, separacion de privilegios.**
+La rama `else` marca `True` sin medir nada:
+
+    if cur.fetchone()[0] == 1:
+        ...
+        r.comprobar("13. el rol lector puede leer la bitacora pero no escribirla",
+                    lee and not escribe, ...)
+    else:
+        r.comprobar("13. el rol lector puede leer la bitacora pero no escribirla", True)
+
+Si el rol `geoguardian_lector` no existe, el criterio dice CUMPLE afirmando una
+separacion de privilegios que nadie comprobo. **Y ese es exactamente el escenario
+de H1.10**: una base restaurada de un respaldo sin roles. Es el mas peligroso de
+los ocho, porque es un control de seguridad que se pone verde cuando la cosa que
+controla no existe.
+
+### Los que miden algo mas debil que lo que su texto afirma
+
+**`backend/etl/verificar_h1_16.py:124`** — «el extractor se niega a guardar una
+serie enteramente nula», comprobado con `"ninguno con" in codigo_extractor`. Busca
+un fragmento de un mensaje; nunca ejecuta el extractor con una serie nula. Si
+alguien quita la guarda y deja el texto, sigue verde. **Es de H1.16, o sea mio, y
+de hace dos dias.**
+
+**`infra/verificar_h116.py:226`** — «se comprueba que ningun trigger de historial
+dispare con INSERT», con `"def comprobar_triggers_de_historial" in fuente and
+"INSERT" in fuente`. Que la funcion exista y que la palabra `INSERT` aparezca en
+algun lado del archivo no dice nada de los triggers. Una funcion vacia con ese
+nombre da CUMPLE. **Y en el mismo archivo, tres lineas mas arriba, hay un
+comentario que dice «La sentencia, no la palabra: buscar el texto suelto daba
+verde con el codigo saboteado. Lo detecto el sabotaje numero 10.»** Se aprendio la
+leccion en un criterio y no se barrio el resto.
+
+**`infra/verificar_h116.py:189`** — «si una tabla no coincide, la carga sale con
+error», con `"if diferencias:" in fuente and "return 1" in fuente`: dos cadenas
+que pueden pertenecer a bloques sin relacion.
+
+**`backend/modelado/verificar_h38.py:297`** — «la tuberia arma la tabla y el
+escritor por la MISMA puerta», con `fuente.count("fabricas(") >= 2`. Dos llamadas
+con parametros distintos -evaluar un conjunto y escribir con otro, que es lo que
+el criterio dice impedir- cumplen el conteo igual.
+
+**`backend/api/verificar_h61.py:318`** — CA-6, «los endpoints dependen del
+protocolo». Busca dos cadenas literales, `"contratos.simulados"` y
+`"RepositorioSimulado"`. Un alias, un import en dos pasos o cualquier **otra**
+implementacion concreta pasa. En este mismo repositorio,
+`backend/etl/verificar_h8_4.py` ya resuelve el mismo problema leyendo el AST de
+los imports.
+
+### Lo que no es el defecto, para que no se vuelva a revisar
+
+Siete archivos mas tienen una condicion `True` literal y **no** son este defecto,
+porque la medicion ocurre antes y la rama solo se alcanza si algo ya se
+comprobo: `verificar_corrida_en_fallos.py:82`, `verificar_h1_15.py:129`,
+`verificar_h1_14.py:513`, `verificar_h13.py:121`, `verificar_h17.py:152`,
+`verificar_h60.py:523` y `verificar_h111.py:196`. Tampoco lo es el CA-7 de
+`verificar_h6_3.py`, que devuelve `True` pero **declara** que se declara y no se
+mide, que es justo lo contrario de este defecto.
+
+### Un hallazgo de esta misma lista estaba mal, y se corrige aca
+
+**`backend/etl/verificar_h11.py:602` — CA-7, «Las unidades coinciden con el
+contrato».** Se anoto primero como falso verde, porque la condicion es el literal
+`True`. **Al abrir el codigo para arreglarlo resulto que no lo era.**
+
+`ExtractorPower.consultar` llama a `_comprobar_unidades`, que compara lo que la
+respuesta declara contra `UNIDADES` y **lanza `ErrorPower` si no coincide**. Si
+POWER sirviera la radiacion en kWh/m2/dia, la consulta reventaria y la rama
+`except` de arriba devolveria `False`. O sea que **el criterio si estaba medido**;
+lo que pasaba es que la medicion estaba delegada y el verificador no lo decia.
+
+Queda como hallazgo, pero mas chico y de otra clase: **un criterio que depende de
+una guarda que nada vigila.** Quitar `_comprobar_unidades` de `power.py` dejaba
+este CA-7 en verde sin que nada chillara, y encima el CA-7 tocaba la red, asi que
+sin internet ni siquiera llegaba a ejecutarse.
+
+**Arreglado el 2026-09-16, y sin red.** `_comprobar_unidades` recibe un
+diccionario, asi que el criterio ahora la ejercita directo: le pasa una respuesta
+que cumple el contrato y comprueba que la acepta, y otra con la radiacion en
+kWh/m2/dia -el caso peligroso que el propio modulo declara, un factor 3,6- y
+comprueba que la rechaza. Medido:
+
+    respuesta correcta                ACEPTADA
+    ALLSKY_SFC_SW_DWN = kWh/m^2/day   RECHAZADA
+    T2M_MAX = F                       RECHAZADA
+    WS2M = km/h                       RECHAZADA
+    unidad ausente                    RECHAZADA
+
+**Por que se deja escrito que el hallazgo estaba mal.** Una incidencia sobre
+controles que afirman mas de lo que miden no puede permitirse afirmar mas de lo
+que midio. Se conto entre los ocho desde el principio y se sigue contando: lo que
+cambia es de que clase es.
+
+**Causa raiz.** No es descuido de una persona. Son 56 verificadores escritos por
+cuatro personas a lo largo de diez semanas, y **nadie barrio nunca el patron**: el
+proyecto arreglaba cada aparicion cuando la tropezaba. El comentario del sabotaje
+10 en `verificar_h116.py` lo demuestra: el patron ya se habia identificado con
+nombre propio y aun asi quedaron dos sitios en el mismo archivo.
+
+Es la misma forma de **I-16** -se vigilaba una de las apariciones de una cifra y
+no las demas- aplicada a los controles en vez de a los numeros.
+
+**Que se hace.**
+
+1. El del PR #282 ya esta corregido y fusionado en el **PR #336**.
+2. **Los ocho los corrige el PM, en cualquier carpeta y sin pedir permiso.** Es lo
+   que habilita **D-54**: a ocho dias del Invenio Fest, esperar a que cada dueno
+   arregle su verificador cuesta mas que el control que la regla de propiedad da.
+   La regla vuelve sola despues de la feria.
+3. Cada arreglo entra **con su sabotaje**: se rompe a proposito lo que el criterio
+   dice vigilar y se muestra que ahora si cae, como se hizo con el CA-5 de
+   `verificar_h31`. Un arreglo sin sabotaje no se distingue de uno que sigue sin
+   comprobar nada, que es de lo que trata esta incidencia.
+4. **Dos no se pueden demostrar desde donde se escribieron:**
+   `verificar_h1_9.py` necesita Postgres levantado y el CA-7 de `verificar_h11.py`
+   necesita salir a la red de POWER. Van arreglados y con el sabotaje escrito para
+   que lo ejecute quien tenga el entorno. **Hasta que se ejecute, el arreglo esta
+   afirmado y no comprobado**, y se dice asi en vez de darlo por bueno.
+5. **El de `verificar_h1_9.py` va primero**, por ser un control de seguridad que se
+   pone verde justo cuando la cosa que controla no existe.
+
+**Lo que este barrido NO cubre.** Se busco **una** forma de defecto. Que un
+verificador no la tenga no quiere decir que su criterio este bien medido; quiere
+decir que no falla de esta manera.
