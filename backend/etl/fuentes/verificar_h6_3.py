@@ -226,12 +226,12 @@ def ca4_fuente_de_juguete(resultado: Resultado, fabrica) -> None:
     archivo_nuevo = (DIR_ETL / "fuentes" / "prueba_fabrica.py").exists()
     registrada = "prueba" in fabrica.REGISTRO_CLIMA
 
-    # `firms-area` entra en la CONDICION, no solo en el detalle. Alejandro lo
-    # marco al revisar el PR #282 y tiene razon: se calculaba, se imprimia y no
-    # se comprobaba, asi que el criterio pasaba igual mostrando False. Es el
-    # mismo defecto de forma que este verificador corrige dos funciones mas
-    # arriba -afirmar en la salida algo que no entra en la condicion- y no tenia
-    # sentido arreglarlo alli y dejarlo aca.
+    # `firms-area` entra en la CONDICION, no solo en el detalle. Lo marco un
+    # comentario de revision en el PR #282: se calculaba, se imprimia y no se
+    # comprobaba, asi que el criterio pasaba en verde mostrando False.
+    #
+    # La forma del defecto -el control afirma en su texto algo que no entra en
+    # su condicion- no es exclusiva de este archivo ni de este criterio.
     agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS
 
     aviso = (
