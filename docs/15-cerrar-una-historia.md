@@ -175,6 +175,18 @@ Y si el DDL cambió, antes de todo esto:
 python docs/herramientas/generar_diagramas.py    # regenera y versiona el SVG
 ```
 
+Eso rehace también los PNG que ya tengas en disco, que son **los que muestra el
+documento técnico** y no viajan en el repositorio. Si nunca los generaste en esta
+máquina y vas a armar el documento, la primera vez lleva bandera:
+
+```bash
+python docs/herramientas/generar_diagramas.py --png    # el de secuencia pide cairosvg
+```
+
+Quedarse con un PNG viejo era posible y pasó catorce días: es **I-59**. Ahora
+`CA-10` lo dice, pero solo en tu máquina —en integración continua no hay PNG que
+mirar.
+
 ---
 
 ## Si la issue quedó abierta igual
