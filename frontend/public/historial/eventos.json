@@ -1,0 +1,481 @@
+{
+  "fuente": "docs/investigacion/catalogo-eventos.csv",
+  "generado": "2026-09-16",
+  "huella": "16d34e9584131f75f6a91f12005dd428f8d580095cd87c17a43e8b4b78d60486",
+  "distritos": [
+    {
+      "codigo": "50801",
+      "nombre": "Tilaran",
+      "eventos": 19
+    },
+    {
+      "codigo": "50802",
+      "nombre": "Quebrada Grande",
+      "eventos": 4
+    },
+    {
+      "codigo": "50803",
+      "nombre": "Tronadora",
+      "eventos": 5
+    },
+    {
+      "codigo": "50804",
+      "nombre": "Santa Rosa",
+      "eventos": 5
+    },
+    {
+      "codigo": "50805",
+      "nombre": "Libano",
+      "eventos": 3
+    },
+    {
+      "codigo": "50806",
+      "nombre": "Tierras Morenas",
+      "eventos": 5
+    },
+    {
+      "codigo": "50807",
+      "nombre": "Arenal",
+      "eventos": 5
+    },
+    {
+      "codigo": "50808",
+      "nombre": "Cabeceras",
+      "eventos": 0
+    }
+  ],
+  "tipos": [
+    {
+      "id": "incendio",
+      "eventos": 1
+    },
+    {
+      "id": "lluvia_intensa",
+      "eventos": 38
+    },
+    {
+      "id": "sequia",
+      "eventos": 7
+    }
+  ],
+  "rango": {
+    "desde": "1970-11-11",
+    "hasta": "2026-04-03"
+  },
+  "eventos": [
+    {
+      "codigo_distrito": "50807",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00766 (evento SPATE)",
+      "descripcion": "Arenal, Viejo Arenal. Socavacion de la calzada, perdidas en puentes y rios. Cuatro fincas de ganado con perdidas por avenida torrencial. Perdidas registradas: 1808 USD. Corresponde a la Depresion Tropical No.16 / Tormenta Tropical Nate."
+    },
+    {
+      "codigo_distrito": "50805",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00767 (evento LANDSLIDE)",
+      "descripcion": "Libano Centro, Vergel. Dano en superficie de ruedo, obstruccion de cunetas por deslizamientos, cortes totales en carretera por socavacion. 15400 m de danos en vias. Deslizamiento desencadenado por las lluvias del mismo temporal."
+    },
+    {
+      "codigo_distrito": "50802",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00768 (evento RAIN)",
+      "descripcion": "Quebrada Grande Centro, El Dos, La Esperanza, Las Brisas. Fincas afectadas: ganaderia de carne 1, ganaderia de leche 93, platano 31, hortalizas 1, cafe 3. Escuela La Esperanza afectada. 123471 m de danos en vias. Perdidas: 726148 USD."
+    },
+    {
+      "codigo_distrito": "50804",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00769 (evento RAIN)",
+      "descripcion": "Santa Rosa Centro, Parcelas, Quebrada Azul. Colapso total de alcantarillado provocando corte de carretera. Ocho fincas de ganaderia de leche afectadas. Perdidas: 32669 USD."
+    },
+    {
+      "codigo_distrito": "50806",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00770 (evento RAIN)",
+      "descripcion": "Tierras Morenas Centro, Tejonas. Obstruccion de media calzada. Fincas con perdidas: maiz 2, tomate 2. 17750 m de danos en vias. Perdidas: 24681 USD."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00771 (evento RAIN)",
+      "descripcion": "La Torre, Rio Chiquito, El Silencio. Perdidas en puentes, derrumbe en cuneta y carril izquierdo. Cultivo de tomate 3, aves 2. 48290 m de danos en vias. Perdidas: 313371 USD."
+    },
+    {
+      "codigo_distrito": "50803",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00772 (evento RAIN)",
+      "descripcion": "Tronadora Centro. Perdidas en puentes, carril derecho y cuneta obstruidos. 18580 m de danos en vias. Perdidas: 166310 USD."
+    },
+    {
+      "codigo_distrito": "50807",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-05-26",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2017-00015 (evento LANDSLIDE)",
+      "descripcion": "Fuertes lluvias provocaron varios deslizamientos en la zona, con afectacion de muchas familias. 15 viviendas destruidas, 60 damnificados, 60 afectados. La ficha atribuye explicitamente el deslizamiento a las lluvias."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00193 (evento DROUGHT)",
+      "descripcion": "Monsenor Morera, El Silencio, San Luis. Areas cultivadas de chile picante y lechuga afectadas. Los acueductos de las ASADA de Monsenor Morera, San Luis y El Silencio tuvieron disminucion de caudal. Declaratoria de emergencia por Decreto Ejecutivo 38642-MP-MAG."
+    },
+    {
+      "codigo_distrito": "50802",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00194 (evento DROUGHT)",
+      "descripcion": "San Ramon, Las Nubes. Areas cultivadas de cafe afectadas. Declaratoria de emergencia por Decreto Ejecutivo 38642-MP-MAG."
+    },
+    {
+      "codigo_distrito": "50803",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00195 (evento DROUGHT)",
+      "descripcion": "Areas cultivadas de tomate, chile dulce y lechuga afectadas. Declaratoria de emergencia por Decreto Ejecutivo 38642-MP-MAG."
+    },
+    {
+      "codigo_distrito": "50804",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00196 (evento DROUGHT)",
+      "descripcion": "Areas cultivadas de maiz afectadas. Afectacion en pasto y pasto de corte para ganaderia. Declaratoria de emergencia por Decreto Ejecutivo 38642-MP-MAG."
+    },
+    {
+      "codigo_distrito": "50805",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00197 (evento DROUGHT)",
+      "descripcion": "Solania, San Jose. Areas cultivadas de cafe, maiz, aguacate, tomate, chile dulce y lechuga afectadas. Afectacion en pasto y pasto de corte para ganaderia."
+    },
+    {
+      "codigo_distrito": "50806",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00198 (evento DROUGHT)",
+      "descripcion": "Areas cultivadas de tomate y chile dulce afectadas. Afectacion en pasto y pasto de corte para ganaderia. Declaratoria de emergencia por Decreto Ejecutivo 38642-MP-MAG."
+    },
+    {
+      "codigo_distrito": "50807",
+      "tipo_evento": "sequia",
+      "fecha_inicio": "2014-09-30",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00199 (evento DROUGHT)",
+      "descripcion": "El acueducto de la ASADA de Arenal tuvo disminucion permanente del caudal."
+    },
+    {
+      "codigo_distrito": "50807",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2014-10-05",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2014-00073 (evento LANDSLIDE)",
+      "descripcion": "La Union, ruta nacional 142 que comunica Tilaran con La Fortuna. Paso regulado por deslizamiento. 1000 m de danos en vias."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2013-10-03",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2013-00396 (evento FLOOD)",
+      "descripcion": "Barrio La Cabra. Una vivienda inundada, 4 damnificados. La cifra de damnificados la pondera DesInventar con el promedio nacional de habitantes por vivienda del Censo 2011 del INEC, no es un conteo directo."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2013-10-02",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2013-00388 (evento FLOOD)",
+      "descripcion": "Las Parcelas, alrededores de Coocique y San Antonio. Cinco viviendas inundadas, puente destruido, liceo inundado y caida de un muro de contencion. 20 damnificados ponderados."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2013-09-26",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2013-00355 (evento FLOOD)",
+      "descripcion": "Tilaran centro. Una vivienda inundada, 4 damnificados ponderados."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2012-06-22",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2012-00207 (evento FLOOD)",
+      "descripcion": "Tilaran. 8 viviendas afectadas, 32 damnificados ponderados con el Censo 2011 del INEC."
+    },
+    {
+      "codigo_distrito": "50807",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2012-05-31",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2012-00019 (evento SPATE)",
+      "descripcion": "La Union de Nuevo Arenal, ruta nacional 142. Destruccion del puente de concreto sobre la quebrada Flores y del paso de alcantarilla."
+    },
+    {
+      "codigo_distrito": "50805",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2011-10-19",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2011-00915 (evento FLOOD)",
+      "descripcion": "Ruta 925. Paso cerrado por inundaciones. Superficie de ruedo danada."
+    },
+    {
+      "codigo_distrito": "50806",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2011-10-19",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2011-00916 (evento FLOOD)",
+      "descripcion": "Ruta 927, entrada principal de Tierras Morenas hacia Tilaran y Canas. Paso regulado. Dano en la superficie de ruedo."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2011-10-19",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2011-00917 (evento FLOOD)",
+      "descripcion": "Ruta 925, Tilaran (rio Higueron) hacia San Jose (iglesia). Paso cerrado por inundacion."
+    },
+    {
+      "codigo_distrito": "50804",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2011-10-01",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2011-00690 (evento FLOOD)",
+      "descripcion": "Los Angeles. La fuente no especifica la cantidad de viviendas anegadas."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2011-09-02",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2011-00575 (evento FLOOD)",
+      "descripcion": "El Carmen. Se inundo el salon del liceo. 2 viviendas afectadas, 8 damnificados ponderados."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2010-07-20",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, fichas 2010-00370 y 2010-00337 (evento FLOOD)",
+      "descripcion": "Ciudadela Juan XXIII y sector frente a la CCSS. 7 viviendas afectadas, 25 damnificados ponderados. En el segundo punto varias viviendas inundadas con nivel de agua de 25 cm, sin numero especificado."
+    },
+    {
+      "codigo_distrito": "50804",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2008-09-25",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2008-868 (evento FLOOD)",
+      "descripcion": "Barrio Los Angeles. La ficha no detalla afectacion."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2008-09-21",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2008-846 (evento FLOOD)",
+      "descripcion": "Inundaciones por fuertes lluvias, desbordamiento del rio y de alcantarillados en el sector de La Capri y la ciudadela."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2008-09-04",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2008-767 (evento FLOOD)",
+      "descripcion": "Inundacion por desbordamiento de una quebrada. Sin paso al poblado."
+    },
+    {
+      "codigo_distrito": "50802",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2008-10-08",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2008-1006 (evento LANDSLIDE)",
+      "descripcion": "Quebrada Grande. La ruta colapso en el paso de alcantarillado."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2007-09-21",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, fichas 2007-970 y 2007-971 (evento FLOOD)",
+      "descripcion": "Ciudadela San Juan XXIII: tres casas inundadas y dos puentes rebalsados. Los Angeles: jardin infantil Hogar Madre Marcelina inundado."
+    },
+    {
+      "codigo_distrito": "50803",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2007-09-10",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2007-901 (evento FLOOD)",
+      "descripcion": "Tronadora. Una casa afectada."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2007-09-09",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2007-894 (evento RAIN)",
+      "descripcion": "El Silencio de Tilaran. Dos puentes colapsados, comunidad aislada."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2005-10-11",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2005-824 (evento FLOOD)",
+      "descripcion": "Sector 400 m sur y 25 m oeste de la iglesia. La ficha no detalla afectacion."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2004-10-18",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, fichas 2004-561 y 2004-560 (evento FLOOD)",
+      "descripcion": "Barrio El Carmen y Ciudadela Juan XXIII. Varias viviendas inundadas, sin numero especificado en la fuente."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2004-09-19",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2004-406 (evento FLOOD)",
+      "descripcion": "Barrio La Cabra. Varias viviendas inundadas por desbordamiento de la quebrada Cabra y de alcantarillas."
+    },
+    {
+      "codigo_distrito": "50806",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2003-12-14",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 2003-564 (evento FLOOD)",
+      "descripcion": "Rio Piedras Negras, 30 m norte de la iglesia. 20 viviendas afectadas."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "1976-09-15",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 1976-77 (evento LANDSLIDE)",
+      "descripcion": "Rio Chiquito. Llovia desde hacia 24 horas. Un terraplen alcanzo una vivienda: 1 muerto, 1 herido, 8 damnificados. La ficha atribuye explicitamente el deslizamiento a la lluvia."
+    },
+    {
+      "codigo_distrito": "50803",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "1976-09-15",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 1976-78 (evento LANDSLIDE)",
+      "descripcion": "Paso obstruido, puente arrasado, rio Chiquito desbordado. Mismo temporal que la ficha 1976-77."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "1974-10-20",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 1974-46 (evento FLOOD)",
+      "descripcion": "Rio Chiquito. La fuente no identifica el numero de viviendas afectadas. Varias reses perecieron ahogadas."
+    },
+    {
+      "codigo_distrito": "50806",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "1970-11-11",
+      "fecha_fin": "",
+      "severidad": "",
+      "fuente": "DesInventar Costa Rica, ficha 1970-121 (evento FLOOD)",
+      "descripcion": "Tramo de carretera entre Tierras Morenas y Quebrada Grande parcialmente destruido y el resto danado por temporal."
+    },
+    {
+      "codigo_distrito": "50804",
+      "tipo_evento": "incendio",
+      "fecha_inicio": "2026-04-03",
+      "fecha_fin": "2026-04-05",
+      "severidad": "alto",
+      "fuente": "La Nacion (seccion Foros), 27 de abril de 2026, con testimonio de funcionarios del Cuerpo de Bomberos",
+      "descripcion": "Incendio en finca ganadera en Los Angeles de Tilaran. Inicio alrededor de las 5 p.m. del Viernes Santo, avanzo por dos flancos y amenazo un caserio vecino, otra finca colindante y el pueblo. Una lluvia fuerte lo contuvo parcialmente esa tarde; siguieron dos dias mas apagando focos aislados. Al menos 20 personas participaron. Causa probable segun Bomberos: extraccion de miel de un panal usando fuego."
+    },
+    {
+      "codigo_distrito": "50801",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-05-25",
+      "fecha_fin": "2017-05-26",
+      "severidad": "alto",
+      "fuente": "CNE via La Nacion y Periodico Guanacaste a la Altura, 25 y 26 de mayo de 2017",
+      "descripcion": "Onda tropical. Ciudadela Juan XXIII y San Luis. Albergue en el Centro Pastoral de Tilaran con 14 personas al 26 de mayo. Alerta amarilla de la CNE para el canton. El alcalde reporto entre 25 y 30 viviendas con danos de distinto grado en el canton."
+    },
+    {
+      "codigo_distrito": "50802",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-05-25",
+      "fecha_fin": "2017-05-26",
+      "severidad": "medio",
+      "fuente": "CNE via La Nacion y Periodico Guanacaste a la Altura, 25 y 26 de mayo de 2017",
+      "descripcion": "Onda tropical. Problemas de paso en el distrito y vias danadas. Sin reporte de viviendas afectadas en este distrito."
+    },
+    {
+      "codigo_distrito": "50803",
+      "tipo_evento": "lluvia_intensa",
+      "fecha_inicio": "2017-05-25",
+      "fecha_fin": "2017-05-26",
+      "severidad": "alto",
+      "fuente": "CNE via La Nacion y Periodico Guanacaste a la Altura, 25 y 26 de mayo de 2017",
+      "descripcion": "Onda tropical. Ocho viviendas danadas por caida de material en Arenal Viejo de Tronadora, escuela unidocente con ingreso de lodo, acueducto de la ASADA fuera de servicio con 773 conexiones sin agua potable, perdida de ganado, ruta 926 con deslizamientos, 12 km de paso cerrado entre Tronadora, Arenal Viejo y Rio Chiquito."
+    }
+  ]
+}
