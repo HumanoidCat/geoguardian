@@ -4925,14 +4925,45 @@ Es la forma de defecto que este proyecto ya conoce por otra via: **arreglar uno
 puede destapar otro que vivia a su sombra**, y por eso el arreglo se prueba
 mirando, no razonando que ahora tiene que andar.
 
-### El arreglo
+### El arreglo costo tres intentos, y los dos primeros fallaron por lo mismo
+
+Se deja escrito entero porque el modo de fallo importa mas que el arreglo.
+
+**Primer intento: la ventana sale del tramo que el origen devolvio.** No funciono,
+y no podia funcionar. `SQL_MEDICIONES` usa `generate_series` con un LEFT JOIN, o
+sea que **devuelve una fila por cada dia pedido**, tenga medicion o no. El contrato
+lo exige -«el consumidor necesita ver los huecos»- y esta escrito con su motivo en
+el propio SQL. El tramo de las filas devueltas es, letra por letra, el tramo
+pedido: el mismo eco con otro disfraz.
+
+**Segundo intento: no dibujar la respuesta del descubrimiento.** Tampoco alcanzo.
+El bloqueo no era de dibujo: las trece mil filas seguian entrando al estado de
+React y al memo. La ficha tardaba tanto en abrir que **el clic parecia no hacer
+nada**, y asi se reporto.
+
+**Tercer intento, el que funciono**, con lo aprendido de los dos anteriores.
+
+**Lo que los dos primeros tienen en comun** es que se decidieron razonando sobre
+el sintoma en vez de abrir el SQL y preguntarle a la base. La regla del proyecto
+dice exactamente eso: *medir desde fuera dice que algo se ve raro, no por que;
+antes de proponer un arreglo se abre el codigo*. Al abrir `SQL_MEDICIONES` los dos
+defectos restantes se explicaron solos en una linea.
 
 | # | Que cambia | Donde |
 |---|---|---|
-| 1 | La ventana sale del tramo que el origen **devolvio**; sin filas es nula y se declara | `frontend/src/datos/cliente.js` |
+| 1 | La ventana sale de los dias que traen **alguna medicion**, no de las filas devueltas; sin ninguno es nula y se declara | `frontend/src/datos/cliente.js` |
+| 1b | El descubrimiento se acota a **los ultimos dos anios** en vez de dos siglos, y la pantalla lo declara. Contra `generate_series`, pedir de 1900 a 2100 son unas **setenta y tres mil filas** generadas para averiguar dos fechas | `GraficaSerie.jsx` |
+| 1c | De la respuesta de descubrimiento se guardan **dos fechas y se descartan las filas** | `GraficaSerie.jsx` |
 | 2 | La ventana de descubrimiento se guarda una vez y no se encoge en cada consulta | `frontend/src/componentes/GraficaSerie.jsx` |
 | 3 | `obtenerMediciones` devuelve `simulado`, como ya hacia `obtenerRiesgos`, y la banda depende de el | los dos |
-| 4 | La consulta de descubrimiento no se dibuja: mientras llega, la pantalla dice que esta buscando el tramo | `GraficaSerie.jsx` |
+| 4 | Mientras llega el descubrimiento, la pantalla dice que esta buscando el tramo | `GraficaSerie.jsx` |
+
+**Lo que se pierde y se declara.** Acotar el descubrimiento a dos anios significa
+que el selector no deja retroceder mas alla de eso, aunque la serie empiece en
+1991. El pie lo dice con esas palabras -«dentro de los ultimos 2 anios que
+consulta esta pantalla»- para no afirmar que ese es todo el dato que existe. El
+arreglo de fondo seria un endpoint que declare el tramo disponible sin traer
+filas; toca `backend/api/` y queda anotado.
 
 **Lo que este arreglo NO hace.** No agrega un endpoint que declare el tramo
 disponible, que seria lo correcto de fondo: hoy el cliente lo deduce pidiendo todo

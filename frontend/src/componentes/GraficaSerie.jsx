@@ -56,6 +56,10 @@ function restarDias(fecha, dias) {
   return d.toISOString().slice(0, 10)
 }
 
+// Cuanto hacia atras mira la consulta de descubrimiento. Ver el comentario de
+// abajo: contra la API cada dia pedido es una fila generada.
+const ANIOS_DESCUBRIMIENTO = 2
+
 export default function GraficaSerie({ codigo, nombre }) {
   const [variable, setVariable] = useState(VARIABLES[0])
   const [datos, setDatos] = useState(null)
@@ -91,8 +95,20 @@ export default function GraficaSerie({ codigo, nombre }) {
     if (!codigo) return undefined
     let vigente = true
 
-    const desde = rango?.desde ?? '1900-01-01'
-    const hasta = rango?.hasta ?? '2100-01-01'
+    // EL DESCUBRIMIENTO SE ACOTA, Y NO ES UNA OPTIMIZACION.
+    //
+    // Antes pedia de `1900-01-01` a `2100-01-01`, dos centinelas para decir «dame
+    // todo». Contra PostgreSQL eso es **catastrofico**: `SQL_MEDICIONES` usa
+    // `generate_series` y devuelve una fila por dia pedido, asi que dos siglos son
+    // unas setenta y tres mil filas generadas y transmitidas para averiguar dos
+    // fechas. La pestana se bloqueaba y el clic parecia no hacer nada.
+    //
+    // Se acota a los ultimos dos anios. Es lo que esta pantalla ofrece mirar -abre
+    // en noventa dias- y **la pantalla lo dice**, para no afirmar que ese es todo
+    // el dato que existe: la serie empieza en 1991 y eso no cambia.
+    const hoyISO = new Date().toISOString().slice(0, 10)
+    const desde = rango?.desde ?? restarDias(hoyISO, ANIOS_DESCUBRIMIENTO * 365)
+    const hasta = rango?.hasta ?? hoyISO
     // La primera consulta es de DESCUBRIMIENTO: sirve para saber que tramo tiene
     // el origen, no para dibujarse. Contra la API trae la serie entera del
     // distrito -unas trece mil filas desde 1991- y pintarlas congela la pestana.
@@ -107,18 +123,36 @@ export default function GraficaSerie({ codigo, nombre }) {
       .then((respuesta) => {
         if (!vigente) return
         setError(null)
-        setDatos({ ...respuesta, descubriendo })
+
+        // DE LA CONSULTA DE DESCUBRIMIENTO SE GUARDAN DOS FECHAS, NO LAS FILAS.
+        //
+        // Contra PostgreSQL esa consulta trae la serie entera del distrito, unas
+        // trece mil filas. Meterlas en el estado de React basta para bloquear la
+        // pestana: el memo las recorre, el estado las retiene y la ficha tarda
+        // tanto en abrir que parece que el clic no hizo nada. Se midio asi, con
+        // el clic sin efecto aparente.
+        //
+        // No hacen falta. De esta respuesta solo interesa **donde empieza y donde
+        // termina** el tramo; los datos que se dibujan los trae la consulta
+        // siguiente, ya encuadrada. Las filas se descartan aqui mismo.
+        //
         // `hasta` nulo significa que el origen no tiene ninguna fila para este
         // distrito. Entonces no hay encuadre posible y no se inventa uno: la
-        // pantalla lo dice abajo. Antes esto no podia ocurrir porque la ventana
-        // siempre traia fechas, aunque fueran las pedidas.
-        if (!rango && respuesta.ventana.hasta) {
-          setVentana(respuesta.ventana)
-          setRango({
-            desde: restarDias(respuesta.ventana.hasta, DIAS_INICIALES - 1),
-            hasta: respuesta.ventana.hasta,
-          })
+        // pantalla lo dice abajo.
+        if (descubriendo) {
+          if (respuesta.ventana.hasta) {
+            setVentana(respuesta.ventana)
+            setRango({
+              desde: restarDias(respuesta.ventana.hasta, DIAS_INICIALES - 1),
+              hasta: respuesta.ventana.hasta,
+            })
+          } else {
+            setDatos({ ...respuesta, filas: [], descubriendo: false })
+          }
+          return
         }
+
+        setDatos({ ...respuesta, descubriendo: false })
       })
       .catch((causa) => {
         if (vigente) setError(causa.message)
@@ -197,13 +231,16 @@ export default function GraficaSerie({ codigo, nombre }) {
 
       {error && <p className="gs-error">No se pudo cargar la serie. {error}</p>}
 
-      {!error && cargando && !datos && <p className="gs-estado">Cargando la serie...</p>}
-
-      {!error && datos?.descubriendo && (
+      {/* Un solo mensaje para un solo estado. `cargando` ya se deriva de no tener
+          ni datos ni error -ver su comentario-, asi que agregar una segunda
+          condicion `!datos` era repetir la misma pregunta dos veces y arriesgar
+          que las dos se contradigan. El texto nombra lo que de verdad esta
+          pasando: la primera consulta busca donde empieza y termina la serie. */}
+      {!error && cargando && (
         <p className="gs-estado">Buscando el tramo con datos de {nombre}...</p>
       )}
 
-      {!error && datos && !datos.descubriendo && (
+      {!error && datos && (
         <>
           <div className="gs-lienzo">
             <Suspense fallback={<p className="gs-estado">Cargando la grafica...</p>}>
@@ -219,10 +256,13 @@ export default function GraficaSerie({ codigo, nombre }) {
           <p className="gs-pie gs-ventana">
             {ventana ? (
               <>
-                Datos disponibles del {ventana.desde} al {ventana.hasta}
+                Datos disponibles del {ventana.desde} al {ventana.hasta}, dentro de los
+                ultimos {ANIOS_DESCUBRIMIENTO} anios que consulta esta pantalla
               </>
             ) : (
-              <>El origen no tiene ninguna medicion para este distrito</>
+              <>
+                Sin mediciones en los ultimos {ANIOS_DESCUBRIMIENTO} anios para este distrito
+              </>
             )}
             {datos.origen === ORIGEN_ESTATICO && ' · respaldo estatico, sin API'}.
           </p>

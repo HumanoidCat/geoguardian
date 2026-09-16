@@ -506,7 +506,7 @@ export async function obtenerMediciones(codigo, desde, hasta) {
     return fila
   })
 
-  // LA VENTANA LA DECLARA EL DATO, NO LA PETICION.
+  // LA VENTANA LA DECLARAN LOS DIAS CON DATO, NO LAS FILAS DEVUELTAS.
   //
   // Aqui decia «contra la API la ventana pedida ES la que se puede servir: no hay
   // tope», y devolvia `{ desde, hasta }`, o sea la pregunta como si fuera la
@@ -522,10 +522,21 @@ export async function obtenerMediciones(codigo, desde, hasta) {
   // Nunca se vio en desarrollo porque local servia el respaldo estatico, que si
   // declara su ventana de verdad. Se vio al poner la API en modo real. I-60.
   //
-  // Sin filas la ventana es nula y no se inventa: quien la consuma tiene que
-  // distinguir «no hay dato para este distrito» de «hay dato de 1900 a 2100».
-  const ventana = filas.length
-    ? { desde: filas[0].fecha, hasta: filas[filas.length - 1].fecha }
+  // Y NO BASTA CON MIRAR LA PRIMERA Y LA ULTIMA FILA. Ese fue el primer intento
+  // de arreglo y **tampoco servia**, por una razon que estaba a la vista en el
+  // SQL: `SQL_MEDICIONES` usa `generate_series` con un LEFT JOIN, o sea que
+  // **devuelve una fila por cada dia pedido**, tenga medicion o no. El contrato
+  // lo exige -«el consumidor necesita ver los huecos»-, asi que el tramo de las
+  // filas devueltas es, letra por letra, el tramo pedido. Derivar la ventana de
+  // ahi era el mismo eco con otro disfraz.
+  //
+  // Lo que declara el tramo real son los dias que traen **alguna** medicion.
+  const conDato = filas.filter((f) => VARIABLES.some(({ campo }) => f[campo] !== null))
+
+  // Sin ningun dia con dato la ventana es nula y no se inventa: quien la consuma
+  // tiene que distinguir «no hay mediciones» de «hay mediciones de 1900 a 2100».
+  const ventana = conDato.length
+    ? { desde: conDato[0].fecha, hasta: conDato[conDato.length - 1].fecha }
     : { desde: null, hasta: null }
 
   return { filas, ventana, origen, simulado: salud.modo === 'simulado' }
