@@ -17,8 +17,10 @@ lo que necesita PostgreSQL vive en `verificar_h83.py` y `medir_cache.py`.
 
 from __future__ import annotations
 
+import ast
 import copy
 from datetime import date, datetime
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -143,6 +145,34 @@ def test_claves_distintas_no_se_pisan(repositorio, falso):
     repositorio.obtener_distrito("50802")
     repositorio.obtener_distrito("50801")
     assert falso.llamadas["obtener_distrito"] == 2
+
+
+# -- CA-2, ningun endpoint conoce la cache ---------------------------------- #
+
+
+def test_ca2_rutas_no_importa_nada_de_la_cache():
+    """
+    La cache entra envolviendo el repositorio en `dependencias.py`. Si algun dia
+    `rutas.py` tuviera que importarla, el diseno se rompio: los endpoints
+    dependen del protocolo, no de una implementacion.
+
+    **Se lee el arbol de sintaxis, no el texto.** Buscar la subcadena "cache" en
+    el fuente da verde o rojo por una palabra escrita en un comentario, y ese es
+    exactamente el defecto que **I-58** registra en ocho controles de este
+    repositorio. `backend/etl/verificar_h8_4.py` ya resuelve el mismo problema
+    del mismo modo.
+    """
+    arbol = ast.parse((Path(__file__).resolve().parent / "rutas.py").read_text(encoding="utf-8"))
+
+    modulos: list[str] = []
+    for nodo in ast.walk(arbol):
+        if isinstance(nodo, ast.ImportFrom):
+            modulos.append(nodo.module or "")
+        elif isinstance(nodo, ast.Import):
+            modulos += [alias.name for alias in nodo.names]
+
+    culpables = [modulo for modulo in modulos if "cache" in modulo]
+    assert not culpables, f"rutas.py importa la cache: {culpables}"
 
 
 # -- CA-4, el vencimiento --------------------------------------------------- #
