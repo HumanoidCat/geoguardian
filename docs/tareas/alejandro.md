@@ -931,11 +931,21 @@
   - No crea `analitico.evento`. El catalogo validado de H4.3 llega al visor por el
     camino estatico de H6.6, con un generador y no una copia a mano.
 
-- [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
+- [x] **H7.4** · Panel de estadisticas comparado contra la normal historica (2026-09-17)
   - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
   - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
     Invenio Fest. Los criterios de aceptacion y las horas del backlog no
     cambian: cambia quien la hace.
+  - horas: estimada 2.9 . real 2.0
+  - Criterios escritos antes del codigo:
+    `docs/evidencias/computacion-grafica/H7.4-criterios-aceptacion.md` (PR #342)
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.4-panel-normales.md`
+  - La normal sale de `crudo.medicion_diaria` con un generador, no de una tabla ni
+    de una ruta nueva: 87664 filas, 0 imputadas, 13 series. Las normales de febrero
+    coinciden con la tabla que `anomalias.py` midio por otro camino.
+  - **CA-8 queda cumplido a medias y esta declarado**: los tres anchos se midieron
+    en el DOM -390, 768 y 1280 exactos- pero no hay capturas archivadas, porque la
+    herramienta con la que se guardaron las de H7.3 fallo al escribir el archivo.
 
 ## Regla: lo hecho no se borra
 

@@ -8,8 +8,8 @@ QUE ES UNA ANOMALIA Y POR QUE IMPORTA EL MES
 --------------------------------------------
 
 La anomalia es la desviacion de un valor respecto de **lo normal para ese mes
-del anio**. En Tilaran la normal de febrero ronda los 5 mm y la de octubre los
-320: comparar octubre contra la normal de octubre dice si llovio mas o menos de
+del anio**. En el distrito de Tilaran la normal de febrero es de 36 mm y la de
+octubre de 345: comparar octubre contra la normal de octubre dice si llovio mas o menos de
 lo habitual; compararlo contra cualquier otro mes no dice nada sobre el clima,
 dice en que mes estamos.
 
@@ -54,6 +54,38 @@ from datetime import date
 log = logging.getLogger(__name__)
 
 # Normal climatologica del proyecto. La fija el charter y la usa la linea base.
+# DE DONDE SALEN LAS CIFRAS DEL ENCABEZADO
+#
+# Hasta el 2026-09-16 el encabezado decia «febrero ronda los 5 mm y octubre los
+# 320». **Los 320 de octubre eran buenos; los 5 de febrero no.** La cifra aparecia
+# una sola vez en el repositorio, sin fuente y sin ninguna prueba que la fijara.
+#
+# Medido al generar la normal para H7.4, sobre `crudo.medicion_diaria`, 1991-2020,
+# 87 664 filas, cero imputadas, los doce meses con los treinta anios completos:
+#
+#     distrito            febrero   octubre   anual
+#     Libano                   10       376    2049
+#     Santa Rosa               15       305    1822
+#     Quebrada Grande          26       403    2548
+#     Cabeceras                29       424    2794
+#     Tilaran                  36       345    2411
+#     Tierras Morenas          51       380    2598
+#     Tronadora                76       416    3254
+#     Arenal                   84       368    3113
+#
+# Los 5 mm se parecen a los distritos del oeste, no al canton. Y la diferencia no
+# es ruido: **en febrero el distrito mas lluvioso tiene 8,6 veces el del mas seco,
+# y en octubre solo 1,4 veces**. La correlacion de la normal de febrero con la
+# longitud es +0,68: llueve mas hacia el este, hacia la divisoria continental.
+#
+# Son dos regimenes y el dato los separa solo. En la estacion lluviosa llueve
+# parejo en todo el canton; en la seca solo cerca de la divisoria, con la humedad
+# que los alisios cruzan desde el Caribe -y la normal de viento de este mismo
+# periodo tiene su maximo anual justo en febrero y marzo-.
+#
+# La consecuencia para quien use este modulo: **una normal cantonal de la estacion
+# seca no significa nada**. En febrero hay que usar la del distrito.
+
 NORMAL_INICIO = date(1991, 1, 1)
 NORMAL_FIN = date(2020, 12, 31)
 
@@ -123,8 +155,9 @@ class CalculadorAnomalias:
             "anomalia() supone que la serie es mensual y arranca en enero, porque el "
             "contrato no recibe fechas. Si no es asi, el resultado es silenciosamente "
             "incorrecto: cada valor se compara contra la normal del mes equivocado. En "
-            "Tilaran las normales van de unos 5 mm en febrero a unos 320 en octubre, "
-            "asi que un desfase de un mes produce errores del tamano del ciclo anual. "
+            "Tilaran las normales de lluvia van de unos 10 mm en febrero -en Libano, el "
+            "distrito mas seco- a unos 424 en octubre -en Cabeceras-, asi que un desfase "
+            "de un mes produce errores del tamano del ciclo anual. "
             "Ver SC-06 y docs/02-contratos.md"
         )
 
