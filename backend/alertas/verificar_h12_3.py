@@ -55,6 +55,51 @@ class Resultado:
         return all(cumple for _, cumple, _ in self.filas)
 
 
+NOMBRES = ("alerta.yml", "backend.alertas", "backend/alertas")
+
+
+def _menciones(ruta: Path) -> tuple[list[str], list[str]]:
+    """Separa lo que EJECUTA el flujo de alertas de lo que solo lo nombra.
+
+    Devuelve (invocaciones, menciones en prosa).
+
+    POR QUE ESTA DISTINCION EXISTE, y no la hacia antes. Ver **I-58**.
+
+    Este criterio se llama «sin estar **cableado** en ellos», y hasta el
+    2026-09-16 lo comprobaba buscando tres cadenas en el texto completo de
+    `ci.yml` y `cd.yml`. Eso responde «¿aparece la palabra?», que no es la misma
+    pregunta. **Es el mismo razonamiento que el docstring de este criterio ya
+    aplicaba a los hashes**: un hash responde «¿cambio el archivo?» y no «¿esta
+    historia lo toco?».
+
+    Se noto al intentar meter el verificador de H12.3 al CI: el paso salio, y aun
+    asi el criterio seguia rojo **porque un comentario explicaba por que no
+    estaba**. Un control que no distingue una llamada de una frase que dice «esto
+    no se llama desde aca» obliga a escribir peor documentacion para complacerlo.
+
+    LA REGLA, Y ES DELIBERADAMENTE ESTRICTA. Cuenta como invocacion **toda linea
+    que no sea un comentario ni un `echo`**. No se intenta entender YAML ni
+    reconocer solo `run:` y `uses:`: cualquier otra linea que nombre el flujo se
+    trata como cableado. Se prefiere marcar de mas antes que dejar pasar una forma
+    de invocacion que no se previo, que es lo que I-58 esta corrigiendo en otros
+    ocho sitios.
+
+    Lo que se relaja es **solo** el comentario y el `echo`, que no ejecutan nada
+    en ningun caso. Y lo que se nombra en prosa **se sigue reportando** en el
+    detalle: se deja de fallar por ello, no de verlo.
+    """
+    invocaciones: list[str] = []
+    prosa: list[str] = []
+    for numero, linea in enumerate(ruta.read_text(encoding="utf-8").splitlines(), 1):
+        desnuda = linea.strip()
+        presentes = [n for n in NOMBRES if n in linea]
+        if not presentes:
+            continue
+        destino = prosa if desnuda.startswith(("#", "echo ", 'echo"')) else invocaciones
+        destino.append(f"{ruta.name}:{numero} {presentes}")
+    return invocaciones, prosa
+
+
 def ca1_no_esta_cableado(resultado: Resultado) -> None:
     """
     El flujo escucha desde afuera, y ni ci.yml ni cd.yml saben que existe.
@@ -68,22 +113,20 @@ def ca1_no_esta_cableado(resultado: Resultado) -> None:
     escucha = "workflow_run:" in texto and "workflows: [CI, CD]" in texto
     permisos = "issues: write" in texto and "actions: read" in texto
 
-    ajenos = {}
+    cableado, nombrado = {}, {}
     for ruta in (CI, CD):
-        contenido = ruta.read_text(encoding="utf-8")
-        menciones = [
-            palabra
-            for palabra in ("alerta.yml", "backend.alertas", "backend/alertas")
-            if palabra in contenido
-        ]
-        if menciones:
-            ajenos[ruta.name] = menciones
+        ejecuta, prosa = _menciones(ruta)
+        if ejecuta:
+            cableado[ruta.name] = ejecuta
+        if prosa:
+            nombrado[ruta.name] = prosa
 
     resultado.marcar(
         "CA-1 el flujo escucha a CI y CD desde afuera, sin estar cableado en ellos",
-        escucha and permisos and not ajenos,
+        escucha and permisos and not cableado,
         f"escucha CI y CD: {escucha} · permisos minimos declarados: {permisos} · "
-        f"ci.yml y cd.yml lo nombran: {ajenos or 'no'}",
+        f"lo INVOCAN: {cableado or 'no'} · "
+        f"lo nombran en prosa, que no cuenta: {nombrado or 'no'}",
     )
 
 

@@ -1,123 +1,123 @@
-<svg width="361pt" height="730pt"
- viewBox="0.00 0.00 361.20 730.45" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 708.85)">
+<svg width="357pt" height="753pt"
+ viewBox="0.00 0.00 357.00 753.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 731.33)">
 <title>despliegue</title>
-<polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-708.85 339.6,-708.85 339.6,21.6 -21.6,21.6"/>
+<polygon fill="white" stroke="none" points="-21.6,21.6 -21.6,-731.33 335.6,-731.33 335.6,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_dev</title>
-<path fill="#f2f2f4" stroke="#b9c0c8" d="M23,-605.25C23,-605.25 279,-605.25 279,-605.25 285,-605.25 291,-611.25 291,-617.25 291,-617.25 291,-667.25 291,-667.25 291,-673.25 285,-679.25 279,-679.25 279,-679.25 23,-679.25 23,-679.25 17,-679.25 11,-673.25 11,-667.25 11,-667.25 11,-617.25 11,-617.25 11,-611.25 17,-605.25 23,-605.25"/>
-<text text-anchor="middle" x="72.5" y="-666.45" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Maquina de desarrollo</text>
+<path fill="#f2f2f4" stroke="#b9c0c8" d="M20,-624.39C20,-624.39 276,-624.39 276,-624.39 282,-624.39 288,-630.39 288,-636.39 288,-636.39 288,-689.73 288,-689.73 288,-695.73 282,-701.73 276,-701.73 276,-701.73 20,-701.73 20,-701.73 14,-701.73 8,-695.73 8,-689.73 8,-689.73 8,-636.39 8,-636.39 8,-630.39 14,-624.39 20,-624.39"/>
+<text xml:space="preserve" text-anchor="middle" x="69.25" y="-687.28" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Maquina de desarrollo</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_ci</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M20,-360.25C20,-360.25 298,-360.25 298,-360.25 304,-360.25 310,-366.25 310,-372.25 310,-372.25 310,-553.25 310,-553.25 310,-559.25 304,-565.25 298,-565.25 298,-565.25 20,-565.25 20,-565.25 14,-565.25 8,-559.25 8,-553.25 8,-553.25 8,-372.25 8,-372.25 8,-366.25 14,-360.25 20,-360.25"/>
-<text text-anchor="middle" x="83.5" y="-552.45" font-family="Helvetica,Arial,sans-serif" font-size="11.00">GitHub Actions &#160;· &#160;6 trabajos</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M20,-370.71C20,-370.71 294,-370.71 294,-370.71 300,-370.71 306,-376.71 306,-382.71 306,-382.71 306,-571.64 306,-571.64 306,-577.64 300,-583.64 294,-583.64 294,-583.64 20,-583.64 20,-583.64 14,-583.64 8,-577.64 8,-571.64 8,-571.64 8,-382.71 8,-382.71 8,-376.71 14,-370.71 20,-370.71"/>
+<text xml:space="preserve" text-anchor="middle" x="83.12" y="-569.19" font-family="Helvetica,Arial,sans-serif" font-size="11.00">GitHub Actions &#160;· &#160;6 trabajos</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_prod</title>
-<path fill="#e8f0e4" stroke="#b9c0c8" d="M34,-8C34,-8 138,-8 138,-8 144,-8 150,-14 150,-20 150,-20 150,-316.25 150,-316.25 150,-322.25 144,-328.25 138,-328.25 138,-328.25 34,-328.25 34,-328.25 28,-328.25 22,-322.25 22,-316.25 22,-316.25 22,-20 22,-20 22,-14 28,-8 34,-8"/>
-<text text-anchor="middle" x="54" y="-315.45" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Publicado</text>
+<path fill="#e8f0e4" stroke="#b9c0c8" d="M33,-8C33,-8 137,-8 137,-8 143,-8 149,-14 149,-20 149,-20 149,-326.71 149,-326.71 149,-332.71 143,-338.71 137,-338.71 137,-338.71 33,-338.71 33,-338.71 27,-338.71 21,-332.71 21,-326.71 21,-326.71 21,-20 21,-20 21,-14 27,-8 33,-8"/>
+<text xml:space="preserve" text-anchor="middle" x="52.62" y="-324.26" font-family="Helvetica,Arial,sans-serif" font-size="11.00">Publicado</text>
 </g>
 <!-- compose -->
 <g id="node1" class="node">
 <title>compose</title>
-<path fill="white" stroke="#b9c0c8" d="M105,-651.25C105,-651.25 31,-651.25 31,-651.25 25,-651.25 19,-645.25 19,-639.25 19,-639.25 19,-625.25 19,-625.25 19,-619.25 25,-613.25 31,-613.25 31,-613.25 105,-613.25 105,-613.25 111,-613.25 117,-619.25 117,-625.25 117,-625.25 117,-639.25 117,-639.25 117,-645.25 111,-651.25 105,-651.25"/>
-<text text-anchor="middle" x="68" y="-635.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">docker compose</text>
-<text text-anchor="middle" x="68" y="-624.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H6.0</text>
+<path fill="white" stroke="#b9c0c8" d="M101.96,-672.23C101.96,-672.23 28.04,-672.23 28.04,-672.23 22.04,-672.23 16.04,-666.23 16.04,-660.23 16.04,-660.23 16.04,-644.39 16.04,-644.39 16.04,-638.39 22.04,-632.39 28.04,-632.39 28.04,-632.39 101.96,-632.39 101.96,-632.39 107.96,-632.39 113.96,-638.39 113.96,-644.39 113.96,-644.39 113.96,-660.23 113.96,-660.23 113.96,-666.23 107.96,-672.23 101.96,-672.23"/>
+<text xml:space="preserve" text-anchor="middle" x="65" y="-654.81" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">docker compose</text>
+<text xml:space="preserve" text-anchor="middle" x="65" y="-642.81" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H6.0</text>
 </g>
 <!-- ci -->
 <g id="node3" class="node">
 <title>ci</title>
-<path fill="white" stroke="#b9c0c8" d="M204,-537.25C204,-537.25 84,-537.25 84,-537.25 78,-537.25 72,-531.25 72,-525.25 72,-525.25 72,-500.25 72,-500.25 72,-494.25 78,-488.25 84,-488.25 84,-488.25 204,-488.25 204,-488.25 210,-488.25 216,-494.25 216,-500.25 216,-500.25 216,-525.25 216,-525.25 216,-531.25 210,-537.25 204,-537.25"/>
-<text text-anchor="middle" x="144" y="-521.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">CI</text>
-<text text-anchor="middle" x="144" y="-510.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">contratos, gestion, calidad,</text>
-<text text-anchor="middle" x="144" y="-499.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">frontend, pruebas</text>
+<path fill="white" stroke="#b9c0c8" d="M216.83,-554.14C216.83,-554.14 97.17,-554.14 97.17,-554.14 91.17,-554.14 85.17,-548.14 85.17,-542.14 85.17,-542.14 85.17,-514.3 85.17,-514.3 85.17,-508.3 91.17,-502.3 97.17,-502.3 97.17,-502.3 216.83,-502.3 216.83,-502.3 222.83,-502.3 228.83,-508.3 228.83,-514.3 228.83,-514.3 228.83,-542.14 228.83,-542.14 228.83,-548.14 222.83,-554.14 216.83,-554.14"/>
+<text xml:space="preserve" text-anchor="middle" x="157" y="-536.72" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">CI</text>
+<text xml:space="preserve" text-anchor="middle" x="157" y="-524.72" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">contratos, gestion, calidad,</text>
+<text xml:space="preserve" text-anchor="middle" x="157" y="-512.72" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">frontend, pruebas</text>
 </g>
 <!-- compose&#45;&gt;ci -->
 <g id="edge1" class="edge">
 <title>compose&#45;&gt;ci</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M94.5,-613.05C94.5,-613.05 94.5,-544.28 94.5,-544.28"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="96.95,-544.28 94.5,-537.28 92.05,-544.28 96.95,-544.28"/>
-<text text-anchor="middle" x="130.5" y="-575.85" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">mismo Dockerfile</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M99.56,-632.1C99.56,-632.1 99.56,-562.99 99.56,-562.99"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="102.01,-562.99 99.56,-555.99 97.11,-562.99 102.01,-562.99"/>
+<text xml:space="preserve" text-anchor="middle" x="127.38" y="-593.79" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">mismo Dockerfile</text>
 </g>
 <!-- k3d -->
 <g id="node2" class="node">
 <title>k3d</title>
-<path fill="white" stroke="#b9c0c8" d="M271,-651.25C271,-651.25 165,-651.25 165,-651.25 159,-651.25 153,-645.25 153,-639.25 153,-639.25 153,-625.25 153,-625.25 153,-619.25 159,-613.25 165,-613.25 165,-613.25 271,-613.25 271,-613.25 277,-613.25 283,-619.25 283,-625.25 283,-625.25 283,-639.25 283,-639.25 283,-645.25 277,-651.25 271,-651.25"/>
-<text text-anchor="middle" x="218" y="-635.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">k3d &#160;· &#160;Kubernetes local</text>
-<text text-anchor="middle" x="218" y="-624.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H8.6 &#160;· &#160;D&#45;05</text>
+<path fill="white" stroke="#b9c0c8" d="M267.71,-672.23C267.71,-672.23 162.29,-672.23 162.29,-672.23 156.29,-672.23 150.29,-666.23 150.29,-660.23 150.29,-660.23 150.29,-644.39 150.29,-644.39 150.29,-638.39 156.29,-632.39 162.29,-632.39 162.29,-632.39 267.71,-632.39 267.71,-632.39 273.71,-632.39 279.71,-638.39 279.71,-644.39 279.71,-644.39 279.71,-660.23 279.71,-660.23 279.71,-666.23 273.71,-672.23 267.71,-672.23"/>
+<text xml:space="preserve" text-anchor="middle" x="215" y="-654.81" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">k3d &#160;· &#160;Kubernetes local</text>
+<text xml:space="preserve" text-anchor="middle" x="215" y="-642.81" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">H8.6 &#160;· &#160;D&#45;05</text>
 </g>
 <!-- k3d&#45;&gt;ci -->
 <!-- publicar -->
 <g id="node4" class="node">
 <title>publicar</title>
-<path fill="white" stroke="#b9c0c8" d="M143.5,-411.75C143.5,-411.75 28.5,-411.75 28.5,-411.75 22.5,-411.75 16.5,-405.75 16.5,-399.75 16.5,-399.75 16.5,-385.75 16.5,-385.75 16.5,-379.75 22.5,-373.75 28.5,-373.75 28.5,-373.75 143.5,-373.75 143.5,-373.75 149.5,-373.75 155.5,-379.75 155.5,-385.75 155.5,-385.75 155.5,-399.75 155.5,-399.75 155.5,-405.75 149.5,-411.75 143.5,-411.75"/>
-<text text-anchor="middle" x="86" y="-395.75" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">publicar&#45;visor</text>
-<text text-anchor="middle" x="86" y="-384.75" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">solo desde main &#160;· &#160;H11.5</text>
+<path fill="white" stroke="#b9c0c8" d="M141.83,-424.55C141.83,-424.55 28.17,-424.55 28.17,-424.55 22.17,-424.55 16.17,-418.55 16.17,-412.55 16.17,-412.55 16.17,-396.71 16.17,-396.71 16.17,-390.71 22.17,-384.71 28.17,-384.71 28.17,-384.71 141.83,-384.71 141.83,-384.71 147.83,-384.71 153.83,-390.71 153.83,-396.71 153.83,-396.71 153.83,-412.55 153.83,-412.55 153.83,-418.55 147.83,-424.55 141.83,-424.55"/>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-407.13" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">publicar&#45;visor</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-395.13" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">solo desde main &#160;· &#160;H11.5</text>
 </g>
 <!-- ci&#45;&gt;publicar -->
 <g id="edge3" class="edge">
 <title>ci&#45;&gt;publicar</title>
-<path fill="none" stroke="#5b636d" d="M113.75,-488.18C113.75,-488.18 113.75,-418.77 113.75,-418.77"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="116.2,-418.77 113.75,-411.77 111.3,-418.77 116.2,-418.77"/>
-<text text-anchor="middle" x="131.5" y="-450.85" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">si main</text>
+<path fill="none" stroke="#5b636d" d="M119.5,-502.01C119.5,-502.01 119.5,-433.22 119.5,-433.22"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="121.95,-433.22 119.5,-426.22 117.05,-433.22 121.95,-433.22"/>
+<text xml:space="preserve" text-anchor="middle" x="117.38" y="-463.7" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">si main</text>
 </g>
 <!-- ghcr -->
 <g id="node5" class="node">
 <title>ghcr</title>
-<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M290,-417.25C290,-417.25 204,-417.25 204,-417.25 198,-417.25 192,-411.25 192,-405.25 192,-405.25 192,-380.25 192,-380.25 192,-374.25 198,-368.25 204,-368.25 204,-368.25 290,-368.25 290,-368.25 296,-368.25 302,-374.25 302,-380.25 302,-380.25 302,-405.25 302,-405.25 302,-411.25 296,-417.25 290,-417.25"/>
-<text text-anchor="middle" x="247" y="-401.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ghcr.io</text>
-<text text-anchor="middle" x="247" y="-390.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">imagenes &#160;· &#160;H11.1</text>
-<text text-anchor="middle" x="247" y="-379.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">(pendiente)</text>
+<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M286.21,-430.55C286.21,-430.55 201.79,-430.55 201.79,-430.55 195.79,-430.55 189.79,-424.55 189.79,-418.55 189.79,-418.55 189.79,-390.71 189.79,-390.71 189.79,-384.71 195.79,-378.71 201.79,-378.71 201.79,-378.71 286.21,-378.71 286.21,-378.71 292.21,-378.71 298.21,-384.71 298.21,-390.71 298.21,-390.71 298.21,-418.55 298.21,-418.55 298.21,-424.55 292.21,-430.55 286.21,-430.55"/>
+<text xml:space="preserve" text-anchor="middle" x="244" y="-413.13" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ghcr.io</text>
+<text xml:space="preserve" text-anchor="middle" x="244" y="-401.13" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">imagenes &#160;· &#160;H11.1</text>
+<text xml:space="preserve" text-anchor="middle" x="244" y="-389.13" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">(pendiente)</text>
 </g>
 <!-- ci&#45;&gt;ghcr -->
 <g id="edge4" class="edge">
 <title>ci&#45;&gt;ghcr</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M204,-488.18C204,-488.18 204,-424.29 204,-424.29"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="206.45,-424.29 204,-417.29 201.55,-424.29 206.45,-424.29"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M209.31,-502.01C209.31,-502.01 209.31,-439.32 209.31,-439.32"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="211.76,-439.32 209.31,-432.32 206.86,-439.32 211.76,-439.32"/>
 </g>
 <!-- pages -->
 <g id="node6" class="node">
 <title>pages</title>
-<path fill="white" stroke="#b9c0c8" d="M130,-300.25C130,-300.25 42,-300.25 42,-300.25 36,-300.25 30,-294.25 30,-288.25 30,-288.25 30,-263.25 30,-263.25 30,-257.25 36,-251.25 42,-251.25 42,-251.25 130,-251.25 130,-251.25 136,-251.25 142,-257.25 142,-263.25 142,-263.25 142,-288.25 142,-288.25 142,-294.25 136,-300.25 130,-300.25"/>
-<text text-anchor="middle" x="86" y="-284.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">GitHub Pages</text>
-<text text-anchor="middle" x="86" y="-273.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">visor estatico</text>
-<text text-anchor="middle" x="86" y="-262.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">con respaldo JSON</text>
+<path fill="white" stroke="#b9c0c8" d="M128.71,-309.21C128.71,-309.21 41.29,-309.21 41.29,-309.21 35.29,-309.21 29.29,-303.21 29.29,-297.21 29.29,-297.21 29.29,-269.37 29.29,-269.37 29.29,-263.37 35.29,-257.37 41.29,-257.37 41.29,-257.37 128.71,-257.37 128.71,-257.37 134.71,-257.37 140.71,-263.37 140.71,-269.37 140.71,-269.37 140.71,-297.21 140.71,-297.21 140.71,-303.21 134.71,-309.21 128.71,-309.21"/>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-291.79" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">GitHub Pages</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-279.79" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">visor estatico</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-267.79" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">con respaldo JSON</text>
 </g>
 <!-- publicar&#45;&gt;pages -->
 <g id="edge5" class="edge">
 <title>publicar&#45;&gt;pages</title>
-<path fill="none" stroke="#5b636d" d="M86,-373.69C86,-373.69 86,-307.51 86,-307.51"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="88.45,-307.51 86,-300.51 83.55,-307.51 88.45,-307.51"/>
+<path fill="none" stroke="#5b636d" d="M85,-384.32C85,-384.32 85,-318.12 85,-318.12"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="87.45,-318.12 85,-311.12 82.55,-318.12 87.45,-318.12"/>
 </g>
 <!-- apiprod -->
 <g id="node7" class="node">
 <title>apiprod</title>
-<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M127.5,-180.25C127.5,-180.25 44.5,-180.25 44.5,-180.25 38.5,-180.25 32.5,-174.25 32.5,-168.25 32.5,-168.25 32.5,-143.25 32.5,-143.25 32.5,-137.25 38.5,-131.25 44.5,-131.25 44.5,-131.25 127.5,-131.25 127.5,-131.25 133.5,-131.25 139.5,-137.25 139.5,-143.25 139.5,-143.25 139.5,-168.25 139.5,-168.25 139.5,-174.25 133.5,-180.25 127.5,-180.25"/>
-<text text-anchor="middle" x="86" y="-164.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API en linea</text>
-<text text-anchor="middle" x="86" y="-153.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SIN DESPLEGAR</text>
-<text text-anchor="middle" x="86" y="-142.25" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ver la limitacion</text>
+<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M126.84,-185.62C126.84,-185.62 43.16,-185.62 43.16,-185.62 37.16,-185.62 31.16,-179.62 31.16,-173.62 31.16,-173.62 31.16,-145.78 31.16,-145.78 31.16,-139.78 37.16,-133.78 43.16,-133.78 43.16,-133.78 126.84,-133.78 126.84,-133.78 132.84,-133.78 138.84,-139.78 138.84,-145.78 138.84,-145.78 138.84,-173.62 138.84,-173.62 138.84,-179.62 132.84,-185.62 126.84,-185.62"/>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-168.2" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">API en linea</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-156.2" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SIN DESPLEGAR</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-144.2" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">ver la limitacion</text>
 </g>
 <!-- pages&#45;&gt;apiprod -->
 <g id="edge6" class="edge">
 <title>pages&#45;&gt;apiprod</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M86,-251.18C86,-251.18 86,-187.29 86,-187.29"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="88.45,-187.29 86,-180.29 83.55,-187.29 88.45,-187.29"/>
-<text text-anchor="middle" x="112.5" y="-213.85" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">/api &#160;· &#160;404 hoy</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M85,-257.08C85,-257.08 85,-194.39 85,-194.39"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="87.45,-194.39 85,-187.39 82.55,-194.39 87.45,-194.39"/>
+<text xml:space="preserve" text-anchor="middle" x="111.62" y="-218.77" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">/api &#160;· &#160;404 hoy</text>
 </g>
 <!-- baseprod -->
 <g id="node8" class="node">
 <title>baseprod</title>
-<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M139.5,-63.6C139.5,-66.24 115.52,-68.38 86,-68.38 56.48,-68.38 32.5,-66.24 32.5,-63.6 32.5,-63.6 32.5,-20.65 32.5,-20.65 32.5,-18.01 56.48,-15.87 86,-15.87 115.52,-15.87 139.5,-18.01 139.5,-20.65 139.5,-20.65 139.5,-63.6 139.5,-63.6"/>
-<path fill="none" stroke="#b9c0c8" stroke-dasharray="5,2" d="M139.5,-63.6C139.5,-60.97 115.52,-58.83 86,-58.83 56.48,-58.83 32.5,-60.97 32.5,-63.6"/>
-<text text-anchor="middle" x="86" y="-45.12" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Base en linea</text>
-<text text-anchor="middle" x="86" y="-34.12" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SIN DESPLEGAR</text>
+<path fill="white" stroke="#b9c0c8" stroke-dasharray="5,2" d="M138.84,-65.8C138.84,-68.55 114.71,-70.78 85,-70.78 55.29,-70.78 31.16,-68.55 31.16,-65.8 31.16,-65.8 31.16,-20.98 31.16,-20.98 31.16,-18.23 55.29,-16 85,-16 114.71,-16 138.84,-18.23 138.84,-20.98 138.84,-20.98 138.84,-65.8 138.84,-65.8"/>
+<path fill="none" stroke="#b9c0c8" stroke-dasharray="5,2" d="M138.84,-65.8C138.84,-63.05 114.71,-60.82 85,-60.82 55.29,-60.82 31.16,-63.05 31.16,-65.8"/>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-45.89" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Base en linea</text>
+<text xml:space="preserve" text-anchor="middle" x="85" y="-33.89" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">SIN DESPLEGAR</text>
 </g>
 <!-- apiprod&#45;&gt;baseprod -->
 <g id="edge7" class="edge">
 <title>apiprod&#45;&gt;baseprod</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M86,-131.1C86,-131.1 86,-75.31 86,-75.31"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="88.45,-75.31 86,-68.31 83.55,-75.31 88.45,-75.31"/>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M85,-133.31C85,-133.31 85,-79.41 85,-79.41"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="87.45,-79.41 85,-72.41 82.55,-79.41 87.45,-79.41"/>
 </g>
 </g>
 </svg>

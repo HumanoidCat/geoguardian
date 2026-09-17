@@ -4365,3 +4365,612 @@ Y los seis diagramas que la corrida de Windows habia ensuciado se restauraron co
 
 **Impacto.** Un rojo en el CI del PR #330 y una hora de diagnostico. Sin danio en
 el repositorio: los archivos ensuciados no llegaron a commitearse.
+
+## I-57 · El error que nombra a la historia culpable nombra a una que ya cerro
+
+**Fecha.** 2026-09-15.
+
+**Quien lo detecto.** Alejandro, al leer el contrato antes de escribir la
+solicitud de cambio de H14.5.
+
+**Que paso.** `backend/api/repositorio_postgres.py` tiene un mapa que sirve para
+que el error de una tabla que falta diga **que historia la va a traer**, en vez de
+parecer un defecto:
+
+    PENDIENTES = {
+        "guardar_indices": ("analitico.indice", "H2.5"),
+        "obtener_indices": ("analitico.indice", "H2.5"),
+        ...
+    }
+
+**H2.5 cerro el 2026-09-01.** Quien hoy se tope con `TablaPendiente` al pedir
+indices lee que espere a una historia que cerro hace dos semanas.
+
+**Causa raiz.** H2.5 nunca fue la historia de esa tabla. Su alcance es generar
+lags, acumulados y medias moviles en `backend/senales/caracteristicas.py`, y asi
+cerro y asi esta su evidencia. El mapa se escribio cuando el reparto era otro
+-H2.5 se traspaso desde Cesar el 2026-08-31 por D-33- y **no se reviso al cambiar
+el alcance**.
+
+La idea del mapa es buena: un error que nombra a su dueno vale mucho mas que uno
+que dice «no implementado». Lo que faltaba es que ese puntero **se comprobara**.
+Ningun verificador lo mira: `verificar_estado` cuadra el avance entre backlog,
+tareas y matriz, pero nada contrasta los nombres de historia que viven **dentro
+del codigo** contra el estado de esas historias.
+
+**Accion tomada.** `D-53` decide que `analitico.indice` **no se crea**: el SPI-6
+se calcula al pedirlo. El mapa deja de nombrar a H2.5 y pasa a nombrar al ADR, que
+es una referencia que no caduca.
+
+> **CORRECCION del 2026-09-15, el mismo dia.** Esta entrada decia que las otras
+> dos -`analitico.evento` con H4.3 y `control.reporte_calidad` con H1.5- «se
+> revisaron en el mismo momento y sus historias siguen abiertas». **Eso era
+> falso, y no se habia comprobado: se afirmo.** Al mirarlo de verdad:
+>
+>     H4.3  Catalogo de 12 o mas eventos historicos    [x] cerrada el 2026-08-18
+>     H1.5  Reporte formal de calidad de datos         [x] cerrada el 2026-08-30
+>
+> **Las TRES entradas del mapa nombran historias cerradas.** Ninguna de las tres
+> entrego su tabla, y ninguna tenia por que: H2.5 generaba caracteristicas, H4.3
+> produjo un catalogo de eventos y H1.5 un reporte de calidad. Son tres
+> documentos y ningun DDL.
+>
+> Eso no debilita el hallazgo: **lo agranda.** No es un puntero que se quedo
+> viejo, es que **el mapa entero envejecio sin que nadie lo notara**, y refuerza
+> el aprendizaje 1. Las dos entradas restantes quedan como estan hasta que
+> alguien decida que pasa con `analitico.evento` y `control.reporte_calidad`
+> -no se decide de paso en una correccion-, pero **su texto ya no se puede leer
+> como que esas historias vienen en camino**.
+>
+> La leccion del error es la misma que la de la incidencia: **se escribio «se
+> revisaron» sin haberlas revisado.** Comprobarlo costaba un `grep`.
+
+**Aprendizaje.** Dos.
+
+1. **Un puntero a una historia dentro del codigo es una afirmacion sobre el
+   estado del proyecto, y caduca como cualquier otra.** Este repositorio vigila
+   con verificadores que el avance cuadre en cuatro lugares; este quinto lugar
+   -los nombres de historia embebidos en mensajes de error- no lo vigila nadie.
+   Se anota como candidato a control, no se resuelve hoy.
+2. **Referenciar una decision envejece mejor que referenciar una historia.** Una
+   historia cierra; un ADR sigue explicando por que las cosas son como son.
+
+**Impacto.** Ninguno en produccion: la ruta que usaria esas funciones no existe,
+asi que nadie llego a ver el mensaje. El costo fue de diagnostico, y de haber
+partido de un supuesto falso al planificar H14.5 -se creia que la tabla llegaba
+con una historia pendiente-.
+
+## I-58 · Ocho controles afirmaban en su texto algo que no entraba en su condicion
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** El primer caso lo marco un comentario de revision en el PR
+#282; el barrido de los otros siete salio al revisar el PR #336, que corregia ese
+primero.
+
+**Que paso.** Un verificador de criterios imprime dos cosas: **si el criterio
+cumple** y **un detalle** que explica por que. Cuando el detalle menciona un valor
+que la condicion no consulta, el criterio puede salir **CUMPLE mostrando `False`
+adentro**. El caso que abrio esto, en `backend/etl/fuentes/verificar_h6_3.py`:
+
+    agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS   # se calcula
+
+    resultado.marcar(
+        "CA-4 una fuente se agrega con su archivo y una entrada del registro",
+        archivo_nuevo and registrada,                            # no lo incluye
+        f"... y una real agregada despues: {agregada_despues} ...",   # lo imprime
+    )
+
+Se corrigio en el **PR #336**. Al cerrarlo quedo la pregunta de si era un caso
+aislado, y **no lo era**.
+
+**El barrido.** Se leyeron los **56 verificadores** del repositorio, uno por uno,
+buscando la misma forma: *el control afirma en su texto algo que su condicion no
+comprueba*. Aparecieron **siete sitios mas**. Cada uno se abrio y se leyo antes de
+anotarlo aca; ninguno sale de una busqueda de texto.
+
+### Los que no pueden fallar nunca
+
+**`backend/modelado/verificar_h31.py:203` — CA-5 de H3.1.** El peor de todos,
+porque es una tautologia:
+
+    comprobar(
+        "la particion se pide a H3.2, no se deriva aca",
+        "particionar" in inspect.getsource(sys.modules[__name__]),
+    )
+
+`sys.modules[__name__]` es **el propio verificador**, que importa `particionar` en
+su linea 46. La subcadena esta garantizada: la condicion es constante `True`. Si
+la linea base derivara sus propios cortes -justo la fuga que el criterio existe
+para impedir- saldria verde igual.
+
+**`basedatos/verificar_h1_9.py:318` — criterio 13, separacion de privilegios.**
+La rama `else` marca `True` sin medir nada:
+
+    if cur.fetchone()[0] == 1:
+        ...
+        r.comprobar("13. el rol lector puede leer la bitacora pero no escribirla",
+                    lee and not escribe, ...)
+    else:
+        r.comprobar("13. el rol lector puede leer la bitacora pero no escribirla", True)
+
+Si el rol `geoguardian_lector` no existe, el criterio dice CUMPLE afirmando una
+separacion de privilegios que nadie comprobo. **Y ese es exactamente el escenario
+de H1.10**: una base restaurada de un respaldo sin roles. Es el mas peligroso de
+los ocho, porque es un control de seguridad que se pone verde cuando la cosa que
+controla no existe.
+
+### Los que miden algo mas debil que lo que su texto afirma
+
+**`backend/etl/verificar_h1_16.py:124`** — «el extractor se niega a guardar una
+serie enteramente nula», comprobado con `"ninguno con" in codigo_extractor`. Busca
+un fragmento de un mensaje; nunca ejecuta el extractor con una serie nula. Si
+alguien quita la guarda y deja el texto, sigue verde. **Es de H1.16, o sea mio, y
+de hace dos dias.**
+
+**`infra/verificar_h116.py:226`** — «se comprueba que ningun trigger de historial
+dispare con INSERT», con `"def comprobar_triggers_de_historial" in fuente and
+"INSERT" in fuente`. Que la funcion exista y que la palabra `INSERT` aparezca en
+algun lado del archivo no dice nada de los triggers. Una funcion vacia con ese
+nombre da CUMPLE. **Y en el mismo archivo, tres lineas mas arriba, hay un
+comentario que dice «La sentencia, no la palabra: buscar el texto suelto daba
+verde con el codigo saboteado. Lo detecto el sabotaje numero 10.»** Se aprendio la
+leccion en un criterio y no se barrio el resto.
+
+**`infra/verificar_h116.py:189`** — «si una tabla no coincide, la carga sale con
+error», con `"if diferencias:" in fuente and "return 1" in fuente`: dos cadenas
+que pueden pertenecer a bloques sin relacion.
+
+**`backend/modelado/verificar_h38.py:297`** — «la tuberia arma la tabla y el
+escritor por la MISMA puerta», con `fuente.count("fabricas(") >= 2`. Dos llamadas
+con parametros distintos -evaluar un conjunto y escribir con otro, que es lo que
+el criterio dice impedir- cumplen el conteo igual.
+
+**`backend/api/verificar_h61.py:318`** — CA-6, «los endpoints dependen del
+protocolo». Busca dos cadenas literales, `"contratos.simulados"` y
+`"RepositorioSimulado"`. Un alias, un import en dos pasos o cualquier **otra**
+implementacion concreta pasa. En este mismo repositorio,
+`backend/etl/verificar_h8_4.py` ya resuelve el mismo problema leyendo el AST de
+los imports.
+
+### Lo que no es el defecto, para que no se vuelva a revisar
+
+Siete archivos mas tienen una condicion `True` literal y **no** son este defecto,
+porque la medicion ocurre antes y la rama solo se alcanza si algo ya se
+comprobo: `verificar_corrida_en_fallos.py:82`, `verificar_h1_15.py:129`,
+`verificar_h1_14.py:513`, `verificar_h13.py:121`, `verificar_h17.py:152`,
+`verificar_h60.py:523` y `verificar_h111.py:196`. Tampoco lo es el CA-7 de
+`verificar_h6_3.py`, que devuelve `True` pero **declara** que se declara y no se
+mide, que es justo lo contrario de este defecto.
+
+### Un hallazgo de esta misma lista estaba mal, y se corrige aca
+
+**`backend/etl/verificar_h11.py:602` — CA-7, «Las unidades coinciden con el
+contrato».** Se anoto primero como falso verde, porque la condicion es el literal
+`True`. **Al abrir el codigo para arreglarlo resulto que no lo era.**
+
+`ExtractorPower.consultar` llama a `_comprobar_unidades`, que compara lo que la
+respuesta declara contra `UNIDADES` y **lanza `ErrorPower` si no coincide**. Si
+POWER sirviera la radiacion en kWh/m2/dia, la consulta reventaria y la rama
+`except` de arriba devolveria `False`. O sea que **el criterio si estaba medido**;
+lo que pasaba es que la medicion estaba delegada y el verificador no lo decia.
+
+Queda como hallazgo, pero mas chico y de otra clase: **un criterio que depende de
+una guarda que nada vigila.** Quitar `_comprobar_unidades` de `power.py` dejaba
+este CA-7 en verde sin que nada chillara, y encima el CA-7 tocaba la red, asi que
+sin internet ni siquiera llegaba a ejecutarse.
+
+**Arreglado el 2026-09-16, y sin red.** `_comprobar_unidades` recibe un
+diccionario, asi que el criterio ahora la ejercita directo: le pasa una respuesta
+que cumple el contrato y comprueba que la acepta, y otra con la radiacion en
+kWh/m2/dia -el caso peligroso que el propio modulo declara, un factor 3,6- y
+comprueba que la rechaza. Medido:
+
+    respuesta correcta                ACEPTADA
+    ALLSKY_SFC_SW_DWN = kWh/m^2/day   RECHAZADA
+    T2M_MAX = F                       RECHAZADA
+    WS2M = km/h                       RECHAZADA
+    unidad ausente                    RECHAZADA
+
+**Por que se deja escrito que el hallazgo estaba mal.** Una incidencia sobre
+controles que afirman mas de lo que miden no puede permitirse afirmar mas de lo
+que midio. Se conto entre los ocho desde el principio y se sigue contando: lo que
+cambia es de que clase es.
+
+### Estado de los ocho, al 2026-09-16
+
+Los ocho estan corregidos, **cada uno con el sabotaje que demuestra que ahora cae**:
+
+| donde | antes | como se demostro |
+|---|---|---|
+| `verificar_h6_3.py` CA-4 | `agregada_despues` fuera de la condicion | PR #336, sabotaje del registro |
+| `verificar_h31.py` CA-5 | tautologia sobre el propio verificador | se le corta la particion y se le mete una fuga: **falla en los dos** |
+| `verificar_h1_9.py` #13 | `True` si el rol no existe | rama corregida; **afirmado y no comprobado** hasta correrlo con Postgres |
+| `verificar_h11.py` CA-7 | delegaba sin decirlo | 4 unidades saboteadas, las 4 rechazadas, sin red |
+| `verificar_h36.py` (x3) | subcadenas y un `all()` vacuo | espia que anota lo que recibe la linea base; particion recortada |
+| `verificar_h38.py` | `count("fabricas(") >= 2` | dos llamadas con argumentos distintos: **falla** |
+| `verificar_h1_16.py` | `"ninguno con" in fuente` | se ejecuta `leer()` con una serie toda nula |
+| `verificar_h61.py` CA-6 | dos cadenas literales | detecta `RepositorioPostgres` y el alias de modulo |
+
+**El de `verificar_h1_16.py` enseno algo al saboteario.** El primer arreglo pasaba
+**por el motivo equivocado**: el cuerpo de prueba no traia `latitude`, asi que
+saltaba antes otra guarda y el criterio habria seguido en verde aunque alguien
+borrara la que dice comprobar. Un arreglo sin sabotaje se parece demasiado a un
+arreglo.
+
+### Lo que el barrido encontro de paso, y no es lo mismo
+
+**A la mayoria de los verificadores no los corre nadie.** De los **58** del
+repositorio, **25 se ejecutaban en el CI y 33 no**.
+
+> **El primer conteo dijo «29 y 29» y estaba mal.** Buscaba el nombre del
+> verificador en el texto del archivo del CI, asi que contaba como «corre» a
+> cualquiera **mencionado en un comentario** —o peor, mencionado en un `echo` que
+> dice justamente que NO corre—. **Es el defecto de esta misma incidencia,
+> cometido al medirla.** El numero bueno sale de leer las invocaciones reales
+> (`python -m ...`) y no el archivo entero. Corregido el 2026-09-16.
+
+No todos pueden estar en el CI -varios piden credenciales, red o la base cargada-
+pero **ocho corrian limpios sin base y sin red**: los de H12.4, H4.1, H6.3, H12.3,
+H3.8, H3.3, H3.4 y H3.5.
+
+**Siete entraron al CI el 2026-09-16**, al trabajo `pruebas`, que es donde ya
+vivian los de H3.0, H3.1, H3.2, H3.6, H6.1 y H6.2. Cuestan **61 s medidos** -53 de
+ellos son H3.3, H3.4 y H3.5, que entrenan modelos de verdad-. **El CI pasa de 25 a
+32 verificadores ejecutados.**
+
+### El octavo no entro, y lo detecto el propio verificador
+
+El de **H12.3** se agrego junto con los otros siete. **Fallo en la primera
+corrida**, y por su CA-1: ese criterio exige que `ci.yml` y `cd.yml` **no
+mencionen el modulo de alertas**, porque ese flujo tiene que escuchar las
+corridas desde afuera y no quedar cableado adentro. Al agregar el paso, `ci.yml`
+pasaba a mencionarlo.
+
+**Se saco.** Aflojar el criterio de otra persona para que quepa un paso propio es
+exactamente lo contrario de lo que esta incidencia viene a arreglar.
+
+Hubo un segundo intento: dejar el paso fuera pero **explicar en un comentario** por
+que no estaba. Tambien fallo —el criterio compara texto, no invocaciones, asi que
+hasta un comentario que dice «esto no esta cableado» lo dispara—. La explicacion
+quedo escrita sin nombrar la ruta.
+
+**Que no sepa distinguir una llamada de una mencion es un hallazgo del mismo tipo
+que esta incidencia**, asi que se anoto sin tocar, para que lo decidiera alguien
+que no se beneficiara del cambio. **El PM autorizo afinarlo el 2026-09-16**, y se
+hizo con una condicion escrita: mas preciso, nunca mas flojo.
+
+La regla nueva es deliberadamente estricta. Cuenta como invocacion **toda linea
+que no sea un comentario ni un `echo`**; no se intenta entender YAML ni reconocer
+solo `run:` y `uses:`, porque una forma de invocacion no prevista es justamente lo
+que esta incidencia esta corrigiendo en otros sitios. Y lo que se nombra en prosa
+**se sigue reportando** en el detalle: se deja de fallar por ello, no de verlo.
+
+Comprobado con cinco sabotajes:
+
+    un paso ejecuta el modulo                         FALLA
+    lo llama como workflow reutilizable (uses:)       FALLA
+    lo invoca dentro de un bloque run multilinea      FALLA
+    lo menciona solo un comentario                    CUMPLE, y lo reporta
+    lo menciona solo un echo                          CUMPLE, y lo reporta
+
+**Y el arreglo NO consiguio lo que su autor queria.** El verificador de H12.3
+sigue sin poder entrar al CI: ejecutarlo **es** invocar algo de ese modulo, y el
+docstring del criterio es explicito -«ni ci.yml ni cd.yml saben que existe»-. Lo
+unico que la precision compro fue poder **explicar por escrito** por que no esta,
+sin que el comentario ponga el criterio en rojo. Se deja dicho aca porque es la
+prueba de que afinar no fue una excusa para acomodar el resultado.
+
+**Y sirve de contraejemplo util:** de los ocho sitios de esta incidencia, siete
+dejaban pasar algo malo. Este es lo contrario —es mas estricto de lo que su texto
+dice— y aun asi cumplio su funcion, que era avisar.
+
+Dos de esos ocho se acababan de arreglar -el CA-4 de H6.3 en el PR #336 y el de
+H3.8 en esta incidencia- y **sin este paso ninguno de los dos se habria vuelto a
+ejecutar nunca**.
+
+**Y el paso que declaraba las omisiones tambien afirmaba de mas.** Existia para
+que se viera que la omision era deliberada, y **declaraba tres** cuando eran
+treinta y tres. Un `echo` siempre sale verde, asi que era el lugar donde menos se
+notaba. Ahora declara el conteo y el motivo por familia.
+
+**Lo que sigue, y no se hizo aca:** doce de los que quedan fuera son de
+`basedatos/` y **no los bloquea el entorno** -el trabajo `pruebas` ya levanta
+PostGIS-, sino que les falta la carga de datos. Es el siguiente paso natural y no
+se toco a ocho dias de la feria.
+
+**Y uno de los que nadie corre esta fallando.** `infra/verificar_h116.py` tiene en
+rojo el criterio «el runbook nombra los valores, no los escribe»:
+`docs/19-runbook-railway.md` contiene dos hosts reales de Railway,
+`altaria.proxy.rlwy.net` y `acela.proxy.rlwy.net`, en sus lineas 194-195.
+
+**No se corrige aca, y a proposito.** Estan citados como ejemplos **historicos**
+—«el 2026-09-06 era X y el 09-07 Y»— para mostrar que el host cambia, que es lo
+contrario de escribir un valor como si fuera estable. Si eso cuenta o no como
+valor versionado es una decision del PM, no de quien barre. Lo que si es un
+hallazgo es que **lleva dias en rojo y nadie se entero**, porque el verificador no
+esta en el CI.
+
+**Causa raiz.** No es descuido de una persona. Son 56 verificadores escritos por
+cuatro personas a lo largo de diez semanas, y **nadie barrio nunca el patron**: el
+proyecto arreglaba cada aparicion cuando la tropezaba. El comentario del sabotaje
+10 en `verificar_h116.py` lo demuestra: el patron ya se habia identificado con
+nombre propio y aun asi quedaron dos sitios en el mismo archivo.
+
+Es la misma forma de **I-16** -se vigilaba una de las apariciones de una cifra y
+no las demas- aplicada a los controles en vez de a los numeros.
+
+**Que se hace.**
+
+1. El del PR #282 ya esta corregido y fusionado en el **PR #336**.
+2. **Los ocho los corrigio el PM, en cualquier carpeta y sin pedir permiso.** Es
+   lo que habilita **D-54**: a ocho dias del Invenio Fest, esperar a que cada
+   dueno arregle su verificador cuesta mas que el control que la regla de
+   propiedad da. La regla vuelve sola despues de la feria. Los duenos se enteran
+   por la seccion de archivos fuera de carpeta del Pull Request, y si alguno
+   prefiere retomar el suyo se le devuelve.
+3. Cada arreglo entra **con su sabotaje**: se rompe a proposito lo que el criterio
+   dice vigilar y se muestra que ahora si cae, como se hizo con el CA-5 de
+   `verificar_h31`. Un arreglo sin sabotaje no se distingue de uno que sigue sin
+   comprobar nada, que es de lo que trata esta incidencia.
+4. **Dos no se pueden demostrar desde donde se escribieron:**
+   `verificar_h1_9.py` necesita Postgres levantado y el CA-7 de `verificar_h11.py`
+   necesita salir a la red de POWER. Van arreglados y con el sabotaje escrito para
+   que lo ejecute quien tenga el entorno. **Hasta que se ejecute, el arreglo esta
+   afirmado y no comprobado**, y se dice asi en vez de darlo por bueno.
+5. **El de `verificar_h1_9.py` va primero**, por ser un control de seguridad que se
+   pone verde justo cuando la cosa que controla no existe.
+
+**Lo que este barrido NO cubre.** Se busco **una** forma de defecto. Que un
+verificador no la tenga no quiere decir que su criterio este bien medido; quiere
+decir que no falla de esta manera.
+
+---
+
+## I-59 · El documento muestra los PNG, y los PNG no los revisaba nadie
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** Alejandro, preparando el Pull Request de los seis SVG con
+deriva de version de Graphviz. Al listar `docs/diagramas/` para ver que entraba,
+las fechas de los PNG no cuadraban con las de los SVG.
+
+**Que paso.** Los siete diagramas existen dos veces: como **SVG**, versionado, y
+como **PNG**, excluido en `.gitignore` porque es un artefacto.
+
+Todo el control esta puesto sobre el SVG. `verificar_diagramas.py` corre en
+integracion continua con diez comprobaciones, CA-1 a CA-9, y todas miran el SVG. La revision de
+un Pull Request mira el SVG, que es texto y se lee en el diff.
+
+**Y el documento no muestra el SVG.**
+
+    docs/17-documento-tecnico.md    7 veces   ![...](diagramas/*.png)
+    docs/16-avance-semana8.md       6 veces   ![...](diagramas/*.png)
+
+De modo que el archivo que se revisa no es el que se lee, y el que se lee no lo
+miraba ningun control. Es la forma de I-04 -una copia que se desactualiza- pero
+montada sobre el mismisimo generador que se escribio para que I-04 no volviera a
+pasar. El `README.md` de la carpeta llegaba a afirmarlo: *"no hay copia que se
+desactualice porque no hay dos lugares donde vivan"*. Habia dos.
+
+### La medicion
+
+Para cada PNG se tomo su fecha de escritura y se comparo el **texto** del SVG tal
+como estaba en el ultimo commit anterior a esa fecha contra el texto del SVG de
+hoy. Solo texto: si las palabras cambiaron, el dibujo dice otra cosa.
+
+| Diagrama | PNG escrito | El SVG de entonces |
+|---|---|---|
+| `componentes` | 2026-08-29 | **33 textos contra 36** |
+| `secuencia-consulta-riesgo` | 2026-08-29 | **distinto** |
+| `entidad-relacion` | 2026-09-15 | igual |
+| `casos-de-uso` | 2026-09-03 | sin commit anterior a esa fecha |
+| `despliegue`, `flujo-datos`, `flujo-modelado` | 2026-08-29 | sin commit anterior a esa fecha |
+
+Lo que le falta a `componentes.png`, que el documento tecnico incrusta en su
+linea 210 y el avance en su linea 99:
+
+    falta:  PanelDistrito
+    falta:  TableroSemaforo
+    falta:  HTTP  ·  /riesgos
+    falta:  coordenadas  ·  H5.6
+    sobra:  HTTP  ·  /riesgo
+
+Y lo que dice `secuencia-consulta-riesgo.png`:
+
+    sobra:  GET /riesgo?evento=&fecha=
+    falta:  GET /riesgos?evento=&fecha=
+
+**`GET /riesgo` contra una API que expone `/riesgos` es el defecto que hizo nacer
+a CA-6.** Esta escrito en el encabezado de `verificar_diagramas.py`. Se corrigio
+el 2026-09-02, en el commit `2ecaa3d`, cuyo mensaje es *"H6.5: los diagramas dejan
+de mentir, y ahora hay quien lo compruebe"*. Se corrigio en el SVG. Catorce dias
+despues seguia en pie en los dos archivos que muestra el documento.
+
+Las cuatro filas de *"sin commit anterior a esa fecha"* no son una absolucion:
+quieren decir que el PNG es anterior al primer estado versionado de su SVG, o sea
+que no hay con que compararlo. No hay evidencia de que coincidan.
+
+### Dos cosas que conviene no perder de vista
+
+**Las fechas son de la maquina de Alejandro.** Los PNG no viajan, asi que esta
+tabla no se puede reproducir desde el repositorio: cada quien tiene los suyos.
+Eso empeora el defecto en lugar de acotarlo, porque **no existe un PNG
+autoritativo**: el documento sale distinto segun quien lo arme.
+
+**`--png` era una cosa que habia que acordarse.** El PNG solo se escribia con la
+bandera. Quien regeneraba sin ella dejaba el SVG al dia y el PNG viejo en disco,
+sin ningun aviso. Ese es el modo de fallo, y el proyecto ya tiene escrito -I-25,
+I-50- que un arreglo que depende de que alguien se acuerde no es un arreglo.
+
+### El arreglo
+
+1. **El olvido deja de ser posible.** `generar_diagramas.py` rehace todo PNG que
+   ya exista en disco, con bandera o sin ella. `--png` pasa a querer decir
+   *creamelos la primera vez*.
+2. **El olvido, si ocurre igual, se ve.** Nueva **CA-10** en
+   `verificar_diagramas.py`: cada PNG en disco tiene que salir del SVG de hoy. No
+   compara fechas -`git checkout` reescribe la fecha de un archivo sin que su
+   contenido cambie, y un control que se dispara por lo que no busca es I-13-,
+   sino la huella `sha256` que el generador graba en
+   `docs/diagramas/.origen-png.json` al escribir cada PNG. La huella normaliza los
+   saltos de linea, porque si no diria cosas distintas en Windows y en Ubuntu para
+   el mismo par de archivos, que es I-56.
+3. **CA-10 no mira ningun archivo en integracion continua**, y el verificador lo
+   imprime: el runner clona el repositorio y ahi no hay PNG. Sirve donde el
+   defecto puede existir, que es la maquina de quien arma el documento. Se declara
+   porque la leccion de I-58 es que una comprobacion vacia que no dice cuantos
+   elementos miro se lee como verde ganado.
+4. **El PNG deja de depender de una libreria que nadie declaro.** Al ir a
+   rehacerlos se midio que `cairosvg` -lo unico que sabia convertir el SVG a
+   PNG- **no estaba instalado en el entorno del proyecto ni nombrado en ningun
+   `requirements`**. Solo vivia en prosa, en el README de la carpeta. Pedir
+   `--png` escribia los siete SVG, imprimia una linea a mitad de la salida y no
+   hacia ni un PNG, con codigo de salida 0.
+
+   Seis de los siete diagramas los dibuja Graphviz, y Graphviz emite PNG:
+   `dot -Tpng -Gdpi=192` sale del **mismo DOT** que el SVG, con la herramienta
+   que el proyecto ya exige. Una dependencia menos, y un paso de conversion
+   menos entre la fuente y lo que se imprime.
+
+   El septimo, `secuencia-consulta-riesgo`, es SVG escrito a mano y no tiene DOT.
+   Ese sigue necesitando un rasterizador. Si falta, **se nombra al final, en voz
+   alta, y con `--png` se sale con codigo 1**: un no-hacer-nada silencioso es la
+   forma de esta misma incidencia, y repetirla dentro de su arreglo seria comico.
+5. Los siete PNG se rehacen antes de armar el documento de la feria.
+
+**Sabotaje.** CA-10 se probo contra siete escenarios fabricados antes de darla por
+buena: sin PNG (cero, el caso del CI), PNG al dia, **SVG cambiado sin rehacer el
+PNG**, PNG sin huella registrada -que es el caso de agosto que abrio esta
+incidencia-, registro ilegible, el mismo SVG con saltos de linea de Windows, y un
+PNG borrado a mano con su huella vieja detras. Los tres del medio caen, los otros
+cuatro pasan.
+
+**Lo que este arreglo NO hace.** No versiona los PNG. Versionarlos los pondria en
+el diff, pero un binario en un diff no se revisa: seguirian sin mirarse, y son
+casi dos megabytes que cambiarian entera cada vez que alguien regenera. Tampoco comprueba que el PNG **se vea** bien: comprueba que salio del SVG
+que hay hoy. Que el SVG sea correcto es lo que hacen CA-1 a CA-9.
+
+---
+
+## I-60 · El visor publicado abria la serie de cada distrito en octubre de 2099
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** Alejandro, tomando capturas de H7.4 con la API local puesta
+en modo real por primera vez.
+
+**Que paso.** La ficha de cualquier distrito del **sitio publicado** mostraba esto:
+
+    Serie climatica de Libano
+    90 dias · 90 sin dato, dibujados como cortes en la linea y no como cero.
+    Datos disponibles del 2099-10-04 al 2100-01-01.
+    SERIE SIMULADA. Los valores los sortea el simulado de forma determinista.
+
+Una grafica vacia, situada en el ultimo trimestre del siglo, bajo un pie que
+afirmaba tener datos hasta el ano 2100, y una banda que declaraba inventadas unas
+observaciones que salian de PostgreSQL.
+
+**No es un defecto sino tres, y uno tapaba a otro.**
+
+### 1 · La ventana declarada era la pregunta, no la respuesta
+
+`GraficaSerie` hace una primera consulta de **descubrimiento** con dos fechas
+centinela -`1900-01-01` a `2100-01-01`- para que el origen declare que tramo
+tiene. Su propio comentario lo dice: *«la primera consulta pide todo para que el
+origen declare su ventana, y de ahi sale el encuadre inicial. Suponerla aqui seria
+repetir en el componente un dato que solo el origen conoce»*.
+
+El diseno era correcto. La rama de la API de `obtenerMediciones` lo rompia
+devolviendo el rango pedido:
+
+    // Contra la API la ventana pedida ES la que se puede servir: no hay tope.
+    return { filas, ventana: { desde, hasta }, origen }
+
+De ahi el 2099, que no es un dato sino una resta: el encuadre inicial son los
+noventa dias anteriores al fin de la ventana, y `2100-01-01` menos 89 dias es
+`2099-10-04`.
+
+**Por que nadie lo vio antes.** El respaldo estatico si declara su ventana de
+verdad, y hasta hoy el visor local siempre corrio contra el respaldo. El defecto
+solo aparece con la API contestando, que es **exactamente lo que hace el sitio
+publicado**. Nadie habia abierto la ficha de un distrito en el publicado.
+
+### 2 · La banda de «SERIE SIMULADA» no tenia condicion
+
+Se dibujaba siempre. No habia ningun `if`: era markup fijo dentro del bloque de
+resultados.
+
+Con la API en `modo: real` eso etiquetaba como inventadas unas mediciones reales.
+Es la mentira simetrica a **I-41** -donde `/salud` declaraba no tener base
+mientras servia datos de la base- y en la misma pantalla del mismo visor.
+
+El origen no sirve como senal, porque la API puede responder con el simulado
+detras. La senal correcta es `modo`, que es la que ya usan `AvisoModoSimulado`,
+`EstadoDatos` y `obtenerRiesgos`.
+
+### 3 · El tercero estaba escondido detras del primero
+
+Al corregir la ventana, la pestana empezo a congelarse al abrir una ficha.
+
+La consulta de descubrimiento pide de 1900 a 2100, y contra PostgreSQL eso son
+**unas trece mil filas** -la serie del distrito desde 1991-. El lienzo intentaba
+dibujarlas todas.
+
+Antes no pasaba **por culpa del defecto 1**: como la ventana era la pedida, el
+encuadre inicial caia en 2099, la segunda consulta devolvia cero filas y el lienzo
+nunca recibia nada. El primer defecto le tapaba la boca al tercero.
+
+Es la forma de defecto que este proyecto ya conoce por otra via: **arreglar uno
+puede destapar otro que vivia a su sombra**, y por eso el arreglo se prueba
+mirando, no razonando que ahora tiene que andar.
+
+### El arreglo costo tres intentos, y los dos primeros fallaron por lo mismo
+
+Se deja escrito entero porque el modo de fallo importa mas que el arreglo.
+
+**Primer intento: la ventana sale del tramo que el origen devolvio.** No funciono,
+y no podia funcionar. `SQL_MEDICIONES` usa `generate_series` con un LEFT JOIN, o
+sea que **devuelve una fila por cada dia pedido**, tenga medicion o no. El contrato
+lo exige -«el consumidor necesita ver los huecos»- y esta escrito con su motivo en
+el propio SQL. El tramo de las filas devueltas es, letra por letra, el tramo
+pedido: el mismo eco con otro disfraz.
+
+**Segundo intento: no dibujar la respuesta del descubrimiento.** Tampoco alcanzo.
+El bloqueo no era de dibujo: las trece mil filas seguian entrando al estado de
+React y al memo. La ficha tardaba tanto en abrir que **el clic parecia no hacer
+nada**, y asi se reporto.
+
+**Tercer intento, el que funciono**, con lo aprendido de los dos anteriores.
+
+**Lo que los dos primeros tienen en comun** es que se decidieron razonando sobre
+el sintoma en vez de abrir el SQL y preguntarle a la base. La regla del proyecto
+dice exactamente eso: *medir desde fuera dice que algo se ve raro, no por que;
+antes de proponer un arreglo se abre el codigo*. Al abrir `SQL_MEDICIONES` los dos
+defectos restantes se explicaron solos en una linea.
+
+| # | Que cambia | Donde |
+|---|---|---|
+| 1 | La ventana sale de los dias que traen **alguna medicion**, no de las filas devueltas; sin ninguno es nula y se declara | `frontend/src/datos/cliente.js` |
+| 1b | El descubrimiento se acota a **los ultimos dos anios** en vez de dos siglos, y la pantalla lo declara. Contra `generate_series`, pedir de 1900 a 2100 son unas **setenta y tres mil filas** generadas para averiguar dos fechas | `GraficaSerie.jsx` |
+| 1c | De la respuesta de descubrimiento se guardan **dos fechas y se descartan las filas** | `GraficaSerie.jsx` |
+| 2 | La ventana de descubrimiento se guarda una vez y no se encoge en cada consulta | `frontend/src/componentes/GraficaSerie.jsx` |
+| 3 | `obtenerMediciones` devuelve `simulado`, como ya hacia `obtenerRiesgos`, y la banda depende de el | los dos |
+| 4 | Mientras llega el descubrimiento, la pantalla dice que esta buscando el tramo | `GraficaSerie.jsx` |
+
+**Lo que se pierde y se declara.** Acotar el descubrimiento a dos anios significa
+que el selector no deja retroceder mas alla de eso, aunque la serie empiece en
+1991. El pie lo dice con esas palabras -«dentro de los ultimos 2 anios que
+consulta esta pantalla»- para no afirmar que ese es todo el dato que existe. El
+arreglo de fondo seria un endpoint que declare el tramo disponible sin traer
+filas; toca `backend/api/` y queda anotado.
+
+**Lo que este arreglo NO hace.** No agrega un endpoint que declare el tramo
+disponible, que seria lo correcto de fondo: hoy el cliente lo deduce pidiendo todo
+una vez. Eso toca `backend/api/`, y se deja anotado en vez de hacerse a ocho dias
+de la feria.
+
+**Consecuencia para H7.2.** La historia esta cerrada y su evidencia sigue siendo
+cierta para lo que midio -los huecos, el reparto del paquete, la linea cortada-,
+porque todo se midio contra el respaldo estatico. Lo que no cubrio ningun criterio
+fue **la misma pantalla contra la API**, y ahi es donde estaba el defecto.

@@ -79,7 +79,7 @@ línea base climatológica **se rechaza**: sobre 99 296 filas y 34 años, ningú
 algoritmo la supera fuera de la dispersión entre pliegues en lluvia intensa ni
 en incendio, y la sequía no alcanza el mínimo de episodios independientes que
 el propio diseño exigía para modelarse (13 episodios en 34 años, 2 en el peor
-pliegue). Tercero, el etiquetado sí reconoce los eventos reales: marca riesgo
+pliegue; al rehacer la cuenta sobre 76 años de reanálisis, 24 y 1). Tercero, el etiquetado sí reconoce los eventos reales: marca riesgo
 en la semana previa a un evento histórico 4,74 veces más a menudo que en una
 semana cualquiera en lluvia intensa y 6,31 veces en sequía.
 
@@ -1165,7 +1165,8 @@ lluvia intensa la climatológica queda incluso por encima de los tres; en
 incendio la diferencia entre el primero y la climatológica (+0,057) cae dentro
 del rango de esta última, que es de 0,138, y la regla no declara ganador. En
 sequía, los 13 episodios en 34 años no alcanzan el mínimo que el diseño exigía
-(Tabla X).
+(Tabla X), y rehacer la cuenta sobre 76 años no lo cambia: 24 episodios y 1 en
+el peor pliegue (IX-C).
 
 **La hipótesis H1 se rechaza.** No se rechaza por falta de intento: se
 entrenaron los tres algoritmos, se afinaron sus hiperparámetros sobre una
@@ -1293,7 +1294,7 @@ decisión, que es la distinción que este trabajo más cuida.
 | El percentil de 72 h no es R95p (IV-D) | Se conserva el umbral y se corrige su atribución | Tabla IV |
 | Una década sin satélite parecía una década sin incendios (IV-G) | El período de cobertura de cada fuente es una constante explícita; fuera de él la etiqueta es nula | Tabla IX, Fig. 2 |
 | El SPI-3 sale de sequía antes de que el daño se declare (V-G) | La escala del índice pasa a seis meses | Tabla XVI |
-| 13 episodios de sequía, 2 en el peor pliegue (V-B) | La sequía no se modela; el sistema la publica como «sin estimación» en vez de rellenarla con la clase mayoritaria | Tabla X, Fig. 3 |
+| 13 episodios de sequía, 2 en el peor pliegue (V-B); 24 y 1 al rehacerlo sobre 76 años (IX-C) | La sequía no se modela; el sistema la publica como «sin estimación» en vez de rellenarla con la clase mayoritaria | Tabla X, Fig. 3 |
 | Ningún algoritmo supera a la climatológica fuera del ruido (V-D) | Escribe el estimador más simple dentro del ruido: la climatológica en lluvia intensa; cada fila publicada lleva el veredicto | Tabla XII, V-E |
 | El umbral propio de incendio no producía tres clases (III-D) | El evento pasa a binario y se acota a los tres distritos con señal | Tabla IV |
 | La explicación de un acierto es indistinguible de la de un error (V-F) | No se construyó una vista de explicación por variable; la ficha de cada distrito muestra el estimador que escribió y su desempeño medido | V-E |
@@ -1529,7 +1530,7 @@ El resultado se sostiene porque la regla que lo declara se fijó antes de
 entrenar. **Si hoy se relajara para que ganara un modelo, la tabla dejaría de
 significar lo que dice.**
 
-### C. La sequía no es modelable con 34 años de datos, y saberlo es un resultado
+### C. La sequía no es modelable, y no por falta de años: se midió dos veces
 
 Trece episodios independientes en 34 años, dos en el peor pliegue de
 entrenamiento, contra un mínimo de diez fijado antes de contar (V-B). No es un
@@ -1538,6 +1539,39 @@ detectar y modelar: la escala del índice que hace que el etiquetado reconozca
 los siete registros históricos es la misma que deja los episodios por debajo del
 umbral. El sistema muestra «sin estimación» en vez de rellenar con la clase
 mayoritaria.
+
+La réplica evidente a ese resultado es que faltaban datos. **Se comprobó.** Con
+una serie de reanálisis ERA5 del cantón entero desde 1950 —28 011 días, 76,7
+años, más del doble de período— el recuento da **24 episodios contra el mínimo de
+30, y 1 en el peor pliegue contra el mínimo de 10**. No alcanza por ninguno de los
+dos criterios.
+
+Tres controles sostienen esa comparación. Primero, el método se validó contra el
+recuento original: contando con la serie del cantón sobre el mismo período
+1991–2026 salen **11 episodios contra los 13** medidos con ocho series de CHIRPS
+por distrito, pese a que las dos mediciones difieren en fuente (0,25° contra
+0,05°) y en orden de agregación. Segundo, la tasa es estable: 0,309 episodios por
+año sobre 35,6 años y 0,313 sobre 76,7; la serie larga no describe otro clima.
+Tercero —y es el control que evita un error de lectura— el índice SPI se
+normaliza contra el período sobre el que se ajusta, de modo que ampliar la serie
+cambia la vara al mismo tiempo que la muestra: sobre la **misma** ventana
+1991–2026, ajustar el índice sobre 76 años en lugar de sobre 35 sube el recuento
+de 11 a 15. Sin separar ese efecto, ese 36 % adicional se habría atribuido al
+período y no al método.
+
+Los episodios, además, no se reparten de manera uniforme: los entrenamientos de
+los cinco pliegues dan `1, 1, 7, 16, 20` donde una tasa constante esperaría
+`4, 8, 12, 16, 20`, con el quiebre alrededor de 1988. Ese patrón admite al menos
+dos lecturas —un cambio en el régimen de sequías, o la menor capacidad del
+reanálisis para resolver precipitación antes de la era satelital, que produce
+series más suaves y por lo tanto menos valores extremos del índice— y los datos
+disponibles no permiten separarlas, de modo que **no se afirma ninguna de las
+dos**. Lo que sí queda establecido, y es lo que la decisión necesita, es que la
+mitad temprana de la serie no aporta muestra utilizable cualquiera sea la causa.
+
+La conclusión de diseño no cambia, pero el enunciado sí: no es que no se
+intentara con más datos, es que se midió con más datos y con otra fuente, y el
+resultado se repite.
 
 ### D. La verdad de terreno se puede validar antes de existir un modelo, y conviene hacerlo
 

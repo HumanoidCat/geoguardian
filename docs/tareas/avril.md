@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 74 puntos · 89.4 horas · 8.1 h por semana en promedio
+**Total asignado:** 64 puntos · 73.0 horas · 7.3 h por semana en promedio
 
 > Estas cifras salen de `docs/backlog.csv` y **todavia no incluyen H5.6**, que
 > volvio aca el 2026-09-02 por la clausula de devolucion de D-33. La celda
@@ -47,7 +47,7 @@
 | S1 | semanas 4-5 | 11.5 | 36 | holgado |
 | S2 | semanas 6-7 | 21.1 | 36 | holgado |
 | S3 | semanas 8-9 | 25.0 | 36 | holgado |
-| S4 | semanas 10-11 | 28.9 | 36 | holgado |
+| S4 | semanas 10-11 | 12.5 | 36 | holgado |
 
 ## Sprint 0 (semanas 2-3) — 2.9 h
 
@@ -170,14 +170,19 @@
     API que expone `/riesgos`. Alcance acordado con el PM antes de tocar nada.
 
 
-## Sprint 4 (semanas 10-11) — 28.9 h
+> **Reasignadas el 2026-09-16.** Tres historias de este sprint pasaron a Alejandro
+> a ocho dias del Invenio Fest: **H10.9** (10.6 h), **H7.3** (2.9 h) y **H7.4**
+> (2.9 h). No es un cambio de alcance ni un juicio sobre lo hecho: las doce
+> historias cerradas mas arriba se quedan donde estan y cuentan igual.
+>
+> **H12.2 y H12.5 siguen siendo de Avril.** Se revisan el jueves 17: si para
+> entonces no arrancaron, pasan a Luna.
+
+## Sprint 4 (semanas 10-11) — 12.5 h
 
 > **Actualizado el 2026-09-13 por D-49.** H10.6 (el cartel) salio de esta lista
 > hacia Alejandro. No es un cambio de alcance: el cartel sale del documento IEEE
 > y del pitch, que escribe el PM.
-
-- [ ] **H10.9** · Guion de demo y tres ensayos completos
-  - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3
 
 - [ ] **H12.2** · Pantalla de monitoreo de pipelines y entornos dentro del visor
   - `E12` · 5 pts · 4.8 h · rubrica: Troubleshoot · depende de: H12.1
@@ -185,14 +190,26 @@
 - [ ] **H12.5** · Historico de incidentes consultable desde la aplicacion
   - `E12` · 3 pts · 2.9 h · rubrica: Troubleshoot · depende de: H12.4
 
-- [ ] **H13.2** · Manual de operacion del sistema
+- [x] **H13.2** · Manual de operacion del sistema (2026-09-16)
   - `E13` · 5 pts · 4.8 h · rubrica: Documentacion · depende de: H11.4
-
-- [ ] **H7.3** · Historial de eventos filtrable y exportable
-  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
-
-- [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
-  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
+  - horas: estimada n/d (la de 4.8 h es la del backlog, no una estimacion propia
+    previa) . real 3.0
+  - Evidencia: `docs/evidencias/entregables/H13.2-manual-de-operacion.md`.
+    Entregable: `docs/20-manual-de-operacion.md`.
+  - **Entregada el 2026-09-05 y cerrada el 2026-09-16.** Su fila en
+    `docs/trazabilidad.csv` **ya estaba puesta**; lo unico que faltaba era esta
+    marca. La fila sigue la propuesta que Avril dejo en la seccion «Pendiente de
+    aprobacion del PM» de su evidencia, con dos precisiones: nombra **I-41** en
+    lugar de I-30, y agrega lo que el manual declara NO comprobado -el
+    procedimiento no se ejecuto contra produccion y ningun verificador lee el
+    archivo-.
+  - **Queda vivo el punto 2 de su evidencia:** `verificar_documentacion.py` no
+    lee `20-manual-de-operacion.md`, asi que su linea de `version_contratos`
+    -hoy `1.4.0`, comprobada contra `contratos/__init__.py`- puede caducar en
+    silencio cuando H14.5 suba a 1.5.0. No bloquea el cierre; hay que ponerle
+    el control.
+  - **La marca la puso el PM, no Avril**, igual que en H6.5: ejecutar una
+    decision ya tomada no es tomarla.
 
 ## Regla: lo hecho no se borra
 

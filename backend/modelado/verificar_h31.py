@@ -23,6 +23,7 @@ Sale con codigo 1 si algun criterio se rompe.
 
 from __future__ import annotations
 
+import ast
 import inspect
 import random
 import sys
@@ -47,6 +48,21 @@ from backend.modelado.particion import (  # noqa: E402
 from contratos.enums import NivelRiesgo, TipoEvento  # noqa: E402
 
 fallos: list[str] = []
+
+
+def importa_de_particion(modulo: str) -> list[str]:
+    """Que nombres le importa `modulo` a `backend.modelado.particion`, por AST.
+
+    Se lee el arbol y no el texto a proposito. Buscar la subcadena `particionar`
+    en el fuente da verde con la palabra escrita en un comentario, en un docstring
+    o en un nombre de variable, y ese es justo el defecto que **I-58** registra.
+    """
+    arbol = ast.parse((RAIZ / modulo).read_text(encoding="utf-8"))
+    nombres: list[str] = []
+    for nodo in ast.walk(arbol):
+        if isinstance(nodo, ast.ImportFrom) and (nodo.module or "").endswith("modelado.particion"):
+            nombres += [alias.name for alias in nodo.names]
+    return sorted(nombres)
 
 
 def comprobar(descripcion: str, condicion: bool, detalle: str = "") -> None:
@@ -200,9 +216,30 @@ def main() -> int:
     # ---------------------------------------------------------------- CA-5 -- #
     print("\nCA-5, se evalua sobre los mismos pliegues que todos los modelos:")
 
+    # ESTE CRITERIO NO SE COMPRUEBA SOBRE ESTE ARCHIVO, Y ANTES SI. Ver I-58.
+    #
+    # Decia `"particionar" in inspect.getsource(sys.modules[__name__])`, o sea que
+    # buscaba la palabra en **el propio verificador**, que la importa en su linea
+    # 43. La condicion era una tautologia: no podia fallar nunca, ni siquiera si
+    # la linea base derivara sus propios cortes, que es lo unico que este
+    # criterio existe para impedir.
+    #
+    # Lo que ahora se lee son los dos modulos reales:
+    #
+    #   evaluar_linea_base.py   tiene que PEDIRLE la particion a H3.2
+    #   linea_base.py           no tiene que saber que existen las particiones:
+    #                           recibe una lista de entrenamiento ya cortada, y
+    #                           por eso no importa nada de `particion`
+    #
+    # Las dos mitades importan. Sin la segunda, una linea base que se cortara sus
+    # propios pliegues pasaria mientras el evaluador siguiera importando el nombre.
+    del_evaluador = importa_de_particion("backend/modelado/evaluar_linea_base.py")
+    de_linea_base = importa_de_particion("backend/modelado/linea_base.py")
     comprobar(
         "la particion se pide a H3.2, no se deriva aca",
-        "particionar" in inspect.getsource(sys.modules[__name__]),
+        "particionar" in del_evaluador and not de_linea_base,
+        f"evaluar_linea_base importa {del_evaluador or 'nada'} de particion; "
+        f"linea_base importa {de_linea_base or 'nada'} (tiene que ser nada)",
     )
     for p in particionar(TipoEvento.SEQUIA):
         entrena = set(filas_de_entrenamiento(p, fechas))

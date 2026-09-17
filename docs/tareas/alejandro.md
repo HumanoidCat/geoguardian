@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 275 puntos · 412.9 horas · 41.3 h por semana en promedio
+**Total asignado:** 285 puntos · 429.3 horas · 42.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 177.6 | 36 | SOBRECARGA +141.6 h |
+| S4 | semanas 10-11 | 194.0 | 36 | SOBRECARGA +158.0 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,7 +568,7 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 177.6 h
+## Sprint 4 (semanas 10-11) — 194.0 h
 
 - [x] **H10.5c** · Redactar el documento IEEE completo (2026-09-14)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
@@ -745,8 +745,14 @@
   - Criterios en `docs/evidencias/objetivos/H3.9-criterios-aceptacion.md`, con la
     medicion exploratoria fechada **antes** de tocar `generar_caracteristicas.py`.
 
-- [ ] **H3.10** · El ENSO entra al modelo como caracteristica
+- [x] **H3.10** · El ENSO entra al modelo como caracteristica (2026-09-16)
   - `E3` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H3.9
+  - horas: estimada 7.8 . real 7.8
+  - Evidencia: `docs/evidencias/objetivos/H3.10-enso-no-entra.md`.
+  - **El ENSO no entra, y ese es el resultado.** Ningun estimador mejora, cuatro
+    de seis empeoran, y la dispersion entre pliegues sube tanto que el veredicto
+    de lluvia intensa pasa de tener ganador a empate tecnico. El CA-5 pedia que
+    el veredicto se escribiera gane o pierda.
   - El calendario dice que mes es; el ENSO dice que este marzo no es como los otros.
     Indice ONI de la NOAA: publico, mensual, desde 1950. El archivo se versiona, que
     ademas protege a la imagen de trabajos de H11.7, que corre sin nadie mirando.
@@ -793,8 +799,33 @@
     no existe, porque **D-34 ya cuenta a nivel canton**.
   - Bajo de 8 a 5 puntos: era la mitad del trabajo que parecia.
 
-- [ ] **H3.11** · Recontar los episodios de sequia sobre la serie larga
+- [x] **H3.11** · Recontar los episodios de sequia sobre la serie larga (2026-09-15)
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H1.16, H3.0
+  - horas: estimada 4.7 . real 4.0
+  - **24 episodios en 76,7 anios contra el minimo de 30, y 1 en el peor pliegue
+    contra el minimo de 10. NO alcanza por ninguno de los dos.** D-34 se sostiene,
+    y ahora con el triple de anios en vez de con 34.
+  - **Es la clausula de reversion de D-34 ejercida**, no una historia suelta: ese
+    ADR dejo escrito que si aparecia mas serie se volvia a medir porque la
+    decision depende del numero.
+  - **Tres controles hacen comparable el 24.** El metodo se valida -11 contra los
+    13 de D-34 sobre la ventana comun, con otra fuente y otro orden de
+    agregacion-; el efecto de la base del SPI se mide aparte -11 a 15 sobre la
+    MISMA ventana, un 36 % mas sin cambiar un dia-; y la tasa es la misma: 0,309
+    contra 0,313 episodios por anio.
+  - **El CA-1 se probo, no se afirmo.** `generar_etiquetas.py` no puede leer
+    `crudo.serie_canton` -no tiene `codigo_distrito`, CA-9 de H1.16- y ademas
+    tiene que seguir produciendo el 13, asi que no se toca. El recuento **importa**
+    sus funciones y una prueba etiqueta 40 anios por las dos rutas comparando dia
+    por dia: cero diferencias.
+  - **Hallazgo que el total tapaba:** los pliegues dan `1, 1, 7, 16, 20` donde una
+    tasa uniforme esperaria `4, 8, 12, 16, 20`. **No se declara como aumento de
+    las sequias**: puede ser clima o puede ser que ERA5 no vea las sequias antes
+    de la era satelital, y el dato no lo separa. Lo que si vale: entrenar sobre la
+    mitad temprana no sirve venga de donde venga el hueco.
+  - D-34 enmendada con fecha y el documento IEEE actualizado en cuatro pasajes
+    (CA-4 de los criterios).
+  - Evidencia en `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
   - **D-34 no dice que no haya datos: dice que hay 13 sequias en 34 anos**, una cada
     2.6 anos. Con 75 anos de ERA5 serian unas 29, pegado al umbral de 30, pero el
     minimo por pliegue seguiria en unas 6 contra las 10 que pide CA-6.
@@ -881,6 +912,30 @@
     celda con otro, lo dice. Sin pronostico se dibuja la ausencia.
   - Criterios en `docs/evidencias/computacion-grafica/H15.2-criterios-aceptacion.md`.
   - Toca `frontend/`, y lo declara en el PR.
+
+- [ ] **H10.9** · Guion de demo y tres ensayos completos
+  - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+
+- [x] **H7.3** · Historial de eventos filtrable y exportable (2026-09-16)
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+  - horas: estimada n/d (recibida y arrancada el mismo dia, no se estimo) . real 0.9
+  - Criterios escritos antes del codigo:
+    `docs/evidencias/computacion-grafica/H7.3-criterios-aceptacion.md` (PR #342)
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.3-historial-eventos.md`
+  - No crea `analitico.evento`. El catalogo validado de H4.3 llega al visor por el
+    camino estatico de H6.6, con un generador y no una copia a mano.
+
+- [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
 
 ## Regla: lo hecho no se borra
 

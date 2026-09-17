@@ -35,7 +35,7 @@ from contratos.fuentes import ExtractorClima
 from . import bitacora
 from .cargar_mediciones import DESDE, HASTA
 from .fuentes.hibrido import ExtractorHibrido, Territorio, celda_power
-from .fuentes.power import UNIDADES, ExtractorPower
+from .fuentes.power import UNIDADES, ErrorPower, ExtractorPower, _comprobar_unidades
 
 CODIGO_CANTON = 508
 DIAS_ESPERADOS = (HASTA - DESDE).days + 1
@@ -599,12 +599,59 @@ def ca7_unidades() -> Resultado:
     finally:
         extractor.cerrar()
 
+    # ANTES ESTE CRITERIO DEVOLVIA `True` A SECAS. Ver I-58.
+    #
+    # No era un falso verde -si las unidades no coincidian, `consultar` lanzaba y
+    # la rama de arriba devolvia False-, pero **el criterio no comprobaba nada por
+    # su cuenta**: delegaba en una guarda de `power.py` sin decirlo y sin vigilar
+    # que la guarda siguiera ahi. Quitar `_comprobar_unidades` dejaba este CA-7 en
+    # verde sin que nada chillara.
+    #
+    # Ahora se ejercita la guarda directamente, y **eso no toca la red**: es una
+    # funcion que recibe un diccionario. Se importa aunque sea privada a proposito:
+    # la alternativa era volver a comprobar por fuera lo que ya se comprueba
+    # adentro, y dos implementaciones de la misma regla terminan discrepando.
+    correcta = {"parameters": {par: {"units": uni} for par, uni in UNIDADES.items()}}
+    try:
+        _comprobar_unidades(correcta)
+    except ErrorPower as error:
+        return Resultado(
+            "CA-7",
+            "Las unidades coinciden con el contrato",
+            False,
+            [f"  la guarda rechaza una respuesta que SI cumple el contrato: {error}"],
+        )
+
+    # El caso peligroso que el propio modulo declara: la radiacion en kWh/m2/dia en
+    # vez de MJ/m2/dia. Es un factor 3,6 que no rompe nada visible y contamina el
+    # modelo, asi que es el que tiene que doler.
+    saboteada = {"parameters": {par: {"units": uni} for par, uni in UNIDADES.items()}}
+    saboteada["parameters"]["ALLSKY_SFC_SW_DWN"] = {"units": "kWh/m^2/day"}
+    try:
+        _comprobar_unidades(saboteada)
+    except ErrorPower:
+        pass
+    else:
+        return Resultado(
+            "CA-7",
+            "Las unidades coinciden con el contrato",
+            False,
+            [
+                "  LA GUARDA NO MUERDE: una respuesta con la radiacion en kWh/m^2/day "
+                "-un factor 3,6 sobre lo que el contrato pide- paso sin protestar"
+            ],
+        )
+
     return Resultado(
         "CA-7",
         "Las unidades coinciden con el contrato",
         True,
         [f"  {p}: {u} (declarada por la fuente y aceptada)" for p, u in UNIDADES.items()]
-        + [f"  api {respuesta.version_api}, relleno {respuesta.valor_relleno}"],
+        + [f"  api {respuesta.version_api}, relleno {respuesta.valor_relleno}"]
+        + [
+            "  la guarda de power.py se ejercito sin red: acepta las unidades del "
+            "contrato y rechaza la radiacion en kWh/m^2/day"
+        ],
     )
 
 

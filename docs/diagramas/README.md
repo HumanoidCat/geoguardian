@@ -8,9 +8,19 @@ python docs/herramientas/generar_diagramas.py --png    # ademas PNG, para el doc
 ```
 
 Hace falta **Graphviz**. En Windows: `winget install Graphviz.Graphviz`. En
-Debian o Ubuntu: `sudo apt install graphviz`. El PNG necesita ademas
-`pip install cairosvg`, y solo se usa para el documento de Word: el SVG alcanza
-para el repositorio y para GitHub.
+Debian o Ubuntu: `sudo apt install graphviz`.
+
+Los PNG solo se usan para el documento de Word: el SVG alcanza para el
+repositorio y para GitHub. **Seis de los siete PNG salen del mismo Graphviz**
+(`dot -Tpng -Gdpi=192`), así que no piden nada más. El séptimo,
+`secuencia-consulta-riesgo`, es SVG escrito a mano y no tiene DOT del que salir:
+ese sí necesita un rasterizador, `pip install cairosvg`. Si falta, el generador
+lo dice al final, lo nombra y sale con código 1.
+
+`--png` quiere decir **creamelos la primera vez**. Un PNG que ya existe se rehace
+en las dos formas de arriba, con bandera y sin ella, porque acordarse de la
+bandera era una cosa que había que recordar y no se recordó durante catorce
+días (I-59).
 
 ---
 
@@ -42,6 +52,32 @@ rojo.
 
 Los otros están **declarados en el generador**. Ese archivo **es** su fuente: no
 hay copia que se desactualice porque no hay dos lugares donde vivan.
+
+---
+
+## El PNG sí es una copia, y sí se desactualizó
+
+Lo de arriba vale para el SVG. **El documento técnico no muestra el SVG: muestra
+el PNG** —siete veces en `17-documento-tecnico.md`, seis en
+`16-avance-semana8.md`— y el PNG está en `.gitignore`.
+
+Así que durante un tiempo el archivo que se revisaba en el Pull Request no era el
+que leía quien abría el documento. El 2026-09-16 se midió que
+`componentes.png`, escrito el 2026-08-29, no tenía `PanelDistrito` ni
+`TableroSemáforo` y seguía diciendo `GET /riesgo`: **el defecto exacto que hizo
+nacer a CA-6 y que se corrigió el 2026-09-02**, en el SVG. Catorce días de un
+diagrama corregido en el archivo que nadie abre. Es **I-59**.
+
+Hay dos respuestas y están las dos puestas:
+
+| | |
+|---|---|
+| El olvido deja de ser posible | Un PNG que existe se rehace siempre, con o sin `--png` |
+| El olvido, si ocurre, se ve | `CA-10` compara cada PNG con la huella del SVG del que salió |
+
+`CA-10` **no mira ningún archivo en integración continua**, y el verificador lo
+dice en pantalla: allá no hay PNG. Sirve en la máquina de quien arma el
+documento, que es el único sitio donde el defecto puede existir.
 
 **Que estén declarados no quiere decir que no se pueda comprobar nada de ellos, y
 hasta H6.5 acá decía que sí.** La frase era «no se pueden derivar del código con

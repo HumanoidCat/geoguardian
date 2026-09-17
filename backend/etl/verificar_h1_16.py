@@ -36,6 +36,10 @@ RAIZ = Path(__file__).resolve().parents[2]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+from backend.etl.fuentes.open_meteo import (  # noqa: E402
+    ErrorOpenMeteo,
+    ExtractorOpenMeteoCanton,
+)
 from basedatos.conexion import ErrorConexion, conectar  # noqa: E402
 
 DDL = RAIZ / "basedatos" / "ddl" / "020_serie_canton.sql"
@@ -121,10 +125,57 @@ def offline(r: Resultado) -> None:
         'MODELO = "era5"' in codigo_extractor,
         "D-50: el modelo lo elige el proyecto, no la API",
     )
+    # ESTO SE COMPROBABA BUSCANDO UN PEDAZO DEL MENSAJE. Ver I-58.
+    #
+    # Decia `"ninguno con" in codigo_extractor`. Nunca ejecutaba el extractor: si
+    # alguien quitaba la guarda y dejaba el texto en un comentario, el criterio
+    # seguia en verde. Y no habia excusa para no ejecutarlo — `leer()` esta
+    # separada de la red **a proposito**, y su propio docstring lo dice: «vive
+    # aparte de consultar para que las pruebas midan el parseo sin tocar la red».
+    #
+    # Ahora se le pasa una serie entera en null, que es lo que devuelve era5_land
+    # con la precipitacion en cualquier punto del mundo, y se comprueba que se
+    # niegue. Sin red.
+    lector = ExtractorOpenMeteoCanton(punto_lat=10.47, punto_lon=-84.97)
+    fechas = ["2024-01-01", "2024-01-02", "2024-01-03"]
+    # `latitude` y `longitude` van puestas A PROPOSITO. Sin ellas salta antes la
+    # guarda de «la respuesta no dice que celda devolvio» y el criterio pasaria
+    # por el motivo equivocado: seguiria en verde aunque alguien borrara la guarda
+    # de la serie nula, que es la que este criterio dice comprobar. Se detecto al
+    # sabotearlo, el 2026-09-16.
+    toda_nula = {
+        "daily": {"time": fechas, "precipitation_sum": [None, None, None]},
+        "latitude": 10.5,
+        "longitude": -85.0,
+    }
+    con_dato = {
+        "daily": {"time": fechas, "precipitation_sum": [0.0, None, 12.4]},
+        "latitude": 10.5,
+        "longitude": -85.0,
+    }
+
+    try:
+        lector.leer(toda_nula)
+        rechaza_la_nula = False
+        motivo = "acepto una serie de 3 dias con los 3 en null"
+    except ErrorOpenMeteo as error:
+        rechaza_la_nula = True
+        motivo = str(error).splitlines()[0]
+
+    # La otra mitad, y sin ella el criterio pasaria con un extractor que se niega
+    # a todo: una serie con huecos PERO con algun dato tiene que entrar. D-07 dice
+    # que los dias sin dato se guardan como None, no que se descarte la serie.
+    try:
+        filas = lector.leer(con_dato)
+        acepta_la_parcial = len(filas) == 3
+    except ErrorOpenMeteo as error:
+        acepta_la_parcial = False
+        motivo += f" | y rechazo una serie con huecos que si trae dato: {error}"
+
     r.comprobar(
         "el extractor se niega a guardar una serie enteramente nula",
-        "ninguno con" in codigo_extractor,
-        "era5_land devuelve dias sin lluvia en cualquier punto del mundo",
+        rechaza_la_nula and acepta_la_parcial,
+        motivo,
     )
 
     fabrica = FABRICA.read_text(encoding="utf-8") if FABRICA.is_file() else ""

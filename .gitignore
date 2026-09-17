@@ -39,7 +39,16 @@ datos/*
 # documento de Word. Versionar el SVG alcanza: es texto, se revisa en un Pull
 # Request y GitHub lo renderiza. Se regeneran con:
 #     python docs/herramientas/generar_diagramas.py --png
+#
+# Que no viajen tiene un costo, y conviene tenerlo escrito: el archivo que el
+# documento tecnico muestra es el PNG, asi que el archivo que se revisa en el
+# Pull Request no es el que lee el jurado. Los PNG se quedaron catorce dias con
+# un defecto ya corregido en el SVG (I-59). La respuesta no fue versionarlos
+# -seguirian sin revisarse, y pesan-, sino la CA-10 de `verificar_diagramas.py`,
+# que compara cada PNG de la maquina con el SVG del que salio.
 docs/diagramas/*.png
+# El registro de esa comparacion. Local como los PNG, por lo mismo.
+docs/diagramas/.origen-png.json
 
 # Artefactos de modelos
 *.pkl
@@ -107,3 +116,13 @@ issues.json
 .coverage.*
 coverage.xml
 htmlcov/
+
+# Carpeta de trabajo del PM: borradores de mensajes al equipo, cuerpos de PR
+# antes de pegarlos, notas de medicion. Es privada y NO se versiona.
+#
+# Aparecia como `?? gestion/` en `git status`, o sea a un `git add -A` de entrar
+# al repositorio con todo adentro. Eso es exactamente la incidencia **I-47**, y
+# la regla de "nunca git add -A" la evita solo mientras nadie se equivoque una
+# vez. Ignorarla lo vuelve imposible en vez de improbable. Detectado el
+# 2026-09-14 al preparar el PR de H1.16.
+gestion/

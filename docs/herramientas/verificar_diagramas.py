@@ -19,6 +19,7 @@ QUE COMPRUEBA
     CA-7b el control distingue: un componente inventado no existe ni aparece
     CA-8  cada ruta de la API aparece en el de casos de uso  (H10.7)
     CA-9  el control distingue: una ruta inventada no aparece
+    CA-10 cada PNG en disco sale del SVG de hoy  (I-59)
 
 **CA-6 y CA-8 no son la misma comprobacion, aunque las dos miren `rutas.py`.**
 CA-6 va del dibujo al codigo -lo que el diagrama nombra tiene que existir- y
@@ -54,6 +55,7 @@ Sale con codigo 1 si algo no se cumple, para poder correrlo en CI.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -65,9 +67,11 @@ from generar_diagramas import (  # noqa: E402
     CASOS_DE_CONSULTA,
     COMPONENTES,
     DECLARADOS,
+    NOMBRE_REGISTRO,
     SALIDA,
     Tabla,
     dot_entidad_relacion,
+    huella,
     leer_ddl,
     leer_rutas,
     renderizar,
@@ -94,6 +98,38 @@ def texto_de(svg: str) -> str:
     nombre esta o no esta, no como quedo maquetado.
     """
     return " ".join(re.findall(r"<text[^>]*>(.*?)</text>", svg, re.DOTALL))
+
+
+def estado_de_los_png(carpeta: Path = SALIDA) -> tuple[list[str], list[str]]:
+    """(nombres con PNG en disco, nombres cuyo PNG no sale del SVG de hoy).
+
+    No mira fechas. `git checkout` reescribe la fecha de un SVG sin que su
+    contenido haya cambiado para quien lo lee, y un control que se dispara por
+    algo que no es el defecto que busca es I-13: la gente aprende a ignorarlo.
+    Se compara la huella que `generar_diagramas.py` grabo al escribir el PNG
+    contra la huella del SVG que hay ahora.
+
+    Un PNG sin huella grabada cuenta como viejo. Es el caso de los PNG hechos
+    antes de que existiera el registro, que son justamente los que motivaron
+    I-59.
+    """
+    presentes = [n for n in ESPERADOS if (carpeta / f"{n}.png").exists()]
+
+    registro: dict[str, str] = {}
+    archivo = carpeta / NOMBRE_REGISTRO
+    if archivo.exists():
+        try:
+            registro = json.loads(archivo.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            registro = {}
+
+    viejos = []
+    for nombre in presentes:
+        svg = carpeta / f"{nombre}.svg"
+        actual = huella(svg.read_text(encoding="utf-8")) if svg.exists() else ""
+        if registro.get(nombre) != actual:
+            viejos.append(nombre)
+    return presentes, viejos
 
 
 def main() -> int:
@@ -344,12 +380,54 @@ def main() -> int:
             "si aparece, esta comprobacion no esta mirando lo que cree",
         )
 
+    # ----------------------------------------------------------------- CA-10 - #
+    #
+    # I-59. CA-1 a CA-9 miran el SVG. **El documento tecnico no muestra el SVG:
+    # muestra el PNG.** `17-documento-tecnico.md` lo incrusta siete veces y
+    # `16-avance-semana8.md` seis, y `.gitignore` excluye los PNG porque son
+    # derivados. El resultado es que el archivo que se revisa no es el que se
+    # lee, y el que se lee no lo revisaba nadie.
+    #
+    # Medido el 2026-09-16: `componentes.png`, escrito el 2026-08-29, no tenia
+    # `PanelDistrito` ni `TableroSemaforo` y decia `GET /riesgo`. Ese es el
+    # defecto que hizo nacer a CA-6, corregido el 2026-09-02 en el SVG. Dos
+    # semanas despues seguia en pie en el archivo que ve el jurado.
+    #
+    # ESTA COMPROBACION NO MIRA NINGUN ARCHIVO EN INTEGRACION CONTINUA.
+    #
+    # El runner clona el repositorio y ahi no hay PNG, asi que ahi siempre son
+    # cero y siempre pasa. Sirve en la maquina de quien arma el documento, que es
+    # el unico sitio donde el defecto puede existir. Se dice en voz alta porque
+    # la leccion de I-58 es que una comprobacion vacia que no declara cuantos
+    # elementos miro se lee como verde ganado.
+    print("\nCA-10, cada PNG en disco sale del SVG de hoy:")
+    presentes, viejos = estado_de_los_png()
+    if not presentes:
+        comprobar(
+            f"cada uno de los 0 PNG de docs/diagramas/ (de {len(ESPERADOS)} posibles). "
+            "No hay ninguno: .gitignore los excluye, y en integracion continua "
+            "siempre es este caso",
+            True,
+        )
+    else:
+        for nombre in presentes:
+            comprobar(
+                f"{nombre}.png",
+                nombre not in viejos,
+                "no sale del SVG de hoy, y es este archivo el que el documento "
+                "muestra. Se rehace con: "
+                "python docs/herramientas/generar_diagramas.py --png",
+            )
+        print(f"        ({len(presentes)} de {len(ESPERADOS)} diagramas tienen PNG en disco)")
+
     if fallos:
         print(f"\n{len(fallos)} comprobaciones fallaron:\n")
         for f in fallos:
             print(f"  - {f}")
         print("\nSe regeneran con:\n")
         print("    python docs/herramientas/generar_diagramas.py\n")
+        print("Si lo que fallo es un PNG, hace falta la bandera la primera vez:\n")
+        print("    python docs/herramientas/generar_diagramas.py --png\n")
         return 1
 
     print(f"\nLos {len(ESPERADOS)} diagramas coinciden con el repositorio.\n")

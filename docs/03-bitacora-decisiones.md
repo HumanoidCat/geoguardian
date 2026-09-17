@@ -3709,6 +3709,62 @@ amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
 decision depende del numero, no de una preferencia: **se rehace corriendo
 `generar_etiquetas.py`**.
 
+> **Enmienda del 2026-09-15. Esta clausula se ejercio, y la decision se sostiene.**
+>
+> H1.16 trajo la serie de ERA5 desde 1950: **28.011 dias, 76,7 anios** contra los
+> 34 sobre los que se escribio este ADR. **H3.11** rehizo la cuenta.
+>
+>     ventana        base del SPI   episodios   por pliegue        minimo
+>     1991-2026      1991-2026          11      4, 7, 7, 8, 11        4
+>     1991-2026      1950-2026          15      5, 9, 9, 11, 14       5
+>     1950-2026      1991-2026          11      0, 0, 0, 5, 8         0
+>     1950-2026      1950-2026      ->  24      1, 1, 7, 16, 20       1
+>
+> **24 contra el minimo de 30, y 1 contra el minimo de 10. No alcanza por los dos
+> lados.** La sequia sigue sin ser modelable, y ahora se sabe con el triple de
+> anios en vez de suponerse.
+>
+> **Tres cosas que esta medicion agrega y que este ADR no podia saber:**
+>
+> 1. **El metodo se valido.** Contar con la serie del canton sobre la ventana de
+>    este ADR da **11**, contra los 13 que estan escritos arriba. Son dos fuentes
+>    -CHIRPS a 0,05 grados contra ERA5 a 0,25- y dos ordenes de agregacion
+>    distintos -union de ocho distritos contra una sola serie-, y difieren en 2
+>    episodios sobre 13. Eso es lo que autoriza a poner el 24 al lado del 13.
+> 2. **El SPI no tiene periodo de referencia fijo**, y eso mueve el numero. La
+>    misma ventana de 1991-2026 da **11 con base corta y 15 con base larga**: un
+>    36 % mas de episodios sin cambiar un solo dia de la ventana. Medirlo aparte
+>    fue lo que impidio leer ese +4 como «mas anios trajeron mas sequias».
+> 3. **La tasa es la misma:** 0,309 episodios/anio sobre 35,6 anios y 0,313 sobre
+>    76,7. La serie larga no encuentra otro clima, encuentra lo mismo sobre mas
+>    anios.
+>
+> **Lo que empeora es el minimo por pliegue: de 2 a 1.** Los episodios no estan
+> repartidos parejo. Con la particion expansiva de H3.2, los entrenamientos
+> esperarian `4, 8, 12, 16, 20` a tasa uniforme y dan `1, 1, 7, 16, 20`: los dos
+> ultimos exactos y los dos primeros en un cuarto, con el quiebre cerca de 1988.
+>
+> **Eso NO se declara como un aumento de las sequias.** Tiene dos explicaciones
+> que este dato no separa -que el clima cambiara, o que ERA5 antes de la era
+> satelital no vea las sequias tempranas, porque una serie mas suave produce menos
+> extremos del SPI por construccion-. Lo que si se puede afirmar, y es lo que
+> importa para la decision: **entrenar sobre la mitad temprana no sirve venga de
+> donde venga el hueco**, y por eso el peor pliegue empeora aunque el total casi
+> se doble.
+>
+> **La clausula decia «se rehace corriendo `generar_etiquetas.py`» y eso no se
+> pudo.** Ese guion lee `crudo.medicion_diaria`, que esta por distrito, y
+> `crudo.serie_canton` **no tiene `codigo_distrito`** porque el CA-9 de H1.16 y
+> D-47 lo prohiben; ademas es el guion que produjo el 13 y tiene que seguir
+> produciendolo. Se rehizo con `backend/modelado/recontar_sequia_larga.py`, que
+> **importa** las funciones que deciden que es un episodio en vez de copiarlas, y
+> con una prueba que etiqueta cuarenta anios por las dos rutas y compara dia por
+> dia. Evidencia en
+> `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
+>
+> **La clausula sigue abierta con la misma condicion.** Si apareciera una serie
+> observada -no de reanalisis- para 1950-1990, valdria la pena volver a medir.
+
 ---
 
 ## D-35 · La clausula de reversion de D-33 se ejerce, y devuelve dos de las doce historias
@@ -5807,3 +5863,226 @@ sistema que de verdad se va a mostrar.
     Evaluacion de lo diferido 2026-09-25, por escrito en docs/03
 
     Avance al escribirse      79 de 103 historias   401 de 514 pts (78,0 %)
+
+---
+
+## D-53 · El SPI-6 de la tarjeta se calcula al pedirlo, no se almacena
+
+**Fecha.** 2026-09-15. **Historia.** H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-32 (SPI-6), D-34 (medir no es modelar), D-40 (el atraso de CHIRPS), I-57.
+
+### Contexto
+
+H14.5 quiere que la tarjeta de sequia diga **el indice medido** en vez de quedarse
+en blanco. D-34 cerro la puerta a **modelar** la sequia; no a **medirla**: el SPI-6
+se calcula con lluvia que ya cayo, y es un hecho observado del mismo tipo que
+«ayer llovieron 12 mm».
+
+Al ir a buscar de donde lo lee el visor, no hay de donde:
+
+  * `contratos/esquemas.py` tiene `IndiceDerivado` con `spi_1m` y `spi_3m`, y
+    **no tiene `spi_6m`**, que es el que D-32 adopto;
+  * **la tabla `analitico.indice` no existe** en ninguna de las 21 migraciones;
+  * `guardar_indices` y `obtener_indices` existen en la interfaz y **lanzan**
+    `TablaPendiente` diciendo que la tabla llega con **H2.5**, que cerro el
+    2026-09-01 y nunca pudo traerla porque su historia era otra (**I-57**);
+  * ninguna de las seis rutas de la API expone indices.
+
+O sea: el contrato insinua una tabla que nadie construyo y cuyo dueno declarado no
+existe. Hay que decidir si se construye o si se resuelve de otra forma.
+
+### Decision
+
+**`obtener_indices` calcula el SPI-6 a partir de `crudo.medicion_diaria` en el
+momento de la consulta, y no se crea la tabla `analitico.indice`.**
+
+**El resultado se cachea por distrito, y la cache no es un adorno: es parte de la
+decision.** La clave es el distrito mas la fecha de la ultima ingesta, asi que el
+calculo ocurre una vez por distrito por ingesta y no una vez por visita.
+
+`guardar_indices` **sigue lanzando** `TablaPendiente`: no hay nada que guardar.
+Su mensaje deja de nombrar a H2.5 y pasa a nombrar a este ADR.
+
+### Justificacion
+
+**El indice es una funcion determinista de datos que ya estan guardados.**
+Almacenarlo es duplicar: el mismo dato en dos lugares, que es como aparecen las
+discrepancias. Si manana cambia la escala del SPI -ya paso una vez, D-32 lo movio
+de 3 a 6 meses- una tabla almacenada queda con valores viejos hasta que alguien
+la recalcule, y nadie se entera. Calculado al vuelo, el cambio de escala se
+propaga solo.
+
+**Y lo que la tarjeta necesita es un numero por distrito, no una serie.** Construir
+una tabla, su escritor, su paso en el trabajo diario y su migracion para servir
+ocho numeros que se derivan de datos ya presentes es infraestructura sin una
+pregunta que la pida -el mismo criterio con el que D-50 descarto bajar los GRIB de
+ECMWF-.
+
+**El costo se midio, y obligo a corregir la propia recomendacion.** Ver Medicion:
+**66 ms por distrito**, no «milisegundos» como se estimo al proponerlo. Eso no
+cambia la decision, pero convierte a la cache de conveniencia en requisito.
+
+### Alternativas descartadas
+
+**Crear `analitico.indice` con su escritor y su paso en el cron.** Es la
+arquitectura que el contrato insinua y deja el indice auditable con su fecha de
+calculo. Se descarta por costo contra beneficio a nueve dias de la feria: cinco
+piezas nuevas -migracion, escritor, paso del trabajo, ruta, tarjeta- para un dato
+derivado. **Queda como el camino natural si algun dia el indice deja de ser
+derivable**: por ejemplo si se quisiera conservar el valor que se publico un dia
+concreto aunque despues cambiara la serie.
+
+**Calcularlo en el navegador.** El SPI necesita ajustar una gamma sobre la
+distribucion historica del mes. Eso no es trabajo del visor, y ademas obligaria a
+bajar 35 anios de lluvia al telefono. Es D-23 otra vez.
+
+**Servirlo dentro de `Riesgo`.** Rompe D-34: esa forma trae `nivel` y
+`probabilidad`, y la sequia no puede tener ninguno de los dos. La tarjeta dice un
+hecho medido, no una estimacion, y la forma del dato tiene que decir lo mismo.
+
+**Agregarlo a `MedicionDiaria`.** Es un indice mensual, no una medicion diaria.
+Meterlo ahi repetiria el mismo valor en los ~30 dias del mes y mentiria sobre su
+cadencia.
+
+### Consecuencias
+
+  * **`contratos/esquemas.py` gana `spi_6m` en `IndiceDerivado`**, por adicion.
+    Va por **SC-12**, porque `contratos/` es archivo compartido.
+  * **Contratos pasa a 1.5.0.** D-50 ya habia anunciado ese salto para el
+    `Pronostico` de H15.0: es el mismo salto y ocurre una sola vez. Las
+    afirmaciones de version en `docs/10` y `docs/17` se actualizan con el.
+  * **Una ruta nueva** expone los indices de un distrito. Toca `backend/api/`,
+    que es de Cesar, bajo la excepcion acotada del PM: una historia, y se cierra
+    con ella.
+  * **H14.5 deja de ser una historia de frontend.** Resulto ser una rebanada
+    vertical -contrato, lectura, ruta y tarjeta- y se declara asi en su PR y en su
+    evidencia en vez de disimularlo.
+  * **La cache es obligatoria y se comprueba.** Un criterio de H14.5 mide la
+    segunda consulta contra la primera.
+  * **La fecha del dato viaja con el numero.** Con CHIRPS el ultimo mes puede
+    tener 21 a 51 dias de atraso (D-40): un indice sin fecha parece de hoy.
+  * **`analitico.indice` no se crea**, y `PENDIENTES` deja de nombrar a H2.5.
+
+### Medicion
+
+    Costo del SPI-6 de un distrito, medido el 2026-09-15 con el codigo del
+    proyecto -`acumulado_mensual` mas `CalculadorSPI().spi(..., 6, meses)`-
+    sobre una serie diaria de 13.027 dias (1991-2026, 428 meses):
+
+      20 corridas    mediana 66,4 ms    min 65,2    max 73,7
+      ocho distritos                    531 ms
+
+    Estimacion previa al medir: «milisegundos». **Equivocada por un factor de
+    ~66.** La medicion es la razon por la que la cache paso de conveniente a
+    obligatoria.
+
+    Lo que NO se midio todavia, y lo mide H14.5 contra la base real:
+      * el costo de la consulta a `crudo.medicion_diaria` de un distrito;
+      * el costo con la cache caliente, que es el caso normal.
+
+## D-54 · La regla de propiedad de carpetas se suspende hasta el Invenio Fest
+
+**Fecha.** 2026-09-16. **Historia.** Ninguna: es una decision de gestion.
+**Quien decide.** Alejandro, como Lead PM y Scrum Master.
+**Estado.** Aceptada, **con vencimiento**: el 2026-09-25 vuelve sola.
+**Revisa.** `docs/07-propiedad-archivos.md` entero. **Se apoya en.** D-33, D-37, I-58.
+
+### Contexto
+
+`07-propiedad-archivos.md` dice, desde el arranque del proyecto, que cada quien
+modifica solo sus carpetas y que un cambio fuera de ellas **se pide, no se hace**.
+La regla funciono: el archivo mismo cuenta que antes de existir hubo tres
+conflictos de fusion en dos dias y cuatro historias con el dueno desfasado.
+
+**Faltan ocho dias para el Invenio Fest** y quedan 18 historias abiertas de 103. Y
+el 2026-09-16 aparecio un caso que muestra el costo de la regla en este tramo:
+**I-58** encontro ocho controles que afirmaban en su texto algo que no entraba en
+su condicion. Cuatro de ellos viven en carpetas de otras personas. Bajo la regla,
+el PM tendria que escribir cuatro solicitudes de cambio, esperar cuatro
+respuestas y depender de que cuatro personas tengan tiempo esta semana — para
+arreglos de dos o tres lineas cada uno, en verificadores, que es donde menos
+riesgo hay de romper algo que este corriendo.
+
+Ese es el intercambio que esta decision resuelve: **el control que la regla da ya
+no compensa lo que la regla cuesta**, por ocho dias.
+
+### Decision
+
+**Hasta el 2026-09-25, el Lead PM puede modificar cualquier carpeta del
+repositorio sin solicitud de cambio y sin aviso previo.**
+
+Lo que **no** cambia, y es lo que evita que esto sea barra libre:
+
+1. **Todo sigue pasando por Pull Request hacia `dev`**, con su revision y su CI.
+   Se levanta el permiso de escribir, no el de fusionar sin mirar.
+2. **Los archivos fuera de la carpeta propia se siguen declarando** en una seccion
+   al final del cuerpo del PR, con que se le hizo a cada uno. La declaracion es lo
+   que hace que el dueno se entere; era lo util de la regla y se queda.
+3. **Sigue sin tocarse la evidencia de otra persona.** Es su registro de
+   contribucion individual y la rubrica lo evalua por separado.
+4. **Sigue valiendo para una sola persona.** Esto no autoriza a que cualquiera
+   toque cualquier carpeta: autoriza al PM, que es quien tiene la vista del
+   conjunto y quien responde por el atraso.
+
+### Justificacion
+
+**El intercambio, dicho con numeros.** Los cuatro hallazgos de I-58 que viven en
+carpetas ajenas suman unas doce lineas de arreglo, todas en verificadores: codigo
+que no corre en produccion y cuyo unico consumidor es el CI. El riesgo de tocarlo
+es de los mas bajos del repositorio. Contra eso, la regla pide cuatro solicitudes
+de cambio y cuatro esperas, en la semana con menos margen del trimestre.
+
+**Lo que la regla protegia sigue protegido por otra via.** `07-propiedad-archivos.md`
+dice que existe porque en dos dias hubo tres conflictos de fusion y cuatro duenos
+desfasados. Pero eso lo causaba **escribir a la vez sobre los mismos archivos**, y
+de eso ya se encargan el Pull Request, la revision y el CI, que no se levantan. La
+solicitud de cambio agrega aviso previo, no seguridad tecnica.
+
+**Y con fecha de vencimiento, no «por ahora».** Una suspension sin fecha es una
+derogacion disfrazada. La regla resolvio un
+problema real y va a volver a hacer falta; lo que sobra es el tramite en la
+ultima semana. El **2026-09-25**, el dia despues de la feria, vuelve sin que nadie
+tenga que acordarse de reponerla, y esta decision queda como el registro de por
+que estuvo levantada nueve dias.
+
+### Alternativas descartadas
+
+**Escribir las cuatro solicitudes de cambio.** Es lo que la regla pide. Se
+descarto por tiempo: cuatro documentos y cuatro esperas para doce lineas de
+arreglo, en la semana con menos margen del trimestre.
+
+**Dejar los cuatro hallazgos de I-58 sin arreglar y solo documentados.** Era la
+opcion anterior, y es la peor de las tres: uno de ellos —el criterio 13 de
+`verificar_h1_9.py`— es un control de **separacion de privilegios** que se pone en
+verde justamente cuando el rol que vigila no existe. Llegar a la feria con eso
+conocido y sin arreglar es peor que tocar la carpeta de otro.
+
+**Derogar la regla.** Se descarto por lo dicho arriba: el problema que resolvio es
+real y esta documentado con numeros en el propio `07-propiedad-archivos.md`.
+
+### Consecuencias
+
+- `docs/07-propiedad-archivos.md` cita esta decision arriba, para que nadie lea la
+  regla sin ver que esta suspendida.
+- **I-58** pasa de «se le pasan a sus duenos» a «los corrige el PM», y cada arreglo
+  entra con el sabotaje que demuestra que el criterio ahora si cae.
+- Los duenos se enteran por la seccion de archivos fuera de carpeta del PR, que no
+  se levanta. Si alguno prefiere retomar su arreglo, se le devuelve.
+- El 2026-09-25 la regla vuelve sin que nadie tenga que reponerla.
+
+### Medicion
+
+Esta decision se puede evaluar, y la evaluacion queda para despues de la feria:
+
+    archivos ajenos tocados por el PM durante la suspension
+    conflictos de fusion causados por esos cambios
+    regresiones atribuibles a ellos
+    objeciones de sus duenos al revisar el PR
+
+**Si los tres ultimos dan cero, la suspension no costo nada** y queda como
+antecedente de que la regla se puede levantar en la recta final. **Si alguno no da
+cero, queda escrito cual y por que**, y la proxima vez no se levanta.
+
+El numero de arranque es 0 en las cuatro filas, el 2026-09-16. La cuenta se cierra
+el 2026-09-25 en esta misma seccion.
