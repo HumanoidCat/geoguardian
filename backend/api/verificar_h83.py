@@ -213,9 +213,7 @@ def ca10_ganancia(resultado: Resultado, conexion_contadora) -> None:
     crudo = RepositorioPostgres(conexion=conexion_contadora)
 
     def _armar(copiar):
-        return RepositorioConCache(
-            crudo, CacheConVencimiento(ttl=3600.0, tope=256), copiar=copiar
-        )
+        return RepositorioConCache(crudo, CacheConVencimiento(ttl=3600.0, tope=256), copiar=copiar)
 
     sin = _repetir(crudo.listar_distritos)
     lista = _repetir(_armar(copia_de_lista).listar_distritos)
@@ -300,8 +298,7 @@ def ca3_base_caida() -> int:
     salud_viva = cliente.get("/salud").json()
     distritos_vivos = cliente.get("/distritos")
     print(
-        f"Con la base viva - /salud base_datos_conectada: "
-        f"{salud_viva['base_datos_conectada']}"
+        f"Con la base viva - /salud base_datos_conectada: " f"{salud_viva['base_datos_conectada']}"
     )
     print(
         f"Con la base viva - /distritos: {distritos_vivos.status_code}, "
