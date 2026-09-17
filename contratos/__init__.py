@@ -9,6 +9,12 @@ Cada contrato tiene un simulado en contratos/simulados/ que lo respeta, para que
 nadie quede bloqueado esperando codigo ajeno.
 """
 
+# 1.5.0 · 2026-09-17 · `IndiceDerivado` gana `spi_6m`, por adicion. D-32 movio la
+#         escala del SPI de 3 a 6 meses y el contrato se quedo con `spi_1m` y
+#         `spi_3m`: la unica escala que el proyecto considera valida era la unica
+#         que no podia expresar. Ningun campo existente cambia. Solicitud SC-12,
+#         decision D-53. Es el salto que D-50 anuncio para el `Pronostico` de
+#         H15.0: cuando entre, tambien es aditivo y cabe en 1.5.0.
 # 1.4.0 · 2026-08-20 · Cambia el significado de `nivel` para incendio: `alto`
 #         pasa a ser «al menos un foco en la ventana de 7 dias» y **MEDIO deja de
 #         existir para ese evento**. El umbral viejo, por percentiles del conteo,
@@ -41,4 +47,4 @@ nadie quede bloqueado esperando codigo ajeno.
 #         Defecto detectado por Cesar contra el WFS del SNIT. Ver incidencia I-04.
 # 1.1.0 · Tercer tipo de evento: lluvia intensa.
 # 1.0.0 · Contratos iniciales.
-VERSION_CONTRATOS = "1.4.0"
+VERSION_CONTRATOS = "1.5.0"

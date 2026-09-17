@@ -98,7 +98,7 @@ Toma un minuto y responde la unica pregunta que importa: **¿esta sirviendo?**
 | Campo | Normal | Que significa si no |
 |---|---|---|
 | `modo` | `real` | `simulado` = la API **no llego a PostgreSQL** y esta sirviendo el repositorio de relleno |
-| `version_contratos` | la de `contratos/__init__.py` (**hoy `1.4.0`**) | una version vieja = lo publicado no es lo que esta en `dev` |
+| `version_contratos` | la de `contratos/__init__.py` (**hoy `1.5.0`**) | una version vieja = lo publicado no es lo que esta en `dev` |
 | `version_api` | acompaña a la anterior | idem |
 | `base_datos_conectada` | `true` | `false` con `modo: real` es **contradictorio**: ver el triaje |
 | `ultima_ingesta` | una fecha reciente | `null` = nunca se ejecuto la ingesta |

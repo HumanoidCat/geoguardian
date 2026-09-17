@@ -311,7 +311,7 @@ python -m contratos.verificar
 ```
 
 Debe terminar en **"Todas las verificaciones pasaron"** con **47 comprobaciones**
-y declarar **"Contratos version 1.4.0"**.
+y declarar **"Contratos version 1.5.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
 proyecto. Que un dato faltante se represente como nulo y nunca como cero; que una

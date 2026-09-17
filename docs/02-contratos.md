@@ -8,7 +8,18 @@ Cambiar un simulado por el modulo real debe ser una linea, no una refactorizacio
 
 ## Estado
 
-Version de contratos: **1.4.0** · Congelados el 3 de agosto de 2026.
+Version de contratos: **1.5.0** · Congelados el 3 de agosto de 2026.
+
+**Cambio v1.4.0 -> v1.5.0 (17 de setiembre).** `IndiceDerivado` gana `spi_6m`,
+por adicion. **D-32** movio la escala del SPI de 3 a 6 meses hace un mes y el
+contrato se quedo con `spi_1m` y `spi_3m`: la unica escala que el proyecto
+considera valida era la unica que no podia expresar. Ningun campo existente
+cambia de nombre, de tipo ni de significado, y un `IndiceDerivado` construido sin
+el campo nuevo sigue validando. Es el salto que **D-50** anuncio para el
+`Pronostico` de H15.0: cuando entre, tambien es aditivo y cabe en 1.5.0.
+
+Ver **SC-12** y **D-53**. Lo consume la tarjeta de sequia de **H14.5**: el indice
+se calcula al pedirlo y no se almacena.
 
 **Cambio v1.3.3 -> v1.4.0 (20 de agosto).** Cambia lo que significa `nivel` para
 incendio: **`alto` pasa a ser «al menos un foco en la ventana de 7 dias» y MEDIO

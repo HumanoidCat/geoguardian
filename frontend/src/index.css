@@ -1675,6 +1675,48 @@ button.marca-semaforo:focus-visible {
   background: var(--riesgo-alto);
 }
 
+/* La tarjeta de sequia MIDE, no estima (H14.5). Por eso este bloque no usa ni
+   un token de la rampa de riesgo -ni --riesgo-*, ni --texto-sobre-*-: el numero
+   va en la tipografia de datos y la categoria en palabras, sobre los mismos
+   grises que el resto del texto. Si alguien le pone un color de nivel, esta
+   diciendo sin palabras que es una estimacion, y CA-2 lo prohibe. */
+.tarjeta-hoy-medida {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.tarjeta-hoy-medida-que {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.tarjeta-hoy-indice {
+  font-family: var(--fuente-datos);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texto-xl);
+  line-height: 1.05;
+  color: var(--texto);
+}
+
+.tarjeta-hoy-categoria {
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  color: var(--texto);
+}
+
+/* La frase que separa medir de estimar, en la tarjeta y no en un desplegable
+   (CA-1), con la fecha del dato al lado del numero (CA-3). Va en el tamano del
+   cuerpo y no en el de las notas: si se lee como letra chica, no cumple. */
+.tarjeta-hoy-medicion {
+  font-size: var(--texto-md);
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--borde-fuerte);
+  background: var(--superficie-alterna);
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+
 /* Sin nivel no se pinta un color: se pinta la trama de ausencia de D-07, la
    misma que ya usa el mapa. La ausencia se dibuja, nunca se rellena con algo
    plausible. */

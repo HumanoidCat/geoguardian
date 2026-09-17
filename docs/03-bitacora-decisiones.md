@@ -5981,6 +5981,27 @@ cadencia.
       * el costo de la consulta a `crudo.medicion_diaria` de un distrito;
       * el costo con la cache caliente, que es el caso normal.
 
+> **Enmienda del 2026-09-17, al implementar H14.5.** Dos cosas que esta decision
+> dio por sentadas y no eran asi:
+>
+> 1. **La API no lee `crudo.medicion_diaria`.** Desde D-45 (I-44) `crudo` esta
+>    cerrado para el rol de la API y las mediciones salen de la vista
+>    `analitico.serie_climatica`. El SPI-6 se calcula sobre esa vista, que es el
+>    mismo dato con otro nombre. Donde arriba dice `crudo.medicion_diaria` lease
+>    la vista.
+> 2. **La imagen de la API no podia calcularlo.** `infra/docker/api.Dockerfile`
+>    instala cinco paquetes y excluye `backend/senales/` a proposito, y
+>    `CalculadorSPI` ajusta la gamma con `scipy.stats.gamma.fit`. Calcular el
+>    indice «con el codigo del proyecto» obliga a que la imagen lleve `numpy`,
+>    `scipy`, `backend/senales/` y `backend/modelado/etiquetado.py`. Se hace asi
+>    y no reescribiendo el ajuste sin scipy, porque un segundo ajuste daria un
+>    segundo numero: el indice de la tarjeta tiene que salir del mismo camino
+>    que el del etiquetado de H3.0. Lo que cuesta -la imagen crece- se mide en la
+>    evidencia de H14.5.
+>
+> La decision se sostiene: sigue sin crearse `analitico.indice` y el indice sigue
+> saliendo del dato guardado, al pedirlo.
+
 ## D-54 · La regla de propiedad de carpetas se suspende hasta el Invenio Fest
 
 **Fecha.** 2026-09-16. **Historia.** Ninguna: es una decision de gestion.
