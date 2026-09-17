@@ -829,7 +829,7 @@ dejaron de ser ciertas sin que nadie lo notara, y al ampliar la bibliografía el
 | 98 fichas, 46 registros, 29 eventos | Catálogo de eventos históricos |
 | 38 referencias, 29 con ficha | Fichero bibliográfico del proyecto |
 | 47 comprobaciones, 8 trabajos de CI, 22 controles | `verificar_documentacion.py` |
-| 54 decisiones, 60 incidencias | Las dos bitácoras |
+| 54 decisiones, 61 incidencias | Las dos bitácoras |
 | 5 pliegues; embargo de 7 días en los tres eventos | `verificar_h32.py`, 61 comprobaciones |
 | 99 296 filas; 29 216 filas, 29,4 % | `generar_etiquetas.py` sobre la base cargada |
 | 163 / 13 / 67 episodios; 2, 3, 3, 6, 9 por pliegue | `generar_etiquetas.py`; D-34 |
