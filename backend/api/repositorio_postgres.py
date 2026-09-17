@@ -8,8 +8,8 @@ del simulado que respondia hasta ahora. Los endpoints de H6.1 no cambian ni una
 linea: dependen del protocolo, no de la clase, y `dependencias.py` es el unico
 archivo que sabe cual implementacion esta activa.
 
-**NUEVE DE LOS DIECISEIS METODOS ESTAN IMPLEMENTADOS.** Los otros siete dependen de
-tablas que todavia no existen:
+**DIEZ DE LOS DIECISEIS METODOS ESTAN IMPLEMENTADOS.** Cinco de los otros seis
+dependen de tablas que todavia no existen, y uno no va a tener tabla nunca:
 
     implementados          tabla                     historia que la trajo
     ---------------------  ------------------------  ---------------------
@@ -22,16 +22,31 @@ tablas que todavia no existen:
     guardar_riesgos        analitico.riesgo          H3.6 (Alejandro, D-39)
     obtener_riesgo         analitico.riesgo          H3.6 (Alejandro, D-39)
     obtener_riesgos_por_f  analitico.riesgo          H3.6 (Alejandro, D-39)
+    obtener_indices        ninguna: se calcula       H14.5 (Alejandro, D-53)
 
     pendientes             lo que falta              historia que lo va a traer
     ---------------------  ------------------------  --------------------------
-    guardar_indices        analitico.indice          H2.5
-    obtener_indices        analitico.indice          H2.5
+    guardar_indices        analitico.indice          NADIE: D-53 decidio no crearla
     listar_eventos         analitico.evento          H4.3
     guardar_reporte_cal    control.reporte_calidad   H1.5
     listar_reportes_cal    control.reporte_calidad   H1.5
     guardar_metricas       analitico.metrica         H3.7
     listar_metricas        analitico.metrica         H3.7
+
+EL INDICE SE CALCULA AL PEDIRLO, Y SE GUARDA EN MEMORIA POR INGESTA (H14.5, D-53)
+
+`obtener_indices` no tiene tabla y no la va a tener: D-53 decidio que el SPI-6 es
+una funcion determinista de la lluvia que ya esta guardada, y almacenarlo seria
+tener el mismo dato en dos lugares. Se lee la serie diaria entera del distrito
+desde `analitico.serie_climatica` -la vista de D-45; `crudo` sigue cerrado para
+la API-, se calcula con el mismo codigo que uso el etiquetado (`backend/api/
+indices.py`) y el resultado se guarda en memoria con clave **(distrito, fecha de
+la ultima ingesta)**. Asi el calculo -66 ms medidos en D-53, mas la lectura- ocurre
+una vez por distrito por ingesta y no una vez por visita, y una ingesta nueva
+invalida la entrada sola, sin reloj. Es CA-8 de H14.5.
+
+`guardar_indices` sigue lanzando `TablaPendiente`, y su mensaje ya no promete
+una historia: nombra a D-53.
 
 LOS TRES DE RIESGO, ESCRITOS POR EL PM BAJO EXCEPCION (docs/07, D-39)
 
@@ -76,8 +91,10 @@ valor para las ocho cargas. Ver la evidencia de H1.1.
 from __future__ import annotations
 
 import json
+import threading
 from datetime import date, datetime, timedelta
 
+from backend.api.indices import indices_de
 from basedatos.conexion import conectar
 from contratos.enums import Algoritmo, MetodoImputacion, NivelRiesgo, TipoEvento
 from contratos.esquemas import (
@@ -97,8 +114,8 @@ CODIGO_CANTON = 508
 # Que historia trae cada tabla que falta. El mensaje de error lo cita para que
 # quien se tope con el sepa a que esperar en vez de creer que hay un defecto.
 PENDIENTES = {
-    "guardar_indices": ("analitico.indice", "H2.5"),
-    "obtener_indices": ("analitico.indice", "H2.5"),
+    # Sin historia: la tabla no se va a crear. Ver D-53 y la cabecera.
+    "guardar_indices": ("analitico.indice", "D-53"),
     "listar_eventos": ("analitico.evento", "H4.3"),
     "guardar_reporte_calidad": ("control.reporte_calidad", "H1.5"),
     "listar_reportes_calidad": ("control.reporte_calidad", "H1.5"),
@@ -116,10 +133,16 @@ class TablaPendiente(NotImplementedError):
 
 def _pendiente(metodo: str):
     tabla, historia = PENDIENTES[metodo]
+    if historia.startswith("D-"):
+        # Una decision, no una historia: nadie la va a traer. Se dice asi para
+        # que quien lea el error no se quede esperando.
+        quien = f"y no va a existir: la decision {historia} resolvio no crearla"
+    else:
+        quien = f"todavia: la trae la historia {historia}"
     return TablaPendiente(
-        f"`{metodo}` necesita la tabla `{tabla}`, que todavia no existe: la trae la "
-        f"historia {historia}. No se devuelve una lista vacia porque diria «no hay "
-        f"ninguno», que es distinto de «esto no esta construido». Ver la cabecera de "
+        f"`{metodo}` necesita la tabla `{tabla}`, que no existe {quien}. No se "
+        f"devuelve una lista vacia porque diria «no hay ninguno», que es distinto de "
+        f"«esto no esta construido». Ver la cabecera de "
         f"backend/api/repositorio_postgres.py."
     )
 
@@ -183,6 +206,24 @@ SQL_MEDICIONES = """
              ON m.fecha = dia::date AND m.codigo_distrito = %(codigo)s
      ORDER BY dia
 """
+
+# Solo la lluvia, para el SPI-6 (H14.5, D-53). Misma vista y mismo generate_series
+# que SQL_MEDICIONES: un dia sin fila sale None, y `acumulado_mensual` anula el
+# mes entero, que es lo que corresponde -un total con dias de menos entraria como
+# sequia-. No se reutiliza `obtener_mediciones` porque arma un `MedicionDiaria`
+# por dia, y aqui son unos trece mil dias de los que solo interesa una columna.
+SQL_LLUVIA = """
+    SELECT dia::date, m.precipitacion_mm
+      FROM generate_series(%(desde)s::date, %(hasta)s::date, interval '1 day') AS dia
+      LEFT JOIN analitico.serie_climatica m
+             ON m.fecha = dia::date AND m.codigo_distrito = %(codigo)s
+     ORDER BY dia
+"""
+
+#: Donde empieza la serie climatica del proyecto (H1.1, `cargar_mediciones.DESDE`).
+#: CHIRPS existe desde 1981, pero la serie cargada arranca aqui, y pedir antes solo
+#: agrega meses en None que el calculo descarta.
+INICIO_SERIE = date(1991, 1, 1)
 
 SQL_GUARDAR_MEDICION = """
     INSERT INTO crudo.medicion_diaria (
@@ -335,6 +376,10 @@ class RepositorioPostgres:
         # autocommit=True a proposito: ver la cabecera del modulo.
         self._conexion = conexion if conexion is not None else conectar(autocommit=True)
         self._codigo_canton = codigo_canton
+        # Indices por distrito: codigo -> (ultima ingesta con la que se calculo,
+        # filas). Ver la cabecera y `obtener_indices`.
+        self._indices: dict[str, tuple[datetime | None, list[IndiceDerivado]]] = {}
+        self._candado_indices = threading.Lock()
 
     def cerrar(self) -> None:
         self._conexion.close()
@@ -537,10 +582,38 @@ class RepositorioPostgres:
     def guardar_indices(self, indices: list[IndiceDerivado]) -> int:
         raise _pendiente("guardar_indices")
 
+    def _lluvia_diaria(self, codigo_distrito: str, hasta: date) -> dict[date, float | None]:
+        with self._conexion.cursor() as cursor:
+            cursor.execute(
+                SQL_LLUVIA, {"codigo": codigo_distrito, "desde": INICIO_SERIE, "hasta": hasta}
+            )
+            return {dia: lluvia for dia, lluvia in cursor.fetchall()}
+
     def obtener_indices(
         self, codigo_distrito: str, desde: date, hasta: date
     ) -> list[IndiceDerivado]:
-        raise _pendiente("obtener_indices")
+        """
+        Un `IndiceDerivado` por mes del rango, con el SPI-6 del distrito (D-53).
+
+        La serie se lee entera -desde `INICIO_SERIE` hasta hoy- aunque el rango
+        pedido sea un mes: la gamma de cada mes calendario se ajusta sobre todos
+        los anios, y un rango corto daria un indice sin historia. Se calcula una
+        vez por distrito por ingesta y se guarda en memoria; el rango solo recorta
+        lo ya calculado. Con la ingesta como clave, la entrada se invalida sola
+        cuando entra dato nuevo.
+
+        `ultima_ingesta()` propaga el error si la base no contesta, y eso es lo
+        que se quiere: servir el indice guardado con la base caida diria que el
+        dato esta al dia sin poder saberlo.
+        """
+        ingesta = self.ultima_ingesta()
+        with self._candado_indices:
+            entrada = self._indices.get(codigo_distrito)
+            if entrada is None or entrada[0] != ingesta:
+                serie = self._lluvia_diaria(codigo_distrito, date.today())
+                entrada = (ingesta, indices_de(codigo_distrito, serie))
+                self._indices[codigo_distrito] = entrada
+        return [indice for indice in entrada[1] if desde <= indice.fecha <= hasta]
 
     # -- Riesgo. H3.6, escrito por el PM bajo la excepcion de docs/07 (D-39) -- #
 

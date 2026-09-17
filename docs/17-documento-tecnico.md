@@ -218,7 +218,7 @@ SQLAlchemy ni de nada de infraestructura.
 
 El 3 de agosto de 2026, antes de escribir una línea de implementación, se
 congelaron las interfaces entre los cuatro frentes: `contratos/`, hoy en
-**versión 1.4.0**.
+**versión 1.5.0**.
 
 | Archivo | Qué define |
 |---|---|

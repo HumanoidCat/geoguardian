@@ -301,11 +301,11 @@ def main() -> int:
     comprobar(
         "los indices derivados coinciden entre instancias",
         [
-            (x.fecha, x.spi_3m)
+            (x.fecha, x.spi_3m, x.spi_6m)
             for x in repo.obtener_indices("50801", date(2026, 1, 1), date(2026, 3, 1))
         ]
         == [
-            (x.fecha, x.spi_3m)
+            (x.fecha, x.spi_3m, x.spi_6m)
             for x in otro_repo.obtener_indices("50801", date(2026, 1, 1), date(2026, 3, 1))
         ],
     )

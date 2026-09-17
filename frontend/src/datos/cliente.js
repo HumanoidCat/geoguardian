@@ -541,3 +541,81 @@ export async function obtenerMediciones(codigo, desde, hasta) {
 
   return { filas, ventana, origen, simulado: salud.modo === 'simulado' }
 }
+
+// --------------------------------------------------------------------------- //
+// El indice de sequia, medido (H14.5)                                          //
+// --------------------------------------------------------------------------- //
+
+/** Cuantos meses hacia atras se pide el indice. Con seis alcanza; se piden mas por la latencia. */
+const MESES_DE_INDICE = 14
+
+/**
+ * `meses` meses antes de una fecha ISO, al primer dia de ese mes.
+ *
+ * Aritmetica sobre los numeros y no sobre `Date`: `toISOString` esta prohibido
+ * en este archivo (H6.6, la fecha en hora local) y un `Date` con meses restados
+ * arrastra el dia -del 31 al 3 del mes siguiente-. El primer dia del mes no
+ * tiene ese problema y para un rango de indices mensuales es el borde natural.
+ */
+function haceMeses(iso, meses) {
+  const [anio, mes] = iso.split('-').map(Number)
+  const total = anio * 12 + (mes - 1) - meses
+  const nuevoAnio = Math.floor(total / 12)
+  const nuevoMes = (total % 12) + 1
+  return `${nuevoAnio}-${String(nuevoMes).padStart(2, '0')}-01`
+}
+
+/**
+ * El ultimo SPI-6 con valor de un distrito, o por que no lo hay.
+ *
+ * Devuelve `{ valor, fecha, motivo }`:
+ *
+ *   valor    numero, o `null`.
+ *   fecha    ultimo dia del mes que resume el indice, o `null`. NO es la fecha
+ *            de la consulta: con CHIRPS el ultimo mes cerrado puede estar a 21 a
+ *            51 dias de distancia (D-40), y un indice sin su fecha parece de hoy.
+ *   motivo   `null` si hay valor; si no, una de tres razones, para que la
+ *            tarjeta diga por que dibuja la ausencia (D-07) y no un guion:
+ *              'sin_origen'   el visor esta sobre el respaldo estatico, que no
+ *                             trae indices;
+ *              'simulado'     la API sirve dato simulado. Un indice sobre lluvia
+ *                             inventada es un indice inventado y no se muestra
+ *                             (CA-9 de H14.5, la misma regla que H7.4);
+ *              'sin_dato'     la API respondio y ningun mes del rango tiene
+ *                             serie completa para calcularlo.
+ *
+ * ES UNA MEDICION, NO UNA ESTIMACION. La ruta `/indices` no trae nivel ni
+ * probabilidad, y esta funcion no los inventa: D-34 dice que la sequia no se
+ * modela, y D-53 que el indice se calcula al pedirlo con la lluvia que ya cayo.
+ *
+ * Un fallo de red o un 500 se propaga como excepcion, igual que en
+ * `obtenerMediciones`: quien llama decide como lo dice.
+ */
+export async function obtenerIndiceDeSequia(codigo) {
+  const { origen, salud } = await resolverOrigen()
+
+  if (origen !== ORIGEN_API) return { valor: null, fecha: null, motivo: 'sin_origen' }
+  if (salud?.modo === 'simulado') return { valor: null, fecha: null, motivo: 'simulado' }
+
+  const hasta = fechaDeHoy()
+  const consulta = new URLSearchParams({ desde: haceMeses(hasta, MESES_DE_INDICE), hasta })
+  const lista = await leerJson(
+    `${RUTA_API}/distritos/${codigo}/indices?${consulta}`,
+    `el indice de sequia del distrito ${codigo}`,
+  )
+
+  if (!Array.isArray(lista)) {
+    throw new Error(`El origen del indice de ${codigo} no devolvio una lista.`)
+  }
+
+  // El ultimo mes CON valor. Los meses que la fuente no entrego viajan con
+  // `spi_6m: null` y no se omiten; aca se los salta para encontrar el ultimo
+  // que si se pudo calcular, y su fecha es la que se muestra.
+  let ultimo = null
+  for (const fila of lista) {
+    if (typeof fila?.spi_6m === 'number' && fila.fecha) ultimo = fila
+  }
+
+  if (!ultimo) return { valor: null, fecha: null, motivo: 'sin_dato' }
+  return { valor: ultimo.spi_6m, fecha: ultimo.fecha, motivo: null }
+}

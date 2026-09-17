@@ -835,8 +835,15 @@
   - No cambia el umbral, no cambia la escala del SPI y no entrena nada.
   - Criterios en `docs/evidencias/objetivos/H3.11-criterios-aceptacion.md`.
 
-- [ ] **H14.5** · La tarjeta de sequia dice el indice medido, no un nivel estimado
+- [x] **H14.5** · La tarjeta de sequia dice el indice medido, no un nivel estimado (2026-09-17)
   - `E14` · 5 pts · 7.8 h · rubrica: CG-1, CG-4 · depende de: H14.2, H2.3
+  - horas: estimada 7.8 . real 5.0
+  - Evidencia: `docs/evidencias/computacion-grafica/H14.5-tarjeta-sequia.md`
+  - **Resulto ser una rebanada vertical, como D-53 anticipo**: `spi_6m` en el
+    contrato (SC-12, contratos 1.5.0), `obtener_indices` calculado al pedirlo con
+    el mismo codigo del etiquetado y guardado en memoria por (distrito, ultima
+    ingesta), la ruta `/distritos/{codigo}/indices`, y la tarjeta. La imagen de la
+    API gana `numpy` y `scipy`: D-53 no lo habia mirado y queda enmendado.
   - **D-34 dice que la sequia no se puede MODELAR. No dice que no se pueda MEDIR.**
     El SPI-6 se calcula con la lluvia que ya cayo: es un hecho observado, del mismo
     tipo que «ayer llovieron 12 mm».

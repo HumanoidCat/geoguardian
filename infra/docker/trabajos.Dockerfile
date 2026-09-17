@@ -19,8 +19,9 @@
 # POR QUE UNA IMAGEN APARTE Y NO LA DE LA API
 # ===========================================================================
 #
-# `api.Dockerfile` excluye a proposito el modelado: instala cinco paquetes y
-# copia solo `backend/api/`. Meter scikit-learn y xgboost ahi para poder correr
+# `api.Dockerfile` excluye a proposito el modelado: instala siete paquetes
+# -cinco, mas numpy y scipy desde H14.5- y no copia scikit-learn ni xgboost.
+# Meter scikit-learn y xgboost ahi para poder correr
 # la estimacion le agregaria cientos de megabytes **a la imagen que se publica
 # en cada push** y que sirve el trafico. Son dos cosas con vidas distintas: una
 # atiende peticiones todo el dia, la otra corre unos minutos y se muere.
@@ -124,7 +125,11 @@ COPY --from=dependencias /opt/venv /opt/venv
 #   backend/modelado/    los tres guiones y lo que arrastra `comparar`
 #   backend/senales/     `etiquetado` y `generar_caracteristicas` lo usan; solo
 #                        biblioteca estandar, ni un paquete de terceros
-#   backend/api/         `estimar_riesgo` escribe por `repositorio_postgres`
+#   backend/api/         `estimar_riesgo` escribe por `repositorio_postgres`,
+#                        que desde H14.5 importa `indices` (el SPI-6 al pedirlo).
+#                        Lo atrapo `verificar_trabajos.py` en el CI del #353:
+#                        sin esa linea la corrida de madrugada habria muerto al
+#                        importar. Es exactamente el fallo para el que existe CA-1
 #   basedatos/conexion   la cadena de conexion y el reintento
 #   contratos/           los enums y los esquemas
 #
@@ -133,7 +138,7 @@ COPY --from=dependencias /opt/venv /opt/venv
 COPY contratos/ ./contratos/
 COPY basedatos/__init__.py basedatos/conexion.py ./basedatos/
 COPY backend/senales/ ./backend/senales/
-COPY backend/api/__init__.py backend/api/repositorio_postgres.py ./backend/api/
+COPY backend/api/__init__.py backend/api/indices.py backend/api/repositorio_postgres.py ./backend/api/
 COPY backend/modelado/ ./backend/modelado/
 
 # Los dos generadores escriben aca y `estimar_riesgo` los lee. Es efimero: cada

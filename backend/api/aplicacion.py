@@ -64,7 +64,8 @@ def crear_aplicacion() -> FastAPI:
     #
     # `include_in_schema=False` a proposito: esto es una comodidad, no parte de la
     # interfaz publicada. La superficie que OpenAPI describe sigue siendo la de
-    # los seis endpoints acordados, y el criterio CA-4 la comprueba.
+    # los siete endpoints -los seis acordados en H6.1 y el de indices de H14.5-,
+    # y el criterio CA-4 la comprueba.
     @aplicacion.get("/", include_in_schema=False)
     def raiz() -> RedirectResponse:
         return RedirectResponse(url="/docs")
