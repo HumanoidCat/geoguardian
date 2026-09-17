@@ -1,0 +1,9 @@
+{
+  "version_contratos": "1.4.0",
+  "version_api": "0.1.0",
+  "generado_en": "2026-09-17T06:32:58Z",
+  "fuente": {
+    "version_contratos": "contratos/__init__.py",
+    "version_api": "backend/api/rutas.py"
+  }
+}
