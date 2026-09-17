@@ -264,24 +264,110 @@
     olvidado, y la causa queda por confirmar en vez de cerrarse con la
     explicacion que suena mejor.
 
-- [ ] **H9.2a** · Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS
+- [x] **H9.2a** · Sesion de usabilidad con 3 a 5 participantes y calculo del puntaje SUS (2026-09-14)
   - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.1 · **bloquea a: H9.2b**
-  - Partida de H9.2 el 2026-08-23. Mide **usabilidad, no exactitud**, asi que se
-    puede hacer HOY con datos simulados y sin esperar a H1.2. Bloques 0 a 4 y 6.
+  - horas: estimada n/d (no se registro una estimacion propia antes de arrancar;
+    las 7.9 h de arriba las deriva el backlog de los puntos) . real 12.0
+  - **Las 12 h no son de analisis: son de conseguir gente y de moverse.** Tres
+    sesiones de 41 a 47 minutos suman poco mas de dos horas; el resto fue
+    reclutamiento y desplazamiento. Es la primera historia del proyecto donde el
+    costo dominante no es tecnico, y conviene que la estimacion de H9.2b y H9.3
+    lo tenga en cuenta.
+  - Partida de H9.2 el 2026-08-23. Mide **usabilidad, no exactitud**.
+  - **El visor ya NO sirve datos simulados**, asi que las dos notas de abajo
+    quedaron vencidas antes de correr la historia. Se dejan porque lo hecho no se
+    borra, y el ajuste esta declarado con fecha en `hoja-de-sesion-h9.2a.md`.
   - La banda de "modo simulado" no se oculta: se **mide**. Preguntar si el
     participante entendio que los datos no son reales responde a "comunica su
     propia incertidumbre" y es un hallazgo sobre H6.6 y D-23.
   - **No preguntar por confianza en los numeros.** Con datos simulados esa
     respuesta no significa nada, y la banda la contamina.
+  - **TRES COINCIDENCIAS entre tres perfiles que no se conocen entre si:**
+  - **1. Ninguno encontro declaracion de incertidumbre.** Los tres la buscaron en
+    la tarea 3 y no existe. «Si no tengo esas tres —de donde salio, a que hora se
+    actualizo, quien firma— para mi es una opinion bonita» (gestion de riesgo).
+  - **2. Ninguno encontro el sello de no-oficialidad, y la consecuencia es
+    distinta en cada uno**: el de gestion de riesgo NO actua, el agricultor
+    ACTUA de inmediato («yo bajo el ganado y ya»), y el del lodge PROPAGA a un
+    grupo de unas 20 personas citando el visor. El que menos riesgo presenta es
+    el que lo llamo **«grave»** y pidio un letrero, «porque lo otro es comodidad
+    y esto es responsabilidad».
+  - **3. Dos de tres leyeron bien la casilla rayada de sequia, pero NINGUNO
+    gracias al visor**: uno por los boletines del IMN y otro por analogia con
+    Windy. **La interfaz no enseño nada en ninguno de los tres casos**, y el que
+    fallo es el que mas depende de la sequia para vivir.
+  - La lectura peligrosa que D-34 anticipa **ocurrio**: «que no hay, que ahorita
+    no hay sequia», sostenida 40 s. Y el arreglo lo propuso el mismo
+    participante: «pongale "no medido" con letras».
+  - SUS **60,0 · 42,5 · 72,5**. El promedio (58,3) es el numero menos informativo
+    del estudio: 30 puntos de rango. **La herramienta funciona para quien maneja
+    aplicaciones y falla para quien mas la necesita.** No se aplica banda de
+    aceptabilidad mientras siga abierta la deuda de verificacion de `[13]`.
+  - El 72,5 dijo en la pregunta 14 que **lo abandonaria en una semana**. Un
+    puntaje alto leido solo habria dicho lo contrario.
+  - Limitaciones declaradas: n=3; **el facilitador trabajo en el proyecto**, asi
+    que las criticas son un piso y no un techo; **el instrumento vario entre
+    sesiones** y la formulacion previa de las sesiones 01 y 02 no se conservo; el
+    registro de reclutamiento se lleno despues y no permite saber cuanto costo
+    conseguir a los tres; la traduccion del SUS mostro un piso de lectura en el
+    perfil agropecuario; y ningun participante es de los tres distritos con señal
+    de incendio (D-25).
 
-- [ ] **H9.2b** · Sesion de contraste: la estimacion frente a lo que la gente vivio
+- [x] **H9.2b** · Sesion de contraste: la estimacion frente a lo que la gente vivio (2026-09-14)
   - `E9` · 2 pts · 5.3 h · rubrica: OE4 · depende de: H9.2a, H3.0 · **bloquea a: H9.3, H9.4**
+  - horas: estimada n/d (no se registro una estimacion propia antes de arrancar;
+    las 5.3 h de arriba las deriva el backlog de los puntos) . real 9.0
   - Es el bloque 5 del guion de H9.1. Contra datos simulados no mide nada: sin
     modelo, "el mapa se equivoca en Quebrada Grande" no dice nada sobre el modelo.
   - **La dependencia de H3.0 no estaba declarada.** La encontro Luna el 2026-08-23
     despues de cerrar H9.1 y dar por desbloqueada H9.2. Por H3.0 depende de H1.2.
   - Reclutamiento **distinto** al de H9.2a: aqui hacen falta personas que vivieron
     esos eventos en ese distrito. No tiene que ser la misma gente.
+  - **RESULTADO: el sistema da la MISMA estimacion, hasta el cuarto decimal, para
+    dos temporales separados por seis anios.** Nate (2017-10-05) y las
+    inundaciones de las rutas 925 y 927 (2011-10-19) son los dos de octubre, y
+    quien estima es la linea base climatologica: el almanaque del distrito por
+    mes. **Dos de los tres participantes lo descubrieron solos.**
+  - El de mantenimiento vial verifico las ocho filas en menos de cinco segundos y
+    lo desmonto con sus propios partes de trabajo: «en el 2011 cerramos nueve
+    dias la 927; con Nate no cerramos ni dos. Y su sistema me esta dando el mismo
+    numero para los dos. Entonces ese numero no esta hablando del evento.»
+  - Es la version local de lo que **H4.4** midio globalmente (0,63x pareado por
+    mes), con dos casos concretos y contra registros fechados.
+  - **CONTRADICCION DOCUMENTADA CONTRA EL CATALOGO DE H4.3.** El ganadero de
+    Cabeceras contradijo el vacio de dano de Nate con bitacora manuscrita y un
+    recibo fechado el 2017-10-11. Su explicacion: «no hay registro no porque no
+    pasara, sino porque no lo apunto nadie mas que yo». **Consecuencia: la
+    ausencia de dano se debe leer como ausencia de REPORTE**, y cualquier analisis
+    que use un distrito sin dano registrado como caso negativo esta contaminado
+    por subregistro. **Eso incluye al contraste de H4.4.**
+  - El subregistro lo formularon los tres, desde tres roles. El mas preciso es el
+    sesgo por densidad: «en Tierras Morenas hay cuatro casas, pues hay cuatro
+    reportes. Pero el camino se cae igual.»
+  - **Los tres leyeron la casilla vacia de sequia como una posible averia** —«¿se
+    cayo?»— y dos pidieron literalmente texto en vez del simbolo. Sumado a H9.2a,
+    **seis participantes entre las dos historias y ninguno entendio el vacio
+    gracias a la interfaz.**
+  - **El evento que D-34 excluye es el de mayor impacto declarado** por dos de
+    tres: «la lluvia le tumba a uno un alambre, la seca le quita a uno la finca».
+    Se registra como brecha de cobertura, no como error.
+  - La 13b responde la pregunta de la historia: **cuanto vale una climatologia
+    depende del horizonte de decision.** Dos dijeron «me sirve menos» y uno «me
+    sirve casi igual», y los tres separaron mes de dia. «No es el dato, es donde
+    lo pusieron: un almanaque en una pantalla que parece de emergencia confunde.»
+  - **EL CASO 4 SE DECLARA INVALIDO.** A los tres se les mostro una tabla de
+    incendio marcada `[SIMULADO]` que nunca se sustituyo: no coincide **ningun**
+    valor con lo que el sistema produce. Tres citas fuertes se descartan, no se
+    matizan. Se conservan las respuestas a la pregunta 13, que no dependen de la
+    tabla. Es falta del procedimiento y esta declarada.
+  - Hallazgo que la tabla falsa tapaba, medido despues y **no atribuido a los
+    participantes**: el sistema **no tiene ninguna estimacion de incendio para
+    Tilaran**, que es donde ocurrio el fuego del catalogo, porque Tilaran no es
+    uno de los tres distritos de D-25.
+  - La pregunta 17 aporto en las tres. La mas util para el proyecto: **cambiar la
+    variable medida**, de intensidad del fenomeno a dias de cierre y poblacion
+    incomunicada. «Eso si distingue el 2011 del 2017, que es justo lo que su
+    sistema no puede hacer», y ya existe fechado en los partes de trabajo.
 
 - [ ] **H9.3** · Someter los umbrales de incendio a criterio de los participantes
   - `E9` · 3 pts · 7.9 h · rubrica: OE4 · depende de: H9.2b, H1.2
