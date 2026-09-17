@@ -1454,7 +1454,11 @@ trabajo, y su fuente tiene un sesgo conocido: DesInventar cataloga cuando hubo
 **pérdidas reportadas**, no cuando ocurrió un fenómeno. Se ve en la propia
 distribución: **19 de los 46 registros son de Tilarán centro**, el distrito con
 más población y más camino. No es que ahí llueva más. Por eso se mide cobertura
-y **no se reporta precisión** (III-F).
+y **no se reporta precisión** (III-F). Y dejó de ser una deducción: en la sesión
+de contraste con habitantes del cantón, un ganadero de Cabeceras —el único
+distrito sin filas en el catálogo— documentó con un recibo fechado daños por Nate
+que nadie reportó. La ausencia de ficha es ausencia de reporte, no de evento
+(D-55).
 
 ### D. El veredicto sobre la escala del SPI descansa sobre un solo episodio
 

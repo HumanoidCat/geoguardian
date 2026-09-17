@@ -6086,3 +6086,143 @@ cero, queda escrito cual y por que**, y la proxima vez no se levanta.
 
 El numero de arranque es 0 en las cuatro filas, el 2026-09-16. La cuenta se cierra
 el 2026-09-25 en esta misma seccion.
+
+---
+
+## D-55 · La ausencia de un daño en el catálogo se lee como ausencia de reporte, no de evento
+
+**Fecha.** 2026-09-17. **Historia.** Ninguna: sale de la sesión de **H9.2b** y
+alcanza a **H4.4**.
+**Quien decide.** Alejandro, como Lead PM. **Quien lo encontró.** Luna, en H9.2b,
+y lo formuló él: «subregistro».
+**Estado.** Aceptada.
+**Se apoya en.** D-07 (la ausencia no se rellena), D-27 (lo diferido lleva
+condición medible), H4.3, H4.4 (CA-9), H9.2b.
+
+### Contexto
+
+El catálogo de H4.3 tiene 46 registros repartidos en **siete** de los ocho
+distritos. **Cabeceras tiene cero**, y la evidencia de H4.3 lo marcó desde el
+2026-08-18 como «sin cobertura». Para la tormenta Nate, el 2017-10-05, DesInventar
+tiene siete fichas, una por distrito, y ninguna de Cabeceras.
+
+Hasta el 2026-09-14 eso se leía como un sesgo **de la fuente**: la sección VIII-C
+del documento IEEE dice que DesInventar cataloga pérdidas reportadas y no
+fenómenos, y lo deduce de la distribución —19 de 46 filas son de Tilarán
+centro—. Por esa misma razón el criterio **CA-9 de H4.4** se negó a reportar una
+precisión: una estimación `alto` sin registro no es un falso positivo.
+
+El 2026-09-14, en la sesión de H9.2b, la deducción se volvió un **hecho
+documentado**. La hoja de sesión pregunta, a propósito y para que sea fácil
+contradecirla: *«En Cabeceras no tenemos ningún registro de daño para ese
+temporal. ¿Le consta algo distinto?»*. El participante P-01, ganadero de
+Cabeceras con una bitácora manuscrita desde 2009, contradijo el catálogo con un
+recibo de ferretería fechado el **2017-10-11**: unos 200 metros de alambre
+caídos, un ternero perdido, tres días de camino cortado y daño en al menos dos
+fincas vecinas. Y explicó el vacío: *«Nadie fue a reportar a ningún lado. […] Eso
+no quiere decir que no pasó. Quiere decir que ustedes no estaban mirando.»*
+
+Luna lo escribió en su evidencia como consecuencia para el proyecto: cualquier
+análisis que use un distrito sin daño registrado como caso negativo está
+contaminado por subregistro. La palabra no aparecía en ningún archivo del
+repositorio. Esta decisión la convierte en regla.
+
+### Decision
+
+**Un distrito y una fecha sin fila en el catálogo de H4.3 no son un caso
+negativo.** Son un hueco en el reporte, y así se leen en todo análisis del
+proyecto, presente o futuro.
+
+1. **Ningún contraste, métrica o modelo usa la ausencia en el catálogo como
+   evidencia de que no pasó nada.** Sirve para medir cobertura —cuántos de los
+   eventos reportados se anticiparon— y nada más. La precisión, la especificidad
+   y cualquier cifra que necesite negativos verdaderos quedan fuera, como CA-9 ya
+   lo tenía para H4.4.
+2. **El resultado de H4.4 se mantiene tal como se midió**, porque sus cifras
+   —cobertura 23,5 %, tasa base 26,0 %, realce 0,90x— se calculan solo sobre los
+   34 eventos reportados y sobre el escritor, nunca sobre ausencias. Lo que cambia
+   es su lectura: es la cobertura de lo **reportado**, y la evidencia de H4.4 lo
+   declara como limitación con este registro.
+3. **El evento de Cabeceras del 2017-10-05 se declara y no se ingesta.** Las
+   cifras de la feria se congelan el 2026-09-21, y una fila nueva movería las de
+   H4.4. Además `validar_catalogo` exige una fuente por fila, y las 46 que hay son
+   documentales —42 fichas de DesInventar y 4 notas de prensa—: un testimonio con
+   recibo sería una clase de fuente nueva, y admitirla es una decisión aparte.
+4. **Condición de reactivación, por D-27:** a partir del 2026-09-25 se decide si
+   entra una clase de fuente «testimonio con documento fechado». Si entra, la fila
+   de Cabeceras se agrega con esa fuente, H4.4 se vuelve a correr y se reportan las
+   dos mediciones con fecha, sin elegir la que quede mejor.
+
+### Justificacion
+
+**Es una decisión y no una incidencia** porque nada en el código ni en la
+documentación afirma algo falso: la evidencia de H4.3 declaró el sesgo, VIII-C lo
+explica y CA-9 ya se negó a la precisión. Lo que faltaba era una **regla de
+lectura** que atara a los análisis que todavía no existen —un modelo entrenado
+con el catálogo, una precisión que a alguien se le ocurra reportar en el
+documento técnico—. Una incidencia registra un fallo que se corrige; esto no se
+corrige, se recuerda.
+
+**Se registra ahora y no después de la feria** porque es lo que un participante
+externo aportó contra el sistema y a favor del proyecto, y porque las cifras que
+se congelan el 21 se van a leer en el cartel y en el guion: conviene que quien las
+lea sepa en qué sentido son verdaderas.
+
+**No se ingesta el evento** aunque haría subir la cobertura, y eso es justamente
+por lo que no se ingesta: Cabeceras sale `alto` para octubre, así que la fila
+nueva sería un acierto y la cobertura pasaría de 8 de 34 a 9 de 35. Meterla a una
+semana del corte, con una clase de fuente inventada para la ocasión y en la
+dirección que mejora el número, es lo que la evidencia de H4.4 ya se prohibió
+para el incendio: no se elige la medición que quede mejor.
+
+### Alternativas descartadas
+
+**Registrarlo como incidencia I-NN.** Descartado por lo dicho arriba: no hay nada
+falso que corregir. Una incidencia sin corrección posible se cierra sola y la
+regla se pierde en dos semanas.
+
+**Ingestar el evento de Cabeceras ahora, con el testimonio como fuente.** Mueve las
+cifras de H4.4 en la semana del congelamiento y en la dirección favorable, y
+crea una clase de fuente sin haberla decidido. Se difiere con condición.
+
+**Descartar el contraste de H4.4 por contaminado.** Sus cifras no usan negativos;
+CA-9 lo previó. Descartarlo sería tirar una medición correcta por una limitación
+que ya tenía declarada.
+
+**No hacer nada, porque VIII-C ya lo decía.** VIII-C describe un sesgo de la
+fuente deducido de una distribución. Ahora hay un caso verificado, con documento
+fechado, en el único distrito sin filas. Y VIII-C no obliga a nadie: esta
+bitácora sí.
+
+### Consecuencias
+
+- La evidencia de **H4.4** declara la limitación, con fecha y cita a este
+  registro, en su sección de lo que el contraste no puede separar. La evidencia
+  de **H9.2b** no se toca: es de Luna, y es donde está el hallazgo.
+- La sección **VIII-C** del documento IEEE cita el caso de Cabeceras en una
+  frase, sin cambiar su argumento.
+- El catálogo de H4.3 sigue con 46 filas y **Cabeceras sigue en cero**, y así se
+  publica en la feria. El historial de eventos del visor ya dice que un filtro sin
+  resultados es «un resultado del catálogo, no un fallo de la pantalla», y con
+  esta decisión hay que leerlo como «del reporte».
+- Se pierde algo: la cobertura reportada es un **techo por abajo**. Habrá eventos
+  reales que el catálogo no tiene y que el sistema pudo o no anticipar, y no hay
+  forma de contarlos. Se escribe, no se disimula.
+
+### Medicion
+
+Lo que hay hoy, 2026-09-17:
+
+    filas del catálogo                                  46
+    filas de Cabeceras                                   0
+    eventos con daño documentado fuera del catálogo      1   (Nate en Cabeceras, P-01, recibo 2017-10-11)
+    análisis del repositorio que usan ausencias como negativos    0
+
+El cero de la última fila se comprobó buscando quién consume
+`catalogo-eventos.csv`: `validar_catalogo`, `contrastar_catalogo`,
+`contrastar_estimaciones`, `generar_figuras`, `generar_reporte_calidad` y
+`HistorialEventos.jsx`. Ninguno cuenta negativos. **El día que alguno lo haga, esta
+decisión es la que lo detiene.**
+
+Si el 2026-09-25 el evento entra, la medición que se repite es la de H4.4 y se
+reportan las dos, con fecha, en su evidencia.
