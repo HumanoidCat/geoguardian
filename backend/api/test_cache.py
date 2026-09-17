@@ -17,6 +17,7 @@ lo que necesita PostgreSQL vive en `verificar_h83.py` y `medir_cache.py`.
 
 from __future__ import annotations
 
+import copy
 from datetime import date, datetime
 
 import pytest
@@ -27,6 +28,7 @@ from backend.api.cache import (
     CacheConVencimiento,
     RepositorioConCache,
     cache_encendida,
+    copia_de_lista,
 )
 from contratos.enums import TipoEvento
 from contratos.esquemas import Distrito, MedicionDiaria, Riesgo
@@ -205,6 +207,16 @@ def test_ca5_desaloja_la_menos_usada_recientemente_y_no_otra(reloj):
 # -- CA-6, la copia de salida ----------------------------------------------- #
 
 
+def test_ca6_la_estrategia_por_omision_es_copiar_la_lista(falso, reloj):
+    """
+    Que la copia por omision sea la de la lista no es un detalle: es la decision
+    que CA-10 corrigio. Copiar en profundidad costaba 76 ms contra los 33 ms de
+    la consulta que la cache ahorra.
+    """
+    repositorio = RepositorioConCache(falso, CacheConVencimiento(ttl=10.0, reloj=reloj))
+    assert repositorio._copiar is copia_de_lista
+
+
 def test_ca6_modificar_lo_devuelto_no_corrompe_lo_guardado(repositorio):
     primera = repositorio.listar_distritos()
     primera.clear()
@@ -215,10 +227,9 @@ def test_ca6_modificar_lo_devuelto_no_corrompe_lo_guardado(repositorio):
 
 def test_ca6_los_modelos_del_contrato_son_inmutables(repositorio):
     """
-    Hallazgo del 2026-09-15, encontrado al correr esta prueba: los esquemas de
-    `contratos/` estan congelados, asi que asignarle un campo a un Distrito
-    devuelto lanza ValidationError. Parte de la proteccion que CA-6 pedia ya la
-    da el contrato, y no la cache.
+    Hallazgo del 2026-09-15: los esquemas de `contratos/` estan congelados, asi
+    que asignarle un campo a un `Distrito` devuelto lanza `ValidationError`.
+    Parte de lo que CA-6 queria evitar **ya lo impide el contrato**, no la cache.
 
     Se deja escrita y no se borra: si alguien descongelara los esquemas, la
     cache pasaria a necesitar mas proteccion de la que hoy tiene, y esto lo
@@ -229,30 +240,52 @@ def test_ca6_los_modelos_del_contrato_son_inmutables(repositorio):
         distrito.nombre = "PISADO"
 
 
-def test_ca6_modificar_un_campo_mutable_no_corrompe_lo_guardado(repositorio):
+def test_ca6_limite_declarado_el_diccionario_de_geometria_si_se_puede_corromper(repositorio):
     """
-    Lo que `frozen` NO cubre, y es el vector que queda vivo.
+    **Esto no es un defecto sin descubrir: es el limite que CA-6 acepta a
+    sabiendas, y esta escrito para que se vea.**
 
     Congelar impide reasignar un atributo, no modificar por dentro lo que ese
-    atributo apunta. `geometria` es un diccionario y admite claves nuevas sin
-    que pydantic proteste. Es, junto con la lista, lo unico contra lo que la
-    copia todavia defiende: por eso CA-10 tiene que medir lo que cuesta.
+    atributo apunta. `geometria` es un diccionario y admite claves nuevas. Con la
+    copia de lista, los modelos van compartidos, asi que quien lo modifique
+    corrompe lo guardado.
+
+    Evitarlo exige copiar en profundidad, y eso esta medido: 76 ms contra los
+    33 ms de la consulta que la cache ahorra. Se paga el limite, no los 76 ms.
+
+    La prueba afirma el comportamiento REAL. Si alguien volviera a la copia
+    profunda, esta prueba falla y obliga a volver aqui a leer por que se decidio
+    lo contrario.
     """
     primera = repositorio.listar_distritos()
     primera[0].geometria["type"] = "PISADO"
 
     segunda = repositorio.listar_distritos()
-    assert segunda[0].geometria["type"] == "Polygon"
+    assert segunda[0].geometria["type"] == "PISADO"
+
+
+def test_ca6_la_copia_profunda_si_protege_ese_vector(falso, reloj):
+    """
+    El contraste que le da sentido al limite de arriba: con `deepcopy` el
+    diccionario queda protegido. La opcion existe y se descarto por su costo,
+    no porque no funcionara.
+    """
+    profundo = RepositorioConCache(
+        falso, CacheConVencimiento(ttl=10.0, tope=4, reloj=reloj), copiar=copy.deepcopy
+    )
+    profundo.listar_distritos()[0].geometria["type"] = "PISADO"
+
+    assert profundo.listar_distritos()[0].geometria["type"] == "Polygon"
 
 
 def test_ca6_sin_copia_el_defecto_aparece(falso, reloj):
     """
     El sabotaje de CA-6, escrito como prueba permanente.
 
-    Con `copiar=None` se devuelve el mismo objeto que quedo guardado, y un
-    consumidor lo corrompe para todas las peticiones siguientes. Si esta prueba
+    Con `copiar=None` se devuelve la misma lista que quedo guardada, y un
+    consumidor la vacia para todas las peticiones siguientes. Si esta prueba
     empezara a fallar significaria que la copia dejo de ser lo que protege, y
-    entonces las dos de arriba ya no comprueban lo que dicen comprobar.
+    entonces la de mas arriba ya no comprueba lo que dice comprobar.
     """
     sin_copia = RepositorioConCache(
         falso, CacheConVencimiento(ttl=10.0, tope=4, reloj=reloj), copiar=None

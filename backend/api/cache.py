@@ -32,27 +32,43 @@ respuesta guardada afirmaria una conexion viva que puede estar caida, que es
 **I-41 otra vez por otro camino**: el campo diria lo que era cierto hace un rato.
 Eso es CA-3.
 
-LO QUE ESTA CACHE NO PUEDE AHORRAR, Y CONVIENE SABERLO ANTES DE MEDIR
+LO QUE ESTA CACHE NO PUEDE AHORRAR
 
 CA-1 dejo un dato raro: `/distritos/{codigo}` tarda 39 ms, pero `/mediciones`
 -que por dentro llama al mismo `obtener_distrito` **mas** su propia consulta-
-tarda 16. La diferencia es que el primero **serializa la geometria en la
-respuesta** y el segundo construye el `Distrito` para validar y lo descarta.
+tarda 16. CA-10 lo confirmo con numeros: `listar_distritos` en el repositorio
+cuesta 32.68 ms y el endpoint completo costaba 89.54. **Los otros 56 ms son la
+serializacion de la respuesta que hace FastAPI**, y ninguna cache que viva por
+debajo de FastAPI la ahorra.
 
-Esta cache vive por debajo de FastAPI: ahorra la consulta y la construccion del
-modelo, **no** la serializacion de la respuesta. El techo de la ganancia en
-`/distritos` es menor que sus 89 ms, y CA-10 tiene que decir cuanto.
+SOBRE LA COPIA DE SALIDA, Y LO QUE LA MEDICION OBLIGO A CAMBIAR
 
-SOBRE LA COPIA DE SALIDA
-
-Lo guardado se devuelve copiado. Si se devolviera el mismo objeto, un consumidor
-que ordene la lista o le agregue algo corromperia la cache para todas las
+Lo guardado se devuelve copiado, porque si se devolviera el mismo objeto un
+consumidor que ordene la lista o la vacie corromperia la cache para todas las
 peticiones siguientes, y el defecto aparecerria lejos de su causa. Es CA-6.
 
-La copia **cuesta**, y sobre ocho geometrias GeoJSON puede costar tanto como la
-consulta que ahorra. Por eso `copiar` es un parametro: `medir_cache.py` corre la
-comparacion con y sin copia, y la decision se toma con el numero. Si la copia se
-come la ganancia, se declara; no se quita en silencio.
+**La primera version copiaba en profundidad, y estaba mal.** Medido el
+2026-09-15, siete repeticiones, `listar_distritos`:
+
+    sin cache                    32.68 ms
+    con cache, copia profunda    75.96 ms
+    con cache, sin copia          0.00 ms
+
+Copiar en profundidad ocho geometrias GeoJSON cuesta **76 ms**; traerlas de
+PostgreSQL cuesta **33**. La cache era 43 ms mas lenta que no tenerla. La
+decision se tomo al reves de como se habia escrito, y la cambio la medicion.
+
+Hoy se copia **solo la lista**: `list(valor)` cuesta microsegundos y protege
+contra lo que un consumidor le puede hacer al contenedor -vaciarlo, ordenarlo,
+agregarle elementos-. Los modelos van compartidos, y los esquemas de
+`contratos/` estan congelados, asi que nadie puede reasignarles un campo.
+
+**LIMITE DECLARADO.** Congelar impide reasignar un atributo, no modificar por
+dentro lo que ese atributo apunta. `Distrito.geometria` es un diccionario y
+admite claves nuevas. Quien haga `distrito.geometria["type"] = "x"` corrompe lo
+guardado. Se acepta a sabiendas: evitarlo cuesta 76 ms por peticion, que es mas
+que la consulta que esta cache existe para ahorrar. Hay una prueba que deja el
+vector escrito y avisa si alguien cambia la estrategia de copia.
 
 POR QUE EL SIMULADO NO SE ENVUELVE
 
@@ -66,7 +82,6 @@ garantiza.
 
 from __future__ import annotations
 
-import copy
 import os
 import threading
 import time
@@ -93,11 +108,18 @@ from contratos.esquemas import Distrito, MedicionDiaria, Riesgo
 # TTL_SEGUNDOS de atraso respecto de la base. Es CA-11.
 TTL_SEGUNDOS = 300.0
 
-# Tope de entradas. `obtener_riesgo` tiene clave (distrito, fecha, evento), que
-# crece sin techo si nadie lo acota: ocho distritos por tres eventos por cuantas
-# fechas pidan. 256 cubre con holgura lo que el visor pide en una sesion -los
-# ocho distritos, la lista, y los riesgos de unos pocos dias- y pone un techo al
-# consumo, que es lo que CA-8 mide.
+# Tope de entradas.
+#
+# ACOTA EL NUMERO DE ENTRADAS, NO LA MEMORIA, Y ESA DISTINCION IMPORTA. Las
+# entradas de este sistema difieren en cuatro ordenes de magnitud: la lista de
+# geometrias pesa megabytes y un riesgo pesa bytes. Contar entradas no acota
+# memoria; lo que acota la memoria es que **el espacio de claves de lo pesado es
+# chico**: una entrada para `listar_distritos` y ocho para `obtener_distrito`,
+# porque el canton tiene ocho distritos y no va a tener mas.
+#
+# El tope existe por `obtener_riesgo`, cuya clave es (distrito, fecha, evento) y
+# si crece sin limite. Esas entradas son diminutas. CA-8 mide el techo por
+# familia de clave, que es la unica forma de que el numero signifique algo.
 TOPE_ENTRADAS = 256
 
 VARIABLE_ENCENDIDA = "GEOGUARDIAN_CACHE"
@@ -109,6 +131,23 @@ VARIABLE_TOPE = "GEOGUARDIAN_CACHE_TOPE"
 #: justo lo que mas conviene cachear (CA-7). Sin este centinela, cachear una
 #: ausencia y no tenerla serian indistinguibles.
 AUSENTE = object()
+
+
+def copia_de_lista(valor: Any) -> Any:
+    """
+    Copia el contenedor y comparte lo de adentro.
+
+    Es la estrategia de copia por omision, elegida con la medicion de CA-10 a la
+    vista. Ver la cabecera del modulo: copiar en profundidad costaba mas que la
+    consulta que la cache ahorra.
+
+    Lo que protege: vaciar, ordenar o ampliar la lista devuelta no toca la que
+    quedo guardada. Lo que no protege, y esta declarado: modificar por dentro un
+    campo mutable de un modelo, como el diccionario de `geometria`.
+    """
+    if isinstance(valor, list):
+        return list(valor)
+    return valor
 
 
 class CacheConVencimiento:
@@ -190,9 +229,9 @@ class CacheConVencimiento:
             total = self.aciertos + self.fallos
             tasa = (self.aciertos / total * 100) if total else 0.0
             return (
-                f"entradas {len(self._entradas)}/{self._tope} · "
-                f"aciertos {self.aciertos} · fallos {self.fallos} "
-                f"({tasa:.1f} % de acierto) · vencidas {self.vencidas} · "
+                f"entradas {len(self._entradas)}/{self._tope} - "
+                f"aciertos {self.aciertos} - fallos {self.fallos} "
+                f"({tasa:.1f} % de acierto) - vencidas {self.vencidas} - "
                 f"desalojadas {self.desalojadas}"
             )
 
@@ -210,12 +249,13 @@ class RepositorioConCache:
         self,
         repositorio,
         cache: CacheConVencimiento | None = None,
-        copiar: Callable[[Any], Any] | None = copy.deepcopy,
+        copiar: Callable[[Any], Any] | None = copia_de_lista,
     ) -> None:
         self.envuelto = repositorio
         self.cache = cache if cache is not None else CacheConVencimiento()
-        #: `None` desactiva la copia. **Solo para medir** (CA-6 vs CA-10): sin
-        #: copia, quien reciba la respuesta puede corromper lo guardado.
+        #: `None` desactiva la copia. **Solo para medir y para el sabotaje de
+        #: CA-6**: sin copia, quien reciba la respuesta puede corromper lo
+        #: guardado. `copy.deepcopy` tambien se puede pasar, y CA-10 lo mide.
         self._copiar = copiar
 
     def _con_cache(self, clave, producir):

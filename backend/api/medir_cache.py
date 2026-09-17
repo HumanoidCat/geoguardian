@@ -31,7 +31,7 @@ LIMITE DECLARADO
 Esto mide el proceso de prueba, no un despliegue: un solo trabajador, sin red de
 por medio. Los tiempos sirven para comparar con y sin cache en la misma maquina,
 no para prometer latencias de produccion. El techo por proceso y el efecto de
-varios trabajadores son CA-8 y CA-9, y se miden aparte.
+varios trabajadores son CA-8 y CA-9, y se miden en `verificar_h83.py`.
 """
 
 from __future__ import annotations
@@ -113,14 +113,14 @@ def _casos(repositorio):
     return [
         ("/salud", "/salud", {}),
         ("/distritos", "/distritos", {}),
-        (f"/distritos/{{codigo}}", f"/distritos/{codigo}", {}),
+        ("/distritos/{codigo}", f"/distritos/{codigo}", {}),
         (
-            f"/distritos/{{codigo}}/mediciones (30 dias)",
+            "/distritos/{codigo}/mediciones (30 dias)",
             f"/distritos/{codigo}/mediciones",
             {"desde": desde.isoformat(), "hasta": hasta.isoformat()},
         ),
         (
-            f"/distritos/{{codigo}}/riesgo",
+            "/distritos/{codigo}/riesgo",
             f"/distritos/{codigo}/riesgo",
             {"fecha": hasta.isoformat(), "tipo_evento": evento},
         ),
@@ -147,7 +147,7 @@ def _medir(cliente, contador, ruta, parametros):
 
 
 def principal() -> int:
-        try:
+    try:
         from fastapi.testclient import TestClient
     except ImportError as error:
         # El mensaje nombra la causa real. La primera version afirmaba "falta
@@ -177,7 +177,7 @@ def principal() -> int:
 
     casos = _casos(repositorio)
 
-    print(f"Linea base sin cache · {REPETICIONES} repeticiones · {date.today().isoformat()}")
+    print(f"Linea base sin cache - {REPETICIONES} repeticiones - {date.today().isoformat()}")
     print("La primera llamada de cada endpoint se descarta.")
     print()
     print(f"{'endpoint':<40} {'estado':>6} {'consultas':>10} {'mediana ms':>11} {'rango ms':>16}")
