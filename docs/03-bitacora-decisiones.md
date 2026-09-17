@@ -3709,6 +3709,62 @@ amplia el cantón, se vuelve a medir y el evento puede pasar a modelable. La
 decision depende del numero, no de una preferencia: **se rehace corriendo
 `generar_etiquetas.py`**.
 
+> **Enmienda del 2026-09-15. Esta clausula se ejercio, y la decision se sostiene.**
+>
+> H1.16 trajo la serie de ERA5 desde 1950: **28.011 dias, 76,7 anios** contra los
+> 34 sobre los que se escribio este ADR. **H3.11** rehizo la cuenta.
+>
+>     ventana        base del SPI   episodios   por pliegue        minimo
+>     1991-2026      1991-2026          11      4, 7, 7, 8, 11        4
+>     1991-2026      1950-2026          15      5, 9, 9, 11, 14       5
+>     1950-2026      1991-2026          11      0, 0, 0, 5, 8         0
+>     1950-2026      1950-2026      ->  24      1, 1, 7, 16, 20       1
+>
+> **24 contra el minimo de 30, y 1 contra el minimo de 10. No alcanza por los dos
+> lados.** La sequia sigue sin ser modelable, y ahora se sabe con el triple de
+> anios en vez de suponerse.
+>
+> **Tres cosas que esta medicion agrega y que este ADR no podia saber:**
+>
+> 1. **El metodo se valido.** Contar con la serie del canton sobre la ventana de
+>    este ADR da **11**, contra los 13 que estan escritos arriba. Son dos fuentes
+>    -CHIRPS a 0,05 grados contra ERA5 a 0,25- y dos ordenes de agregacion
+>    distintos -union de ocho distritos contra una sola serie-, y difieren en 2
+>    episodios sobre 13. Eso es lo que autoriza a poner el 24 al lado del 13.
+> 2. **El SPI no tiene periodo de referencia fijo**, y eso mueve el numero. La
+>    misma ventana de 1991-2026 da **11 con base corta y 15 con base larga**: un
+>    36 % mas de episodios sin cambiar un solo dia de la ventana. Medirlo aparte
+>    fue lo que impidio leer ese +4 como «mas anios trajeron mas sequias».
+> 3. **La tasa es la misma:** 0,309 episodios/anio sobre 35,6 anios y 0,313 sobre
+>    76,7. La serie larga no encuentra otro clima, encuentra lo mismo sobre mas
+>    anios.
+>
+> **Lo que empeora es el minimo por pliegue: de 2 a 1.** Los episodios no estan
+> repartidos parejo. Con la particion expansiva de H3.2, los entrenamientos
+> esperarian `4, 8, 12, 16, 20` a tasa uniforme y dan `1, 1, 7, 16, 20`: los dos
+> ultimos exactos y los dos primeros en un cuarto, con el quiebre cerca de 1988.
+>
+> **Eso NO se declara como un aumento de las sequias.** Tiene dos explicaciones
+> que este dato no separa -que el clima cambiara, o que ERA5 antes de la era
+> satelital no vea las sequias tempranas, porque una serie mas suave produce menos
+> extremos del SPI por construccion-. Lo que si se puede afirmar, y es lo que
+> importa para la decision: **entrenar sobre la mitad temprana no sirve venga de
+> donde venga el hueco**, y por eso el peor pliegue empeora aunque el total casi
+> se doble.
+>
+> **La clausula decia «se rehace corriendo `generar_etiquetas.py`» y eso no se
+> pudo.** Ese guion lee `crudo.medicion_diaria`, que esta por distrito, y
+> `crudo.serie_canton` **no tiene `codigo_distrito`** porque el CA-9 de H1.16 y
+> D-47 lo prohiben; ademas es el guion que produjo el 13 y tiene que seguir
+> produciendolo. Se rehizo con `backend/modelado/recontar_sequia_larga.py`, que
+> **importa** las funciones que deciden que es un episodio en vez de copiarlas, y
+> con una prueba que etiqueta cuarenta anios por las dos rutas y compara dia por
+> dia. Evidencia en
+> `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
+>
+> **La clausula sigue abierta con la misma condicion.** Si apareciera una serie
+> observada -no de reanalisis- para 1950-1990, valdria la pena volver a medir.
+
 ---
 
 ## D-35 · La clausula de reversion de D-33 se ejerce, y devuelve dos de las doce historias
@@ -5068,6 +5124,28 @@ Open-Meteo sirve reanalisis ERA5-Land: **5 dias** de atraso y archivo **desde
 1950**. Gana en las dos cosas. Pero su malla es de 0,1 grados -unos 11 km- contra
 los 0,05 -unos 5,5 km- de CHIRPS, y el canton mide 30,7 por 36,6 km.
 
+> **Enmienda del 2026-09-14, al implementar H1.16.** Este parrafo nombra
+> **ERA5-Land** como la fuente de la serie larga, y eso resulto no ser posible.
+> Medido ese dia contra `archive-api.open-meteo.com`: pidiendo
+> `models=era5_land` con `daily=precipitation_sum`, la API devuelve los dias
+> pedidos y **`null` en todos ellos**, en el punto del canton y en cualquier otro
+> punto del mundo que se pruebe. ERA5-Land no sirve precipitacion diaria por esta
+> via. **ERA5 si**, y es el modelo que H1.16 declara.
+>
+> Cambia la malla: **0,25 grados -unos 28 km- en vez de 0,1**. No cambia la
+> decision, y conviene ver por que no. La decision se apoyaba en que la malla era
+> **demasiado gruesa** para hablar por distrito; con ERA5 es aun mas gruesa, asi
+> que el argumento no se debilita, se refuerza: el test repetido sobre la malla
+> que de verdad se uso da **3 celdas para 8 distritos**, contra las 6 de
+> ERA5-Land. Cinco distritos compartirian el mismo valor todos los dias. Y el uso
+> que si se le dio -contar episodios de sequia a nivel canton, donde **D-34** ya
+> decidio que el canton es una sola unidad- no depende de la malla.
+>
+> Lo que **no** cambia: el atraso de 5 dias y el archivo desde 1950, los dos
+> confirmados con la corrida real de H1.16. Lo que **si** hay que leer distinto:
+> las filas `ERA5-Land` de la tabla de la Medicion valen para la malla que se
+> midio ese dia, no para la fuente que quedo. Ver la nota al pie de esa tabla.
+
 **D-15 previo exactamente esta situacion.** Adopto CHIRPS *condicionado a repetir
 el mismo test de resolucion sobre la fuente nueva antes de escribir el extractor*,
 porque una resolucion nominal mejor no es prueba de diferenciacion real.
@@ -5155,6 +5233,41 @@ La medicion preliminar del mismo dia, hecha con centroides ponderados por area
 sobre el GeoJSON de respaldo, **dio las mismas seis celdas y las mismas dos
 colisiones**. Dos metodos distintos, mismo resultado: eso es lo que hace confiable
 al numero, no que lo diga el guion oficial.
+
+**Nota del 2026-09-14 (enmienda).** La tabla de arriba mide **ERA5-Land**, que no
+llego a usarse: no sirve precipitacion diaria por esta API. La fuente que quedo es
+**ERA5**, de malla **0,25 grados**, y su test de resolucion se agrego a la misma
+herramienta:
+
+    docs/herramientas/verificar_resolucion_fuente.py --malla era5
+    contra geo.distrito, 2026-09-14
+
+    ERA5   0,25 grados   3 celdas para 8 distritos
+      celda (380, 402): 50801 Tilaran, 50802 Quebrada Grande, 50804 Santa Rosa,
+                        50805 Libano, 50806 Tierras Morenas
+      celda (381, 402): 50803 Tronadora, 50807 Arenal
+      celda (381, 401): 50808 Cabeceras
+
+**Cinco distritos en una sola celda.** La tabla de arriba, con ERA5-Land, daba
+seis celdas y dos colisiones y ya alcanzaba para decidir. Con la fuente que de
+verdad se uso el resultado es peor, no mejor, asi que la decision de no entrar por
+distrito se sostiene con mas margen del que tenia cuando se escribio.
+
+El anclaje de esa malla no se asumio, se observo: pidiendo el punto del canton
+-10.486735 / -84.900749- con `models=era5`, Open-Meteo devolvio la respuesta
+etiquetada con la celda **10,5 / -85,0**, que es la que da el anclaje al centro.
+La `autoprueba()` de la herramienta lo comprueba antes de imprimir nada, igual que
+hace con la observacion de I-05.
+
+**Y el modelo hay que declararlo siempre.** Medido el mismo dia sobre el mismo
+punto y el mismo dia calendario, pidiendo el pronostico:
+
+    models=best_match    celda 10.4394 / -84.9296    5,20 mm   86 % de probabilidad
+    models=icon_seamless celda 10.5000 / -84.8750   10,50 mm   30 % de probabilidad
+
+El doble de lluvia y un tercio de probabilidad, porque son celdas distintas de
+modelos distintos, y `best_match` ademas no dice cual eligio. Es la misma razon
+por la que **D-50** prohibe dejarselo a la API.
 
 ---
 
@@ -5437,3 +5550,539 @@ cualquiera.
       historical fcst   desde 2017 (ECMWF) · corrida mas cercana al dia: NO sirve para entrenar
     D-47, 2026-09-09    malla ~9 km: 7 celdas para 8 distritos, 1 colision (preliminar)
     Peticiones/dia      8 distritos x 48 refrescos = 384, con cache de 30 min
+
+---
+
+## D-51 · Lo que el 24 no necesita se difiere ahora y por escrito, y lo que sí necesita se nombra
+
+**Fecha.** 2026-09-14. **Historias.** H15.0, H15.1, H15.2, H3.10, H3.11, H1.16, H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-27 (el alcance diferido se registra con condición de reactivación medible), D-50 (E15 entra como épica), D-34 (la sequía no se modela), D-07 (la ausencia se dibuja).
+
+### Contexto
+
+Quedan **27 historias abiertas, 213,5 h nominales y diez días** hasta el Invenio
+Fest del 2026-09-24. De esas horas, **137,0 son del PM**. No hay reparto que
+acomode eso: la semana que viene tiene, siendo generosos, unas 40 h de trabajo
+real disponible, y una parte se va en el cartel, en los ensayos y en la feria
+misma.
+
+Esto ya pasó una vez. La acción **A1.1** quitó 118 de 310 puntos el 3 de agosto,
+y **D-27** tuvo que escribirse tres semanas después precisamente porque aquel
+recorte vivía en un acta de ceremonia: un registro de lo que se acordó un día, no
+una lista que alguien pueda consultar. La diferencia de hoy es que el recorte se
+escribe donde se busca, **antes** de que el calendario lo imponga.
+
+Y hay una razón de fondo para hacerlo hoy y no el 23: un alcance que nadie
+declaró cerrado no se comporta como cerrado. Se sigue mirando, se sigue
+estimando, y cada vez que se mira cuesta atención que el cartel necesita.
+
+### Decision
+
+**1. Se difieren siete historias: 39 puntos, 60,9 h.**
+
+| Historia | Pts | Horas | Por qué el 24 no la necesita |
+|---|---|---|---|
+| H15.0 · la API sirve el pronóstico | 5 | 7,8 | D-50 la creó **como backlog**, trece días antes de la feria. Nunca estuvo en el camino del 24 |
+| H15.1 · el pronóstico como característica | 8 | 12,5 | Ídem. Además depende de H15.0 |
+| H15.2 · el clima de la semana en el visor | 8 | 12,5 | Ídem. Es la más vistosa de las tres y por eso la más peligrosa: entraría a medias |
+| H3.10 · el ENSO entra al modelo | 5 | 7,8 | El documento IEEE **ya la declara trabajo futuro** en X.2 |
+| H3.11 · recontar sequía sobre la serie larga | 3 | 4,7 | El documento IEEE **ya la declara trabajo futuro** en X.3 |
+| H1.16 · Open-Meteo como serie larga (D-47) | 5 | 7,8 | Habilita a H3.11, que se difiere. Sola no cambia nada de lo que se muestra |
+| H14.5 · la tarjeta de sequía dice el índice | 5 | 7,8 | Mejora una tarjeta que **hoy ya es honesta**: dice que no se estima, amparada en D-34 y D-07. Cambiarla la semana de la feria arriesga la coherencia del discurso a cambio de un número más |
+
+Las tres primeras suman 32,8 h; las tres siguientes, 20,3; H14.5, 7,8.
+
+**2. H4.4 y H4.5 NO se difieren, y esa es la parte importante de esta decisión.**
+
+Son 31,7 h y son las dos historias abiertas más caras del PM después del cartel,
+así que la tentación de meterlas en la tabla de arriba es evidente. No entran,
+por una razón que no admite matices: **son las dos últimas historias de OE3**.
+H4.1, H4.2 y H4.3 están cerradas; si estas dos se difieren, el objetivo
+específico 3 queda sin historia que lo cierre, y un objetivo declarado sin cerrar
+pesa más en la nota que siete historias diferidas con motivo.
+
+Hay además un argumento que no es de rúbrica. H4.4 contrasta las estimaciones
+contra el **catálogo de doce eventos históricos reales** que Luna construyó en
+H4.3, cerrada el 2026-08-18. Es la única pieza del proyecto que puede decir «el
+sistema dijo esto, y esto fue lo que pasó». En una feria, eso vale más que
+cualquier gráfico de F1.
+
+**Lo que sí se hace es reducir su alcance**, usando la palanca que
+`docs/tareas/alejandro.md` ya tenía anotada desde el 11 de agosto:
+
+- **H4.4 se acota** a contrastar los eventos del catálogo contra lo que el
+  escritor vigente (la línea base climatológica, D-39) estimó para esas fechas, y
+  a clasificar los fallos. El análisis por algoritmo, que es lo que infla la
+  estimación de 26,4 h, se recorta: el arnés de H3.9 ya publicó esa comparación.
+- **H4.5 se escribe sobre ese contraste** y sobre lo que V-D y IX del documento
+  ya concluyen (H1 rechazada). Sus 5,3 h se mantienen.
+
+Si al evaluar el punto 3 resultara que H4.4 no cabe ni acotada, se parte como
+decía la palanca: el contraste contra el catálogo vuelve a Luna, que lo conoce
+porque lo construyó.
+
+**3. La condición de reactivación es una, y se evalúa en un momento fijado.**
+
+Se evalúa en la **retrospectiva de la semana 12**, después de la feria. Una
+historia diferida reabre solo si se cumplen las tres:
+
+> **Enmendado por D-52 el 2026-09-14.** Este proyecto no tiene retrospectivas:
+> la condición remitía a un momento que no existe y por eso nadie podía
+> evaluarla. Se evalúa **por escrito en esta bitácora el 2026-09-25**. D-52
+> también invierte la condición 1 —el cartel se cierra al final, no antes— y
+> fija el orden y el corte de la reactivación.
+
+1. **El cartel (H10.6) está cerrado con evidencia**, incluidos los defectos que
+   su evidencia abierta ya nombra: el QR del repositorio, «trabajo futuro» y el
+   cuerpo a 28 pt.
+2. **H11.6 y H11.7 están cerradas**, con los dos apagones medidos. *(Esta
+   condición exigía además resolver I-54. **I-54 fue retirada el 2026-09-14 por
+   partir de un hecho falso** — no había tal defecto — así que esa parte se cae
+   sola y no se sustituye por nada: la decisión no se endurece por la puerta de
+   atrás.)*
+3. **OE3 está cerrado**: H4.4 y H4.5 con evidencia archivada.
+
+Si las tres se cumplen, reabre **una** línea, la que más aporte a la rúbrica, y
+se estima antes de comprometerla. No reabre el conjunto.
+
+**4. Lo que el 24 sí necesita, nombrado, para que este recorte no se lea como un recorte de todo.**
+
+Queda en pie, y es poco: **H10.6** (el cartel definitivo, 7,7 h), el cierre con
+evidencia de **H10.5c**, **H11.6**, **H11.7** y **H14.6**, **H4.4 acotada** y
+**H4.5**, y de las otras personas **H10.9** (el guion de demo y los tres ensayos,
+de Avril) y **H9.2a/H9.2b** (las sesiones de Luna, desbloqueadas desde el 11).
+
+### Justificacion
+
+**El recorte va a ocurrir igual; lo que se elige es si queda escrito.** Diez días
+y 213,5 h abiertas no caben. La única decisión real es si el alcance se retira
+por escrito hoy o se pierde por calendario el 23 sin que nadie pueda decir qué
+pasó. A1.1 ya enseñó el costo de lo segundo: el recorte del 3 de agosto vivió
+tres semanas en un acta de ceremonia hasta que D-27 tuvo que ir a buscarlo.
+
+**Un alcance sin declarar cuesta atención aunque no se trabaje.** Mientras las
+siete sigan sin condición ni fecha, cada revisión del tablero vuelve a
+evaluarlas. Esa atención es exactamente la que el cartel necesita, y el cartel no
+tiene sustituto: es lo único que el jurado ve antes de que alguien hable.
+
+**El criterio de corte es la rúbrica, no el tamaño.** Por eso H4.4 sobrevive
+siendo la historia más cara del backlog (26,4 h) y H14.5 se difiere siendo tres
+veces más barata. Cortar por horas habría hecho lo contrario y habría dejado OE3
+sin cerrar, que es el único daño de esta lista que no se puede reparar después
+del 24.
+
+**Diferir no es lo mismo que descartar, y la diferencia es la condición.** D-27
+fijó el precedente: alcance retirado con condición de reactivación medible y
+momento de evaluación. Sin esas dos cosas, «diferido» es una forma educada de
+decir que no se hizo.
+
+### Alternativas descartadas
+
+**No decidir nada y trabajar hasta donde alcance.** Es lo que pasa por defecto y
+es lo peor: el alcance se recorta igual, pero lo recorta el reloj, y lo que queda
+a medias queda a medias en público. Además obliga a decidir el 23, cansado, que
+es cuando peor se decide.
+
+**Diferir también H4.4 y H4.5, que es lo que más horas libera (31,7 h).** Deja
+OE3 sin historia que lo cierre, con H4.1, H4.2 y H4.3 ya cerradas. Un objetivo
+específico declarado y no cerrado pesa más que siete historias diferidas con
+motivo, y a diferencia de H14.5 no se puede recuperar después de la feria.
+
+**Cerrar H4.4 y H4.5 como están, sin acotarlas.** 31,7 h nominales contra las
+~40 h reales que quedan, compitiendo con el cartel. Acotar H4.4 al contraste
+contra el catálogo de H4.3 conserva lo que la rúbrica pide y lo que la feria
+aprovecha, y suelta el análisis por algoritmo, que el arnés de H3.9 ya publicó.
+
+**Borrar las siete del backlog y cerrar sus issues.** Sube el porcentaje de
+avance sin trabajo, que es precisamente el error que esta decisión existe para no
+cometer. Quedan abiertas.
+
+**Diferir H15.2 pero conservar H15.0 y H15.1.** Tentador porque H15.0 es barata
+(7,8 h), pero H15.0 sola no muestra nada: sirve una ruta que nadie consume. La
+épica entra entera o no entra.
+
+### Consecuencias
+
+**Las siete historias no se borran del backlog ni se cierran sus issues.** Siguen
+en el Sprint 4, con sus puntos, y `backlog.csv` no se toca. Esta decisión es su
+único registro, igual que D-27 fue el único registro de A1.1: borrarlas dejaría
+el proyecto declarando un avance que no tuvo, y el que las mire dentro de un mes
+no sabría que existieron.
+
+Lo que cambia es **lo comprometido para el 24**: de los 172 puntos del Sprint 4,
+la feria depende de **133**; los otros 39 quedan con fecha de revisión. Cuando se
+informe el avance hay que decirlo con esas dos cifras a la vista, porque si se
+informa solo la segunda el porcentaje sube sin que se haya hecho nada nuevo. Eso
+no sería velocidad, sería alcance retirado contado como progreso — y cambiar el
+error de D-27 por ese otro no vale la pena.
+
+E15 conserva sus tres issues abiertas (#312, #313, #314) y sus criterios de
+aceptación escritos, que es exactamente lo que D-50 quería: el pronóstico no se
+descarta, se pone en la fila con el trabajo ya hecho por delante.
+
+### Medicion
+
+    Al 2026-09-14, diez dias antes de la feria
+
+    Abierto total           27 historias   136 pts   213,5 h
+      de Alejandro          14 historias    77 pts   137,0 h
+      de las otras tres     13 historias    59 pts    76,5 h
+
+    Se difiere               7 historias    39 pts    60,9 h
+      E15 (H15.0/1/2)        3 historias    21 pts    32,8 h
+      X.2 y X.3 del IEEE     3 historias    13 pts    20,3 h   H3.10, H3.11, H1.16
+      H14.5                  1 historia      5 pts     7,8 h
+
+    No se difiere, por OE3   2 historias    12 pts    31,7 h   H4.4 acotada, H4.5
+
+    Sprint 4 comprometido   de 172 pts a 133 pts · de 35 historias a 28
+
+    Se evalua en la retrospectiva de la semana 12, despues del 24
+    Corregido por D-52 el 2026-09-14: por escrito en esta bitacora el 25
+
+---
+
+## D-52 · Las siete historias diferidas por D-51 se reactivan en orden, con corte de fecha, y la condición deja de citar una ceremonia que no existe
+
+**Fecha.** 2026-09-14. **Historias.** H15.0, H15.1, H15.2, H3.10, H3.11, H1.16, H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-51 (la enmienda), D-50 (los dos usos del pronóstico no se mezclan), D-27 (alcance diferido con condición de reactivación medible).
+
+### Contexto
+
+D-51 difirió siete historias hoy mismo y fijó que su reactivación se
+evaluaría «en la retrospectiva de la semana 12». **Ese momento no existe: este
+proyecto no tiene retrospectivas.** Una condición que remite a una reunión que
+nunca va a ocurrir es una condición que nadie puede evaluar, y por lo tanto no
+es una condición: es una forma educada de decir que no se hizo. Es el mismo
+defecto que D-27 corrigió en A1.1 —alcance retirado sin registro consultable—,
+con otra forma.
+
+Además el PM decide, el mismo día, intentar las siete antes de la feria. Eso no
+invalida la aritmética de D-51: siguen sin caber las 213,5 h en diez días. Por
+eso esta decisión **no levanta el diferimiento**, lo ordena y le pone fecha.
+
+Al escribirse, **H11.6 ya está cerrada** con sus dos apagones medidos en
+producción y su costo contra la página de uso (PR #324). Quedan como
+prerrequisito H11.7, H4.4 y H4.5.
+
+### Decision
+
+**1. La condición de D-51 se corrige.** Donde decía «se evalúa en la
+retrospectiva de la semana 12» se lee: **se evalúa por escrito en esta
+bitácora**, en la fecha que fija el punto 3. D-51 queda anotada en sus dos
+apariciones —el punto 3 de su decisión y la última línea de su medición— con la
+fecha de esta enmienda. No se le borra una palabra: la historia de lo que se
+se decidió hoy se conserva.
+
+**2. Se reactivan en un orden fijo y de a una.** Cada historia arranca solo
+cuando la anterior está fusionada en `dev`:
+
+    H14.5  ->  H1.16  ->  H3.11  ->  H15.0  ->  H15.2  ->  H15.1  ->  H3.10
+
+El orden pone primero lo que se ve el 24 (H14.5, la tarjeta de sequía), después
+lo que cambia una frase del documento IEEE (H1.16 habilita a H3.11, que convierte
+«9 episodios, no modelable» en una frase medida sobre 75 años), y al final lo que
+obliga a volver a medir el modelo.
+
+**3. Corte.** Lo que no esté fusionado en `dev` **al terminar el 2026-09-22**
+queda diferido exactamente como lo dejó D-51. Se evalúa el **2026-09-25**, el día
+después de la feria, con una enmienda fechada en esta bitácora. El 23 queda para
+el cartel y nada más.
+
+**4. Las condiciones 2 y 3 de D-51 se mantienen como prerrequisito:** ninguna de
+las siete arranca antes de que **H11.7, H4.4 y H4.5** estén en `dev`. H11.6 ya lo
+está.
+
+**La condición 1 se invierte.** D-51 pedía el cartel cerrado antes de reabrir
+nada; aquí el cartel (H10.6) se cierra **al final**. El cartel describe el
+sistema que existe: cerrarlo antes de H14.5 o H15.2 y después cambiar el visor
+lo dejaría desactualizado el día que se cuelga en la pared, que es el único día
+que importa.
+
+**5. E15 puede entrar parcial.** D-51 decía «la épica entra entera o no entra».
+Se matiza por D-50, que separa dos usos que no se mezclan: **H15.0 + H15.2 es el
+uso del visor** y vale solo —la API sirve el pronóstico y la pantalla lo
+muestra—; **H15.1 es el uso del modelo** y sin H15.0 no existe. H15.1 sola no
+entra, y el argumento de D-51 —«H15.0 sola no muestra nada»— se sostiene solo
+para H15.0 sin H15.2.
+
+### Justificacion
+
+**Una condición evaluable vale más que una condición estricta.** D-51 era
+estricta en el momento equivocado: fijó una reunión inexistente. Ponerle fecha y
+registro la hace cumplible sin tocar su fondo, que sigue siendo correcto.
+
+**El orden protege lo que la rúbrica mide.** Primero los cierres de evidencia y
+OE3, que son prerrequisito; después lo que se ve; al final lo que hay que
+remedir. El corte del 22 existe para que la decisión de parar no se tome el 23
+por cansancio, que es cuando peor se decide —el mismo argumento con el que D-51
+se escribió hoy y no el 23.
+
+**Diferir sigue sin ser descartar, y ahora se puede comprobar.** D-27 fijó el
+precedente: condición medible y momento de evaluación. D-51 tenía la primera y
+le faltaba el segundo.
+
+### Alternativas descartadas
+
+| Alternativa | Por que se descarto |
+|---|---|
+| **Ignorar D-51 y trabajar las siete** | Deja una decisión aceptada contradicha por los hechos, sin registro de por qué. Es exactamente lo que D-27 existe para no repetir |
+| **Derogar D-51** | Su aritmética sigue siendo cierta: 213,5 h no caben en diez días. Derogarla diría que cabe todo, y el 23 alguien descubriría que no |
+| **Corregir solo la palabra «retrospectiva»** | Arregla la condición y deja sin escribir que hoy se decidió intentarlas. Es la mitad del registro, y la mitad que no se escribe es la que nadie recuerda |
+| **Fijar el corte el 23 en vez del 22** | Gana un día de trabajo y pierde el día del cartel. El cartel no tiene sustituto: es lo único que el jurado ve antes de que alguien hable |
+| **Reactivar las siete en paralelo, sin orden** | Siete frentes abiertos a diez días es la forma más segura de que ninguno cierre. De a una, cada historia fusionada es una ganancia que no se pierde si el reloj gana |
+
+### Consecuencias
+
+**`backlog.csv` no se toca.** Las siete siguen en el Sprint 4 con sus puntos y
+sus issues abiertas (#312, #313, #314, #298, #300, #299, #301), igual que las
+dejó D-51.
+
+**Cuando se informe el avance hay que decir las dos cifras de D-51** —133 puntos
+comprometidos para el 24 y 39 con fecha de revisión— hasta que el corte del 22
+diga cuántos de esos 39 entraron de verdad. Informar solo el total subiría el
+porcentaje sin trabajo nuevo, que es el error que D-51 evitó y que esta decisión
+no debe reintroducir por la puerta de atrás.
+
+**Se pierde una cosa y conviene escribirla:** el cartel deja de ser la primera
+condición y pasa a ser lo último que se toca. Si el 23 el cartel encuentra un
+problema grande —el QR, las figuras a 300 ppi, el cuerpo a 28 pt—, ya no queda
+margen detrás. Es el riesgo que se acepta a cambio de que el cartel describa el
+sistema que de verdad se va a mostrar.
+
+### Medicion
+
+    Al 2026-09-14, diez dias antes de la feria
+
+    Reactivadas en orden      7 historias   39 pts   60,9 h
+    Prerrequisito             H11.7, H4.4, H4.5   (H11.6 cerrada el 2026-09-14)
+    Orden                     H14.5, H1.16, H3.11, H15.0, H15.2, H15.1, H3.10
+    Corte                     2026-09-22 al cierre del dia
+    Evaluacion de lo diferido 2026-09-25, por escrito en docs/03
+
+    Avance al escribirse      79 de 103 historias   401 de 514 pts (78,0 %)
+
+---
+
+## D-53 · El SPI-6 de la tarjeta se calcula al pedirlo, no se almacena
+
+**Fecha.** 2026-09-15. **Historia.** H14.5.
+**Quien decide.** Alejandro. **Estado.** Aceptada.
+**Revisa.** D-32 (SPI-6), D-34 (medir no es modelar), D-40 (el atraso de CHIRPS), I-57.
+
+### Contexto
+
+H14.5 quiere que la tarjeta de sequia diga **el indice medido** en vez de quedarse
+en blanco. D-34 cerro la puerta a **modelar** la sequia; no a **medirla**: el SPI-6
+se calcula con lluvia que ya cayo, y es un hecho observado del mismo tipo que
+«ayer llovieron 12 mm».
+
+Al ir a buscar de donde lo lee el visor, no hay de donde:
+
+  * `contratos/esquemas.py` tiene `IndiceDerivado` con `spi_1m` y `spi_3m`, y
+    **no tiene `spi_6m`**, que es el que D-32 adopto;
+  * **la tabla `analitico.indice` no existe** en ninguna de las 21 migraciones;
+  * `guardar_indices` y `obtener_indices` existen en la interfaz y **lanzan**
+    `TablaPendiente` diciendo que la tabla llega con **H2.5**, que cerro el
+    2026-09-01 y nunca pudo traerla porque su historia era otra (**I-57**);
+  * ninguna de las seis rutas de la API expone indices.
+
+O sea: el contrato insinua una tabla que nadie construyo y cuyo dueno declarado no
+existe. Hay que decidir si se construye o si se resuelve de otra forma.
+
+### Decision
+
+**`obtener_indices` calcula el SPI-6 a partir de `crudo.medicion_diaria` en el
+momento de la consulta, y no se crea la tabla `analitico.indice`.**
+
+**El resultado se cachea por distrito, y la cache no es un adorno: es parte de la
+decision.** La clave es el distrito mas la fecha de la ultima ingesta, asi que el
+calculo ocurre una vez por distrito por ingesta y no una vez por visita.
+
+`guardar_indices` **sigue lanzando** `TablaPendiente`: no hay nada que guardar.
+Su mensaje deja de nombrar a H2.5 y pasa a nombrar a este ADR.
+
+### Justificacion
+
+**El indice es una funcion determinista de datos que ya estan guardados.**
+Almacenarlo es duplicar: el mismo dato en dos lugares, que es como aparecen las
+discrepancias. Si manana cambia la escala del SPI -ya paso una vez, D-32 lo movio
+de 3 a 6 meses- una tabla almacenada queda con valores viejos hasta que alguien
+la recalcule, y nadie se entera. Calculado al vuelo, el cambio de escala se
+propaga solo.
+
+**Y lo que la tarjeta necesita es un numero por distrito, no una serie.** Construir
+una tabla, su escritor, su paso en el trabajo diario y su migracion para servir
+ocho numeros que se derivan de datos ya presentes es infraestructura sin una
+pregunta que la pida -el mismo criterio con el que D-50 descarto bajar los GRIB de
+ECMWF-.
+
+**El costo se midio, y obligo a corregir la propia recomendacion.** Ver Medicion:
+**66 ms por distrito**, no «milisegundos» como se estimo al proponerlo. Eso no
+cambia la decision, pero convierte a la cache de conveniencia en requisito.
+
+### Alternativas descartadas
+
+**Crear `analitico.indice` con su escritor y su paso en el cron.** Es la
+arquitectura que el contrato insinua y deja el indice auditable con su fecha de
+calculo. Se descarta por costo contra beneficio a nueve dias de la feria: cinco
+piezas nuevas -migracion, escritor, paso del trabajo, ruta, tarjeta- para un dato
+derivado. **Queda como el camino natural si algun dia el indice deja de ser
+derivable**: por ejemplo si se quisiera conservar el valor que se publico un dia
+concreto aunque despues cambiara la serie.
+
+**Calcularlo en el navegador.** El SPI necesita ajustar una gamma sobre la
+distribucion historica del mes. Eso no es trabajo del visor, y ademas obligaria a
+bajar 35 anios de lluvia al telefono. Es D-23 otra vez.
+
+**Servirlo dentro de `Riesgo`.** Rompe D-34: esa forma trae `nivel` y
+`probabilidad`, y la sequia no puede tener ninguno de los dos. La tarjeta dice un
+hecho medido, no una estimacion, y la forma del dato tiene que decir lo mismo.
+
+**Agregarlo a `MedicionDiaria`.** Es un indice mensual, no una medicion diaria.
+Meterlo ahi repetiria el mismo valor en los ~30 dias del mes y mentiria sobre su
+cadencia.
+
+### Consecuencias
+
+  * **`contratos/esquemas.py` gana `spi_6m` en `IndiceDerivado`**, por adicion.
+    Va por **SC-12**, porque `contratos/` es archivo compartido.
+  * **Contratos pasa a 1.5.0.** D-50 ya habia anunciado ese salto para el
+    `Pronostico` de H15.0: es el mismo salto y ocurre una sola vez. Las
+    afirmaciones de version en `docs/10` y `docs/17` se actualizan con el.
+  * **Una ruta nueva** expone los indices de un distrito. Toca `backend/api/`,
+    que es de Cesar, bajo la excepcion acotada del PM: una historia, y se cierra
+    con ella.
+  * **H14.5 deja de ser una historia de frontend.** Resulto ser una rebanada
+    vertical -contrato, lectura, ruta y tarjeta- y se declara asi en su PR y en su
+    evidencia en vez de disimularlo.
+  * **La cache es obligatoria y se comprueba.** Un criterio de H14.5 mide la
+    segunda consulta contra la primera.
+  * **La fecha del dato viaja con el numero.** Con CHIRPS el ultimo mes puede
+    tener 21 a 51 dias de atraso (D-40): un indice sin fecha parece de hoy.
+  * **`analitico.indice` no se crea**, y `PENDIENTES` deja de nombrar a H2.5.
+
+### Medicion
+
+    Costo del SPI-6 de un distrito, medido el 2026-09-15 con el codigo del
+    proyecto -`acumulado_mensual` mas `CalculadorSPI().spi(..., 6, meses)`-
+    sobre una serie diaria de 13.027 dias (1991-2026, 428 meses):
+
+      20 corridas    mediana 66,4 ms    min 65,2    max 73,7
+      ocho distritos                    531 ms
+
+    Estimacion previa al medir: «milisegundos». **Equivocada por un factor de
+    ~66.** La medicion es la razon por la que la cache paso de conveniente a
+    obligatoria.
+
+    Lo que NO se midio todavia, y lo mide H14.5 contra la base real:
+      * el costo de la consulta a `crudo.medicion_diaria` de un distrito;
+      * el costo con la cache caliente, que es el caso normal.
+
+## D-54 · La regla de propiedad de carpetas se suspende hasta el Invenio Fest
+
+**Fecha.** 2026-09-16. **Historia.** Ninguna: es una decision de gestion.
+**Quien decide.** Alejandro, como Lead PM y Scrum Master.
+**Estado.** Aceptada, **con vencimiento**: el 2026-09-25 vuelve sola.
+**Revisa.** `docs/07-propiedad-archivos.md` entero. **Se apoya en.** D-33, D-37, I-58.
+
+### Contexto
+
+`07-propiedad-archivos.md` dice, desde el arranque del proyecto, que cada quien
+modifica solo sus carpetas y que un cambio fuera de ellas **se pide, no se hace**.
+La regla funciono: el archivo mismo cuenta que antes de existir hubo tres
+conflictos de fusion en dos dias y cuatro historias con el dueno desfasado.
+
+**Faltan ocho dias para el Invenio Fest** y quedan 18 historias abiertas de 103. Y
+el 2026-09-16 aparecio un caso que muestra el costo de la regla en este tramo:
+**I-58** encontro ocho controles que afirmaban en su texto algo que no entraba en
+su condicion. Cuatro de ellos viven en carpetas de otras personas. Bajo la regla,
+el PM tendria que escribir cuatro solicitudes de cambio, esperar cuatro
+respuestas y depender de que cuatro personas tengan tiempo esta semana — para
+arreglos de dos o tres lineas cada uno, en verificadores, que es donde menos
+riesgo hay de romper algo que este corriendo.
+
+Ese es el intercambio que esta decision resuelve: **el control que la regla da ya
+no compensa lo que la regla cuesta**, por ocho dias.
+
+### Decision
+
+**Hasta el 2026-09-25, el Lead PM puede modificar cualquier carpeta del
+repositorio sin solicitud de cambio y sin aviso previo.**
+
+Lo que **no** cambia, y es lo que evita que esto sea barra libre:
+
+1. **Todo sigue pasando por Pull Request hacia `dev`**, con su revision y su CI.
+   Se levanta el permiso de escribir, no el de fusionar sin mirar.
+2. **Los archivos fuera de la carpeta propia se siguen declarando** en una seccion
+   al final del cuerpo del PR, con que se le hizo a cada uno. La declaracion es lo
+   que hace que el dueno se entere; era lo util de la regla y se queda.
+3. **Sigue sin tocarse la evidencia de otra persona.** Es su registro de
+   contribucion individual y la rubrica lo evalua por separado.
+4. **Sigue valiendo para una sola persona.** Esto no autoriza a que cualquiera
+   toque cualquier carpeta: autoriza al PM, que es quien tiene la vista del
+   conjunto y quien responde por el atraso.
+
+### Justificacion
+
+**El intercambio, dicho con numeros.** Los cuatro hallazgos de I-58 que viven en
+carpetas ajenas suman unas doce lineas de arreglo, todas en verificadores: codigo
+que no corre en produccion y cuyo unico consumidor es el CI. El riesgo de tocarlo
+es de los mas bajos del repositorio. Contra eso, la regla pide cuatro solicitudes
+de cambio y cuatro esperas, en la semana con menos margen del trimestre.
+
+**Lo que la regla protegia sigue protegido por otra via.** `07-propiedad-archivos.md`
+dice que existe porque en dos dias hubo tres conflictos de fusion y cuatro duenos
+desfasados. Pero eso lo causaba **escribir a la vez sobre los mismos archivos**, y
+de eso ya se encargan el Pull Request, la revision y el CI, que no se levantan. La
+solicitud de cambio agrega aviso previo, no seguridad tecnica.
+
+**Y con fecha de vencimiento, no «por ahora».** Una suspension sin fecha es una
+derogacion disfrazada. La regla resolvio un
+problema real y va a volver a hacer falta; lo que sobra es el tramite en la
+ultima semana. El **2026-09-25**, el dia despues de la feria, vuelve sin que nadie
+tenga que acordarse de reponerla, y esta decision queda como el registro de por
+que estuvo levantada nueve dias.
+
+### Alternativas descartadas
+
+**Escribir las cuatro solicitudes de cambio.** Es lo que la regla pide. Se
+descarto por tiempo: cuatro documentos y cuatro esperas para doce lineas de
+arreglo, en la semana con menos margen del trimestre.
+
+**Dejar los cuatro hallazgos de I-58 sin arreglar y solo documentados.** Era la
+opcion anterior, y es la peor de las tres: uno de ellos —el criterio 13 de
+`verificar_h1_9.py`— es un control de **separacion de privilegios** que se pone en
+verde justamente cuando el rol que vigila no existe. Llegar a la feria con eso
+conocido y sin arreglar es peor que tocar la carpeta de otro.
+
+**Derogar la regla.** Se descarto por lo dicho arriba: el problema que resolvio es
+real y esta documentado con numeros en el propio `07-propiedad-archivos.md`.
+
+### Consecuencias
+
+- `docs/07-propiedad-archivos.md` cita esta decision arriba, para que nadie lea la
+  regla sin ver que esta suspendida.
+- **I-58** pasa de «se le pasan a sus duenos» a «los corrige el PM», y cada arreglo
+  entra con el sabotaje que demuestra que el criterio ahora si cae.
+- Los duenos se enteran por la seccion de archivos fuera de carpeta del PR, que no
+  se levanta. Si alguno prefiere retomar su arreglo, se le devuelve.
+- El 2026-09-25 la regla vuelve sin que nadie tenga que reponerla.
+
+### Medicion
+
+Esta decision se puede evaluar, y la evaluacion queda para despues de la feria:
+
+    archivos ajenos tocados por el PM durante la suspension
+    conflictos de fusion causados por esos cambios
+    regresiones atribuibles a ellos
+    objeciones de sus duenos al revisar el PR
+
+**Si los tres ultimos dan cero, la suspension no costo nada** y queda como
+antecedente de que la regla se puede levantar en la recta final. **Si alguno no da
+cero, queda escrito cual y por que**, y la proxima vez no se levanta.
+
+El numero de arranque es 0 en las cuatro filas, el 2026-09-16. La cuenta se cierra
+el 2026-09-25 en esta misma seccion.

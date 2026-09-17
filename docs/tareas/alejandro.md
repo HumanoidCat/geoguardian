@@ -28,7 +28,7 @@
 > Se exige desde el **2026-08-20**, no hacia atras. Lo comprueba
 > `docs/herramientas/verificar_horas.py`. El porque esta en **D-24**.
 
-**Total asignado:** 275 puntos · 412.9 horas · 41.3 h por semana en promedio
+**Total asignado:** 285 puntos · 429.3 horas · 42.9 h por semana en promedio
 
 ## Carga por sprint
 
@@ -38,7 +38,7 @@
 | S1 | semanas 4-5 | 36.4 | 36 | SOBRECARGA +0 h |
 | S2 | semanas 6-7 | 103.6 | 36 | SOBRECARGA +68 h |
 | S3 | semanas 8-9 | 59.4 | 36 | SOBRECARGA +23 h |
-| S4 | semanas 10-11 | 177.6 | 36 | SOBRECARGA +141.6 h |
+| S4 | semanas 10-11 | 194.0 | 36 | SOBRECARGA +158.0 h |
 
 > **Sobre los picos.** El pipeline de CI/CD, el modelado, la documentacion y la
 > evaluacion se concentran aqui por decision propia. La auditoria de dependencias
@@ -568,19 +568,95 @@
   - No publica la API ni la base. Eso sigue fuera de alcance por D-05.
 
 
-## Sprint 4 (semanas 10-11) — 177.6 h
+## Sprint 4 (semanas 10-11) — 194.0 h
 
-- [ ] **H10.5c** · Redactar el documento IEEE completo
+- [x] **H10.5c** · Redactar el documento IEEE completo (2026-09-14)
   - `E10` · 8 pts · 21.1 h · rubrica: IEEE · depende de: H10.5b · **bloquea a: H10.6**
+  - horas: estimada 21.1 . real 2.0
+  - Estuvo abierta desde el 2026-08-26 por su propio **CA-8**, que exigia tener escritas
+    VI, VII y IX. Se escribieron el 2026-09-11. Lo que faltaba hoy no era redactar: era
+    que el documento dijera lo que el sistema hace **hoy**.
+  - **Ocho afirmaciones corregidas:** la nota que excluia a H3.9; el ancho de la matriz
+    (27 a 32 columnas, con la advertencia de que V-F se midio sobre 27); la comparacion
+    con la matriz simetrica (**Tabla XIII** nueva); quien escribe la estimacion de
+    incendio (pasa a la climatologica, y se dice que cambio dos veces sin que nadie
+    mejorara); el argumento estructural de **VI-B**, que deja de apoyarse en una
+    asimetria y pasa a apoyarse en una medicion; el incendio declarado incontrastable en
+    **VI-C** y **IV-E**; el contraste de las estimaciones publicadas (**Tabla XVII**
+    nueva, de H4.4); y **VII-F**, que decia que las estimaciones no se renuevan solas.
+  - **Defecto introducido por esta misma edicion y corregido:** las dos tablas nuevas
+    quedaron fuera de orden (XII, XVIII, XIII...). Se renumero el bloque XIII a XIX y se
+    arrastraron las referencias; **tres estaban partidas por un salto de linea** y la
+    primera pasada no las alcanzo. Comprobado: 19 encabezados en orden, 0 referencias
+    sin tabla, 0 tablas sin referencia.
+  - Sin referencias nuevas, a proposito: 31 citas directas antes y despues, que es lo
+    que `verificar_documentacion` vigila.
+  - **Queda con nombre:** reconstruir el PDF con `armar_entrega.py` (el texto crecio unas
+    1.900 palabras) y hacer el cartel **despues**, porque dos correcciones cambian frases
+    que su borrador usa.
 
-- [ ] **H4.4** · Contrastar estimaciones contra el catalogo y analizar fallos
+- [x] **H4.4** · Contrastar estimaciones contra el catalogo y analizar fallos (2026-09-14)
   - `E4` · 10 pts · 26.4 h · rubrica: OE3 · depende de: H4.3, H3.6 · **bloquea a: H4.5**
+  - horas: estimada 26.4 . real 3.0
+  - **Acotada por D-51**: se contrasta contra el escritor vigente y no se vuelven a
+    comparar algoritmos, que es lo que inflaba la estimacion; el arnes de H3.9 ya
+    publico esa comparacion. Criterios en `H4.4-criterios-aceptacion.md` (PR #326),
+    escritos antes del codigo.
+  - **El resultado:** la estimacion publicada de lluvia intensa **no distingue un dia
+    con evento de cualquier otro dia del mismo mes**. Anticipo 8 de 34 (23,5 %) contra
+    una tasa base de 26,0 % del mismo escritor: **realce 0,90x**, y **0,63x** pareado
+    por mes (8 observados contra 12,8 esperados, z = -1,79). Veintiuno de los 34
+    quedaron en `medio`.
+  - **Cinco eventos con danos cayeron en celdas con P(alto) = 0**, donde el etiquetado
+    nunca marco alto en ese distrito y ese mes. Cuatro son de mayo.
+  - **El incendio si se pudo contrastar**, al reves de lo que concluyo H4.4a: contra el
+    etiquetado era imposible (FIRMS termina en 2024), contra las estimaciones no, porque
+    desde H14.6 el escritor proyecta. Acerto 1 de 1 **y no vale**: en abril ese escritor
+    dice `alto` en el 100 % de las celdas con estimacion, realce pareado 1,00x.
+  - Seis de los ocho aciertos son de dos temporales que afectaron varios distritos el
+    mismo dia: son tres episodios, no ocho aciertos independientes.
+  - Herramienta `backend/modelado/contrastar_estimaciones.py`, contra la API publicada y
+    sin credenciales; 13 pruebas en el CI, incluido el sabotaje que rompe CA-6.
+  - **Obliga a corregir V-E del documento IEEE**, que declara el contraste de incendio
+    «inexistente». Va en H10.5c, no aqui.
 
-- [ ] **H4.5** · Redactar la respuesta a la pregunta de investigacion
+- [x] **H4.5** · Redactar la respuesta a la pregunta de investigacion (2026-09-14)
   - `E4` · 2 pts · 5.3 h · rubrica: OE3 · depende de: H4.4
+  - horas: estimada 5.3 . real 1.0
+  - **Cierra OE3.** Criterios en `H4.5-criterios-aceptacion.md`, escritos antes del texto;
+    respuesta en `H4.5-respuesta-pregunta-investigacion.md`.
+  - La respuesta es **negativa y se publica asi**: los datos abiertos alcanzan para
+    construir el sistema, publicarlo y declarar donde no se sabe; **no** para superar la
+    linea base del calendario (H1 rechazada, VI-B y IX-B) ni para anticipar los eventos
+    con danos mejor que la tasa base del propio escritor (H4.4: 0,90x y 0,63x pareado).
+  - La cadena que deja escrita, y que ninguna seccion del documento decia junta: **el dato
+    no distingue los distritos** (PI1) -> **el modelo no supera al calendario** (PI2) ->
+    **y el calendario no anticipa los eventos que importaron** (H4.4). La etiqueta si los
+    reconoce (PI3, 4,74x).
+  - Contesta la objecion obvia -si la etiqueta los reconoce, ¿como no los anticipa la
+    estimacion?-: miran cosas distintas. El etiquetado usa la lluvia observada de esos
+    dias; la estimacion, solo el mes calendario.
+  - No mide nada nuevo: cada cifra se rastrea a H4.4, H4.4a o a una seccion del documento.
+  - Lista las correcciones que obliga en **VI-C** y **IV-E** del IEEE; las hace H10.5c.
 
-- [ ] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real
+- [x] **H11.6** · Publicar la API y la base en la nube y que el visor sirva dato real (2026-09-14)
   - `E11` · 5 pts · 7.8 h · rubrica: CICD · depende de: H11.1, H11.5, H6.2, H3.6, H3.8
+  - horas: estimada 7.8 . real 1.0
+  - Paso 1 de D-05: tres servicios en Railway, solo el visor con dominio, un solo
+    origen (D-23). Railway construye desde el repositorio y no desde ghcr.io por SHA:
+    **D-43**, con la perdida escrita. Criterios en
+    `docs/evidencias/sistemas-operativos/H11.6-criterios-aceptacion.md`, escritos el
+    2026-09-04 antes de crear nada; evidencia en `H11.6-publicacion.md`, con capturas.
+  - Los dos apagones se midieron el 2026-09-14 en produccion, con hora del registro
+    de cada servicio. **Un Restart deja el proceso apagado un segundo**, no veinte:
+    el visor no cae al respaldo y hace bien (LIMITE_MS 3 s). Con PostGIS apagada 7,5 s
+    la API respondio 500 y el visor **declaro el respaldo del 2026-08-16** (CA-5, y el
+    mismo camino de CA-7). Y la API **no se recupero sola** cuando la base volvio:
+    una conexion para toda la vida del proceso, sin reconexion. Queda como **I-55**
+    y como regla del runbook; el arreglo es de `backend/api`.
+  - CA-9 contra la pagina de uso de Railway: 0,91 USD al 2026-09-14; las tarifas por
+    minuto confirman los 5,16 USD/mes de la cuenta hecha con las metricas.
+  - Encontro cinco incidencias en el camino (I-35 a I-39) y una al cerrar (I-55).
 
 - [x] **H5.9** · Rediseno del visor: la primera pantalla no engana y la pagina se puede usar en un telefono (2026-09-06)
   - `E5` · 13 pts · 12.5 h · rubrica: CG-1 · depende de: H5.3, H5.7, H5.8, H7.1, H3.4
@@ -669,17 +745,51 @@
   - Criterios en `docs/evidencias/objetivos/H3.9-criterios-aceptacion.md`, con la
     medicion exploratoria fechada **antes** de tocar `generar_caracteristicas.py`.
 
-- [ ] **H3.10** · El ENSO entra al modelo como caracteristica
+- [x] **H3.10** · El ENSO entra al modelo como caracteristica (2026-09-16)
   - `E3` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H3.9
+  - horas: estimada 7.8 . real 7.8
+  - Evidencia: `docs/evidencias/objetivos/H3.10-enso-no-entra.md`.
+  - **El ENSO no entra, y ese es el resultado.** Ningun estimador mejora, cuatro
+    de seis empeoran, y la dispersion entre pliegues sube tanto que el veredicto
+    de lluvia intensa pasa de tener ganador a empate tecnico. El CA-5 pedia que
+    el veredicto se escribiera gane o pierda.
   - El calendario dice que mes es; el ENSO dice que este marzo no es como los otros.
     Indice ONI de la NOAA: publico, mensual, desde 1950. El archivo se versiona, que
     ademas protege a la imagen de trabajos de H11.7, que corre sin nadie mirando.
   - La comparacion es contra H3.9, no contra la matriz vieja.
   - Criterios en `docs/evidencias/objetivos/H3.10-criterios-aceptacion.md`.
 
-- [ ] **H1.16** · Open-Meteo como serie larga del canton (D-47)
+- [x] **H1.16** · Open-Meteo como serie larga del canton (D-47) (2026-09-14)
   - `E1` · 5 pts · 7.8 h · rubrica: BD-1 · depende de: H1.1, H6.3 · **bloquea a: H3.11**
-  - **El test de D-15 ya corrio, el 2026-09-09**, contra `geo.distrito`: ERA5-Land
+  - horas: estimada 7.8 . real 3.0
+  - **La fuente que el ADR nombraba no servia.** ERA5-Land devuelve 200, los dias
+    pedidos y `null` en todos: no da precipitacion diaria por esta API, en ningun
+    punto del mundo. Medido el 2026-09-14. La serie la trae **ERA5**, y **D-47
+    quedo enmendado con fecha** en vez de corregido en silencio.
+  - **28.011 dias, de 1950-01-01 a 2026-09-09, en UNA peticion, en 3,25 s.** Un dia
+    sin dato, guardado como ausencia y no como cero (D-07).
+  - **El test de D-15 se repitio sobre la malla que de verdad se uso** y da **3
+    celdas para 8 distritos**, con cinco distritos en una sola. ERA5-Land daba 6 y
+    ya alcanzaba para decidir: el resultado es peor, asi que la decision de no
+    entrar por distrito queda con **mas margen** del que tenia. El anclaje de la
+    malla nueva no se asumio, se observo, y entro a la `autoprueba()`.
+  - **La decision queda en el esquema, no en la buena voluntad:** la tabla no tiene
+    columna `codigo_distrito`, el modelo va NOT NULL con CHECK contra `best_match`,
+    y el extractor **no se registra en la fabrica** a proposito. El verificador
+    nuevo barre cuatro carpetas y exige que ningun archivo fuera de una lista de
+    cinco nombre la serie ni el extractor.
+  - **Dos pruebas se reescribieron aqui mismo:** la original comprobaba el contador
+    de peticiones esperando que `consultar` fallara **sin red**. En una maquina con
+    internet daba rojo, y cuando pasaba era porque acababa de hacer una peticion de
+    verdad en una suite que promete no tocar la red.
+  - **Lo que NO consigue, y se declara:** nacio tambien para que la pantalla dejara
+    de mostrar fechas viejas y **no lo logra**. La lluvia por distrito sigue siendo
+    CHIRPS con 21 a 51 dias, porque ERA5 no puede entrar por distrito. Es el CA-10,
+    y la frescura queda abierta y sin dueno.
+  - Evidencia en `docs/evidencias/bases-de-datos/H1.16-serie-canton.md`.
+  - Criterios en `docs/evidencias/bases-de-datos/H1.16-criterios-aceptacion.md`.
+  - **Contexto previo, del 2026-09-09.** El test de D-15 corrio contra
+    `geo.distrito`: ERA5-Land
     pone los ocho distritos en **seis celdas** -Tilaran con Arenal, Quebrada Grande
     con Cabeceras-. Recibirian el mismo valor todos los dias del ano: **I-05** otra
     vez. Una medicion preliminar por otro metodo dio lo mismo.
@@ -687,13 +797,35 @@
     distrito -ni nivel, ni el SPI de H14.5, ni la matriz- y **si** entra como serie
     larga a nivel canton para contar episodios de sequia en H3.11. Ahi la colision
     no existe, porque **D-34 ya cuenta a nivel canton**.
-  - Baja de 8 a 5 puntos: es la mitad del trabajo que parecia.
-  - **Lo que NO consigue, y se declara:** nacio tambien para que la pantalla dejara
-    de mostrar fechas viejas y no lo logra. La frescura queda abierta.
-  - Criterios en `docs/evidencias/bases-de-datos/H1.16-criterios-aceptacion.md`.
+  - Bajo de 8 a 5 puntos: era la mitad del trabajo que parecia.
 
-- [ ] **H3.11** · Recontar los episodios de sequia sobre la serie larga
+- [x] **H3.11** · Recontar los episodios de sequia sobre la serie larga (2026-09-15)
   - `E3` · 3 pts · 4.7 h · rubrica: OE2 · depende de: H1.16, H3.0
+  - horas: estimada 4.7 . real 4.0
+  - **24 episodios en 76,7 anios contra el minimo de 30, y 1 en el peor pliegue
+    contra el minimo de 10. NO alcanza por ninguno de los dos.** D-34 se sostiene,
+    y ahora con el triple de anios en vez de con 34.
+  - **Es la clausula de reversion de D-34 ejercida**, no una historia suelta: ese
+    ADR dejo escrito que si aparecia mas serie se volvia a medir porque la
+    decision depende del numero.
+  - **Tres controles hacen comparable el 24.** El metodo se valida -11 contra los
+    13 de D-34 sobre la ventana comun, con otra fuente y otro orden de
+    agregacion-; el efecto de la base del SPI se mide aparte -11 a 15 sobre la
+    MISMA ventana, un 36 % mas sin cambiar un dia-; y la tasa es la misma: 0,309
+    contra 0,313 episodios por anio.
+  - **El CA-1 se probo, no se afirmo.** `generar_etiquetas.py` no puede leer
+    `crudo.serie_canton` -no tiene `codigo_distrito`, CA-9 de H1.16- y ademas
+    tiene que seguir produciendo el 13, asi que no se toca. El recuento **importa**
+    sus funciones y una prueba etiqueta 40 anios por las dos rutas comparando dia
+    por dia: cero diferencias.
+  - **Hallazgo que el total tapaba:** los pliegues dan `1, 1, 7, 16, 20` donde una
+    tasa uniforme esperaria `4, 8, 12, 16, 20`. **No se declara como aumento de
+    las sequias**: puede ser clima o puede ser que ERA5 no vea las sequias antes
+    de la era satelital, y el dato no lo separa. Lo que si vale: entrenar sobre la
+    mitad temprana no sirve venga de donde venga el hueco.
+  - D-34 enmendada con fecha y el documento IEEE actualizado en cuatro pasajes
+    (CA-4 de los criterios).
+  - Evidencia en `docs/evidencias/objetivos/H3.11-recuento-sequia-larga.md`.
   - **D-34 no dice que no haya datos: dice que hay 13 sequias en 34 anos**, una cada
     2.6 anos. Con 75 anos de ERA5 serian unas 29, pegado al umbral de 30, pero el
     minimo por pliegue seguiria en unas 6 contra las 10 que pide CA-6.
@@ -714,8 +846,16 @@
     `analitico.riesgo`.
   - Criterios en `docs/evidencias/computacion-grafica/H14.5-criterios-aceptacion.md`.
 
-- [ ] **H14.6** · El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas
+- [x] **H14.6** · El modelo de incendio estima hasta donde llega el dato, no hasta donde llegan las etiquetas (2026-09-14)
   - `E14` · 2 pts · 3.1 h · rubrica: OE2 · depende de: H11.7, H3.6
+  - horas: estimada n/d (no se estimo antes de arrancar) . real 8.0
+  - CA-5 medido en produccion el 2026-09-14: la corrida del cron de las 09:00 UTC
+    escribio **38901** filas de incendio (bajo=28308, alto=10593) con
+    `regresion-logistica@2026-09-14`, el numero que la historia predijo. Y desde
+    fuera: el 2026-07-31 hay nivel en 50804, 50805 y 50806 y ausencia en los otros
+    cinco; el 2026-08-01 y el 2026-09-14, ausencia en los ocho. Era la ultima
+    corrida en la que el criterio se podia medir: H3.9 pasa incendio a la
+    climatologica al llegar a `main`.
   - Las estimaciones de incendio publicadas terminan el **2024-12-24** (I-37, I-48) y no
     es un limite del modelo: `estimar_riesgo` solo extiende las fechas hasta hoy+7 cuando
     el escritor **no** necesita caracteristicas. La regresion logistica recibe las fechas
@@ -772,6 +912,30 @@
     celda con otro, lo dice. Sin pronostico se dibuja la ausencia.
   - Criterios en `docs/evidencias/computacion-grafica/H15.2-criterios-aceptacion.md`.
   - Toca `frontend/`, y lo declara en el PR.
+
+- [ ] **H10.9** · Guion de demo y tres ensayos completos
+  - `E10` · 4 pts · 10.6 h · rubrica: CG-6 · depende de: H10.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+
+- [x] **H7.3** · Historial de eventos filtrable y exportable (2026-09-16)
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H4.3
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
+  - horas: estimada n/d (recibida y arrancada el mismo dia, no se estimo) . real 0.9
+  - Criterios escritos antes del codigo:
+    `docs/evidencias/computacion-grafica/H7.3-criterios-aceptacion.md` (PR #342)
+  - Evidencia: `docs/evidencias/computacion-grafica/H7.3-historial-eventos.md`
+  - No crea `analitico.evento`. El catalogo validado de H4.3 llega al visor por el
+    camino estatico de H6.6, con un generador y no una copia a mano.
+
+- [ ] **H7.4** · Panel de estadisticas comparado contra la normal historica
+  - `E7` · 3 pts · 2.9 h · rubrica: CG-2 · depende de: H2.4
+  - **Recibida de Avril el 2026-09-16.** Reasignacion del PM a ocho dias del
+    Invenio Fest. Los criterios de aceptacion y las horas del backlog no
+    cambian: cambia quien la hace.
 
 ## Regla: lo hecho no se borra
 

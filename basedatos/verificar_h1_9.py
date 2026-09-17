@@ -315,7 +315,26 @@ def verificar(conexion) -> Resultado:  # noqa: PLR0915 - es una lista de criteri
             f"INSERT={escribe}, SELECT={lee}",
         )
     else:
-        r.comprobar("13. el rol lector puede leer la bitacora pero no escribirla", True)
+        # AUSENTE NO ES CUMPLE. Ver I-58.
+        #
+        # Esta rama marcaba `True`. O sea que si `geoguardian_lector` no existia,
+        # el criterio salia en verde **afirmando una separacion de privilegios que
+        # nadie comprobo**. Y no es un caso raro: es exactamente el escenario de
+        # H1.10, una base restaurada de un respaldo que no trajo los roles.
+        #
+        # El rol lo crea la migracion 003 con `IF NOT EXISTS`, asi que en una base
+        # migrada esta siempre. Que falte significa que la 003 no corrio, y eso es
+        # una falla del criterio, no una excepcion suya: sin rol no hay separacion
+        # de privilegios que verificar, y decir CUMPLE es afirmar lo contrario de
+        # lo que pasa.
+        r.comprobar(
+            "13. el rol lector puede leer la bitacora pero no escribirla",
+            False,
+            "el rol geoguardian_lector NO EXISTE, asi que no hay separacion de "
+            "privilegios que comprobar. Lo crea basedatos/ddl/003_seguridad_roles.sql: "
+            "si esta base salio de un respaldo, revisar que las migraciones se "
+            "aplicaron antes de darla por buena",
+        )
 
     # ---------------------------------------------------------------- 14
     cur.execute("""

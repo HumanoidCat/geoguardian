@@ -453,16 +453,100 @@ jobs:
         run: python -m backend.api.verificar_h62
       - name: Los criterios de H1.4 se cumplen
         run: python -m backend.etl.verificar_h14
-      # H6.0 y H1.7 necesitan Docker y la base cargada respectivamente, asi que
-      # no corren aca. Se declaran para que se vea que la omision es deliberada:
-      #   verificar_h60  construye imagenes; pide un demonio Docker
-      #   verificar_h17  compara el manifiesto contra la base real
-      - name: Los verificadores que necesitan Docker o la base se declaran
+      # ------------------------------------------------------------------- #
+      # Los ocho que se agregaron el 2026-09-16, por I-58                    #
+      # ------------------------------------------------------------------- #
+      #
+      # El barrido de I-58 conto los verificadores del repositorio: **58 en
+      # total, y solo 25 se EJECUTABAN en el CI**. De los 33 que no, se midio
+      # cuales corren limpios **sin base y sin red**, y salieron estos ocho. No
+      # habia ninguna razon para que no estuvieran aca: simplemente nadie los
+      # habia puesto.
+      #
+      # El primer conteo dio 29 y estaba mal: buscaba el nombre del verificador
+      # en el texto del CI, asi que contaba como «corre» a uno mencionado en un
+      # comentario o en un `echo` que dice justamente que NO corre. Es el mismo
+      # defecto que I-58 registra, cometido midiendolo. El numero bueno sale de
+      # leer las invocaciones reales -`python -m ...`- y no el archivo entero.
+      #
+      # Es literalmente lo que dice el comentario de mas arriba sobre H6.1: «un
+      # control que solo se ejecuta cuando alguien se acuerda no es un control».
+      # Dos de estos ocho se ACABAN de arreglar -el CA-4 de H6.3 en el PR #336 y
+      # el de H3.8 por I-58- y sin este paso ninguno de los dos se habria vuelto
+      # a ejecutar nunca.
+      #
+      # EL NOVENO SE INTENTO Y NO PUEDE ENTRAR, y el motivo vale la pena.
+      #
+      # El verificador de **H12.3** tiene un CA-1 que exige que este archivo y
+      # `cd.yml` no inviten a `backend.alertas`, porque ese flujo escucha las
+      # corridas desde afuera y no debe quedar cableado adentro. Al agregar el
+      # paso, **el propio verificador detecto el cambio como una violacion** en
+      # la primera corrida. Se saca: aflojar el criterio de otro para que quepa un
+      # paso nuestro seria lo contrario de lo que I-58 arregla.
+      #
+      # **Y sigue sin poder entrar aunque el criterio se afinara.** El CA-1 se
+      # preciso el 2026-09-16 para distinguir una invocacion de una mencion en
+      # prosa -antes fallaba hasta con un comentario que decia «esto no se llama
+      # desde aca»-, pero ejecutar su verificador **es** invocar algo de ese
+      # modulo, y el docstring del criterio es explicito: «ni ci.yml ni cd.yml
+      # saben que existe». La precision no le abrio la puerta; solo permite que
+      # este comentario diga el nombre del modulo sin poner el criterio en rojo.
+      #
+      # COSTO, MEDIDO Y NO SUPUESTO: 61 s en total. Los tres de H3.3, H3.4 y H3.5
+      # son 53 de esos 64 porque entrenan modelos de verdad. Se aceptan: son los
+      # tres algoritmos de D-09, o sea el nucleo de la epica de modelado, y
+      # tenerlos sin ejecutar es el riesgo que esto viene a cerrar.
+      - name: Los criterios de H12.4 se cumplen
+        run: python -m backend.calidad.verificar_h12_4
+      - name: Los criterios de H4.1 se cumplen
+        run: python -m backend.modelado.verificar_h41
+      - name: Los criterios de H6.3 se cumplen
+        run: python -m backend.etl.fuentes.verificar_h6_3
+      - name: Los criterios de H3.8 se cumplen
+        run: python -m backend.modelado.verificar_h38
+      - name: Los criterios de H3.3 se cumplen
+        run: python -m backend.modelado.verificar_h33
+      - name: Los criterios de H3.4 se cumplen
+        run: python -m backend.modelado.verificar_h34
+      - name: Los criterios de H3.5 se cumplen
+        run: python -m backend.modelado.verificar_h35
+
+      # ------------------------------------------------------------------- #
+      # Y lo que NO corre, declarado de verdad                               #
+      # ------------------------------------------------------------------- #
+      #
+      # Este paso existia para que las omisiones se vieran, y **declaraba tres**.
+      # El barrido de I-58 encontro que eran **veintiseis**: el paso hacia
+      # exactamente lo que I-58 denuncia -afirmar mas de lo que cubre- en el
+      # lugar donde menos se nota, porque un `echo` siempre sale verde.
+      #
+      # Ahora se declara el conteo y el motivo por familia. La lista archivo por
+      # archivo esta en I-58, que es donde se puede mantener.
+      - name: Los verificadores que no pueden correr aca se declaran
         run: |
-          echo "verificar_h60 necesita un demonio Docker; se corre a mano."
-          echo "verificar_h17 necesita la base cargada; se corre a mano."
-          echo "verificar_h8_4 necesita una escena de Sentinel descargada; se corre a mano."
-          echo "Ver docs/15-cerrar-una-historia.md."
+          echo "Verificadores del repositorio: 58. Se EJECUTAN aca: 32, tras I-58."
+          echo ""
+          echo "Los 26 que quedan fuera, por familia y por motivo:"
+          echo "  la base CARGADA, no solo levantada (14):"
+          echo "    los doce de basedatos/, mas verificar_base y verificar_h82"
+          echo "  la base mas una ingesta real (3):"
+          echo "    verificar_h1_14, verificar_h1_16, verificar_h11"
+          echo "  un demonio Docker (1): verificar_h60"
+          echo "  credenciales o red (4): verificar_h16 y verificar_h8_4 (Sentinel),"
+          echo "    verificar_h12 (FIRMS), verificar_resolucion_fuente"
+          echo "  una dependencia fuera de requirements (1): verificar_h42 (shap)"
+          echo "  se invoca por pytest, no por python -m (1): verificar_h36_tuberia"
+          echo "  su propio criterio prohibe que este archivo lo nombre (1):"
+          echo "    el verificador de H12.3 -su CA-1: ese flujo escucha desde"
+          echo "    afuera y no se cablea aca dentro. Ver I-58-"
+          echo "  EN ROJO HOY, y por eso no entra todavia (1): infra/verificar_h116.py"
+          echo "    -su criterio del runbook falla; ver I-58-"
+          echo ""
+          echo "Los de basedatos/ NO estan bloqueados por el entorno: este mismo"
+          echo "trabajo levanta PostGIS. Les falta la carga de datos. Es el"
+          echo "siguiente paso natural y esta anotado en I-58."
+          echo ""
+          echo "La lista archivo por archivo esta en I-58. Ver docs/15-cerrar-una-historia.md."
 
   # ------------------------------------------------------------------------- #
   # H11.5 · Publicar el visor como sitio estatico                              #

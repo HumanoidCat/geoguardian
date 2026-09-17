@@ -211,6 +211,21 @@ De la pestana **Variables** del servicio se anotan, para el paso 4:
 `RAILWAY_PRIVATE_DOMAIN` (`postgis.railway.internal`), que es lo que va a leer
 la API.
 
+> **Aviso del 2026-09-14: `DATABASE_URL` no sirve para conectarse desde fuera, y
+> ademas apunta a la base equivocada.** Es la variable mas visible del servicio y
+> la trampa es doble: su host es `postgis.railway.internal`, que solo resuelve
+> dentro de Railway (`getaddrinfo failed` desde tu maquina), y su base es
+> `railway`, que por el 2b esta **vacia** -las tablas viven en `geoguardian`-.
+> Conectarse con ella «funciona» y despues falla con
+> `relation "analitico.riesgo" does not exist`, que se lee como un problema de
+> datos y no lo es. Este servidor tiene tres bases: `postgres`, `railway` y
+> `geoguardian`. Se arma la cadena con el host y el puerto del proxy de este
+> paso y **`geoguardian`** como nombre de base.
+>
+> Para una consulta suelta no hace falta nada de esto: la pestana **Console** del
+> servicio abre una terminal dentro del contenedor, donde `psql` ya tiene las
+> credenciales en el entorno y no hay que exponer la base.
+
 ---
 
 ## 3 · El servicio `api`
@@ -719,6 +734,12 @@ obligaria a CORS y a tocar archivo de Cesar, con solicitud de cambio-.
   si la anterior sigue corriendo, y no avisa.
 - **No borrar `frontend/public/simulados/*.json`.** Son la degradacion que exige
   la Definition of Done de H6.6, y el respaldo si Railway cae.
+- **No reiniciar `PostGIS` sin reiniciar `api` despues.** La API guarda una sola
+  conexion para toda la vida del proceso y no la reabre: con la base de vuelta
+  sigue respondiendo 500 y el visor se queda en el respaldo del 2026-08-16 hasta
+  que alguien reinicie `api`. Medido el 2026-09-14, ver **I-55**. Y un Restart
+  deja el proceso apagado **un segundo**, no veinte: no sirve para provocar un
+  apagon largo.
 
 ---
 
