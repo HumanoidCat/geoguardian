@@ -1,0 +1,14 @@
+historia,fecha_contacto,perfil_o_distrito,caso_que_vivio,canal,respuesta,fecha_sesion,nota
+# Registro de reclutamiento de H9.2a y H9.2b. Se llena al contactar, no despues.
+# respuesta: pendiente | acepta | rechaza | sin_respuesta
+# Los rechazos y los sin_respuesta NO se borran: si de quince contactos aceptan
+# tres, eso dice algo sobre la disponibilidad del perfil y pertenece al estudio.
+# caso_que_vivio solo aplica a H9.2b: nate2017 | rutas2011 | sequia2014 | incendio2026
+H9.2a,n/d,Gestion de riesgo municipal / enlace CME,,n/d,acepta,2026-09-08,"Sesion 01. En un cafe en Tilaran; el facilitador se traslado. 47 min. Autorizo grabacion; pidio que no aparezca ni su nombre ni el de la institucion"
+H9.2a,n/d,Agricultor y ganadero de leche, finca en Quebrada Grande,,n/d,acepta,2026-09-10,"Sesion 02. En casa del facilitador; le quedaba de paso por un viaje. 41 min. NO autorizo grabacion: notas a mano validadas con el participante al cierre de cada bloque"
+H9.2a,n/d,Administrador de lodge y operador de tours, sector del lago,,n/d,acepta,2026-09-14,"Sesion 03. En la universidad; llego a hacer un mandado. 43 min. Autorizo grabacion; pidio que no aparezca el nombre del establecimiento"
+# DECLARADO: la fecha y el canal de contacto no se registraron al momento, y no
+# se reconstruyen de memoria. Los rechazos y los que no contestaron tampoco
+# quedaron anotados, asi que este registro NO permite calcular cuanto costo
+# conseguir a los tres. Es una falta del procedimiento, no del estudio, y se
+# corrige para H9.2b: se anota al contactar, no despues.
