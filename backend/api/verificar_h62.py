@@ -253,15 +253,28 @@ def ca5_sustitucion() -> Resultado:
     try:
         modulo.conectar = lambda *_a, **_k: ConexionFalsa()
         dependencias._repositorio_postgres.cache_clear()
+        dependencias._repositorio_postgres_cacheado.cache_clear()
         dependencias._repositorio_simulado.cache_clear()
 
         os.environ[dependencias.VARIABLE_REPOSITORIO] = "postgres"
         elegido = dependencias.obtener_repositorio()
-        if isinstance(elegido, RepositorioPostgres):
-            detalle.append("  [ok ] GEOGUARDIAN_REPOSITORIO=postgres elige RepositorioPostgres")
+        # DESDE H8.3 ESTA RAMA DEVUELVE UN ENVOLTORIO. `RepositorioConCache`
+        # cumple el protocolo y contiene al concreto, asi que lo que el criterio
+        # pide -que en modo postgres haya PostgreSQL detras- sigue siendo cierto.
+        # Se desenvuelve UNA capa y no en bucle: una torre de envoltorios tiene
+        # que notarse en vez de pasar inadvertida.
+        adentro = getattr(elegido, "envuelto", elegido)
+        if isinstance(adentro, RepositorioPostgres):
+            envoltura = "" if adentro is elegido else f", dentro de {type(elegido).__name__}"
+            detalle.append(
+                f"  [ok ] GEOGUARDIAN_REPOSITORIO=postgres elige RepositorioPostgres{envoltura}"
+            )
         else:
             ok = False
-            detalle.append(f"  [MAL] con postgres devolvio {type(elegido).__name__}")
+            detalle.append(
+                f"  [MAL] con postgres devolvio {type(elegido).__name__}"
+                f" y adentro {type(adentro).__name__}"
+            )
 
         modo = dependencias.modo_de(elegido)
         if modo is ModoOperacion.REAL:
@@ -271,19 +284,31 @@ def ca5_sustitucion() -> Resultado:
             detalle.append(f"  [MAL] el modo deducido fue {modo}")
 
         dependencias._repositorio_postgres.cache_clear()
+        dependencias._repositorio_postgres_cacheado.cache_clear()
         os.environ[dependencias.VARIABLE_REPOSITORIO] = ""
         por_omision = dependencias.obtener_repositorio()
-        if isinstance(por_omision, RepositorioPostgres):
+        adentro_omision = getattr(por_omision, "envuelto", por_omision)
+        if isinstance(adentro_omision, RepositorioPostgres):
             ok = False
             detalle.append("  [MAL] el valor por omision ya no es el simulado; rompe el visor")
+        elif por_omision is not adentro_omision:
+            # Envolver el simulado lo sacaria del isinstance de `modo_de`, y
+            # /salud pasaria a decir "modo: real" sirviendo datos inventados.
+            # Es I-41 por otro camino, y hasta ahora nadie lo vigilaba.
+            ok = False
+            detalle.append(
+                f"  [MAL] el simulado viene dentro de {type(por_omision).__name__}:"
+                " modo_de() lo leeria como real"
+            )
         else:
             detalle.append(
                 f"  [ok ] sin la variable sigue el simulado ({type(por_omision).__name__}),"
-                " que es deliberado hasta que existan las tablas que faltan"
+                " sin envolver, que es deliberado hasta que existan las tablas que faltan"
             )
     finally:
         modulo.conectar = original_conectar
         dependencias._repositorio_postgres.cache_clear()
+        dependencias._repositorio_postgres_cacheado.cache_clear()
         dependencias._repositorio_simulado.cache_clear()
         if original_variable is None:
             os.environ.pop(dependencias.VARIABLE_REPOSITORIO, None)

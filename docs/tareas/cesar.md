@@ -149,9 +149,35 @@
     hecho cuatro implementaciones y son dos: `ExtractorChirps` y `ExtractorPower` no
     cumplen `ExtractorClima` -no tienen `extraer()`-. Correccion anotada en los criterios.
 
-- [ ] **H8.3** · Cache en memoria con politica de expiracion y consumo medido
-  - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1
-  - **Diferida el 2026-09-03 por D-38.**
+- [x] **H8.3** · Cache en memoria con politica de expiracion y consumo medido (2026-09-17)
+  - `E8` · 5 pts · 7.8 h · rubrica: SO-1 · depende de: H6.1 · **bloqueaba a: H15.0**
+  - horas: estimada 3.0 . real 8.0
+  - Evidencia: `docs/evidencias/sistemas-operativos/H8.3-cache-en-memoria.md`, contra los
+    doce criterios escritos el 2026-09-15 antes del codigo, con sus ajustes fechados.
+  - **Diferida el 2026-09-03 por D-38**, retomada el 2026-09-13.
+  - **La medicion dio vuelta la decision de diseno, y eso es lo que la historia demuestra.**
+    La decision 2, escrita y aprobada antes del codigo, devolvia lo guardado copiado en
+    profundidad. Medido: copiar ocho geometrias GeoJSON cuesta 104 ms y traerlas de
+    PostgreSQL cuesta 51, asi que la cache hacia el sistema **mas lento que no tenerla**.
+    Se copia solo el contenedor; los modelos van compartidos y los esquemas del contrato
+    estan congelados. El vector que queda vivo -modificar por dentro el diccionario de
+    `geometria`- se declara en vez de pagarlo a 104 ms por peticion.
+  - **El techo de memoria estaba mal planteado, y era mio.** CA-8 llenaba las 256 entradas
+    del tope con la respuesta mas grande y declaraba 1622 MB, un estado que no puede
+    ocurrir. Medido por familia de clave: 9 entradas de geometria pesan 18.97 MB y 240 de
+    riesgo pesan 0.06. Un tope de entradas no acota memoria cuando los tamanios difieren en
+    cuatro ordenes de magnitud.
+  - **Hallazgo ajeno a esta historia, declarado y no arreglado aqui:** con la base detenida
+    de verdad, `/salud` devuelve 500. `esta_viva()` no lanza -su comentario dice que existe
+    para poder decir que no- pero `ultima_ingesta()` si lanza, a proposito por I-41, y las
+    dos se ejecutan en la misma respuesta. Viene de H6.2; lo encontro CA-3 por ser la
+    primera vez que alguien corrio `/salud` con la base apagada. Va como **I-61**.
+  - **El desvio de horas es mitad alcance y mitad estimacion corta, y las dos se declaran.**
+    La medicion invalido una decision ya aprobada y obligo a rehacer `cache.py`, las pruebas
+    y el verificador a mitad de camino. Lo otro es mas simple: tres horas para cuatro
+    archivos nuevos y doce criterios no alcanzaban aunque todo saliera a la primera. El
+    backlog estimo 7.8 h y acerto, en un proyecto donde sobreestima 1.98 veces sobre 66
+    historias medidas.
 
 - [x] **H8.4** · Estrategia de almacenamiento de rasters con proyeccion de crecimiento (2026-09-07)
   - `E8` · 3 pts · 2.9 h · rubrica: SO-1 · depende de: H1.6

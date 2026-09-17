@@ -4974,3 +4974,89 @@ de la feria.
 cierta para lo que midio -los huecos, el reparto del paquete, la linea cortada-,
 porque todo se midio contra el respaldo estatico. Lo que no cubrio ningun criterio
 fue **la misma pantalla contra la API**, y ahi es donde estaba el defecto.
+
+## I-61 · `/salud` no puede decir que no: con la base caida devuelve 500
+
+**Fecha.** 2026-09-17.
+
+**Quien lo detecto.** El CA-3 de **H8.3**, que es la primera comprobacion del
+proyecto que corre `/salud` con PostgreSQL **detenido de verdad**
+(`docker compose stop db`) y no simulado.
+
+**Que pasa.** `/salud` existe para que el visor sepa si hay base detras. Con la
+base caida no lo dice: devuelve 500 y el frontend se queda sin respuesta.
+
+El modulo declara lo contrario de lo que hace. En
+`backend/api/repositorio_postgres.py`, el comentario de `esta_viva()`:
+
+> «No lanza: /salud tiene que poder decir que no. Un /salud que devuelve 500
+> cuando la base se cae no informa de nada; es justo el caso para el que el
+> frontend consulta este endpoint.»
+
+Y es cierto: `esta_viva()` atrapa la excepcion y devuelve `False`. Pero
+`ultima_ingesta()` **propaga a proposito** -devolver `None` ante un error diria
+«nunca corrio», que es la mentira de **I-41**- y las dos se llaman dentro del
+mismo `Salud(...)` de `rutas.py`. La que propaga mata la respuesta entera antes
+de que la que atrapa llegue a servir de algo.
+
+**Las dos decisiones son correctas por separado.** El defecto esta en la
+composicion, y por eso ninguna revision de cada metodo lo habria encontrado.
+
+**Evidencia.** Salida de `python -m backend.api.verificar_h83 --ca3`, con la base
+detenida entre las dos mitades:
+
+    Con la base viva - /salud base_datos_conectada: True
+    Con la base viva - /distritos: 200, 8 distritos, ya en cache
+
+    CA-3a con la base caida, /distritos sigue respondiendo desde la cache: CUMPLE
+        estado 200
+    CA-3b con la base caida, /salud no afirma que la base esta conectada: CUMPLE
+        /salud fallo ruidosamente: OperationalError: the connection is closed
+
+El criterio de H8.3 pasa, porque fallar ruidosamente es honesto y mentir en un
+200 no lo seria. Lo que no pasa es la promesa del modulo.
+
+**Por que importa mas de lo que parece.**
+
+1. **Es el unico caso para el que ese endpoint existe.** Un `/salud` que solo
+   responde cuando todo esta bien no informa de nada.
+2. **Con la cache de H8.3 encima, el sistema miente mejor que antes.**
+   `/distritos` sigue devolviendo 200 desde memoria mientras `/salud` se cae, asi
+   que con la base muerta el visor recibe datos y ninguna senal de que algo anda
+   mal. H8.3 no causa el defecto, pero le quita el sintoma que lo delataba.
+3. **Bloquea la parte 1 de H12.2**, que lee el estado de los entornos desde
+   `/salud`.
+
+**Causa raiz.** Dos decisiones correctas compuestas en una misma respuesta, y
+**nadie habia corrido `/salud` con la base apagada**. El comportamiento existe
+desde H6.2 (2026-08-27). Todos los controles de `/salud` -CA-1 y CA-8 de H6.1,
+CA-7 con el repositorio falso- corren con algo que responde: ninguno ejercita la
+rama que este endpoint fue escrito para cubrir.
+
+Es la misma forma de **I-41**: un campo de `/salud` que dice algo distinto de lo
+que pasa. Alli era una constante escrita a mano; aca es una excepcion que viaja.
+
+**Que se hace.** Decidido por el PM el 2026-09-17, y **no toca el contrato**:
+
+    si esta_viva() da False, no se llama a ultima_ingesta() y el campo va null
+
+El par de campos ya desambigua sin inventar nada:
+
+| `base_datos_conectada` | `ultima_ingesta` | Significa |
+|---|---|---|
+| `true` | una fecha | la ultima ingesta exitosa |
+| `true` | `null` | nunca corrio una ingesta |
+| `false` | `null` | no se pudo saber: no hay base |
+
+Sin campo nuevo, sin version de contratos, y sin tocar `ultima_ingesta()`, que
+sigue propagando cuando se la llama: lo que cambia es **cuando se la llama**.
+
+**Lo que esta incidencia NO es.** No la introdujo H8.3 y no se arregla dentro de
+ella: cambiar el comportamiento de `/salud` es alcance de otra historia, y
+mezclarlo haria que discutir uno arrastrara al otro.
+
+**Lo que este hallazgo deja como leccion.** Un endpoint escrito para informar de
+una falla tiene que probarse **provocando la falla**. Los tres controles que
+miraban `/salud` lo hacian con algo vivo del otro lado, asi que los tres podian
+estar en verde mientras el unico caso que importa estaba roto. Es la misma
+familia de **I-58**: controles que no ejercitan la rama que dicen cubrir.
