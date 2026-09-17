@@ -311,7 +311,7 @@ python -m contratos.verificar
 ```
 
 Debe terminar en **"Todas las verificaciones pasaron"** con **47 comprobaciones**
-y declarar **"Contratos version 1.4.0"**.
+y declarar **"Contratos version 1.5.0"**.
 
 No comprueba solo que los métodos existan: comprueba las tres invariantes del
 proyecto. Que un dato faltante se represente como nulo y nunca como cero; que una
@@ -561,7 +561,7 @@ la historia por terminada.
 |---|---|
 | `docs/ARRANQUE.md` | Instalación paso a paso en Windows, para el equipo |
 | `docs/02-contratos.md` | Las interfaces congeladas y sus huecos conocidos |
-| `docs/03-bitacora-decisiones.md` | Las 54 decisiones de arquitectura con su justificación |
+| `docs/03-bitacora-decisiones.md` | Las 55 decisiones de arquitectura con su justificación |
 | `docs/04-bitacora-incidencias.md` | Qué falló, por qué y qué se cambió para que no se repita |
 | `docs/05-matriz-trazabilidad.md` | Requisito, módulo, prueba y evidencia |
 | `docs/06-roadmap.md` | Cronograma, capacidad y ruta crítica |

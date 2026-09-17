@@ -790,7 +790,13 @@ def leer_rutas(archivo: Path = API) -> list[Ruta]:
 #: decision de diseno; la derecha tiene que existir en `rutas.py`.
 CASOS_DE_CONSULTA: list[tuple[str, str, list[str]]] = [
     ("uc_mapa", "Ver el riesgo del canton\\nen una fecha", ["/riesgos"]),
-    ("uc_ficha", "Consultar la ficha\\nde un distrito", ["/distritos/{codigo}/riesgo"]),
+    # `/indices` desde H14.5: la ficha y la primera pantalla leen el SPI-6 del
+    # distrito por ahi, y es una medicion, no una estimacion (D-53, D-34).
+    (
+        "uc_ficha",
+        "Consultar la ficha\\nde un distrito",
+        ["/distritos/{codigo}/riesgo", "/distritos/{codigo}/indices"],
+    ),
     ("uc_serie", "Ver la serie climatica\\nde un distrito", ["/distritos/{codigo}/mediciones"]),
     ("uc_distritos", "Ubicar los distritos\\nen el mapa", ["/distritos", "/distritos/{codigo}"]),
     ("uc_modo", "Saber si los datos\\nson reales o simulados", ["/salud"]),

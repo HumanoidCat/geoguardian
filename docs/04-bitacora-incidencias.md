@@ -4850,3 +4850,213 @@ cuatro pasan.
 el diff, pero un binario en un diff no se revisa: seguirian sin mirarse, y son
 casi dos megabytes que cambiarian entera cada vez que alguien regenera. Tampoco comprueba que el PNG **se vea** bien: comprueba que salio del SVG
 que hay hoy. Que el SVG sea correcto es lo que hacen CA-1 a CA-9.
+
+---
+
+## I-60 · El visor publicado abria la serie de cada distrito en octubre de 2099
+
+**Fecha.** 2026-09-16.
+
+**Quien lo detecto.** Alejandro, tomando capturas de H7.4 con la API local puesta
+en modo real por primera vez.
+
+**Que paso.** La ficha de cualquier distrito del **sitio publicado** mostraba esto:
+
+    Serie climatica de Libano
+    90 dias · 90 sin dato, dibujados como cortes en la linea y no como cero.
+    Datos disponibles del 2099-10-04 al 2100-01-01.
+    SERIE SIMULADA. Los valores los sortea el simulado de forma determinista.
+
+Una grafica vacia, situada en el ultimo trimestre del siglo, bajo un pie que
+afirmaba tener datos hasta el ano 2100, y una banda que declaraba inventadas unas
+observaciones que salian de PostgreSQL.
+
+**No es un defecto sino tres, y uno tapaba a otro.**
+
+### 1 · La ventana declarada era la pregunta, no la respuesta
+
+`GraficaSerie` hace una primera consulta de **descubrimiento** con dos fechas
+centinela -`1900-01-01` a `2100-01-01`- para que el origen declare que tramo
+tiene. Su propio comentario lo dice: *«la primera consulta pide todo para que el
+origen declare su ventana, y de ahi sale el encuadre inicial. Suponerla aqui seria
+repetir en el componente un dato que solo el origen conoce»*.
+
+El diseno era correcto. La rama de la API de `obtenerMediciones` lo rompia
+devolviendo el rango pedido:
+
+    // Contra la API la ventana pedida ES la que se puede servir: no hay tope.
+    return { filas, ventana: { desde, hasta }, origen }
+
+De ahi el 2099, que no es un dato sino una resta: el encuadre inicial son los
+noventa dias anteriores al fin de la ventana, y `2100-01-01` menos 89 dias es
+`2099-10-04`.
+
+**Por que nadie lo vio antes.** El respaldo estatico si declara su ventana de
+verdad, y hasta hoy el visor local siempre corrio contra el respaldo. El defecto
+solo aparece con la API contestando, que es **exactamente lo que hace el sitio
+publicado**. Nadie habia abierto la ficha de un distrito en el publicado.
+
+### 2 · La banda de «SERIE SIMULADA» no tenia condicion
+
+Se dibujaba siempre. No habia ningun `if`: era markup fijo dentro del bloque de
+resultados.
+
+Con la API en `modo: real` eso etiquetaba como inventadas unas mediciones reales.
+Es la mentira simetrica a **I-41** -donde `/salud` declaraba no tener base
+mientras servia datos de la base- y en la misma pantalla del mismo visor.
+
+El origen no sirve como senal, porque la API puede responder con el simulado
+detras. La senal correcta es `modo`, que es la que ya usan `AvisoModoSimulado`,
+`EstadoDatos` y `obtenerRiesgos`.
+
+### 3 · El tercero estaba escondido detras del primero
+
+Al corregir la ventana, la pestana empezo a congelarse al abrir una ficha.
+
+La consulta de descubrimiento pide de 1900 a 2100, y contra PostgreSQL eso son
+**unas trece mil filas** -la serie del distrito desde 1991-. El lienzo intentaba
+dibujarlas todas.
+
+Antes no pasaba **por culpa del defecto 1**: como la ventana era la pedida, el
+encuadre inicial caia en 2099, la segunda consulta devolvia cero filas y el lienzo
+nunca recibia nada. El primer defecto le tapaba la boca al tercero.
+
+Es la forma de defecto que este proyecto ya conoce por otra via: **arreglar uno
+puede destapar otro que vivia a su sombra**, y por eso el arreglo se prueba
+mirando, no razonando que ahora tiene que andar.
+
+### El arreglo costo tres intentos, y los dos primeros fallaron por lo mismo
+
+Se deja escrito entero porque el modo de fallo importa mas que el arreglo.
+
+**Primer intento: la ventana sale del tramo que el origen devolvio.** No funciono,
+y no podia funcionar. `SQL_MEDICIONES` usa `generate_series` con un LEFT JOIN, o
+sea que **devuelve una fila por cada dia pedido**, tenga medicion o no. El contrato
+lo exige -«el consumidor necesita ver los huecos»- y esta escrito con su motivo en
+el propio SQL. El tramo de las filas devueltas es, letra por letra, el tramo
+pedido: el mismo eco con otro disfraz.
+
+**Segundo intento: no dibujar la respuesta del descubrimiento.** Tampoco alcanzo.
+El bloqueo no era de dibujo: las trece mil filas seguian entrando al estado de
+React y al memo. La ficha tardaba tanto en abrir que **el clic parecia no hacer
+nada**, y asi se reporto.
+
+**Tercer intento, el que funciono**, con lo aprendido de los dos anteriores.
+
+**Lo que los dos primeros tienen en comun** es que se decidieron razonando sobre
+el sintoma en vez de abrir el SQL y preguntarle a la base. La regla del proyecto
+dice exactamente eso: *medir desde fuera dice que algo se ve raro, no por que;
+antes de proponer un arreglo se abre el codigo*. Al abrir `SQL_MEDICIONES` los dos
+defectos restantes se explicaron solos en una linea.
+
+| # | Que cambia | Donde |
+|---|---|---|
+| 1 | La ventana sale de los dias que traen **alguna medicion**, no de las filas devueltas; sin ninguno es nula y se declara | `frontend/src/datos/cliente.js` |
+| 1b | El descubrimiento se acota a **los ultimos dos anios** en vez de dos siglos, y la pantalla lo declara. Contra `generate_series`, pedir de 1900 a 2100 son unas **setenta y tres mil filas** generadas para averiguar dos fechas | `GraficaSerie.jsx` |
+| 1c | De la respuesta de descubrimiento se guardan **dos fechas y se descartan las filas** | `GraficaSerie.jsx` |
+| 2 | La ventana de descubrimiento se guarda una vez y no se encoge en cada consulta | `frontend/src/componentes/GraficaSerie.jsx` |
+| 3 | `obtenerMediciones` devuelve `simulado`, como ya hacia `obtenerRiesgos`, y la banda depende de el | los dos |
+| 4 | Mientras llega el descubrimiento, la pantalla dice que esta buscando el tramo | `GraficaSerie.jsx` |
+
+**Lo que se pierde y se declara.** Acotar el descubrimiento a dos anios significa
+que el selector no deja retroceder mas alla de eso, aunque la serie empiece en
+1991. El pie lo dice con esas palabras -«dentro de los ultimos 2 anios que
+consulta esta pantalla»- para no afirmar que ese es todo el dato que existe. El
+arreglo de fondo seria un endpoint que declare el tramo disponible sin traer
+filas; toca `backend/api/` y queda anotado.
+
+**Lo que este arreglo NO hace.** No agrega un endpoint que declare el tramo
+disponible, que seria lo correcto de fondo: hoy el cliente lo deduce pidiendo todo
+una vez. Eso toca `backend/api/`, y se deja anotado en vez de hacerse a ocho dias
+de la feria.
+
+**Consecuencia para H7.2.** La historia esta cerrada y su evidencia sigue siendo
+cierta para lo que midio -los huecos, el reparto del paquete, la linea cortada-,
+porque todo se midio contra el respaldo estatico. Lo que no cubrio ningun criterio
+fue **la misma pantalla contra la API**, y ahi es donde estaba el defecto.
+
+## I-61 · `/salud` no puede decir que no: con la base caida devuelve 500
+
+**Fecha.** 2026-09-17.
+
+**Quien lo detecto.** El CA-3 de **H8.3**, que es la primera comprobacion del
+proyecto que corre `/salud` con PostgreSQL **detenido de verdad**
+(`docker compose stop db`) y no simulado.
+
+**Que pasa.** `/salud` existe para que el visor sepa si hay base detras. Con la
+base caida no lo dice: devuelve 500 y el frontend se queda sin respuesta.
+
+El modulo declara lo contrario de lo que hace. En
+`backend/api/repositorio_postgres.py`, el comentario de `esta_viva()`:
+
+> «No lanza: /salud tiene que poder decir que no. Un /salud que devuelve 500
+> cuando la base se cae no informa de nada; es justo el caso para el que el
+> frontend consulta este endpoint.»
+
+Y es cierto: `esta_viva()` atrapa la excepcion y devuelve `False`. Pero
+`ultima_ingesta()` **propaga a proposito** -devolver `None` ante un error diria
+«nunca corrio», que es la mentira de **I-41**- y las dos se llaman dentro del
+mismo `Salud(...)` de `rutas.py`. La que propaga mata la respuesta entera antes
+de que la que atrapa llegue a servir de algo.
+
+**Las dos decisiones son correctas por separado.** El defecto esta en la
+composicion, y por eso ninguna revision de cada metodo lo habria encontrado.
+
+**Evidencia.** Salida de `python -m backend.api.verificar_h83 --ca3`, con la base
+detenida entre las dos mitades:
+
+    Con la base viva - /salud base_datos_conectada: True
+    Con la base viva - /distritos: 200, 8 distritos, ya en cache
+
+    CA-3a con la base caida, /distritos sigue respondiendo desde la cache: CUMPLE
+        estado 200
+    CA-3b con la base caida, /salud no afirma que la base esta conectada: CUMPLE
+        /salud fallo ruidosamente: OperationalError: the connection is closed
+
+El criterio de H8.3 pasa, porque fallar ruidosamente es honesto y mentir en un
+200 no lo seria. Lo que no pasa es la promesa del modulo.
+
+**Por que importa mas de lo que parece.**
+
+1. **Es el unico caso para el que ese endpoint existe.** Un `/salud` que solo
+   responde cuando todo esta bien no informa de nada.
+2. **Con la cache de H8.3 encima, el sistema miente mejor que antes.**
+   `/distritos` sigue devolviendo 200 desde memoria mientras `/salud` se cae, asi
+   que con la base muerta el visor recibe datos y ninguna senal de que algo anda
+   mal. H8.3 no causa el defecto, pero le quita el sintoma que lo delataba.
+3. **Bloquea la parte 1 de H12.2**, que lee el estado de los entornos desde
+   `/salud`.
+
+**Causa raiz.** Dos decisiones correctas compuestas en una misma respuesta, y
+**nadie habia corrido `/salud` con la base apagada**. El comportamiento existe
+desde H6.2 (2026-08-27). Todos los controles de `/salud` -CA-1 y CA-8 de H6.1,
+CA-7 con el repositorio falso- corren con algo que responde: ninguno ejercita la
+rama que este endpoint fue escrito para cubrir.
+
+Es la misma forma de **I-41**: un campo de `/salud` que dice algo distinto de lo
+que pasa. Alli era una constante escrita a mano; aca es una excepcion que viaja.
+
+**Que se hace.** Decidido por el PM el 2026-09-17, y **no toca el contrato**:
+
+    si esta_viva() da False, no se llama a ultima_ingesta() y el campo va null
+
+El par de campos ya desambigua sin inventar nada:
+
+| `base_datos_conectada` | `ultima_ingesta` | Significa |
+|---|---|---|
+| `true` | una fecha | la ultima ingesta exitosa |
+| `true` | `null` | nunca corrio una ingesta |
+| `false` | `null` | no se pudo saber: no hay base |
+
+Sin campo nuevo, sin version de contratos, y sin tocar `ultima_ingesta()`, que
+sigue propagando cuando se la llama: lo que cambia es **cuando se la llama**.
+
+**Lo que esta incidencia NO es.** No la introdujo H8.3 y no se arregla dentro de
+ella: cambiar el comportamiento de `/salud` es alcance de otra historia, y
+mezclarlo haria que discutir uno arrastrara al otro.
+
+**Lo que este hallazgo deja como leccion.** Un endpoint escrito para informar de
+una falla tiene que probarse **provocando la falla**. Los tres controles que
+miraban `/salud` lo hacian con algo vivo del otro lado, asi que los tres podian
+estar en verde mientras el unico caso que importa estaba roto. Es la misma
+familia de **I-58**: controles que no ejercitan la rama que dicen cubrir.
