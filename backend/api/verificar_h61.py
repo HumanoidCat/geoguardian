@@ -321,6 +321,9 @@ def ca6_sin_implementacion_concreta() -> Resultado:
         "test_repositorio_postgres.py": "prueba la implementacion concreta",
         "verificar_h62.py": "verifica la implementacion concreta",
         "verificar_h61.py": "este mismo archivo",
+        "test_cache.py": "prueba la cache contra el repositorio concreto (H8.3)",
+        "verificar_h83.py": "mide la cache contra PostgreSQL: necesita la real",
+        "medir_cache.py": "mide la linea base contra PostgreSQL: necesita la real",
     }
     #: El protocolo se llama `Repositorio` a secas. Cualquier `Repositorio<Algo>`
     #: es una implementacion, y los modulos de estas rutas no deben conocerla.
