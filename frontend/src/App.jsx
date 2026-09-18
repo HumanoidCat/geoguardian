@@ -26,6 +26,7 @@ import LogoGeoGuardian from './componentes/LogoGeoGuardian'
 import EstadoDatos from './componentes/EstadoDatos'
 import HoyEnTuDistrito from './componentes/HoyEnTuDistrito'
 import HistorialEventos from './componentes/HistorialEventos'
+import HistorialIncidentes from './componentes/HistorialIncidentes'
 import { obtenerHistorial } from './datos/historial'
 import TitularRiesgo from './componentes/TitularRiesgo'
 import { resumirPaquetes } from './datos/resumen'
@@ -386,6 +387,14 @@ export default function App() {
         <HistorialEventos historial={historial} alVerMapa={() => setVista('mapa')} />
       )}
 
+      {/* El historico de incidencias no depende de `coleccion` ni de la API: sale
+          de un archivo del repositorio. Si los datos del mapa fallaron, esta
+          pantalla sigue sirviendo — y probablemente sea el momento en que mas
+          sirve, porque explica errores anteriores del propio sistema. */}
+      {!cargando && vista === 'incidentes' && (
+        <HistorialIncidentes alVerMapa={() => setVista('mapa')} />
+      )}
+
       {!cargando && coleccion && vista === 'mapa' && (
         <>
           {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
@@ -416,6 +425,20 @@ export default function App() {
                 {`Ver los ${historial.eventos.length} eventos documentados del canton`}
               </button>
             )}
+            {/* El historico de incidencias del propio proyecto. H12.5.
+
+                Va junto a las otras salidas y no escondido: es documentacion del
+                sistema, no un anexo. El boton no dice cuantas hay porque el
+                numero vive en el archivo generado y no en este componente —
+                escribirlo aca seria la clase de dato duplicado que este
+                proyecto ya arreglo tres veces. */}
+            <button
+              type="button"
+              className="boton-ir-a-hoy"
+              onClick={() => setVista('incidentes')}
+            >
+              Ver el historico de incidencias
+            </button>
           </div>
 
           <TitularRiesgo

@@ -1094,6 +1094,231 @@ body {
    `clip-path`: la mascara tiene que aplicarse a la imagen antes de que Leaflet
    la coloque, porque `clip-path` sobre el elemento ya colocado se expresaria en
    pixeles de pantalla y habria que recalcularlo en cada zoom. Ver I-14. */
+/* -------------------------------------------------------------------------- *
+ * Historico de incidencias. Historia H12.5.
+ *
+ * Las fichas se despliegan y el rotulo de cada seccion se conserva tal como lo
+ * escribio quien registro la incidencia: en 61 incidencias hay 151 rotulos
+ * distintos, asi que el estilo no puede suponer cuales son ni cuantos.
+ *
+ * Sin rojo: esta pantalla habla de errores del equipo, no de riesgo climatico, y
+ * el rojo esta reservado para la rampa.
+ * -------------------------------------------------------------------------- */
+
+.incidentes {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: var(--espacio-4);
+  display: grid;
+  gap: var(--espacio-4);
+}
+
+.incidentes-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+}
+
+.incidentes-titulo {
+  font-size: var(--texto-xl);
+  margin: 0;
+}
+
+.incidentes-subtitulo {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  max-width: 44rem;
+}
+
+.incidentes-vacio,
+.incidentes-sin-resultados {
+  padding: var(--espacio-4);
+  background: var(--superficie-alterna);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.incidentes-corte {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.incidentes-ausente {
+  color: var(--texto-sobre-sin-dato);
+  font-style: italic;
+}
+
+.incidentes-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--espacio-3);
+}
+
+.incidentes-filtros label {
+  display: grid;
+  gap: var(--espacio-1);
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  flex: 1 1 14rem;
+}
+
+.incidentes-filtros input {
+  font: inherit;
+  font-size: var(--texto-md);
+  color: var(--texto);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  min-width: 0;
+}
+
+.incidentes-filtros input:focus-visible,
+.incidentes-limpiar:focus-visible,
+.incidentes-ficha-cabecera:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+.incidentes-limpiar {
+  font: inherit;
+  font-size: var(--texto-sm);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.incidentes-conteo {
+  margin: 0;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.incidentes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.incidentes-ficha {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+/* La cabecera es el boton entero: un area de clic grande se acierta con el dedo
+   y con el raton, y recibe foco una sola vez en el recorrido con Tab. */
+.incidentes-ficha-cabecera {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.incidentes-ficha-cabecera:hover {
+  background: var(--superficie-alterna);
+}
+
+.incidentes-id {
+  font-family: var(--fuente-datos);
+  font-weight: 700;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.incidentes-ficha-titulo {
+  font-weight: 600;
+}
+
+.incidentes-fecha {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.incidentes-cuerpo {
+  padding: 0 var(--espacio-3) var(--espacio-3);
+  border-top: 1px solid var(--borde);
+}
+
+.incidentes-secciones {
+  margin: 0;
+  display: grid;
+  gap: var(--espacio-3);
+  padding-top: var(--espacio-3);
+}
+
+.incidentes-secciones dt {
+  font-weight: 700;
+  font-size: var(--texto-sm);
+  color: var(--texto);
+}
+
+.incidentes-secciones dd {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  line-height: 1.55;
+}
+
+.incidentes-parrafo {
+  margin: 0 0 var(--espacio-2);
+}
+
+.incidentes-parrafo:last-child {
+  margin-bottom: 0;
+}
+
+/* Los bloques de codigo conservan sus saltos de linea, que es lo que los hace
+   legibles. Se desplazan DENTRO de su caja: una salida de EXPLAIN es mas ancha
+   que un telefono y no puede arrastrar la pagina. */
+.incidentes-codigo {
+  margin: 0 0 var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-3);
+  background: var(--superficie-alterna);
+  border-left: 3px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  overflow-x: auto;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--texto-xs);
+  line-height: 1.5;
+  color: var(--texto);
+  white-space: pre;
+}
+
+/* A 390 px la cabecera de tres columnas no cabe: la fecha baja a su propia
+   linea en vez de empujar el titulo fuera de la pantalla. */
+@media (max-width: 30rem) {
+  .incidentes-ficha-cabecera {
+    grid-template-columns: auto 1fr;
+  }
+
+  .incidentes-fecha {
+    grid-column: 1 / -1;
+  }
+}
+
 .superficie-calor {
   pointer-events: none;
 }
