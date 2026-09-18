@@ -5060,3 +5060,117 @@ una falla tiene que probarse **provocando la falla**. Los tres controles que
 miraban `/salud` lo hacian con algo vivo del otro lado, asi que los tres podian
 estar en verde mientras el unico caso que importa estaba roto. Es la misma
 familia de **I-58**: controles que no ejercitan la rama que dicen cubrir.
+
+---
+
+## I-62 · `ingestar.py` no cierra su corrida si el proceso no sale por la puerta normal
+
+**Fecha.** 2026-09-17, sobre un hecho del **2026-09-06**.
+
+**Quien lo detecto.** El diagnostico de **H12.4**, en su primera corrida real
+contra la base.
+
+**Que paso.** Dos filas consecutivas de `control.bitacora_etl`, medidas el
+2026-09-14:
+
+    62  ingesta.lluvia_intensa  en_curso  inicio 2026-09-06 23:00:12
+        sin terminada_en, sin filas, sin filas_leidas, sin mensaje
+        ventana 2025-12-01 a 2026-09-05
+
+    63  ingesta.lluvia_intensa  exitosa   inicio 2026-09-06 23:03:23
+        cerro 23:04:49 · 1712 filas · 1944 leidas
+        ventana 2025-12-01 a 2026-09-05  (la MISMA)
+
+**La 62 sigue `en_curso` once dias despues.** El diagnostico la encontro con
+**168 horas abierta**, y va a seguir contando.
+
+**Causa raiz. Y es de UBICACION, no de manejo de senales.**
+
+En `registrar_corrida`:
+
+```python
+    try:
+        ...
+        corrida.estado = EXITOSA
+    except (ErrorIngesta, ErrorChirps, ErrorPower, ErrorFirms, ErrorConexion) as error:
+        corrida.estado = FALLIDA
+        corrida.mensaje = f"{type(error).__name__}: {error}"
+    finally:
+        if propio and extractor is not None and hasattr(extractor, "cerrar"):
+            extractor.cerrar()
+
+    if escribir:
+        libro.cerrar(corrida)        # <-- FUERA del try y del finally
+```
+
+Tres cosas, y las tres se leen en esas veinte lineas:
+
+  * el `except` captura **solo las excepciones del proyecto**;
+  * el `finally` cierra **el extractor**, no la corrida;
+  * **`libro.cerrar(corrida)` esta despues del bloque.**
+
+Asi que cualquier salida que no sea por la puerta normal —un `KeyboardInterrupt`,
+una excepcion no listada, un `SystemExit`— **no llega nunca a `libro.cerrar()`**, y
+la fila queda `en_curso` indefinidamente.
+
+**No hace falta suponer una causa para nombrar el defecto.** Con la ubicacion de
+esa llamada alcanza.
+
+**Que causo la 62 en particular: no se sabe y no se afirma.** Que la 63 arrancara
+tres minutos despues con la ventana identica es **compatible** con una
+interrupcion y un relanzamiento, pero eso es una lectura y no un dato. El registro
+no guarda nada de esa corrida: ni filas, ni mensaje, ni fin.
+
+**Tres consecuencias.**
+
+1. **Una corrida colgada no se cierra nunca sola.** Va a aparecer en cada
+   diagnostico futuro como **ruido permanente**, hasta que alguien edite la fila a
+   mano. Y un diagnostico con una senal que siempre esta se deja de leer, que es
+   el modo de fallo que H12.4 persigue.
+
+2. **Ninguna restriccion de la migracion 014 la puede detectar.** La restriccion
+   de coherencia que H12.1 agrego exige `terminada_en IS NULL` cuando el estado es
+   `en_curso`, **y eso es exactamente lo que la 62 tiene**. La fila es
+   perfectamente valida: la incoherencia no esta en su forma, esta en **su edad**.
+
+3. **Justifica retroactivamente la senal `colgada` de H12.4.** Se escribio para
+   este caso sin saber que habia uno real esperando en la tabla, y fue la primera
+   senal que la herramienta reporto.
+
+**Accion tomada.**
+
+1. **Se registra y no se cierra la fila.** Cerrarla a mano borraria el unico caso
+   real de este defecto en la base, y H12.4 la usa como ejemplo vivo. Se cierra
+   cuando el defecto de codigo este corregido.
+2. **En codigo, y no es de quien reporta:** `backend/etl/ingestar.py` es **H1.14,
+   de Alejandro**. Hay dos formas y las dos son chicas:
+   - mover `libro.cerrar(corrida)` dentro de un `finally`, o
+   - ampliar el `except` a `BaseException`, marcar la corrida como fallida con el
+     nombre de la excepcion, y volver a lanzarla.
+
+   Va como solicitud de cambio. **No se toca desde aqui.**
+3. **Lo que el codigo no puede arreglar:** una muerte subita del proceso —un
+   `kill -9`, un apagon, el contenedor reiniciado— no ejecuta ningun `finally`. Ahi
+   la unica defensa posible es **detectarlo despues**, y eso ya existe: es la senal
+   `colgada` de H12.4, con su umbral de 6 horas declarado.
+
+**Aprendizaje.**
+
+> **Un registro que se abre en una linea y se cierra en otra solo esta cerrado si
+> el programa llega a la segunda linea.** Poner el cierre fuera del `try`
+> convierte cualquier interrupcion en una fila abierta para siempre.
+
+Y la que vale para todo el proyecto:
+
+> **Ninguna restriccion de base de datos puede detectar «esto lleva demasiado
+> tiempo asi».** Las restricciones miran la forma de una fila, no su edad. Para eso
+> hace falta algo que corra despues y mire el reloj.
+
+Eso es exactamente el reparto entre la migracion **014** y **H12.4**: la migracion
+impide filas imposibles, el diagnostico encuentra filas posibles que llevan
+demasiado tiempo siendolo. **Ninguna de las dos sustituye a la otra.**
+
+**Impacto.** Ninguno en el producto: es la base local de quien la corrio. Pero el
+mismo defecto en produccion dejaria una corrida abierta que nadie cerraria, y si
+algun proceso contara corridas abiertas para decidir si el ETL esta ocupado, se
+quedaria esperando a una corrida que murio hace once dias.
