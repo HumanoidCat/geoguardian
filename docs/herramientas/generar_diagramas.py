@@ -56,12 +56,22 @@ parece a un diagrama de secuencia sin serlo.
 
 Uso:
     python docs/herramientas/generar_diagramas.py
-    python docs/herramientas/generar_diagramas.py --png    (necesita cairosvg)
+    python docs/herramientas/generar_diagramas.py --png    (seis con Graphviz;
+                                                           el de secuencia
+                                                           necesita cairosvg)
+
+**El PNG es el archivo que el documento tecnico muestra**, y esta en .gitignore,
+asi que no viaja en el repositorio ni lo mira la integracion continua. Por eso
+un PNG que ya existe se rehace en las dos formas de arriba, con bandera y sin
+ella, y por eso el verificador tiene una CA-10 que compara cada PNG con el SVG
+del que salio. Las dos cosas son I-59.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -73,6 +83,8 @@ RAIZ = Path(__file__).resolve().parents[2]
 DDL = RAIZ / "basedatos" / "ddl"
 API = RAIZ / "backend" / "api" / "rutas.py"
 SALIDA = RAIZ / "docs" / "diagramas"
+# De que SVG salio cada PNG. Ver `huella` y la CA-10 del verificador (I-59).
+NOMBRE_REGISTRO = ".origen-png.json"
 
 # Paleta. Sobria a proposito: los diagramas van a un documento academico
 # impreso, y un color que no sobreviva a la escala de grises comunica menos que
@@ -778,7 +790,13 @@ def leer_rutas(archivo: Path = API) -> list[Ruta]:
 #: decision de diseno; la derecha tiene que existir en `rutas.py`.
 CASOS_DE_CONSULTA: list[tuple[str, str, list[str]]] = [
     ("uc_mapa", "Ver el riesgo del canton\\nen una fecha", ["/riesgos"]),
-    ("uc_ficha", "Consultar la ficha\\nde un distrito", ["/distritos/{codigo}/riesgo"]),
+    # `/indices` desde H14.5: la ficha y la primera pantalla leen el SPI-6 del
+    # distrito por ahi, y es una medicion, no una estimacion (D-53, D-34).
+    (
+        "uc_ficha",
+        "Consultar la ficha\\nde un distrito",
+        ["/distritos/{codigo}/riesgo", "/distritos/{codigo}/indices"],
+    ),
     ("uc_serie", "Ver la serie climatica\\nde un distrito", ["/distritos/{codigo}/mediciones"]),
     ("uc_distritos", "Ubicar los distritos\\nen el mapa", ["/distritos", "/distritos/{codigo}"]),
     ("uc_modo", "Saber si los datos\\nson reales o simulados", ["/salud"]),
@@ -875,8 +893,19 @@ def renderizar(dot: str) -> str:
             "Falta Graphviz. En Windows: winget install Graphviz.Graphviz\n"
             "En Debian/Ubuntu: sudo apt install graphviz"
         )
+    # `encoding="utf-8"` NO es opcional y no estaba. Con `text=True` a secas,
+    # Python codifica la entrada y decodifica la salida con la codificacion de
+    # la maquina: UTF-8 en Linux, cp1252 en Windows. Los diagramas llevan
+    # espacios duros y comillas angulares, asi que el mismo guion producia SVG
+    # distintos segun el sistema operativo, y regenerarlos en Windows metia
+    # `Â` en 84 lugares del entidad-relacion. Incidencia **I-56**.
     proceso = subprocess.run(
-        ["dot", "-Tsvg"], input=dot, capture_output=True, text=True, check=False
+        ["dot", "-Tsvg"],
+        input=dot,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
     )
     if proceso.returncode != 0:
         raise RuntimeError(f"dot fallo:\n{proceso.stderr}")
@@ -886,18 +915,70 @@ def renderizar(dot: str) -> str:
     return proceso.stdout[proceso.stdout.index("<svg") :]
 
 
+def huella(svg: str) -> str:
+    """sha256 del SVG con los saltos de linea normalizados.
+
+    `write_text` traduce `\\n` a `\\r\\n` en Windows, asi que el archivo en disco no
+    tiene los mismos bytes que la cadena que se renderizo. Sin normalizar, la
+    huella diria "el PNG esta viejo" en Windows y "esta al dia" en Ubuntu para
+    exactamente el mismo par de archivos. Es I-56 otra vez, en otro sitio.
+    """
+    return hashlib.sha256(svg.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+
+
+def renderizar_png(dot: str, destino: Path) -> None:
+    """PNG directo desde el DOT, con el mismo Graphviz que hace el SVG.
+
+    EL PNG NO SE CONVIERTE DESDE EL SVG, SE RENDERIZA DESDE LA MISMA FUENTE.
+
+    La primera version pasaba el SVG por `cairosvg`. Eso metia una dependencia
+    que no estaba declarada en ningun `requirements`, que en Windows necesita las
+    DLL de cairo y no se instala sola, y que el 2026-09-16 no estaba puesta en el
+    entorno del proyecto: pedir `--png` escribia los siete SVG, imprimia una
+    linea a mitad de la salida y no hacia ningun PNG. Ver **I-59**.
+
+    `dot -Tpng` sale del mismo DOT que el SVG, con el Graphviz que el proyecto ya
+    exige para cualquier diagrama. Una dependencia menos y una fuente menos.
+
+    `-Gdpi=192` es el doble de los 96 de por si, que es lo que hacia el `scale=2`
+    de antes: el documento se imprime y 96 puntos por pulgada se ve pastoso.
+    """
+    proceso = subprocess.run(
+        ["dot", "-Tpng", "-Gdpi=192"],
+        input=dot.encode("utf-8"),
+        capture_output=True,
+        check=False,
+    )
+    if proceso.returncode != 0:
+        raise RuntimeError(f"dot -Tpng fallo:\n{proceso.stderr.decode('utf-8', 'replace')}")
+    destino.write_bytes(proceso.stdout)
+
+
+def fuentes_dot() -> dict[str, str]:
+    """Nombre -> fuente DOT, para los seis que dibuja Graphviz.
+
+    El de secuencia no esta: se escribe a mano como SVG y no tiene DOT.
+    """
+    fuentes = {"entidad-relacion": dot_entidad_relacion(leer_ddl())}
+    for nombre, fabrica in DECLARADOS.items():
+        fuentes[nombre] = fabrica()
+    return fuentes
+
+
 def generar() -> dict[str, str]:
     """Nombre -> contenido SVG. Todo lo que este archivo produce, en un lugar."""
-    salida = {"entidad-relacion": renderizar(dot_entidad_relacion(leer_ddl()))}
-    for nombre, fabrica in DECLARADOS.items():
-        salida[nombre] = renderizar(fabrica())
+    salida = {nombre: renderizar(dot) for nombre, dot in fuentes_dot().items()}
     salida["secuencia-consulta-riesgo"] = svg_secuencia()
     return salida
 
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--png", action="store_true", help="ademas del SVG, para el documento")
+    p.add_argument(
+        "--png",
+        action="store_true",
+        help="crea tambien los PNG del documento. Los que ya existen se rehacen sin la bandera",
+    )
     p.add_argument("--salida", type=Path, default=SALIDA)
     args = p.parse_args()
 
@@ -926,23 +1007,98 @@ def main() -> int:
         except ValueError:
             return str(ruta)
 
+    # UN PNG QUE YA EXISTE SE REHACE AUNQUE NO SE PIDA `--png`.
+    #
+    # Antes el PNG solo se escribia con la bandera, y olvidarla no tenia
+    # consecuencia visible: el SVG quedaba al dia y el PNG viejo se quedaba en
+    # disco. Eso importa porque **el documento tecnico muestra los PNG**, no los
+    # SVG, y los PNG estan en .gitignore, asi que ningun control los miraba.
+    # El 2026-09-16 se midio que `componentes.png` seguia sin `PanelDistrito` ni
+    # `TableroSemaforo` y seguia diciendo `GET /riesgo`: el defecto exacto que
+    # CA-6 encontro y corrigio el 2026-09-02, catorce dias antes, en el SVG.
+    # Incidencia **I-59**.
+    #
+    # La bandera pasa a significar "creamelos la primera vez", no "acordate de
+    # actualizarlos". Lo segundo es una cosa que hay que recordar, y esa es la
+    # clase de arreglo que este proyecto ya decidio no aceptar.
+    dots = fuentes_dot()
+    registro: dict[str, str] = {}
+    sin_hacer: list[str] = []
+    cairosvg = None
+    sin_cairosvg = False
+    motivo_cairosvg = ""
+
     for nombre, contenido in generar().items():
         destino = args.salida / f"{nombre}.svg"
         destino.write_text(contenido, encoding="utf-8")
         print(f"  {mostrar(destino)}")
 
-        if args.png:
-            try:
-                import cairosvg
-            except ImportError:
-                print("        (sin PNG: falta cairosvg. pip install cairosvg)")
+        png = args.salida / f"{nombre}.png"
+        if not (args.png or png.exists()):
+            continue
+
+        if nombre in dots:
+            renderizar_png(dots[nombre], png)
+        else:
+            # Solo el de secuencia cae aca: es SVG escrito a mano, no tiene DOT,
+            # y convertirlo necesita un rasterizador de SVG. Es el unico sitio
+            # donde `cairosvg` sigue haciendo falta.
+            if cairosvg is None and not sin_cairosvg:
+                # `except Exception` a proposito, y no `ImportError`.
+                #
+                # `cairosvg` se instala con pip sin problema y **falla al
+                # importarse** si no encuentra las DLL de cairo, que en Windows
+                # no vienen con el paquete. Eso lanza `OSError: no library
+                # called "cairo-2" was found`, no `ImportError`. Con el `except`
+                # estrecho, el generador se caia con una traza en vez de escribir
+                # los seis PNG que si puede hacer. Se imprime el error tal cual
+                # en vez de traducirlo: el mensaje de cairo dice que DLL falta.
+                try:
+                    import cairosvg as _cairosvg
+                except Exception as error:  # noqa: BLE001
+                    sin_cairosvg = True
+                    motivo_cairosvg = f"{type(error).__name__}: {error}"
+                else:
+                    cairosvg = _cairosvg
+            if cairosvg is None:
+                sin_hacer.append(nombre)
                 continue
-            cairosvg.svg2png(
-                bytestring=contenido.encode("utf-8"),
-                write_to=str(args.salida / f"{nombre}.png"),
-                scale=2,
-            )
-            print(f"  {mostrar(args.salida / f'{nombre}.png')}")
+            cairosvg.svg2png(bytestring=contenido.encode("utf-8"), write_to=str(png), scale=2)
+
+        registro[nombre] = huella(contenido)
+        print(f"  {mostrar(png)}")
+
+    # El registro se reescribe entero, no se fusiona con el anterior. Puede
+    # hacerse porque el bucle acaba de rehacer TODO PNG que estuviera en disco:
+    # despues de esta linea no queda ninguno cuyo origen no se sepa. Si se
+    # fusionara, un PNG borrado a mano dejaria su huella vieja detras y el
+    # verificador diria que esta al dia un archivo que no existe.
+    if registro:
+        (args.salida / NOMBRE_REGISTRO).write_text(
+            json.dumps(registro, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print(f"  {mostrar(args.salida / NOMBRE_REGISTRO)}")
+
+    # SE AVISA AL FINAL Y EN VOZ ALTA, Y SE SALE CON 1.
+    #
+    # Antes esto era una linea a mitad de la salida y un codigo de salida 0:
+    # pedir `--png` y no obtener ningun PNG se veia igual que obtenerlos todos.
+    # Un no-hacer-nada silencioso es la forma de I-59, y repetirla dentro del
+    # arreglo de I-59 seria comico.
+    if sin_hacer:
+        print()
+        print("  NO SE PUDIERON HACER ESTOS PNG:")
+        for nombre in sin_hacer:
+            print(f"    {nombre}.png")
+        print()
+        print("  Ese diagrama es SVG escrito a mano y hace falta un rasterizador:")
+        print("      pip install cairosvg")
+        if motivo_cairosvg:
+            print()
+            print(f"  cairosvg no se pudo usar: {motivo_cairosvg}")
+        print()
+        if args.png:
+            return 1
 
     print()
     return 0

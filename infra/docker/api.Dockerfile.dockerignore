@@ -39,8 +39,14 @@ docs/
 notebooks/
 datos/
 backend/etl/
-backend/senales/
-backend/modelado/
+# H14.5 (D-53): `backend/senales/` entra entero y de `backend/modelado/` entra
+# SOLO `etiquetado.py`. Se excluye todo lo demas de esa carpeta por nombre, y
+# despues se exceptuan los dos archivos: asi un modulo nuevo en modelado queda
+# fuera por omision, que es el lado seguro.
+backend/senales/__pycache__/
+backend/modelado/*
+!backend/modelado/__init__.py
+!backend/modelado/etiquetado.py
 backend/calidad/
 backend/tests/
 basedatos/ddl/

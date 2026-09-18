@@ -73,7 +73,15 @@ MALLAS = {
     "power": (0.625, 0.5, "centro"),  # MERRA-2, la que sirve NASA POWER
     "chirps": (0.05, 0.05, "borde"),
     "era5-land": (0.1, 0.1, "centro"),  # lo que entrega el CDS por API
+    "era5": (0.25, 0.25, "centro"),  # el reanalisis que SI sirve lluvia diaria (D-47, enmienda)
 }
+
+# El anclaje de "era5" no se asumio: se observo. El 2026-09-14 se le pidio a
+# Open-Meteo el punto del canton, 10.486735 / -84.900749, declarando models=era5,
+# y la respuesta vino etiquetada con la celda 10.5 / -85.0. Con anclaje "centro"
+# ese punto cae exactamente ahi; con anclaje "borde" caeria en otra. Misma
+# comprobacion que se le hizo a "power" con la observacion de I-05.
+OBSERVACION_ERA5 = ((-84.900749, 10.486735), (-85.0, 10.5))  # punto pedido, celda devuelta
 
 # Los dos puntos que Cesar consulto el 16 de agosto y que POWER devolvio
 # identicos hasta el ultimo decimal. Ver incidencia I-05.
@@ -116,6 +124,10 @@ def autoprueba() -> bool:
     NASA POWER devolvio valores identicos para los dos puntos de la incidencia
     I-05. Si esta herramienta dice que caen en celdas distintas, la herramienta
     esta mal: el dato observado manda.
+
+    Para la malla "era5" la observacion es otra: Open-Meteo devuelve etiquetada la
+    celda que uso. El punto pedido y la celda devuelta tienen que caer en la misma
+    celda; si no, el anclaje declarado es el equivocado.
     """
     paso_lon, paso_lat, anclaje = MALLAS["power"]
     a, b = (celda(*p, paso_lon, paso_lat, anclaje) for p in OBSERVACION_I05)
@@ -126,6 +138,18 @@ def autoprueba() -> bool:
             f"  caen en celdas distintas de POWER ({a} y {b}), pero la fuente les\n"
             "  devolvio el mismo valor. La logica de celdas esta mal; no se puede\n"
             "  confiar en el resto de la salida.",
+            file=sys.stderr,
+        )
+        return False
+
+    paso_lon, paso_lat, anclaje = MALLAS["era5"]
+    pedido, devuelta = (celda(*p, paso_lon, paso_lat, anclaje) for p in OBSERVACION_ERA5)
+
+    if pedido != devuelta:
+        print(
+            "AUTOPRUEBA FALLIDA: para la malla 'era5' el punto pedido cae en la\n"
+            f"  celda {pedido} y la celda que Open-Meteo dijo haber usado cae en\n"
+            f"  {devuelta}. El anclaje declarado no es el de la fuente.",
             file=sys.stderr,
         )
         return False

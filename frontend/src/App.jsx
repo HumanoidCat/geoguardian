@@ -25,6 +25,8 @@ import LeyendaIndice from './componentes/LeyendaIndice'
 import LogoGeoGuardian from './componentes/LogoGeoGuardian'
 import EstadoDatos from './componentes/EstadoDatos'
 import HoyEnTuDistrito from './componentes/HoyEnTuDistrito'
+import HistorialEventos from './componentes/HistorialEventos'
+import { obtenerHistorial } from './datos/historial'
 import TitularRiesgo from './componentes/TitularRiesgo'
 import { resumirPaquetes } from './datos/resumen'
 
@@ -125,6 +127,7 @@ export default function App() {
   // Los indices de H5.5. Se cargan una sola vez: no dependen del evento ni de la
   // fecha del selector, porque son de la fecha de la escena de satelite.
   const [indices, setIndices] = useState(null)
+  const [historial, setHistorial] = useState(null)
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -159,6 +162,21 @@ export default function App() {
     let vigente = true
     obtenerIndices().then((paquete) => {
       if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // El historial de eventos documentados, tambien aparte y tambien una sola vez.
+  //
+  // Es un archivo estatico y no cambia con el evento ni con la fecha: son
+  // eventos que ya ocurrieron. Si no esta, la pantalla lo dice y el resto del
+  // visor sigue igual, por lo mismo que los indices.
+  useEffect(() => {
+    let vigente = true
+    obtenerHistorial().then((paquete) => {
+      if (vigente) setHistorial(paquete)
     })
     return () => {
       vigente = false
@@ -364,6 +382,10 @@ export default function App() {
         />
       )}
 
+      {!cargando && vista === 'historial' && (
+        <HistorialEventos historial={historial} alVerMapa={() => setVista('mapa')} />
+      )}
+
       {!cargando && coleccion && vista === 'mapa' && (
         <>
           {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
@@ -376,6 +398,24 @@ export default function App() {
                 ? `Ver que viene esta semana en ${distritoSeleccionado.nombre}`
                 : 'Ver que viene esta semana en tu distrito'}
             </button>
+            {/* El historial va junto a la otra entrada y no en un menu: son las
+                dos unicas salidas del mapa, y esconder una detras de un menu en
+                una pantalla que ya cabe entera es trabajo para quien mira.
+
+                El numero de eventos va en el texto porque un enlace que dice
+                «Historial» no promete nada; uno que dice cuantos hay dice si vale
+                la pena el clic. Cuando el archivo no esta, el boton no aparece:
+                llevar a una pantalla que solo puede decir «no disponible» es
+                peor que no ofrecerla. */}
+            {historial && (
+              <button
+                type="button"
+                className="boton-ir-a-hoy"
+                onClick={() => setVista('historial')}
+              >
+                {`Ver los ${historial.eventos.length} eventos documentados del canton`}
+              </button>
+            )}
           </div>
 
           <TitularRiesgo

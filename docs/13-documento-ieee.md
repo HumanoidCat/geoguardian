@@ -40,9 +40,13 @@ lang: es
 > | La hipótesis H1 se reporta **rechazada** con la medición cerrada | «No mostrar avances donde no hemos llegado». Ningún algoritmo supera a la línea base fuera del ruido |
 > | Conclusiones reescritas desde lo medido; el trabajo futuro va aparte | «La conclusión sale de la investigación realizada» |
 >
-> **Lo que este documento NO afirma, a propósito.** No reporta la medición
-> exploratoria de H3.9 (calendario y geografía en la matriz), porque la historia
-> está abierta y no está en producción. Cuando cierre, entra a V-D con su tabla.
+> **Actualizado el 14 de setiembre.** La versión anterior declaraba que no
+> reportaba la medición de H3.9 —calendario y geografía en la matriz— porque la
+> historia estaba abierta. Cerró el 13 de setiembre y está en producción: entra a
+> V-D con su tabla (XVIII) y cambia quién escribe la estimación de incendio
+> (V-E). Con el mismo corte entra el contraste de las **estimaciones publicadas**
+> contra el catálogo de eventos reales (V-G, Tabla XVII), que hasta ahora solo se
+> había hecho sobre el etiquetado.
 >
 > **Las cifras.** Las que la integración continua puede recalcular las vigila
 > `verificar_documentacion.py`. Las que salen del conjunto etiquetado —que no se
@@ -75,7 +79,7 @@ línea base climatológica **se rechaza**: sobre 99 296 filas y 34 años, ningú
 algoritmo la supera fuera de la dispersión entre pliegues en lluvia intensa ni
 en incendio, y la sequía no alcanza el mínimo de episodios independientes que
 el propio diseño exigía para modelarse (13 episodios en 34 años, 2 en el peor
-pliegue). Tercero, el etiquetado sí reconoce los eventos reales: marca riesgo
+pliegue; al rehacer la cuenta sobre 76 años de reanálisis, 24 y 1). Tercero, el etiquetado sí reconoce los eventos reales: marca riesgo
 en la semana previa a un evento histórico 4,74 veces más a menudo que en una
 semana cualquiera en lluvia intensa y 6,31 veces en sequía.
 
@@ -452,9 +456,17 @@ escribe el sistema.
 
 **Matriz de características.** 27 columnas derivadas de cuatro variables diarias
 —precipitación, temperatura máxima, humedad relativa y viento— mediante rezagos
-de uno a tres días y medias móviles de 3, 7 y 30 días. Ninguna columna dice qué
-día del año es ni de qué distrito se trata; esa es una decisión de diseño cuya
-consecuencia se discute en VI-B.
+de uno a tres días y medias móviles de 3, 7 y 30 días. Ninguna de esas columnas
+dice qué día del año es ni de qué distrito se trata, y esa asimetría frente a la
+línea base es deliberada: se discute en VI-B.
+
+El **13 de setiembre** se cerró agregando cinco columnas —seno y coseno del día
+del año, y la longitud, la latitud y el tamaño del distrito, leídos de la
+geometría oficial—: la matriz pasa a **32 columnas** y los modelos ven la fecha y
+el lugar. La comparación se rehízo entera con esa matriz y el resultado está en
+V-D (Tabla XIII). Todo lo que este documento reporta sobre importancia de
+variables y explicaciones locales (V-F) se midió **antes** de ese cambio, sobre
+las 27, y se indica donde corresponde.
 
 **Dos líneas base, no una.** La **trivial** predice siempre la clase mayoritaria
 del entrenamiento y es el piso absoluto. La **climatológica** predice, para cada
@@ -646,10 +658,15 @@ cada una con distrito explícito. **Ninguna es un incendio forestal.** La base
 distingue el tipo *FIRE* del tipo *FORESTFIRE*, y las cuatro fichas *FIRE* de
 Tilarán son incendios estructurales —locales comerciales, una bodega—.
 
-Consecuencia directa: el contraste del componente de incendio contra eventos
-históricos **no se puede hacer con registro documental**, y no por una limitación
-de este trabajo sino porque ese registro no contiene el fenómeno. Queda como
-limitación declarada (VII-B).
+Consecuencia directa: el contraste del componente de incendio **no se puede hacer
+contra este inventario**, y no por una limitación de este trabajo sino porque el
+inventario no contiene el fenómeno. Queda como limitación declarada (VII-B).
+
+La afirmación es sobre **esta fuente**, no sobre la existencia del fenómeno. El
+catálogo de eventos que se usa en V-G incorpora un incendio forestal del cantón
+documentado por prensa en 2026, fuera del período etiquetado y por lo tanto
+inútil para validar el etiquetado, pero utilizable contra las estimaciones
+publicadas, que proyectan más allá de la última etiqueta.
 
 ### F. La sequía histórica no está desagregada por distrito
 
@@ -864,21 +881,77 @@ Tres observaciones sobre cómo se llegó a esa tabla, que importan para leerla:
    y decidió el desempate por simplicidad; presentar la esquina ganadora como un
    ajuste fino sería falso.
 
+**La misma comparación, con la matriz simétrica.** La Tabla XII compara estimadores que **no ven lo mismo**: la climatológica *es* el
+calendario, y las 27 columnas no lo contienen. Esa asimetría se cerró el 13 de
+setiembre (III-E) y la comparación se rehízo entera: misma partición, mismas
+99 296 filas, misma métrica, mismos estimadores afinados. Lo único distinto es el
+ancho de la matriz.
+
+**Tabla XIII.** F1-macro con la matriz de 27 columnas y con la de 32 (media y
+rango entre pliegues). Las dos líneas base no cambian por construcción, y esa
+igualdad es la comprobación de que solo cambió el ancho de la matriz.
+
+| Evento | Estimador | 27 col | rango | 32 col | rango | Δ |
+|---|---|---|---|---|---|---|
+| Lluvia intensa | XGBoost | 0,327 | 0,057 | **0,348** | 0,037 | +0,021 |
+| | Random Forest | 0,322 | 0,048 | 0,345 | 0,035 | +0,023 |
+| | Regresión logística | 0,305 | 0,045 | 0,324 | 0,051 | +0,019 |
+| | Climatológica | 0,346 | 0,027 | 0,346 | 0,027 | — |
+| | Trivial | 0,309 | 0,015 | 0,309 | 0,015 | — |
+| | *Veredicto* | *la climatológica gana +0,019* | | *empate técnico, XGBoost +0,002* | | |
+| Incendio | Random Forest | 0,557 | 0,055 | 0,553 | 0,064 | −0,004 |
+| | XGBoost | 0,544 | 0,057 | 0,547 | 0,061 | +0,003 |
+| | Regresión logística | 0,530 | 0,061 | 0,529 | 0,063 | −0,001 |
+| | Climatológica | 0,500 | 0,138 | 0,500 | 0,138 | — |
+| | Trivial | 0,494 | 0,009 | 0,494 | 0,009 | — |
+| | *Banda de la regla* | *0,502* | | *0,489* | | |
+
+**En lluvia intensa las columnas sirven y no alcanzan.** Los tres algoritmos
+suben entre 0,019 y 0,023, y XGBoost además se estabiliza: su rango entre
+pliegues baja de 0,057 a 0,037. Con eso pasa de perder por 0,019 contra la
+climatológica a superarla por **0,002**, que sobre un rango de 0,037 es empate
+técnico. **Deja de perder; no gana.** La objeción de que la comparación era
+asimétrica queda respondida con una medición, y H1 sigue sin sostenerse.
+
+**En incendio las columnas no mueven nada** —−0,004, +0,003, −0,001 son ruido—
+**y aun así cambia quién escribe.** El rango del líder sube de 0,055 a 0,064, la
+banda de la regla —el mejor menos su propio rango— baja de 0,502 a 0,489, y la
+climatológica, que estaba fuera por 0,002, **entra**. Dentro de la banda la regla
+elige el más simple, que es ella.
+
+Eso expone una propiedad de la regla que conviene decir en voz alta: **el
+estimador que escribe puede cambiar porque el líder se volvió más ruidoso, no
+porque alguien haya mejorado.** Ya había ocurrido en sentido contrario al afinar
+los modelos. No se corrige aquí: cambiar la regla después de ver el resultado es
+exactamente lo que la regla existe para impedir.
+
 ### E. Qué estimador escribe la estimación publicada
 
-La regla de III-E, aplicada a la Tabla XII, da: en **lluvia intensa** escribe la
-**climatológica**, porque nadie gana fuera del ruido y es la más simple de las
-que quedan dentro. En **incendio** escribe la **regresión logística**: el bosque
-afinado subió el techo de la banda de ruido a 0,502 y la climatológica, en
-0,500, quedó fuera por **0,002**; la regresión es la más simple de las que
-quedan dentro. En **sequía** no escribe nadie.
+La regla de III-E, aplicada a la Tabla XII y actualizada con la Tabla XIII, da:
+en **lluvia intensa** escribe la **climatológica**, porque nadie gana fuera del
+ruido y es la más simple de las que quedan dentro. En **incendio** escribe
+también la **climatológica**, desde el 13 de setiembre. En **sequía** no escribe
+nadie.
 
-Ese segundo resultado hay que enunciarlo con cuidado. **La regresión logística
-no le gana a la climatológica** —0,530 ± 0,061 contra 0,500 ± 0,138— y escribe
-porque quedó dentro de la banda de *otro* estimador, no porque haya demostrado
-nada. Cambió quién escribe por afinar un modelo que no escribe. Se aplicó la
-regla tal como estaba escrita y el borde queda registrado como una debilidad de
-la regla a decidir por sus propios méritos, sin este resultado a la vista.
+El caso del incendio hay que enunciarlo con cuidado, porque **cambió dos veces
+sin que ningún estimador demostrara nada**. Primero escribía la regresión
+logística: el bosque afinado subió el techo de la banda a 0,502 y la
+climatológica, en 0,500, quedó fuera por 0,002 —o sea que cambió quién escribe
+por afinar un modelo que no escribe—. Después, con la matriz de 32 columnas, el
+rango del bosque creció, la banda bajó a 0,489 y la climatológica entró: escribe
+ella, por ser la más simple dentro de la banda. **Ninguno de los dos cambios lo
+produjo una mejora de desempeño**; los produjo el movimiento del ruido del
+líder.
+
+Se aplicó la regla tal como estaba escrita, las dos veces, y el borde queda
+registrado como una debilidad de la regla, a decidir por sus propios méritos y
+sin estos resultados a la vista.
+
+En producción el cambio se hace efectivo en la primera corrida programada
+posterior a la fusión: la del 14 de setiembre todavía escribió la regresión
+logística, con el código anterior. Cada estimación publicada declara el nombre y
+las cifras de quien la escribió, así que qué estimador está activo **se lee de
+cualquier fila**, no se supone.
 
 Cada estimación publicada declara quién la escribió y con qué cifras, de modo
 que se puede reproducir y se puede retirar. La tubería que aplica la regla y
@@ -889,9 +962,11 @@ escribe las filas se describe en `[38]`.
 Dos mediciones independientes, hechas sobre los estimadores afinados, confirman
 desde otro ángulo el resultado de la Tabla XII.
 
-**Importancia de variables por permutación.** Sobre el conjunto de prueba de cada
-pliegue, con cinco repeticiones por columna, **ningún modelo se apoya en ninguna
-de las 27 columnas de forma estable entre pliegues** (Tabla XIII): de seis
+**Importancia de variables por permutación**, medida sobre la matriz de 27
+columnas y **antes** de que entraran el calendario y la geografía (III-E). Sobre
+el conjunto de prueba de cada pliegue, con cinco repeticiones por columna,
+**ningún modelo se apoya en ninguna de las 27 columnas de forma estable entre
+pliegues** (Tabla XIV): de seis
 combinaciones, cinco no tienen una sola columna cuya caída media supere su propio
 rango, y la sexta tiene exactamente una, y es *negativa* —permutar la media
 móvil de tres días de la temperatura máxima *mejora* a la regresión logística en
@@ -900,7 +975,7 @@ banda es lo que se espera por azar; es una pista para revisar, no una
 conclusión. XGBoost en incendio, además, **no usa ninguna de las seis columnas
 de precipitación**: permutarlas no cambió una sola predicción.
 
-**Tabla XIII.** Columnas cuya importancia por permutación supera su propio rango
+**Tabla XIV.** Columnas cuya importancia por permutación supera su propio rango
 entre pliegues, de 27.
 
 | Evento | Regresión logística | Random Forest | XGBoost |
@@ -926,9 +1001,9 @@ la importancia global midió y de lo que la Tabla XII dice por otro camino.
 
 Esta subsección responde PI3 y **no requiere modelo**. Se contrastó el etiquetado
 contra el catálogo de 46 registros de III-F, con la ventana estricta de siete
-días (Tabla XIV, Fig. 6).
+días (Tabla XV, Fig. 6).
 
-**Tabla XIV.** Cobertura, tasa base y realce del etiquetado sobre los eventos
+**Tabla XV.** Cobertura, tasa base y realce del etiquetado sobre los eventos
 históricos, ventana [*E*−7, *E*−1]. Intervalos de Wilson al 95 %.
 
 | Evento | Registros | Contrastables | Detecta | Cobertura (IC 95 %) | Tasa base | **Realce** |
@@ -940,7 +1015,7 @@ históricos, ventana [*E*−7, *E*−1]. Intervalos de Wilson al 95 %.
 ![Cobertura contra tasa base, y el realce resultante](figuras/contraste-catalogo.png)
 
 **Fig. 6.** Cobertura contra tasa base, y el realce resultante. Datos de la Tabla
-XIV. El incendio no aparece: su único registro en el catálogo es de 2026,
+XV. El incendio no aparece: su único registro en el catálogo es de 2026,
 posterior a la serie etiquetada, lo que confirma la limitación anticipada en
 IV-E antes de medir.
 
@@ -948,7 +1023,7 @@ Las coberturas salen de 34 y 7 observaciones; la tasa base, de casi cien mil.
 Por eso se acompañan de su intervalo de Wilson y no del de Wald, que con esos
 tamaños tiene cobertura errática y colapsa a un punto cuando la proporción es 0
 o 1 `[34]`. El realce de sequía de esta tabla (6,31×, tasa base 15,9 %) y el de
-la Tabla XV (6,50, tasa base 15,4 %) provienen de dos herramientas distintas
+la Tabla XVI (6,50, tasa base 15,4 %) provienen de dos herramientas distintas
 —el contraste general y la comparación de escalas— que cuentan la tasa base
 sobre conjuntos de días ligeramente distintos; la diferencia no altera ninguna
 conclusión y se declara en vez de unificarse a mano.
@@ -957,13 +1032,13 @@ conclusión y se declara en vez de unificarse a mano.
 de 7**, y la marca más cercana quedaba a −37 días, *el mismo −37 en los ocho
 distritos*. Una coincidencia de fechas se dispersa entre distritos; un valor
 idéntico en los ocho es la firma de algo estructural. Medidas las tres escalas
-contra el mismo catálogo (Tabla XV), SPI-6 y SPI-12 detectan los siete con la
+contra el mismo catálogo (Tabla XVI), SPI-6 y SPI-12 detectan los siete con la
 ventana estricta: el SPI-3 no fallaba por un desajuste de relojes, fallaba
 porque **sale de sequía antes de que el daño se declare** —integra tres meses, y
 para el 30 de septiembre de 2014 las lluvias de setiembre ya lo habían
 recuperado mientras la declaratoria se emitía—.
 
-**Tabla XV.** Las tres escalas del SPI contra el mismo catálogo, ventana
+**Tabla XVI.** Las tres escalas del SPI contra el mismo catálogo, ventana
 estricta.
 
 | Escala | Cobertura a 7 días | Realce (IC 95 %) | Episodios por distrito |
@@ -987,6 +1062,74 @@ marca llegó *después* del evento. El patrón admite tres explicaciones que est
 contraste no separa: imprecisión de fecha en la fuente, que el máximo del
 acumulado de 72 h caiga uno o dos días después del daño, o daño sin extremo
 meteorológico sobre una cuenca ya saturada. Se retoma en VIII-A.
+
+**El mismo catálogo, ahora contra las estimaciones publicadas.** Todo lo anterior mide **el etiquetado**: si la variable objetivo reconoce los
+eventos que ocurrieron. Queda una pregunta distinta y más exigente, que ninguna
+sección anterior responde: **qué dijo el sistema publicado**, el día y el
+distrito donde ocurrió cada evento.
+
+Se midió el 14 de setiembre leyendo la interfaz pública del sistema —sin
+credenciales, 62 peticiones— y cruzándola con el mismo catálogo. De los 46
+registros, 35 son contrastables: se excluyen los 7 de sequía, que no se estima, y
+4 anteriores al inicio de la serie. Cada fila leída conserva el nombre y las
+cifras del estimador que la escribió.
+
+El denominador no es la tasa base del etiquetado sino **la del propio estimador**:
+la proporción de sus 96 celdas de distrito por mes en las que dice «alto». Es la
+comparación que responde si la estimación distingue un día con evento de
+cualquier otro día del mismo mes.
+
+**Tabla XVII.** Las estimaciones publicadas contra el catálogo de eventos reales.
+La tasa base es la del estimador que escribe cada evento, sobre sus celdas con
+estimación. El realce pareado usa la tasa del mes de cada evento como
+denominador, porque los eventos del catálogo se concentran en setiembre y
+octubre.
+
+| Evento | Contrastables | Anticipados | Cobertura (IC 95 %) | Tasa base | Realce | Realce pareado |
+|---|---|---|---|---|---|---|
+| Lluvia intensa | 34 | 8 | 23,5 % [12,4 %, 40,0 %] | 26,0 % | **0,90×** | **0,63×** |
+| Incendio | 1 | 1 | 100 % [20,7 %, 100 %] | 42,9 % | 2,33× | 1,00× |
+
+**La estimación publicada de lluvia intensa no anticipa los eventos del catálogo
+mejor que su propia tasa de decir «alto».** El intervalo de la cobertura contiene
+a la tasa base, así que con 34 eventos no se puede afirmar que acierte *peor*;
+lo que queda cerrado es que no acierta *mejor*. Pareado mes a mes —la comparación
+justa, porque el estimador ya dice «alto» más seguido en setiembre y octubre— se
+esperaban 12,8 aciertos por azar y hubo 8, a 1,8 desviaciones.
+
+Tres observaciones sobre cómo leer esa tabla:
+
+1. **Veintiuno de los 34 eventos quedaron en «medio»**, y cinco en «bajo». Sobre
+   un evento con daños registrados, el sistema publicado dijo «riesgo medio» seis
+   de cada diez veces.
+2. **Cinco eventos ocurrieron en celdas donde el estimador da probabilidad cero**
+   de riesgo alto: en ese distrito y ese mes el etiquetado histórico nunca marcó
+   alto, y aun así hubo daños. Cuatro de los cinco son de mayo.
+3. **Seis de los ocho aciertos provienen de dos temporales** que afectaron varios
+   distritos el mismo día. El catálogo tiene una fila por distrito afectado, de
+   modo que ocho aciertos por fila son **tres episodios**, y cualquier conteo por
+   filas infla el resultado.
+
+El incendio se contrasta aquí y no antes por la razón de IV-E: su único registro
+es posterior al período etiquetado, pero las estimaciones lo cubren porque el
+estimador vigente proyecta más allá de la última etiqueta. **El acierto no
+sostiene nada**: en abril ese estimador dice «alto» en el 100 % de sus celdas con
+estimación, de modo que el realce pareado es 1,00× y el intervalo sobre un solo
+evento va del 20,7 % al 100 %. Se reporta porque un acierto vacío declarado es
+más útil que un acierto vacío presentado como logro.
+
+**Que PI3 se responda que sí y esta tabla que no, no es una contradicción.** Las
+dos mediciones miran cosas distintas: el etiquetado se construye con la lluvia
+que efectivamente cayó en esos días, y por eso reconoce los eventos; la
+estimación publicada solo mira el distrito y el mes calendario, y devuelve el
+mismo valor todos los días de ese mes y todos los años. **Un almanaque no
+distingue el 5 de octubre de 2017 del 12 de octubre de 2017.** La etiqueta
+describe bien lo que ocurrió; lo que ocurrió no es, a siete días y con estas
+fuentes, deducible del calendario.
+
+Por la misma razón que en la Tabla XV, no se reporta precisión: que una fecha no
+esté en el catálogo no significa que no ocurriera nada, así que una estimación
+«alto» sin registro no es un falso positivo comprobado.
 
 ---
 
@@ -1022,7 +1165,8 @@ lluvia intensa la climatológica queda incluso por encima de los tres; en
 incendio la diferencia entre el primero y la climatológica (+0,057) cae dentro
 del rango de esta última, que es de 0,138, y la regla no declara ganador. En
 sequía, los 13 episodios en 34 años no alcanzan el mínimo que el diseño exigía
-(Tabla X).
+(Tabla X), y rehacer la cuenta sobre 76 años no lo cambia: 24 episodios y 1 en
+el peor pliegue (IX-C).
 
 **La hipótesis H1 se rechaza.** No se rechaza por falta de intento: se
 entrenaron los tres algoritmos, se afinaron sus hiperparámetros sobre una
@@ -1034,14 +1178,21 @@ tan bueno como un ensamble de árboles que mira las variables meteorológicas de
 los treinta días anteriores.
 
 Hay una razón estructural que la medición hace visible. La climatológica *es* el
-calendario, y los modelos compiten contra ella sin poder verlo: la matriz de
-27 columnas no contiene el día del año ni el distrito (III-E). Es decir, se les
-pidió que reconstruyeran la estación a partir de temperatura, humedad y lluvia
-recientes, y la reconstruyeron aproximadamente igual de bien que quien la lee
-del almanaque. Que la comparación sea *justa* en ese sentido —todos los
-estimadores ven lo mismo excepto la fecha— es lo que hace informativo el empate:
-lo que las variables meteorológicas de corto plazo aportan **por encima** de la
-estacionalidad, a siete días, no es distinguible del ruido entre pliegues con
+calendario, y en la Tabla XII los modelos competían contra ella sin poder verlo:
+la matriz de 27 columnas no contenía el día del año ni el distrito (III-E). Se
+les pedía reconstruir la estación a partir de temperatura, humedad y lluvia
+recientes, y la reconstruían aproximadamente igual de bien que quien la lee del
+almanaque.
+
+**Esa objeción dejó de ser hipotética y se midió.** Con las cinco columnas de
+calendario y geografía —la matriz simétrica de 32 columnas, Tabla XIII— los tres
+algoritmos suben entre 0,019 y 0,023 en lluvia intensa y el mejor pasa a superar
+a la climatológica por **0,002**, sobre un rango entre pliegues de 0,037. Es
+decir: **darles exactamente lo que la línea base ve no produce un ganador, lo que
+produce es un empate.** El resultado de este trabajo no descansa entonces en una
+comparación asimétrica, que era la lectura alternativa más razonable, sino en
+que lo que las variables meteorológicas de corto plazo aportan **por encima** de
+la estacionalidad, a siete días, no es distinguible del ruido entre pliegues con
 34 años de datos.
 
 Dos resultados independientes son coherentes con esa lectura y la refuerzan
@@ -1060,17 +1211,21 @@ pliegues.
 
 ### C. PI3: la variable objetivo reconoce los eventos reales
 
-**Respuesta: sí, para los dos eventos contrastables.** El etiquetado marca riesgo
-en la semana previa a un evento histórico 4,74 veces más a menudo que en una
-semana cualquiera en lluvia intensa, y 6,31 veces en sequía (Tabla XIV). Para el
-incendio no hay registro histórico contra el cual contrastar, y no por una
-limitación de este trabajo sino porque el inventario nacional no contiene el
-fenómeno (IV-E).
+**Respuesta: sí, para los dos eventos con registro en el inventario nacional.**
+El etiquetado marca riesgo en la semana previa a un evento histórico 4,74 veces
+más a menudo que en una semana cualquiera en lluvia intensa, y 6,31 veces en
+sequía (Tabla XV). Para el incendio el inventario nacional no contiene el
+fenómeno (IV-E), así que el etiquetado no se pudo contrastar contra él.
+
+El catálogo sí incorpora **un** incendio forestal del cantón, documentado por
+prensa y fuera del período etiquetado. Contra el etiquetado seguía siendo
+incontrastable; contra las **estimaciones publicadas** no, porque el estimador
+vigente proyecta más allá de la última etiqueta. Ese contraste está en V-G.
 
 Esto establece un **piso interpretable** que no requiere modelo: un modelo que no
 supere ese realce sobre eventos reales no está aportando sobre la verdad de
 terreno. Y sirvió para algo que no se había previsto: descartar la escala del
-índice de sequía que la convención sugería (Tabla XV). Con SPI-3, la más común en
+índice de sequía que la convención sugería (Tabla XVI). Con SPI-3, la más común en
 la literatura de sequía agrícola, el contraste daba cero de siete, y la
 explicación cómoda —un desajuste entre la fecha del índice y la de la
 declaratoria— no explicaba que la marca más cercana quedara a exactamente −37
@@ -1126,10 +1281,10 @@ no existe a escala cantonal.
 
 Ninguno de los resultados anteriores se archivó: cada uno se tradujo en una
 decisión concreta que se puede comprobar contra el sistema construido (Tabla
-XVI). La tabla existe para que se vea dónde termina el dato y dónde empieza la
+XVIII). La tabla existe para que se vea dónde termina el dato y dónde empieza la
 decisión, que es la distinción que este trabajo más cuida.
 
-**Tabla XVI.** Qué decisión salió de cada hallazgo, y dónde se comprueba.
+**Tabla XVIII.** Qué decisión salió de cada hallazgo, y dónde se comprueba.
 
 | Hallazgo | Decisión tomada | Dónde se comprueba |
 |---|---|---|
@@ -1138,8 +1293,8 @@ decisión, que es la distinción que este trabajo más cuida.
 | El SPI con ajuste único mide estacionalidad (IV-C) | El SPI se ajusta por mes calendario | III-C, Tabla VII |
 | El percentil de 72 h no es R95p (IV-D) | Se conserva el umbral y se corrige su atribución | Tabla IV |
 | Una década sin satélite parecía una década sin incendios (IV-G) | El período de cobertura de cada fuente es una constante explícita; fuera de él la etiqueta es nula | Tabla IX, Fig. 2 |
-| El SPI-3 sale de sequía antes de que el daño se declare (V-G) | La escala del índice pasa a seis meses | Tabla XV |
-| 13 episodios de sequía, 2 en el peor pliegue (V-B) | La sequía no se modela; el sistema la publica como «sin estimación» en vez de rellenarla con la clase mayoritaria | Tabla X, Fig. 3 |
+| El SPI-3 sale de sequía antes de que el daño se declare (V-G) | La escala del índice pasa a seis meses | Tabla XVI |
+| 13 episodios de sequía, 2 en el peor pliegue (V-B); 24 y 1 al rehacerlo sobre 76 años (IX-C) | La sequía no se modela; el sistema la publica como «sin estimación» en vez de rellenarla con la clase mayoritaria | Tabla X, Fig. 3 |
 | Ningún algoritmo supera a la climatológica fuera del ruido (V-D) | Escribe el estimador más simple dentro del ruido: la climatológica en lluvia intensa; cada fila publicada lleva el veredicto | Tabla XII, V-E |
 | El umbral propio de incendio no producía tres clases (III-D) | El evento pasa a binario y se acota a los tres distritos con señal | Tabla IV |
 | La explicación de un acierto es indistinguible de la de un error (V-F) | No se construyó una vista de explicación por variable; la ficha de cada distrito muestra el estimador que escribió y su desempeño medido | V-E |
@@ -1187,7 +1342,7 @@ con estos datos, es estimar su nivel a siete días.
 
 ### D. La latencia de las fuentes limita la operación con dato final
 
-Medida contra la documentación oficial de cada proveedor (Tabla XVII), la
+Medida contra la documentación oficial de cada proveedor (Tabla XIX), la
 precipitación final de CHIRPS llega entre 21 y 51 días después del día que
 describe. El SPI-6 mira una ventana de 180 días que termina hoy, así que **entre
 el 12 % y el 28 % de esa ventana no es dato final** al momento de estimar. La
@@ -1197,7 +1352,7 @@ como argumento a favor de la escala. El producto preliminar de CHIRPS no es el
 mismo dato menos pulido: para Costa Rica se queda sin la corrección por
 estaciones, que es justamente lo que se valoró de la fuente.
 
-**Tabla XVII.** Latencia declarada por cada fuente.
+**Tabla XIX.** Latencia declarada por cada fuente.
 
 | Fuente | Alimenta | Latencia declarada |
 |---|---|---|
@@ -1217,14 +1372,19 @@ porque las series reales no estaban descargadas al medirlas. **Miden una
 propiedad del método**, que no depende de los valores exactos del cantón, y las
 herramientas quedan publicadas para repetirlas sobre los datos reales.
 
-### F. Las estimaciones publicadas no se renuevan solas todavía
+### F. La estimación se renueva sola; la ingesta todavía no
 
-El sistema está publicado con datos reales, pero la corrida que escribe las
-estimaciones cubre hasta siete días después de su ejecución y hoy es un comando
-manual. El escritor de lluvia intensa, al depender solo del calendario, proyecta
-hasta ese horizonte; el de incendio necesita la matriz de características y solo
-escribe días que la tienen. Un servicio de ejecución programada está diseñado y
-no desplegado al cierre de este documento (sección X).
+La corrida que escribe las estimaciones cubre hasta siete días después de su
+ejecución. Hasta el 11 de setiembre era un comando manual, y esa dependencia de
+que alguien se acordara es la que dejaba el horizonte vencido sin que nadie lo
+notara. Desde el **12 de setiembre** la ejecuta un servicio programado diario en
+el entorno publicado, con la cadena completa —etiquetas, características,
+estimación— y salida verificada.
+
+Lo que **sigue siendo manual es la ingesta de datos**: la fecha de la última
+carga es anterior a la de este documento, y el sistema la muestra en pantalla
+por separado de la fecha de estimación, precisamente para que no se confundan.
+Automatizarla es trabajo pendiente (sección X).
 
 ### G. Sin validación con usuarios todavía
 
@@ -1294,13 +1454,17 @@ trabajo, y su fuente tiene un sesgo conocido: DesInventar cataloga cuando hubo
 **pérdidas reportadas**, no cuando ocurrió un fenómeno. Se ve en la propia
 distribución: **19 de los 46 registros son de Tilarán centro**, el distrito con
 más población y más camino. No es que ahí llueva más. Por eso se mide cobertura
-y **no se reporta precisión** (III-F).
+y **no se reporta precisión** (III-F). Y dejó de ser una deducción: en la sesión
+de contraste con habitantes del cantón, un ganadero de Cabeceras —el único
+distrito sin filas en el catálogo— documentó con un recibo fechado daños por Nate
+que nadie reportó. La ausencia de ficha es ausencia de reporte, no de evento
+(D-55).
 
 ### D. El veredicto sobre la escala del SPI descansa sobre un solo episodio
 
 Los siete registros de sequía del catálogo son **una fecha, 2014-09-30, en siete
 distritos**. El intervalo de Wilson los cuenta como siete extracciones
-independientes, así que los intervalos de cobertura de la Tabla XV son
+independientes, así que los intervalos de cobertura de la Tabla XVI son
 **optimistas**. La consecuencia es asimétrica y se reporta como tal: descartar el
 SPI-3 es defendible con un episodio; coronar al SPI-6 o al SPI-12 no lo sería.
 
@@ -1360,11 +1524,17 @@ locales— son coherentes con ese resultado: ningún modelo se apoya en ninguna
 variable de forma estable, y la explicación de un acierto es indistinguible de
 la de un error (V-F).
 
+**Y no es un artefacto de la comparación.** La objeción más razonable era que los
+modelos competían a ciegas contra el calendario. Se les dio el calendario y la
+geografía, se rehízo la medición entera con la misma regla, y el mejor pasó de
+perder por 0,019 a ganar por 0,002 sobre un rango de 0,037 (V-D, Tabla XIII):
+**dejó de perder, no pasó a ganar.**
+
 El resultado se sostiene porque la regla que lo declara se fijó antes de
 entrenar. **Si hoy se relajara para que ganara un modelo, la tabla dejaría de
 significar lo que dice.**
 
-### C. La sequía no es modelable con 34 años de datos, y saberlo es un resultado
+### C. La sequía no es modelable, y no por falta de años: se midió dos veces
 
 Trece episodios independientes en 34 años, dos en el peor pliegue de
 entrenamiento, contra un mínimo de diez fijado antes de contar (V-B). No es un
@@ -1373,6 +1543,39 @@ detectar y modelar: la escala del índice que hace que el etiquetado reconozca
 los siete registros históricos es la misma que deja los episodios por debajo del
 umbral. El sistema muestra «sin estimación» en vez de rellenar con la clase
 mayoritaria.
+
+La réplica evidente a ese resultado es que faltaban datos. **Se comprobó.** Con
+una serie de reanálisis ERA5 del cantón entero desde 1950 —28 011 días, 76,7
+años, más del doble de período— el recuento da **24 episodios contra el mínimo de
+30, y 1 en el peor pliegue contra el mínimo de 10**. No alcanza por ninguno de los
+dos criterios.
+
+Tres controles sostienen esa comparación. Primero, el método se validó contra el
+recuento original: contando con la serie del cantón sobre el mismo período
+1991–2026 salen **11 episodios contra los 13** medidos con ocho series de CHIRPS
+por distrito, pese a que las dos mediciones difieren en fuente (0,25° contra
+0,05°) y en orden de agregación. Segundo, la tasa es estable: 0,309 episodios por
+año sobre 35,6 años y 0,313 sobre 76,7; la serie larga no describe otro clima.
+Tercero —y es el control que evita un error de lectura— el índice SPI se
+normaliza contra el período sobre el que se ajusta, de modo que ampliar la serie
+cambia la vara al mismo tiempo que la muestra: sobre la **misma** ventana
+1991–2026, ajustar el índice sobre 76 años en lugar de sobre 35 sube el recuento
+de 11 a 15. Sin separar ese efecto, ese 36 % adicional se habría atribuido al
+período y no al método.
+
+Los episodios, además, no se reparten de manera uniforme: los entrenamientos de
+los cinco pliegues dan `1, 1, 7, 16, 20` donde una tasa constante esperaría
+`4, 8, 12, 16, 20`, con el quiebre alrededor de 1988. Ese patrón admite al menos
+dos lecturas —un cambio en el régimen de sequías, o la menor capacidad del
+reanálisis para resolver precipitación antes de la era satelital, que produce
+series más suaves y por lo tanto menos valores extremos del índice— y los datos
+disponibles no permiten separarlas, de modo que **no se afirma ninguna de las
+dos**. Lo que sí queda establecido, y es lo que la decisión necesita, es que la
+mitad temprana de la serie no aporta muestra utilizable cualquiera sea la causa.
+
+La conclusión de diseño no cambia, pero el enunciado sí: no es que no se
+intentara con más datos, es que se midió con más datos y con otra fuente, y el
+resultado se repite.
 
 ### D. La verdad de terreno se puede validar antes de existir un modelo, y conviene hacerlo
 
@@ -1385,6 +1588,15 @@ contrastar contra registros institucionales exige alinear qué fecha registra
 cada fuente; y **una explicación que salva el resultado merece más sospecha que
 una que lo condena**, porque hace que el problema deje de serlo sin haberlo
 medido.
+
+El mismo catálogo, aplicado después a **las estimaciones publicadas** y no al
+etiquetado, dio un realce de 0,90× —0,63× pareado por mes— en lluvia intensa
+(V-G, Tabla XVII). Las dos mediciones juntas dicen algo que ninguna dice sola:
+**la etiqueta reconoce los eventos y la estimación no los anticipa**, porque la
+primera se construye con la lluvia que cayó y la segunda solo mira el mes. Es la
+forma más directa de enunciar el resultado de este trabajo, y conviene medirla:
+un sistema puede tener una variable objetivo bien construida y aun así no
+estimar nada útil sobre ella.
 
 ### E. Cuatro de los siete hallazgos habrían pasado desapercibidos
 
@@ -1411,11 +1623,12 @@ diseño no sostiene.**
 Lo que sigue **no** es conclusión: es lo que las conclusiones dejan abierto, y
 se separa para no confundirlo con lo medido.
 
-1. **Darle al modelo el calendario y la geografía.** La comparación de V-D es
-   justa pero asimétrica: la climatológica ve el mes y los modelos no. Una
-   medición exploratoria con seno y coseno del día del año y la posición del
-   distrito en la matriz está en curso; cuando cierre, la tabla de V-D se
-   recalcula con la misma regla, diga lo que diga.
+1. **Darle al modelo el calendario y la geografía — cerrado el 13 de
+   setiembre**, mientras se escribía este documento. La tabla de V-D se recalculó
+   con la misma regla: los modelos suben entre 0,019 y 0,023 en lluvia intensa y
+   pasan a empatar con la climatológica, sin superarla fuera del ruido (Tabla
+   XIII). El punto se conserva numerado para no alterar las referencias del resto
+   del documento.
 2. **El ENOS como característica.** Para la vertiente del Pacífico, El Niño y La
    Niña modulan la estación seca `[16]`; el calendario dice qué mes es, el índice
    ONI diría que este marzo no es como los otros. Su efecto esperado está sobre
@@ -1425,7 +1638,10 @@ se separa para no confundirlo con lo medido.
    tasa, 75 años darían unos 29 episodios, pegados al umbral de 30, pero el
    mínimo por pliegue seguiría en torno a 5 contra los 10 exigidos. La predicción
    honesta es que no destraba; medido vale más que supuesto.
-4. **Renovar las estimaciones sin intervención manual** (VII-F), y **realizar la
+4. **Automatizar la ingesta de datos** (VII-F). La renovación de las
+   estimaciones dejó de ser trabajo futuro el 12 de setiembre: la ejecuta un
+   servicio programado diario. La carga de datos nuevos sigue siendo manual, y es
+   la que fija la antigüedad del dato que la pantalla muestra. Y **realizar la
    validación con usuarios** (VII-G), que no cambia ninguna cifra de este
    documento pero es la única forma de saber si la pantalla se entiende.
 5. **Bloquear también el espacio en la validación cruzada** (VIII-B) y hacer el

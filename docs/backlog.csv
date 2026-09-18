@@ -710,7 +710,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,avril",S4,avril,3,2.9
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,alejandro",S4,alejandro,3,2.9
 H7.4,H7.4 Panel de estadisticas comparado contra la normal historica,"Epica E7 | 3 puntos | 2.9 h estimadas
 
 Rubrica o objetivo: CG-2
@@ -722,7 +722,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,avril",S4,avril,3,2.9
+- [ ] Funciona desde docker compose up en maquina limpia","E7,S4,CG-2,alejandro",S4,alejandro,3,2.9
 H8.1,H8.1 docker compose up levanta todo en maquina limpia,"Epica E8 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: SO-1
@@ -1015,7 +1015,7 @@ Definition of Done:
 - [ ] Verificado ejecutando, no leyendo
 - [ ] Evidencia archivada en docs/evidencias/
 - [ ] Pull Request hacia dev revisado
-- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,CG-6,avril",S4,avril,4,10.6
+- [ ] Funciona desde docker compose up en maquina limpia","E10,S4,CG-6,alejandro",S4,alejandro,4,10.6
 H2.7,H2.7 Calcular percentiles R95p y R99p de precipitacion acumulada por distrito,"Epica E2 | 5 puntos | 7.8 h estimadas
 
 Rubrica o objetivo: Senales

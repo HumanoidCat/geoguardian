@@ -285,7 +285,31 @@ def pendientes(hay_caracteristicas: bool) -> dict[str, str]:
 #     sequia             2,  3,  3,   6,   9
 #
 # **CA-6 de H3.0** pide 30 episodios en total y 10 como minimo por particion de
-# entrenamiento. La sequia falla los dos: 9 en total y 2 en el peor pliegue.
+# entrenamiento. La sequia falla los dos: **13 en total** -D-34, al pasar de 78
+# por distrito a 13 por canton- y 2 en el peor pliegue de entrenamiento, con 9 en
+# el mas rico contra un umbral de 10.
+#
+# CORREGIDO EL 2026-09-16. Este bloque decia «9 en total», que es el pliegue de
+# entrenamiento mas rico y no el total del canton. D-34 dice 13. El veredicto no
+# cambiaba -13 tampoco llega a 30- pero el arnes imprime esta linea en toda
+# evidencia que lo use, y ahi afirmaba sobre una decision propia algo que la
+# decision no dice.
+#
+# RECONTADO POR H3.11 EL 2026-09-15, y tampoco cambia el veredicto.
+#
+# D-34 conto sobre los 34,6 anios que habia entonces. H1.16 trajo la serie de
+# ERA5 desde 1950, y H3.11 la volvio a contar sobre 76,7 anios:
+#
+#     ventana de D-34, base de D-34      11 episodios en 35,6 anios   0,309 / anio
+#     ventana completa, base completa    24 episodios en 76,7 anios   0,313 / anio
+#
+# Las dos tasas coinciden, asi que el recuento largo no contradice al corto: lo
+# extiende. **24 contra un minimo de 30, y 1 en el peor pliegue contra 10.** Sigue
+# sin ser modelable, ahora con el doble de serie detras.
+#
+# Los dos numeros se dejan con su fecha en vez de reemplazar uno por otro, como se
+# hizo con D-47: borrar el de D-34 haria ilegible por que la decision se tomo
+# cuando se tomo.
 #
 # Es consecuencia directa de **D-32**, que cambio SPI-3 por SPI-6: una ventana
 # mas larga detecta sequias mas reales y por eso encuentra muchas menos. La
@@ -301,7 +325,8 @@ def pendientes(hay_caracteristicas: bool) -> dict[str, str]:
 # saber que la climatologica hace sobre ella es informacion util.
 NO_MODELABLES: dict[TipoEvento, str] = {
     TipoEvento.SEQUIA: (
-        "D-34: 9 episodios en el canton, 2 en el peor pliegue. "
+        "H3.11 (2026-09-15): 24 episodios en 76,7 anios, 1 en el peor pliegue. "
+        "D-34 habia contado 13 en 34,6 anios, misma tasa. "
         "CA-6 de H3.0 pide 30 y 10. Consecuencia medida de D-32 (SPI-6)"
     ),
 }

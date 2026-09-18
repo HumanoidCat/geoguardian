@@ -12,16 +12,23 @@
 # El contexto de construccion es la RAIZ del repositorio, no esta carpeta: la API
 # importa `contratos/` y `basedatos/`, que viven arriba.
 #
-# POR QUE SE INSTALAN CINCO PAQUETES Y NO LOS VEINTICINCO
+# POR QUE SE INSTALAN SIETE PAQUETES Y NO LOS VEINTICINCO
 #
 # `requirements.txt` es un archivo compartido y trae las dependencias de todo el
-# proyecto: pandas, geopandas, rasterio, scikit-learn, xgboost, shap y scipy, que
-# son del ETL y del modelado. **La API no importa ninguno de ellos.**
+# proyecto: pandas, geopandas, rasterio, scikit-learn, xgboost y shap, que son
+# del ETL y del modelado. **La API no importa ninguno de ellos.**
 #
 # Se rastreo la cadena de imports desde `backend/api/aplicacion.py` y solo llega a
 # `fastapi` y `pydantic`. A eso se suman `uvicorn` para servir, y `psycopg` con
 # `python-dotenv`, que entran cuando se fusione H6.2 y su repositorio contra
 # PostgreSQL.
+#
+# **Desde H14.5 (2026-09-17) entran tambien `numpy` y `scipy`.** D-53 decidio que
+# el SPI-6 de la tarjeta de sequia se calcula al pedirlo, con el mismo codigo que
+# uso el etiquetado -`backend/senales/spi.py`-, y ese codigo ajusta la gamma con
+# `scipy.stats.gamma.fit`. La alternativa era reescribir el ajuste sin scipy, y
+# se descarto porque un segundo ajuste da un segundo numero. Lo que cuesta -la
+# imagen crece- esta medido en la evidencia de H14.5. Ver la enmienda de D-53.
 #
 # Instalar los veinticinco agregaria un par de gigas y varios minutos **a cada
 # construccion**, y H11.1 va a publicar esta imagen en ghcr.io en cada push. El
@@ -46,7 +53,7 @@
 # veinticinco paquetes del proyecto entero. Publicar la lista de dependencias del
 # ETL dentro de la imagen de la API no aporta nada.
 #
-# Con honestidad sobre el tamano: los cinco paquetes traen rueda precompilada
+# Con honestidad sobre el tamano: los siete paquetes traen rueda precompilada
 # (`psycopg[binary]` justamente por eso), asi que aqui no se compila nada y el
 # ahorro es modesto, del orden de decenas de megabytes. La separacion vale por lo
 # que NO viaja, no por un salto grande de peso.
@@ -62,8 +69,8 @@ COPY requirements.txt /tmp/requirements.txt
 # El entorno virtual es el paquete que cruza a la etapa siguiente: una sola carpeta
 # que se copia entera, sin arrastrar el resto del sistema de archivos.
 RUN set -eux; \
-    grep -E '^(fastapi|uvicorn|pydantic|psycopg|python-dotenv)' /tmp/requirements.txt > /tmp/api.txt; \
-    test "$(wc -l < /tmp/api.txt)" -eq 5; \
+    grep -E '^(fastapi|uvicorn|pydantic|psycopg|python-dotenv|numpy|scipy)' /tmp/requirements.txt > /tmp/api.txt; \
+    test "$(wc -l < /tmp/api.txt)" -eq 7; \
     cat /tmp/api.txt; \
     python -m venv /opt/venv; \
     /opt/venv/bin/pip install --no-cache-dir -r /tmp/api.txt
@@ -99,6 +106,15 @@ COPY --from=dependencias /opt/venv /opt/venv
 COPY contratos/ ./contratos/
 COPY basedatos/__init__.py basedatos/conexion.py ./basedatos/
 COPY backend/api/ ./backend/api/
+
+# H14.5 (D-53): el SPI-6 se calcula en la API con el codigo del proyecto.
+# `backend/senales/` entera -son seis modulos chicos; `etiquetado.py` importa
+# `spi.py` y `percentiles.py`- y de `backend/modelado/` SOLO `etiquetado.py`,
+# que es donde vive `acumulado_mensual`. El resto de modelado -scikit-learn,
+# xgboost, shap- sigue afuera, y el `.dockerignore` de al lado es quien lo
+# garantiza.
+COPY backend/senales/ ./backend/senales/
+COPY backend/modelado/__init__.py backend/modelado/etiquetado.py ./backend/modelado/
 
 # --------------------------------------------------------------------------- #
 # Usuario sin privilegios                                                       #

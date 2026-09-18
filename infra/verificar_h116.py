@@ -19,6 +19,7 @@ seria justo lo contrario de lo que hace un verificador.
 
 from __future__ import annotations
 
+import ast
 import fnmatch
 import os
 import re
@@ -186,9 +187,29 @@ def ca4_la_carga_no_miente() -> None:
         "registro_antes != registro_del_destino(destino)" in fuente,
         "y al terminar se comprueba que ese registro quedo intacto",
     )
+    # ESTO ERAN DOS CADENAS SUELTAS. Ver I-58.
+    #
+    # Decia `"if diferencias:" in fuente and "return 1" in fuente`. Las dos pueden
+    # estar en bloques que no tienen nada que ver: un `return 1` de otra rama, en
+    # otra funcion, satisfacia la mitad del control. Lo que el criterio afirma es
+    # que **ese** `if` sale con error, y eso es estructura, no presencia.
+    arbol_carga = ast.parse(fuente)
+    sale_con_error = any(
+        isinstance(nodo, ast.If)
+        and isinstance(nodo.test, ast.Name)
+        and nodo.test.id == "diferencias"
+        and any(
+            isinstance(hijo, ast.Return)
+            and isinstance(hijo.value, ast.Constant)
+            and hijo.value.value == 1
+            for hijo in ast.walk(nodo)
+        )
+        for nodo in ast.walk(arbol_carga)
+    )
     exigir(
-        "if diferencias:" in fuente and "return 1" in fuente,
+        sale_con_error,
         "si una tabla no coincide, la carga sale con error en vez de decir que si",
+        "se busca el `return 1` DENTRO del `if diferencias:`, no en el archivo",
     )
     # La sentencia, no la palabra: el docstring de `vaciar` tambien dice
     # "RESTART IDENTITY", asi que buscar el texto suelto daba verde con el
@@ -223,9 +244,47 @@ def ca4_la_carga_no_miente() -> None:
     else:
         exigir(False, "un ciclo de llaves foraneas se detiene en vez de inventar un orden")
 
+    # ESTO ERAN DOS CADENAS SUELTAS, Y EN ESTE MISMO ARCHIVO YA SE SABIA. Ver I-58.
+    #
+    # Decia `"def comprobar_triggers_de_historial" in fuente and "INSERT" in fuente`.
+    # Que la funcion exista y que la palabra INSERT aparezca en cualquier parte de
+    # un archivo que habla de SQL no dice nada: una funcion vacia con ese nombre
+    # daba CUMPLE. Tres criterios mas arriba hay un comentario que dice «La
+    # sentencia, no la palabra... lo detecto el sabotaje numero 10»: la leccion
+    # estaba aprendida y no se barrio el resto del archivo.
+    #
+    # Ahora se ejecuta la funcion con definiciones de trigger fabricadas. No toca
+    # la base: `definicion_de_trigger` se reemplaza por una que devuelve el texto
+    # que se quiera probar.
+    original = cargar_datos.definicion_de_trigger
+    anotado: list[str] = []
+
+    def con_definicion(texto: str | None):
+        def falsa(destino, tabla, trigger):
+            return texto
+
+        return falsa
+
+    def correr(texto: str | None) -> str:
+        cargar_datos.definicion_de_trigger = con_definicion(texto)
+        try:
+            cargar_datos.comprobar_triggers_de_historial(None, anotado.append)
+            return "pasa"
+        except cargar_datos.ErrorCarga:
+            return "se detiene"
+        finally:
+            cargar_datos.definicion_de_trigger = original
+
+    solo_borrado = correr("CREATE TRIGGER t AFTER DELETE OR UPDATE ON analitico.riesgo ...")
+    con_insercion = correr("CREATE TRIGGER t AFTER INSERT OR UPDATE ON analitico.riesgo ...")
+    # La palabra despues del ON no cuenta: es la leccion del sabotaje 10, al reves.
+    insert_en_el_nombre = correr("CREATE TRIGGER t AFTER DELETE ON analitico.insertados ...")
+
     exigir(
-        "def comprobar_triggers_de_historial" in fuente and "INSERT" in fuente,
+        solo_borrado == "pasa" and con_insercion == "se detiene" and insert_en_el_nombre == "pasa",
         "se comprueba que ningun trigger de historial dispare con INSERT",
+        f"solo DELETE/UPDATE: {solo_borrado} · con INSERT: {con_insercion} · "
+        f"INSERT solo en el nombre de la tabla: {insert_en_el_nombre}",
     )
 
 

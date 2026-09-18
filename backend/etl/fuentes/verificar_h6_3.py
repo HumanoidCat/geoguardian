@@ -225,14 +225,29 @@ def ca4_fuente_de_juguete(resultado: Resultado, fabrica) -> None:
     """
     archivo_nuevo = (DIR_ETL / "fuentes" / "prueba_fabrica.py").exists()
     registrada = "prueba" in fabrica.REGISTRO_CLIMA
+
+    # `firms-area` entra en la CONDICION, no solo en el detalle. Lo marco un
+    # comentario de revision en el PR #282: se calculaba, se imprimia y no se
+    # comprobaba, asi que el criterio pasaba en verde mostrando False.
+    #
+    # La forma del defecto -el control afirma en su texto algo que no entra en
+    # su condicion- no es exclusiva de este archivo ni de este criterio.
     agregada_despues = "firms-area" in fabrica.REGISTRO_FOCOS
+
+    aviso = (
+        ""
+        if agregada_despues
+        else " · ATENCION: 'firms-area' ya no esta registrada. No significa que "
+        "alguien rompio la regla: significa que el ejemplo que probaba la "
+        "extensibilidad desaparecio, y hay que buscar otro o revisar por que se retiro"
+    )
 
     resultado.marcar(
         "CA-4 una fuente se agrega con su archivo y una entrada del registro",
-        archivo_nuevo and registrada,
+        archivo_nuevo and registrada and agregada_despues,
         f"la de juguete: archivo propio {archivo_nuevo}, en el registro {registrada} · "
         f"y una real agregada despues por H1.14 sin tocar cargadores: {agregada_despues} · "
-        "la comparacion byte por byte del 2026-09-03 esta en la evidencia, fechada",
+        "la comparacion byte por byte del 2026-09-03 esta en la evidencia, fechada" + aviso,
     )
 
 

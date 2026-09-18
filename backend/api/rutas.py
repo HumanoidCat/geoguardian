@@ -35,7 +35,7 @@ from backend.api.dependencias import (
 from backend.api.errores import Error
 from contratos import VERSION_CONTRATOS
 from contratos.enums import TipoEvento
-from contratos.esquemas import Distrito, MedicionDiaria, Riesgo, Salud
+from contratos.esquemas import Distrito, IndiceDerivado, MedicionDiaria, Riesgo, Salud
 from contratos.repositorio import Repositorio
 
 VERSION_API = "0.1.0"
@@ -132,6 +132,33 @@ def obtener_mediciones(
     if hasta < desde:
         raise HTTPException(status_code=422, detail="El rango termina antes de empezar")
     return repositorio.obtener_mediciones(codigo, desde, hasta)
+
+
+@router.get(
+    "/distritos/{codigo}/indices",
+    response_model=list[IndiceDerivado],
+    responses={404: {"model": Error, "description": "El codigo no corresponde a ningun distrito"}},
+    summary="Indices derivados de un distrito, uno por mes",
+    description=(
+        "Hoy trae el SPI-6 (`spi_6m`), que se calcula al pedirlo a partir de la "
+        "lluvia ya guardada (D-53). Es una medicion, no una estimacion: no trae "
+        "nivel ni probabilidad, porque la sequia no se modela (D-34). `fecha` es el "
+        "ultimo dia del mes que resume el indice, no el dia de la consulta. Un mes "
+        "sin serie completa viaja con `spi_6m` en `null` y no se omite."
+    ),
+    tags=["mediciones"],
+)
+def obtener_indices(
+    repositorio: Repo,
+    codigo: CodigoDistrito,
+    desde: Annotated[date, Query(description="Primer dia del rango, inclusive")],
+    hasta: Annotated[date, Query(description="Ultimo dia del rango, inclusive")],
+) -> list[IndiceDerivado]:
+    if repositorio.obtener_distrito(codigo) is None:
+        raise HTTPException(status_code=404, detail=f"No existe el distrito {codigo}")
+    if hasta < desde:
+        raise HTTPException(status_code=422, detail="El rango termina antes de empezar")
+    return repositorio.obtener_indices(codigo, desde, hasta)
 
 
 @router.get(

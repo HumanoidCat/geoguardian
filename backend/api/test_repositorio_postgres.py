@@ -230,7 +230,8 @@ def test_construir_con_un_doble_no_llama_a_conectar(monkeypatch):
 
 LLAMADAS_PENDIENTES = {
     "guardar_indices": lambda r: r.guardar_indices([]),
-    "obtener_indices": lambda r: r.obtener_indices("50801", date(2024, 1, 1), date(2024, 1, 2)),
+    # `obtener_indices` dejo de ser pendiente en H14.5: se calcula al pedirlo
+    # (D-53). Sus pruebas estan en `test_indices.py`.
     "listar_eventos": lambda r: r.listar_eventos(),
     "guardar_reporte_calidad": lambda r: r.guardar_reporte_calidad(None),
     "listar_reportes_calidad": lambda r: r.listar_reportes_calidad(),
@@ -262,7 +263,7 @@ def test_un_pendiente_falla_en_vez_de_devolver_vacio(metodo):
 
     mensaje = str(capturado.value)
     assert tabla in mensaje, f"el mensaje no nombra la tabla `{tabla}`"
-    assert historia in mensaje, f"el mensaje no nombra la historia {historia}"
+    assert historia in mensaje, f"el mensaje no nombra la historia o decision {historia}"
 
 
 def test_los_pendientes_los_atrapa_un_except_generico():
