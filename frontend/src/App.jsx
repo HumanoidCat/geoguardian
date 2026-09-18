@@ -14,6 +14,7 @@ import {
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
+  obtenerIncidentes,
 } from './datos/cliente'
 import SelectorFecha from './componentes/SelectorFecha'
 import { puntoEnSuperficie } from './datos/geometria'
@@ -129,6 +130,10 @@ export default function App() {
   // fecha del selector, porque son de la fecha de la escena de satelite.
   const [indices, setIndices] = useState(null)
   const [historial, setHistorial] = useState(null)
+  // Arranca `undefined` y no `null`: son estados distintos y la pantalla los
+  // muestra distinto. `undefined` es «todavia no llego»; `null`, «falta el
+  // archivo», que no es lo mismo que «no hay incidencias».
+  const [incidentes, setIncidentes] = useState()
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -163,6 +168,18 @@ export default function App() {
     let vigente = true
     obtenerIndices().then((paquete) => {
       if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // El historico de incidencias del proyecto, para H12.5. Archivo estatico y una
+  // sola vez, por lo mismo que el historial de eventos.
+  useEffect(() => {
+    let vigente = true
+    obtenerIncidentes().then((paquete) => {
+      if (vigente) setIncidentes(paquete)
     })
     return () => {
       vigente = false
@@ -392,7 +409,7 @@ export default function App() {
           pantalla sigue sirviendo — y probablemente sea el momento en que mas
           sirve, porque explica errores anteriores del propio sistema. */}
       {!cargando && vista === 'incidentes' && (
-        <HistorialIncidentes alVerMapa={() => setVista('mapa')} />
+        <HistorialIncidentes paquete={incidentes} alVerMapa={() => setVista('mapa')} />
       )}
 
       {!cargando && coleccion && vista === 'mapa' && (

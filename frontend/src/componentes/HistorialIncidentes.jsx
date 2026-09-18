@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   FILTROS_VACIOS,
   describirCorte,
@@ -51,27 +51,20 @@ function Texto({ children }) {
  * la plantilla —y en 61 incidencias hay 151 rotulos distintos, asi que pasa
  * seguido—. Una bitacora vale porque nadie la suavizo.
  */
-export default function HistorialIncidentes({ alVerMapa }) {
+/**
+ * `paquete` llega como propiedad, no se busca aca.
+ *
+ * Lo carga `App.jsx` con `obtenerIncidentes()` de `cliente.js`, igual que el
+ * historial de H7.3. **Un componente que hace su propio `fetch` rompe el CA-2 de
+ * H6.6**, y su verificador lo atrapa: los componentes no buscan datos, los
+ * reciben.
+ *
+ * `undefined` mientras se pide y `null` si no esta. Son estados distintos y se
+ * muestran distinto: «cargando» no es lo mismo que «no hay archivo».
+ */
+export default function HistorialIncidentes({ paquete, alVerMapa }) {
   const [filtros, setFiltros] = useState(FILTROS_VACIOS)
   const [abierta, setAbierta] = useState(null)
-  // `undefined` mientras se pide, `null` si no esta. Son estados distintos y se
-  // muestran distinto: «cargando» no es lo mismo que «no hay archivo».
-  const [paquete, setPaquete] = useState(undefined)
-
-  useEffect(() => {
-    let vigente = true
-    fetch(`${import.meta.env.BASE_URL}incidentes/incidentes.json`)
-      .then((respuesta) => (respuesta.ok ? respuesta.json() : null))
-      .then((datos) => {
-        if (vigente) setPaquete(datos)
-      })
-      .catch(() => {
-        if (vigente) setPaquete(null)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [])
 
   // Con `useMemo` y no suelto: `?? []` crea un arreglo nuevo en cada render, y eso
   // invalidaria el `useMemo` de abajo siempre, que es justo lo que evita.
