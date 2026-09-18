@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CirculoNivel, PictogramaEvento } from './Pictogramas'
-import { NIVELES, TARJETAS, contenidoDeTarjeta, fechaEnPalabras } from '../datos/palabras'
-import { obtenerMediciones } from '../datos/cliente'
+import {
+  NIVELES,
+  SEQUIA_MEDIDA,
+  TARJETAS,
+  categoriaDeSequia,
+  contenidoDeTarjeta,
+  fechaEnPalabras,
+  indiceEnPalabras,
+} from '../datos/palabras'
+import { obtenerIndiceDeSequia, obtenerMediciones } from '../datos/cliente'
 
 /**
  * «Hoy en tu distrito»: la primera pantalla, para quien vive en el canton.
@@ -30,6 +38,15 @@ import { obtenerMediciones } from '../datos/cliente'
  * estimacion uso datos hasta ese dia**, porque eso no se puede comprobar desde
  * aca: seria afirmar una relacion que nadie midio. Dos hechos ciertos valen mas
  * que uno comodo.
+ *
+ * LA TARJETA DE SEQUIA MIDE, NO ESTIMA (H14.5)
+ *
+ * Las otras dos tarjetas dicen un nivel estimado. La de sequia dice el indice
+ * de lluvia de los ultimos seis meses, que es un hecho que ya paso, con su
+ * categoria en palabras y la fecha del dato al lado. No usa el circulo de nivel
+ * ni la rampa de color: usarlos diria sin palabras que es una estimacion, y
+ * D-34 sigue en pie. Cuando no hay indice -respaldo estatico, dato simulado,
+ * serie incompleta- dibuja la ausencia y dice por que (D-07, CA-9).
  */
 
 const CLAVE_RECORDADO = 'geoguardian.distrito'
@@ -102,8 +119,96 @@ function useUltimoDatoDeLluvia(codigo, hasta) {
   return { cargando: estado.para !== codigo, fecha: estado.para === codigo ? estado.fecha : null }
 }
 
-function Tarjeta({ tarjeta, nivel, nombreDistrito, fechaEstimacion, fechaDato, cargandoDato }) {
+/**
+ * El ultimo indice de sequia medido del distrito, o por que no lo hay.
+ *
+ * Misma forma que `useUltimoDatoDeLluvia`: `para` dice de que distrito es la
+ * respuesta, y «cargando» se deduce comparando. Un fallo de red no tumba la
+ * pantalla: la tarjeta dibuja la ausencia con el motivo `sin_dato`.
+ */
+function useIndiceDeSequia(codigo) {
+  const [estado, setEstado] = useState({ para: null, indice: null })
+
+  useEffect(() => {
+    if (!codigo) return undefined
+    let vigente = true
+    obtenerIndiceDeSequia(codigo)
+      .then((indice) => {
+        if (vigente) setEstado({ para: codigo, indice })
+      })
+      .catch(() => {
+        if (vigente) setEstado({ para: codigo, indice: { valor: null, fecha: null, motivo: 'sin_dato' } })
+      })
+    return () => {
+      vigente = false
+    }
+  }, [codigo])
+
+  return {
+    cargando: estado.para !== codigo,
+    indice: estado.para === codigo ? estado.indice : null,
+  }
+}
+
+/**
+ * El cuerpo de la tarjeta de sequia: un numero medido, no un nivel (H14.5).
+ *
+ * Sin `CirculoNivel` y sin clase `nivel-*` a proposito (CA-2): el numero va en
+ * la tipografia de la tarjeta y la categoria en palabras. La linea de
+ * `esMedicion` esta aca, en la tarjeta, y no en un desplegable (CA-1).
+ */
+function CuerpoSequia({ tarjeta, indice, cargando, nombreDistrito }) {
+  if (cargando) {
+    return (
+      <p className="tarjeta-hoy-nivel sin-nivel" role="status">
+        <strong>Buscando la lluvia de los ultimos meses...</strong>
+      </p>
+    )
+  }
+
+  const categoria = categoriaDeSequia(indice?.valor)
+  if (!categoria) {
+    const motivo = SEQUIA_MEDIDA.sinIndice[indice?.motivo] ?? tarjeta.ausencia
+    return (
+      <>
+        <p className="tarjeta-hoy-nivel sin-nivel">
+          <CirculoNivel nivel={null} />
+          <strong>Sin indice por ahora</strong>
+        </p>
+        <p className="tarjeta-hoy-frase">{motivo}</p>
+        <p className="tarjeta-hoy-nota">{tarjeta.ausencia}</p>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <p className="tarjeta-hoy-medida">
+        <span className="tarjeta-hoy-medida-que">{SEQUIA_MEDIDA.titulo}</span>
+        <strong className="tarjeta-hoy-indice">{indiceEnPalabras(indice.valor)}</strong>
+        <span className="tarjeta-hoy-categoria">{categoria.palabra}</span>
+      </p>
+      <p className="tarjeta-hoy-frase">{categoria.frase(nombreDistrito)}</p>
+      <p className="tarjeta-hoy-medicion">
+        {SEQUIA_MEDIDA.esMedicion} Lluvia medida hasta el{' '}
+        <strong>{fechaEnPalabras(indice.fecha)}</strong>.
+      </p>
+    </>
+  )
+}
+
+function Tarjeta({
+  tarjeta,
+  nivel,
+  nombreDistrito,
+  fechaEstimacion,
+  fechaDato,
+  cargandoDato,
+  indice,
+  cargandoIndice,
+}) {
   const contenido = contenidoDeTarjeta(tarjeta, nivel, nombreDistrito)
+  const mide = tarjeta.id === 'sequia'
 
   return (
     <article className="tarjeta-hoy">
@@ -114,7 +219,14 @@ function Tarjeta({ tarjeta, nivel, nombreDistrito, fechaEstimacion, fechaDato, c
       <div className="tarjeta-hoy-cuerpo">
         <h3 className="tarjeta-hoy-evento">{tarjeta.titulo}</h3>
 
-        {contenido ? (
+        {mide ? (
+          <CuerpoSequia
+            tarjeta={tarjeta}
+            indice={indice}
+            cargando={cargandoIndice}
+            nombreDistrito={nombreDistrito}
+          />
+        ) : contenido ? (
           <>
             <p className={`tarjeta-hoy-nivel nivel-${nivel}`}>
               <CirculoNivel nivel={nivel} />
@@ -140,18 +252,28 @@ function Tarjeta({ tarjeta, nivel, nombreDistrito, fechaEstimacion, fechaDato, c
 
         {tarjeta.nota && <p className="tarjeta-hoy-nota">{tarjeta.nota}</p>}
 
-        <p className="tarjeta-hoy-dato">
-          {fechaEstimacion
-            ? `Estimacion del ${fechaEnPalabras(fechaEstimacion)}.`
-            : 'Sin fecha de estimacion.'}{' '}
-          {tarjeta.id === 'lluvia_intensa' &&
-            (cargandoDato
-              ? 'Buscando el ultimo dato de lluvia...'
-              : fechaDato
-                ? `El ultimo dato de lluvia de ${nombreDistrito} es del ${fechaEnPalabras(fechaDato)}.`
-                : `No pudimos saber de cuando es el ultimo dato de lluvia de ${nombreDistrito}.`)}
-          {tarjeta.id === 'incendio' && 'Mira los focos de los siete dias anteriores.'}
-        </p>
+        {/* La sequia no tiene fecha de estimacion porque no se estima: su fecha
+            es la del dato y ya esta al lado del numero (CA-3). Escribir aca
+            «Estimacion del ...» contradiria la tarjeta entera. */}
+        {mide ? (
+          <p className="tarjeta-hoy-dato">
+            La fuente entrega la lluvia de cada mes con semanas de atraso, por eso el ultimo mes
+            medido no es el mes en curso.
+          </p>
+        ) : (
+          <p className="tarjeta-hoy-dato">
+            {fechaEstimacion
+              ? `Estimacion del ${fechaEnPalabras(fechaEstimacion)}.`
+              : 'Sin fecha de estimacion.'}{' '}
+            {tarjeta.id === 'lluvia_intensa' &&
+              (cargandoDato
+                ? 'Buscando el ultimo dato de lluvia...'
+                : fechaDato
+                  ? `El ultimo dato de lluvia de ${nombreDistrito} es del ${fechaEnPalabras(fechaDato)}.`
+                  : `No pudimos saber de cuando es el ultimo dato de lluvia de ${nombreDistrito}.`)}
+            {tarjeta.id === 'incendio' && 'Mira los focos de los siete dias anteriores.'}
+          </p>
+        )}
 
         {/* La salida a lo oficial acompana a un nivel «cuidado» de verdad. Si la
             tarjeta esta diciendo que NO estima -la sequia, siempre-, un aviso de
@@ -199,6 +321,7 @@ export default function HoyEnTuDistrito({ distritos, paquetes, seleccionado, alS
     seleccionado,
     fechaEstimacion,
   )
+  const { cargando: cargandoIndice, indice } = useIndiceDeSequia(seleccionado)
 
   const elegir = (codigo) => {
     alSeleccionar(codigo)
@@ -243,6 +366,8 @@ export default function HoyEnTuDistrito({ distritos, paquetes, seleccionado, alS
               fechaEstimacion={paquetes?.[tarjeta.id]?.fecha ?? null}
               fechaDato={fechaDato}
               cargandoDato={cargandoDato}
+              indice={indice}
+              cargandoIndice={cargandoIndice}
             />
           ))}
         </div>
@@ -286,6 +411,15 @@ export default function HoyEnTuDistrito({ distritos, paquetes, seleccionado, alS
           Lluvia medida por satelite (CHIRPS), clima de la NASA (POWER), focos de calor de satelite
           (FIRMS) y un modelo entrenado con treinta y cinco anos de datos de Tilaran y los eventos
           que de verdad pasaron en el canton. Cuando no sabemos, lo decimos.
+        </p>
+        {/* CA-6 de H14.5: por que la sequia no tiene nivel, con la cifra real
+            de D-34, y que es el numero que si se muestra. */}
+        <p>
+          La sequia no tiene nivel porque no la estimamos: en treinta y cinco anos hubo trece
+          sequias registradas en Tilaran, y para aprender de ellas el umbral que nos fijamos pide
+          treinta. Lo que si mostramos es el indice de precipitacion estandarizado de seis meses
+          (SPI-6), que se calcula con la lluvia que ya cayo: de -1 para abajo es seco, de -2 para
+          abajo es sequia extrema. Es una medicion, no una estimacion.
         </p>
       </details>
       </div>

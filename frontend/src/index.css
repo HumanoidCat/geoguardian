@@ -1675,6 +1675,48 @@ button.marca-semaforo:focus-visible {
   background: var(--riesgo-alto);
 }
 
+/* La tarjeta de sequia MIDE, no estima (H14.5). Por eso este bloque no usa ni
+   un token de la rampa de riesgo -ni --riesgo-*, ni --texto-sobre-*-: el numero
+   va en la tipografia de datos y la categoria en palabras, sobre los mismos
+   grises que el resto del texto. Si alguien le pone un color de nivel, esta
+   diciendo sin palabras que es una estimacion, y CA-2 lo prohibe. */
+.tarjeta-hoy-medida {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.tarjeta-hoy-medida-que {
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.tarjeta-hoy-indice {
+  font-family: var(--fuente-datos);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texto-xl);
+  line-height: 1.05;
+  color: var(--texto);
+}
+
+.tarjeta-hoy-categoria {
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  color: var(--texto);
+}
+
+/* La frase que separa medir de estimar, en la tarjeta y no en un desplegable
+   (CA-1), con la fecha del dato al lado del numero (CA-3). Va en el tamano del
+   cuerpo y no en el de las notas: si se lee como letra chica, no cumple. */
+.tarjeta-hoy-medicion {
+  font-size: var(--texto-md);
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--borde-fuerte);
+  background: var(--superficie-alterna);
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+
 /* Sin nivel no se pinta un color: se pinta la trama de ausencia de D-07, la
    misma que ya usa el mapa. La ausencia se dibuja, nunca se rellena con algo
    plausible. */
@@ -2135,5 +2177,111 @@ button.marca-semaforo:focus-visible {
      usar. */
   .historial-descripcion {
     min-width: 18rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Comparacion contra la normal climatologica. H7.4.
+
+   Vive dentro de la ficha del distrito, debajo de la grafica de serie. Reusa los
+   tokens del panel para que no se lea como un bloque pegado de otro sitio.
+   --------------------------------------------------------------------------- */
+
+.normales {
+  margin-top: var(--espacio-4);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde);
+  /* Ver el comentario de `.historial`: dentro de un contenedor flexible, un
+     bloque con contenido ancho se niega a encogerse. Aca no hay margen
+     automatico, pero el `min-width: 0` evita que una cifra larga estire la
+     ficha entera. */
+  min-width: 0;
+}
+
+.normal-titulo {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-md);
+  font-weight: 700;
+}
+
+.normal-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-3);
+}
+
+.normal-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  flex: 1 1 8rem;
+  font-size: var(--texto-sm);
+  color: var(--texto-suave);
+}
+
+.normal-control select {
+  min-height: 44px;
+  padding: var(--espacio-1) var(--espacio-2);
+  font-size: var(--texto-md);
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+}
+
+.normal-control select:focus-visible {
+  outline: 3px solid var(--texto);
+  outline-offset: 2px;
+}
+
+.normal-cifra {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-md);
+}
+
+/* EL COLOR ACOMPANA AL NUMERO, NUNCA LO REEMPLAZA. Es el CA-3, y tambien el CA-8:
+   la direccion se lee en las palabras «por encima» y «por debajo», que sobreviven
+   a la escala de grises y a cualquier daltonismo. Si se quitara el color, la
+   pantalla seguiria diciendo lo mismo.
+
+   Y no se usa el rojo: por H5.9 el rojo esta reservado para riesgo alto. Llover
+   mas de lo normal no es un riesgo, es un dato. */
+.normal-arriba {
+  color: #1b5e20;
+}
+
+.normal-abajo {
+  color: #8d4e00;
+}
+
+.normal-crudo {
+  display: block;
+  margin-top: var(--espacio-1);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.normal-ausencia,
+.normal-aviso {
+  margin: 0 0 var(--espacio-2);
+  padding: var(--espacio-2);
+  background: var(--aviso-fondo);
+  border-left: 3px solid var(--riesgo-medio);
+  border-radius: 0 var(--radio) var(--radio) 0;
+  font-size: var(--texto-sm);
+  color: var(--texto);
+}
+
+.normal-procedencia {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+@media (max-width: 600px) {
+  .normal-controles {
+    flex-direction: column;
   }
 }

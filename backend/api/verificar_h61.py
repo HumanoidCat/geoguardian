@@ -58,7 +58,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from backend.api.aplicacion import crear_aplicacion  # noqa: E402
 from backend.api.dependencias import obtener_repositorio  # noqa: E402
 from contratos.enums import ModoOperacion, NivelRiesgo, TipoEvento  # noqa: E402
-from contratos.esquemas import Distrito, MedicionDiaria, Riesgo, Salud  # noqa: E402
+from contratos.esquemas import Distrito, IndiceDerivado, MedicionDiaria, Riesgo, Salud  # noqa: E402
 from contratos.simulados.datos import RepositorioSimulado  # noqa: E402
 
 RAIZ_API = Path(__file__).resolve().parent
@@ -68,6 +68,9 @@ RUTAS_ESPERADAS = [
     "/distritos",
     "/distritos/{codigo}",
     "/distritos/{codigo}/mediciones",
+    # H14.5 (D-53): el septimo. Se agrega aqui para que CA-3 y CA-4 lo miren
+    # como a los otros seis y no quede un endpoint sin forma verificada.
+    "/distritos/{codigo}/indices",
     "/distritos/{codigo}/riesgo",
     "/riesgos",
 ]
@@ -143,7 +146,7 @@ def ca2_sin_esquemas_propios() -> Resultado:
 
 
 # --------------------------------------------------------------------------- #
-# CA-3 · los seis endpoints devuelven la forma del contrato                    #
+# CA-3 · los siete endpoints devuelven la forma del contrato                   #
 # --------------------------------------------------------------------------- #
 
 
@@ -158,6 +161,13 @@ def ca3_forma_de_respuestas(cliente: TestClient) -> Resultado:
             f"/distritos/{CODIGO}/mediciones",
             {"desde": "2024-06-01", "hasta": "2024-06-05"},
             MedicionDiaria,
+            True,
+        ),
+        (
+            f"GET /distritos/{CODIGO}/indices",
+            f"/distritos/{CODIGO}/indices",
+            {"desde": "2024-01-01", "hasta": "2024-06-30"},
+            IndiceDerivado,
             True,
         ),
         (
@@ -197,7 +207,7 @@ def ca3_forma_de_respuestas(cliente: TestClient) -> Resultado:
             ok = False
             detalle.append(f"  [MAL] {titulo:<38} {str(error).splitlines()[0][:44]}")
 
-    return Resultado("CA-3", "Los seis endpoints devuelven la forma del contrato", ok, detalle)
+    return Resultado("CA-3", "Los siete endpoints devuelven la forma del contrato", ok, detalle)
 
 
 # --------------------------------------------------------------------------- #
@@ -319,8 +329,12 @@ def ca6_sin_implementacion_concreta() -> Resultado:
         "dependencias.py": "es el unico lugar donde se decide: ese es el patron",
         "repositorio_postgres.py": "ES una implementacion concreta",
         "test_repositorio_postgres.py": "prueba la implementacion concreta",
+        "test_indices.py": "prueba `obtener_indices` de la implementacion concreta (H14.5)",
         "verificar_h62.py": "verifica la implementacion concreta",
         "verificar_h61.py": "este mismo archivo",
+        "test_cache.py": "prueba la cache contra el repositorio concreto (H8.3)",
+        "verificar_h83.py": "mide la cache contra PostgreSQL: necesita la real",
+        "medir_cache.py": "mide la linea base contra PostgreSQL: necesita la real",
     }
     #: El protocolo se llama `Repositorio` a secas. Cualquier `Repositorio<Algo>`
     #: es una implementacion, y los modulos de estas rutas no deben conocerla.

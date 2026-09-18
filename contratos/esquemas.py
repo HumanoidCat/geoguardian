@@ -69,12 +69,19 @@ class MedicionDiaria(_Base):
 
 
 class IndiceDerivado(_Base):
-    """Indices calculados a partir de las mediciones. None mientras no se calculen."""
+    """Indices calculados a partir de las mediciones. None mientras no se calculen.
+
+    `spi_6m` entra en 1.5.0 por SC-12: es la unica escala que el proyecto usa
+    desde D-32, y el contrato no la podia expresar. `fecha` es el ultimo dia del
+    periodo con el que se calculo el indice, no el dia de la consulta: con CHIRPS
+    el ultimo mes puede tener 21 a 51 dias de atraso (D-40).
+    """
 
     codigo_distrito: str
     fecha: date
     spi_1m: float | None = None
     spi_3m: float | None = None
+    spi_6m: float | None = None
     anomalia_temp_c: float | None = None
     dias_sin_lluvia: int | None = Field(default=None, ge=0)
 

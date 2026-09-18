@@ -1,59 +1,60 @@
-<svg width="732pt" height="508pt"
- viewBox="0.00 0.00 732.00 508.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="737pt" height="508pt"
+ viewBox="0.00 0.00 737.00 508.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 486.2)">
 <title>casos_de_uso</title>
-<polygon fill="white" stroke="none" points="-21.6,21.6 -21.6,-486.2 710.27,-486.2 710.27,21.6 -21.6,21.6"/>
+<polygon fill="white" stroke="none" points="-21.6,21.6 -21.6,-486.2 715.58,-486.2 715.58,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_sistema</title>
-<path fill="#e6eef7" stroke="#b9c0c8" d="M205.59,-62.6C205.59,-62.6 668.67,-62.6 668.67,-62.6 674.67,-62.6 680.67,-68.6 680.67,-74.6 680.67,-74.6 680.67,-444.6 680.67,-444.6 680.67,-450.6 674.67,-456.6 668.67,-456.6 668.67,-456.6 205.59,-456.6 205.59,-456.6 199.59,-456.6 193.59,-450.6 193.59,-444.6 193.59,-444.6 193.59,-74.6 193.59,-74.6 193.59,-68.6 199.59,-62.6 205.59,-62.6"/>
+<path fill="#e6eef7" stroke="#b9c0c8" d="M205.59,-62.6C205.59,-62.6 673.98,-62.6 673.98,-62.6 679.98,-62.6 685.98,-68.6 685.98,-74.6 685.98,-74.6 685.98,-444.6 685.98,-444.6 685.98,-450.6 679.98,-456.6 673.98,-456.6 673.98,-456.6 205.59,-456.6 205.59,-456.6 199.59,-456.6 193.59,-450.6 193.59,-444.6 193.59,-444.6 193.59,-74.6 193.59,-74.6 193.59,-68.6 199.59,-62.6 205.59,-62.6"/>
 <text xml:space="preserve" text-anchor="middle" x="237.59" y="-441.2" font-family="Helvetica,Arial,sans-serif" font-size="12.00">GeoGuardian</text>
 </g>
 <!-- usuaria -->
 <g id="node1" class="node">
 <title>usuaria</title>
-<path fill="#dde7f2" stroke="#b9c0c8" d="M93.09,-315.2C93.09,-315.2 19.5,-315.2 19.5,-315.2 13.5,-315.2 7.5,-309.2 7.5,-303.2 7.5,-303.2 7.5,-272 7.5,-272 7.5,-266 13.5,-260 19.5,-260 19.5,-260 93.09,-260 93.09,-260 99.09,-260 105.09,-266 105.09,-272 105.09,-272 105.09,-303.2 105.09,-303.2 105.09,-309.2 99.09,-315.2 93.09,-315.2"/>
-<text xml:space="preserve" text-anchor="middle" x="56.29" y="-302.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«actor»</text>
-<text xml:space="preserve" text-anchor="middle" x="56.29" y="-290.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Persona usuaria</text>
-<text xml:space="preserve" text-anchor="middle" x="56.29" y="-278.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">vecina, funcionaria</text>
-<text xml:space="preserve" text-anchor="middle" x="56.29" y="-266.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">municipal</text>
+<path fill="#dde7f2" stroke="#b9c0c8" d="M93.09,-323.2C93.09,-323.2 19.5,-323.2 19.5,-323.2 13.5,-323.2 7.5,-317.2 7.5,-311.2 7.5,-311.2 7.5,-280 7.5,-280 7.5,-274 13.5,-268 19.5,-268 19.5,-268 93.09,-268 93.09,-268 99.09,-268 105.09,-274 105.09,-280 105.09,-280 105.09,-311.2 105.09,-311.2 105.09,-317.2 99.09,-323.2 93.09,-323.2"/>
+<text xml:space="preserve" text-anchor="middle" x="56.29" y="-310.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">«actor»</text>
+<text xml:space="preserve" text-anchor="middle" x="56.29" y="-298.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">Persona usuaria</text>
+<text xml:space="preserve" text-anchor="middle" x="56.29" y="-286.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">vecina, funcionaria</text>
+<text xml:space="preserve" text-anchor="middle" x="56.29" y="-274.1" font-family="Helvetica,Arial,sans-serif" font-size="10.00" fill="#1f2328">municipal</text>
 </g>
 <!-- uc_mapa -->
 <g id="node4" class="node">
 <title>uc_mapa</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="291.73" cy="-362.6" rx="79.08" ry="27.37"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-369.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver el riesgo del canton</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-359.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en una fecha</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-348.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/riesgos</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="294.39" cy="-377.6" rx="79.08" ry="27.37"/>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-384.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver el riesgo del canton</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-374.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en una fecha</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-363.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/riesgos</text>
 </g>
 <!-- usuaria&#45;&gt;uc_mapa -->
 <g id="edge1" class="edge">
 <title>usuaria&#45;&gt;uc_mapa</title>
-<path fill="none" stroke="#5b636d" d="M105.38,-303.05C142.35,-314.93 193.57,-331.38 232.8,-343.99"/>
+<path fill="none" stroke="#5b636d" d="M105.36,-312.29C143.65,-325.59 197.31,-344.23 237.51,-358.19"/>
 </g>
 <!-- uc_ficha -->
 <g id="node5" class="node">
 <title>uc_ficha</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="291.73" cy="-287.6" rx="80.14" ry="27.37"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-294.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Consultar la ficha</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-284.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-273.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/riesgo</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="294.39" cy="-295.6" rx="82.8" ry="34.79"/>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-308.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Consultar la ficha</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-297.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-287.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/riesgo</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-276.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/indices</text>
 </g>
 <!-- usuaria&#45;&gt;uc_ficha -->
 <g id="edge2" class="edge">
 <title>usuaria&#45;&gt;uc_ficha</title>
-<path fill="none" stroke="#5b636d" d="M105.38,-287.6C135.94,-287.6 176.25,-287.6 211.46,-287.6"/>
+<path fill="none" stroke="#5b636d" d="M105.36,-295.6C135.83,-295.6 176.03,-295.6 211.44,-295.6"/>
 </g>
 <!-- uc_capas -->
 <g id="node9" class="node">
 <title>uc_capas</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="291.73" cy="-220.6" rx="66.35" ry="19.94"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-222.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Encender y apagar</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-212.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">capas del mapa</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="294.39" cy="-220.6" rx="66.35" ry="19.94"/>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-222.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Encender y apagar</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-212.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">capas del mapa</text>
 </g>
 <!-- usuaria&#45;&gt;uc_capas -->
 <g id="edge3" class="edge">
 <title>usuaria&#45;&gt;uc_capas</title>
-<path fill="none" stroke="#5b636d" d="M105.38,-273.8C145.55,-262.27 202.55,-245.91 242.71,-234.38"/>
+<path fill="none" stroke="#5b636d" d="M105.45,-279.35C131.49,-270.65 164.24,-259.85 193.59,-250.6 210.59,-245.24 229.28,-239.56 245.84,-234.61"/>
 </g>
 <!-- equipo -->
 <g id="node2" class="node">
@@ -66,38 +67,38 @@
 <!-- uc_ingesta -->
 <g id="node11" class="node">
 <title>uc_ingesta</title>
-<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="291.73" cy="-160.6" rx="51.51" ry="19.94"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-162.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ingerir datos</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-152.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de las fuentes</text>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="294.39" cy="-160.6" rx="51.51" ry="19.94"/>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-162.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ingerir datos</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-152.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de las fuentes</text>
 </g>
 <!-- equipo&#45;&gt;uc_ingesta -->
 <g id="edge8" class="edge">
 <title>equipo&#45;&gt;uc_ingesta</title>
-<path fill="none" stroke="#5b636d" d="M99.84,-111.54C141.92,-122.35 205.97,-138.81 248.09,-149.64"/>
+<path fill="none" stroke="#5b636d" d="M99.78,-111.4C142.39,-122.23 207.67,-138.82 250.45,-149.69"/>
 </g>
 <!-- uc_modelo -->
 <g id="node12" class="node">
 <title>uc_modelo</title>
-<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="567.15" cy="-100.6" rx="64.23" ry="19.94"/>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-102.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Entrenar y evaluar</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-92.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">el modelo</text>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="572.45" cy="-100.6" rx="64.23" ry="19.94"/>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-102.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Entrenar y evaluar</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-92.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">el modelo</text>
 </g>
 <!-- equipo&#45;&gt;uc_modelo -->
 <g id="edge10" class="edge">
 <title>equipo&#45;&gt;uc_modelo</title>
-<path fill="none" stroke="#5b636d" d="M99.87,-88.74C126.55,-81.93 161.8,-74.06 193.59,-70.6 272.36,-62.03 292.87,-64.54 371.88,-70.6 419.52,-74.26 473.15,-82.89 511.98,-89.96"/>
+<path fill="none" stroke="#5b636d" d="M99.87,-88.74C126.55,-81.93 161.8,-74.06 193.59,-70.6 274.71,-61.78 295.82,-64.36 377.18,-70.6 424.82,-74.26 478.45,-82.89 517.28,-89.96"/>
 </g>
 <!-- uc_desplegar -->
 <g id="node13" class="node">
 <title>uc_desplegar</title>
-<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="291.73" cy="-100.6" rx="72.19" ry="19.94"/>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-102.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Desplegar el sistema</text>
-<text xml:space="preserve" text-anchor="middle" x="291.73" y="-92.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">H11.2 a H11.4</text>
+<ellipse fill="#e8f0e4" stroke="#b9c0c8" cx="294.39" cy="-100.6" rx="72.19" ry="19.94"/>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-102.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Desplegar el sistema</text>
+<text xml:space="preserve" text-anchor="middle" x="294.39" y="-92.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">H11.2 a H11.4</text>
 </g>
 <!-- equipo&#45;&gt;uc_desplegar -->
 <g id="edge9" class="edge">
 <title>equipo&#45;&gt;uc_desplegar</title>
-<path fill="none" stroke="#5b636d" d="M99.84,-100.6C133.11,-100.6 180.11,-100.6 219.15,-100.6"/>
+<path fill="none" stroke="#5b636d" d="M99.78,-100.6C133.76,-100.6 182.16,-100.6 222.07,-100.6"/>
 </g>
 <!-- fuentes -->
 <g id="node3" class="node">
@@ -111,75 +112,75 @@
 <!-- uc_distritos -->
 <g id="node7" class="node">
 <title>uc_distritos</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="567.15" cy="-231.6" rx="64.23" ry="34.79"/>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-244.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ubicar los distritos</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-233.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en el mapa</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-223.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-212.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="572.45" cy="-231.6" rx="64.23" ry="34.79"/>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-244.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ubicar los distritos</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-233.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">en el mapa</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-223.05" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-212.55" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}</text>
 </g>
 <!-- uc_mapa&#45;&gt;uc_distritos -->
 <g id="edge5" class="edge">
 <title>uc_mapa&#45;&gt;uc_distritos</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M339.19,-340.3C349.92,-335.15 361.3,-329.68 371.88,-324.6 416.22,-303.29 427.25,-297.84 471.63,-276.6 484.47,-270.45 498.31,-263.85 511.32,-257.65"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="512.16,-259.58 516.68,-255.1 510.36,-255.79 512.16,-259.58"/>
-<text xml:space="preserve" text-anchor="middle" x="421.75" y="-310.13" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M345.26,-356.44C355.94,-351.52 367.05,-346.11 377.18,-340.6 388.75,-334.31 465.42,-283 476.93,-276.6 489.24,-269.76 502.76,-262.93 515.63,-256.74"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="516.41,-258.7 520.92,-254.22 514.6,-254.91 516.41,-258.7"/>
+<text xml:space="preserve" text-anchor="middle" x="427.06" y="-321.01" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
 </g>
 <!-- uc_modo -->
 <g id="node8" class="node">
 <title>uc_modo</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="567.15" cy="-388.6" rx="78.02" ry="27.37"/>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-395.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Saber si los datos</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-385.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">son reales o simulados</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-374.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/salud</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="572.45" cy="-388.6" rx="78.02" ry="27.37"/>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-395.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Saber si los datos</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-385.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">son reales o simulados</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-374.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/salud</text>
 </g>
 <!-- uc_mapa&#45;&gt;uc_modo -->
 <g id="edge6" class="edge">
 <title>uc_mapa&#45;&gt;uc_modo</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M348.27,-343.03C375.54,-335.9 408.87,-330.9 438.63,-336.85 454.21,-339.97 456.92,-344.58 471.63,-350.6 483.26,-355.36 495.71,-360.41 507.64,-365.21"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="506.84,-367.15 513.19,-367.44 508.41,-363.26 506.84,-367.15"/>
-<text xml:space="preserve" text-anchor="middle" x="421.75" y="-339" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M338.87,-354.57C368.28,-341.75 408.14,-329.69 443.93,-336.85 459.51,-339.97 462.23,-344.58 476.93,-350.6 488.56,-355.36 501.02,-360.41 512.94,-365.21"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="512.14,-367.15 518.49,-367.44 513.71,-363.26 512.14,-367.15"/>
+<text xml:space="preserve" text-anchor="middle" x="427.06" y="-339" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
 </g>
 <!-- uc_filtro -->
 <g id="node10" class="node">
 <title>uc_filtro</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="567.15" cy="-158.6" rx="58.19" ry="18"/>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-155.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Elegir evento y fecha</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="572.45" cy="-158.6" rx="58.19" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-155.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Elegir evento y fecha</text>
 </g>
 <!-- uc_mapa&#45;&gt;uc_filtro -->
 <g id="edge4" class="edge">
 <title>uc_mapa&#45;&gt;uc_filtro</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M345.23,-341.98C354.62,-337.05 363.93,-331.25 371.88,-324.6 391.1,-308.51 390.2,-299.17 404.88,-278.85 434.51,-237.83 430.33,-215.85 471.63,-186.6 482.47,-178.92 495.43,-173.33 508.22,-169.25"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="508.7,-171.3 513.85,-167.58 507.5,-167.28 508.7,-171.3"/>
-<text xml:space="preserve" text-anchor="middle" x="421.75" y="-281" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M351.06,-358.1C360.41,-353.29 369.55,-347.49 377.18,-340.6 398.84,-321.05 394.58,-308.51 410.18,-283.85 438.21,-239.55 434.53,-217.43 476.93,-186.6 487.68,-178.79 500.6,-173.14 513.38,-169.06"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="513.86,-171.11 519.01,-167.38 512.66,-167.08 513.86,-171.11"/>
+<text xml:space="preserve" text-anchor="middle" x="427.06" y="-286" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
 </g>
 <!-- uc_serie -->
 <g id="node6" class="node">
 <title>uc_serie</title>
-<ellipse fill="white" stroke="#b9c0c8" cx="567.15" cy="-313.6" rx="95.52" ry="27.37"/>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-320.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver la serie climatica</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-310.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
-<text xml:space="preserve" text-anchor="middle" x="567.15" y="-299.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/mediciones</text>
+<ellipse fill="white" stroke="#b9c0c8" cx="572.45" cy="-313.6" rx="95.52" ry="27.37"/>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-320.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">Ver la serie climatica</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-310.3" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">de un distrito</text>
+<text xml:space="preserve" text-anchor="middle" x="572.45" y="-299.8" font-family="Helvetica,Arial,sans-serif" font-size="9.00" fill="#1f2328">/distritos/{codigo}/mediciones</text>
 </g>
 <!-- uc_serie&#45;&gt;uc_ficha -->
 <g id="edge7" class="edge">
 <title>uc_serie&#45;&gt;uc_ficha</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M515.82,-337.11C483.72,-348.95 441.44,-358.67 404.88,-347.6 388.01,-342.49 387.19,-334.33 371.88,-325.6 364.07,-321.15 355.66,-316.74 347.34,-312.57"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="348.67,-310.89 342.36,-310.12 346.81,-314.66 348.67,-310.89"/>
-<text xml:space="preserve" text-anchor="middle" x="421.75" y="-354.53" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«extend»</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M517.67,-336.4C486.3,-346.83 445.98,-355.33 410.18,-347.6 390.28,-343.3 369.67,-335.26 351.51,-326.76"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="352.61,-324.96 346.3,-324.26 350.8,-328.75 352.61,-324.96"/>
+<text xml:space="preserve" text-anchor="middle" x="427.06" y="-352.74" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«extend»</text>
 </g>
 <!-- uc_ingesta&#45;&gt;fuentes -->
 <g id="edge12" class="edge">
 <title>uc_ingesta&#45;&gt;fuentes</title>
-<path fill="none" stroke="#5b636d" d="M243.82,-152.79C226.83,-148.32 208.25,-141.36 193.59,-130.6 184.12,-123.65 186.95,-117.1 178.59,-108.85 159.62,-90.14 135.78,-73.09 114.26,-59.5"/>
+<path fill="none" stroke="#5b636d" d="M245.96,-153.21C228.31,-148.77 208.87,-141.73 193.59,-130.6 184.1,-123.69 186.95,-117.1 178.59,-108.85 159.62,-90.14 135.78,-73.09 114.26,-59.5"/>
 <polygon fill="#5b636d" stroke="#5b636d" points="115.45,-57.77 109.25,-56.38 113.23,-61.33 115.45,-57.77"/>
 <text xml:space="preserve" text-anchor="middle" x="162.09" y="-111" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">descarga</text>
 </g>
 <!-- uc_modelo&#45;&gt;uc_ingesta -->
 <g id="edge11" class="edge">
 <title>uc_modelo&#45;&gt;uc_ingesta</title>
-<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M507.62,-108.22C494.02,-112.69 480.84,-119.68 471.63,-130.6 403.04,-211.88 518.85,-297.78 438.63,-367.6 427.31,-377.45 416.41,-377.19 404.88,-367.6 343.33,-316.46 423.21,-251.99 371.88,-190.6 364.98,-182.36 355.57,-176.38 345.64,-172.04"/>
-<polygon fill="#5b636d" stroke="#5b636d" points="346.47,-170.1 340.12,-169.84 344.92,-174.01 346.47,-170.1"/>
-<text xml:space="preserve" text-anchor="middle" x="421.75" y="-377.04" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
+<path fill="none" stroke="#5b636d" stroke-dasharray="5,2" d="M512.93,-108.23C499.33,-112.69 486.15,-119.68 476.93,-130.6 408.86,-211.17 523.52,-296.4 443.93,-365.6 432.61,-375.44 421.73,-375.17 410.18,-365.6 349.25,-315.08 428.34,-250.99 377.18,-190.6 369.8,-181.89 359.67,-175.71 349.04,-171.32"/>
+<polygon fill="#5b636d" stroke="#5b636d" points="349.78,-169.36 343.42,-169.22 348.31,-173.29 349.78,-169.36"/>
+<text xml:space="preserve" text-anchor="middle" x="427.06" y="-375.03" font-family="Helvetica,Arial,sans-serif" font-size="8.00" fill="#5b636d">«include»</text>
 </g>
 </g>
 </svg>

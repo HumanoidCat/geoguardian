@@ -304,6 +304,7 @@ class RepositorioSimulado:
                     fecha=actual,
                     spi_1m=round(sorteo.gauss(0, 1), 2),
                     spi_3m=round(sorteo.gauss(0, 1), 2),
+                    spi_6m=round(sorteo.gauss(0, 1), 2),
                     anomalia_temp_c=round(sorteo.gauss(0, 1.5), 2),
                     dias_sin_lluvia=sorteo.randint(0, 20),
                 )
