@@ -43,7 +43,7 @@ from __future__ import annotations
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -87,7 +87,7 @@ def main() -> None:
     esperado = {
         "version_contratos": version_contratos,
         "version_api": version_api,
-        "generado_en": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generado_en": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fuente": {
             "version_contratos": "contratos/__init__.py",
             "version_api": "backend/api/rutas.py" if version_api else None,
