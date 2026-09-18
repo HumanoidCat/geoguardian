@@ -25,6 +25,7 @@ from backend.senales.redundancia import (
     Fila,
     correlacion,
     correlacion_de_temperaturas,
+    escribir_sin,
     filas_completas,
     leer_matriz,
     pares_relacionados,
@@ -324,3 +325,50 @@ def test_las_temperaturas_se_niegan_si_los_distritos_no_coinciden():
     assert medida["una_sola_serie"] is False
     assert medida["desacuerdos"]["tmax"] == 1
     assert medida["desacuerdos"]["tmin"] == 0
+
+
+# ===========================================================================
+# LA MATRIZ REDUCIDA DEL CA-8
+# ===========================================================================
+
+
+def test_escribir_sin_quita_solo_esas_columnas(tmp_path):
+    origen = csv_de(
+        tmp_path,
+        ["pp_acum3", "pp_media3", "tmax_rez1"],
+        [("D1", "2020-01-01", {"pp_acum3": 9.0, "pp_media3": 3.0, "tmax_rez1": 28.0})],
+    )
+    destino = tmp_path / "reducida.csv"
+    quedan, filas = escribir_sin(origen, destino, {"pp_media3"})
+    assert quedan == ["pp_acum3", "tmax_rez1"]
+    assert filas == 1
+    columnas, leidas = leer_matriz(destino)
+    assert columnas == ["pp_acum3", "tmax_rez1"]
+    assert leidas[0].codigo == "D1"
+
+
+def test_escribir_sin_copia_las_celdas_tal_cual(tmp_path):
+    """El «antes» y el «despues» tienen que diferir en UNA cosa, no en dos.
+
+    Si las celdas se reformatearan al copiarlas, la matriz reducida cambiaria la
+    ultima cifra de algunos valores ademas de perder columnas, y la comparacion
+    del CA-8 mediria dos efectos a la vez.
+    """
+    origen = csv_de(
+        tmp_path,
+        ["a", "b"],
+        [("D1", "2020-01-01", {"a": 1 / 3, "b": 2.0})],
+    )
+    destino = tmp_path / "reducida.csv"
+    escribir_sin(origen, destino, {"b"})
+    celda_origen = origen.read_text(encoding="utf-8").splitlines()[1].split(",")[2]
+    celda_destino = destino.read_text(encoding="utf-8").splitlines()[1].split(",")[2]
+    assert celda_origen == celda_destino
+
+
+def test_escribir_sin_se_niega_ante_un_nombre_que_no_existe(tmp_path):
+    """Un nombre mal escrito produciria una copia identica, y el CA-8 mediria
+    la misma matriz dos veces sin que nada se queje."""
+    origen = csv_de(tmp_path, ["a"], [("D1", "2020-01-01", {"a": 1.0})])
+    with pytest.raises(ValueError, match="pp_media3"):
+        escribir_sin(origen, tmp_path / "x.csv", {"pp_media3"})

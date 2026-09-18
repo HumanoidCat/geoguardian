@@ -435,6 +435,45 @@ def escribir_tabla(vectores: dict[str, list[float]], columnas: list[str], destin
     return len(coeficientes)
 
 
+def escribir_sin(origen: Path, destino: Path, fuera: set[str]) -> tuple[list[str], int]:
+    """Copia la matriz sin las columnas indicadas. Devuelve `(las que quedan, filas)`.
+
+    Existe para que el «despues» del CA-8 salga de un comando y no de una edicion
+    a mano: la herramienta que encontro la redundancia es la que la quita, y
+    cualquiera puede reproducir las dos matrices desde la misma fuente.
+
+    **Las celdas se copian tal cual, sin pasarlas por `float()`.** Reformatear
+    los numeros cambiaria la ultima cifra de algunas, y entonces el «antes» y el
+    «despues» diferirian en dos cosas a la vez -las columnas quitadas y el
+    redondeo- en vez de en una. Una comparacion con dos variables no mide
+    ninguna.
+
+    **No decide QUE quitar.** Los nombres se pasan a mano y el motivo se escribe
+    en la evidencia. Una herramienta que eligiera sola cual mitad de cada par
+    sobrevive estaria tomando una decision de modelado sin que nadie la lea.
+    """
+    with origen.open(encoding="utf-8", newline="") as archivo:
+        lector = csv.reader(archivo)
+        encabezado = next(lector)
+        desconocidas = sorted(fuera - set(encabezado))
+        if desconocidas:
+            raise ValueError(
+                f"{origen} no tiene estas columnas: {', '.join(desconocidas)}. "
+                "Sin este control, un nombre mal escrito produciria una copia "
+                "identica y el CA-8 mediria la misma matriz dos veces."
+            )
+        quedan = [i for i, c in enumerate(encabezado) if c not in fuera]
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        filas = 0
+        with destino.open("w", encoding="utf-8", newline="") as salida:
+            escritor = csv.writer(salida)
+            escritor.writerow([encabezado[i] for i in quedan])
+            for fila in lector:
+                escritor.writerow([fila[i] for i in quedan])
+                filas += 1
+    return [encabezado[i] for i in quedan if encabezado[i] not in COLUMNAS_LLAVE], filas
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Redundancia entre columnas. H2.6.")
     p.add_argument("--matriz", type=Path, default=MATRIZ)
@@ -456,12 +495,40 @@ def main() -> int:
             "PostgreSQL: esas dos columnas no estan en la matriz."
         ),
     )
+    p.add_argument(
+        "--escribir-sin",
+        default=None,
+        metavar="COLUMNAS",
+        help=(
+            "escribe una copia de la matriz sin esas columnas, separadas por "
+            "comas, y no mide nada. Es el «despues» del CA-8. Necesita --destino."
+        ),
+    )
+    p.add_argument("--destino", type=Path, default=None, metavar="ARCHIVO")
     args = p.parse_args()
 
     if not args.matriz.exists():
         print(f"\nNo encuentro {args.matriz}.")
         print("\n  Se produce con:  python -m backend.modelado.generar_caracteristicas\n")
         return 1
+
+    if args.escribir_sin is not None:
+        if args.destino is None:
+            print("\n--escribir-sin necesita --destino.\n")
+            return 1
+        fuera = {c.strip() for c in args.escribir_sin.split(",") if c.strip()}
+        try:
+            quedan, filas_escritas = escribir_sin(args.matriz, args.destino, fuera)
+        except ValueError as error:
+            print(f"\n{error}\n")
+            return 1
+        print(f"\nMatriz sin {len(fuera)} columnas · H2.6 · CA-8\n")
+        print(f"  origen    {args.matriz}")
+        print(f"  quitadas  {', '.join(sorted(fuera))}")
+        print(f"  quedan    {len(quedan)} columnas")
+        print(f"  filas     {filas_escritas}")
+        print(f"  escrito en {args.destino}\n")
+        return 0
 
     columnas, filas = leer_matriz(args.matriz)
     if not filas:
