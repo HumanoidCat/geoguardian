@@ -5061,6 +5061,65 @@ miraban `/salud` lo hacian con algo vivo del otro lado, asi que los tres podian
 estar en verde mientras el unico caso que importa estaba roto. Es la misma
 familia de **I-58**: controles que no ejercitan la rama que dicen cubrir.
 
+**ARREGLADA el 2026-09-18**, en la rama `fix/cu-i61-salud-arreglo`.
+
+**El arreglo va en la composicion y no en ninguno de los dos metodos**, porque
+ahi estaba el defecto. `backend/api/dependencias.py` gana `EstadoDeLaBase` y
+`estado_de()`, que devuelve los dos campos juntos con el orden adentro; y
+`rutas.py` **deja de importar** `base_conectada` y `ultima_ingesta_de`, asi que
+la capa de rutas ya no puede volver a componerlos mal. No queda una regla de
+orden que alguien tenga que recordar: queda una funcion que devuelve las dos
+cosas.
+
+**`ultima_ingesta()` sigue propagando, y no se toco.** No solo por I-41:
+`obtener_indices()` tambien lo llama y **necesita** que propague -servir el
+indice guardado con la base caida diria que el dato esta al dia sin poder
+saberlo-. Hacerlo tolerante habria arreglado `/salud` y roto `/indices` en la
+misma linea.
+
+**Tampoco se atrapa nada en `estado_de`.** El comentario de
+`repositorio_postgres.py` ya habia decidido el criterio: un `permission denied`
+sobre `control.bitacora_etl` reportado como «base no conectada» seria una
+respuesta falsa **distinta** de la que se estaba arreglando. Si la base contesta
+y la consulta falla, eso es un defecto y tiene que verse.
+
+**Ventana declarada, no tapada.** Si la base muere **entre** las dos llamadas,
+`/salud` vuelve a dar 500. Es una carrera estrecha, y taparla exigiria
+exactamente el `except` ancho del parrafo anterior.
+
+**Verificacion.** 76 pruebas en `backend/api` -nueve nuevas en `test_salud.py`,
+ninguna necesita base ni red-, `ruff` limpio, `verificar_h61` con sus doce
+criterios y `verificar_h62` con los siete. Y lo que de verdad cierra esto,
+**contra PostgreSQL detenido**, que es como se encontro:
+
+    python -m backend.api.verificar_h83 --ca3
+
+    CA-3a con la base caida, /distritos sigue respondiendo desde la cache: CUMPLE
+        estado 200
+    CA-3b con la base caida, /salud no afirma que la base esta conectada: CUMPLE
+        estado 200, cuerpo {'version_api': '0.1.0', 'version_contratos': '1.5.0',
+        'modo': 'real', 'base_datos_conectada': False, 'ultima_ingesta': None}
+
+Es la **tercera fila** de la tabla de arriba: `false` + `null`, «no se pudo
+saber: no hay base». El mismo comando que encontro la incidencia es el que la
+cierra.
+
+Entre las nueve pruebas hay un **sabotaje inverso**: exige que
+`ultima_ingesta_de` **siga lanzando** con la base caida. Si alguien «simplifica»
+metiendole un `try/except`, `/salud` seguiria pasando y `/indices` empezaria a
+mentir sin que nada se pusiera en rojo. Ahora si se pone.
+
+**Una nota sobre el metodo, porque la leccion de arriba se repitio mientras se
+arreglaba.** La primera corrida de esa verificacion dio en rojo, con
+`base_datos_conectada: True` y la base supuestamente apagada. No era el arreglo:
+era que la base seguia levantada cuando se presiono Enter. Las nueve pruebas
+unitarias -que usan un repositorio escrito a mano- estaban en verde desde antes y
+no habrian detectado ninguna de las dos cosas. **El arreglo se escribio antes de
+correrlo contra el sistema real**, que es la misma forma del defecto que esta
+incidencia describe.
+
+**Desbloquea la parte 1 de H12.2.**
+
 ---
 
 ## I-62 · `ingestar.py` no cierra su corrida si el proceso no sale por la puerta normal
