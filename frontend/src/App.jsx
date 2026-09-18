@@ -14,6 +14,7 @@ import {
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
+  obtenerEsperado,
 } from './datos/cliente'
 import SelectorFecha from './componentes/SelectorFecha'
 import { puntoEnSuperficie } from './datos/geometria'
@@ -129,6 +130,9 @@ export default function App() {
   // fecha del selector, porque son de la fecha de la escena de satelite.
   const [indices, setIndices] = useState(null)
   const [historial, setHistorial] = useState(null)
+  // Arranca `undefined` y no `null`: son estados distintos y el panel los muestra
+  // distinto. `undefined` es «todavia no llego»; `null`, «el archivo no esta».
+  const [esperado, setEsperado] = useState()
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -163,6 +167,21 @@ export default function App() {
     let vigente = true
     obtenerIndices().then((paquete) => {
       if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // Lo que el arbol construido espera de la API, para el contraste de H12.2.
+  //
+  // Se pide una sola vez y aparte, por lo mismo que el historial: es un archivo
+  // estatico que no cambia con el evento ni con la fecha. Si no esta, el panel lo
+  // declara en pantalla en vez de suponer que las versiones coinciden.
+  useEffect(() => {
+    let vigente = true
+    obtenerEsperado().then((paquete) => {
+      if (vigente) setEsperado(paquete)
     })
     return () => {
       vigente = false
@@ -391,7 +410,11 @@ export default function App() {
           esta es justamente la pantalla que dice por que. Condicionarla a que
           haya datos la apagaria en el unico momento en que hace falta. */}
       {!cargando && vista === 'monitoreo' && (
-        <PanelMonitoreo salud={salud} alVerMapa={() => setVista('mapa')} />
+        <PanelMonitoreo
+          salud={salud}
+          esperado={esperado}
+          alVerMapa={() => setVista('mapa')}
+        />
       )}
 
       {!cargando && coleccion && vista === 'mapa' && (

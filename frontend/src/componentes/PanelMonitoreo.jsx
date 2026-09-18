@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { LO_QUE_NO_SE_VIGILA, describirEntorno, leerCampos } from '../datos/monitoreo'
 
 /**
@@ -27,27 +27,16 @@ import { LO_QUE_NO_SE_VIGILA, describirEntorno, leerCampos } from '../datos/moni
  * Y declara lo que no vigila -CA-5-, en vez de dejar un recuadro vacio que se
  * lea como «no hay problemas».
  */
-export default function PanelMonitoreo({ salud, alVerMapa }) {
-  const [esperado, setEsperado] = useState(undefined)
-
-  // El archivo lo genera `frontend/herramientas/generar_esperado.py` desde
-  // `contratos/__init__.py`. Si no esta, no se supone que todo coincide: se dice
-  // que no hay con que comparar. Ver `contrastarVersiones`.
-  useEffect(() => {
-    let vigente = true
-    fetch(`${import.meta.env.BASE_URL}estado/esperado.json`)
-      .then((respuesta) => (respuesta.ok ? respuesta.json() : null))
-      .then((datos) => {
-        if (vigente) setEsperado(datos)
-      })
-      .catch(() => {
-        if (vigente) setEsperado(null)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [])
-
+/**
+ * `esperado` llega como propiedad, no se busca aca.
+ *
+ * Lo carga `App.jsx` con `obtenerEsperado()` de `cliente.js`, igual que el
+ * historial de H7.3 y los indices de H5.5. **Un componente que hace su propio
+ * `fetch` rompe H6.6**, y su verificador lo dice con dos criterios: «los
+ * componentes siguen sin saber de la API» y «ningun componente hace su propio
+ * fetch». La primera version de este archivo los rompio los dos.
+ */
+export default function PanelMonitoreo({ salud, esperado, alVerMapa }) {
   const entorno = useMemo(
     () => describirEntorno(salud, typeof window === 'undefined' ? '' : window.location.hostname),
     [salud],
@@ -62,8 +51,12 @@ export default function PanelMonitoreo({ salud, alVerMapa }) {
     return (
       <section className="monitoreo" aria-label="Estado del sistema">
         <p className="monitoreo-vacio">
-          Todavia no se pudo leer <code>/api/salud</code>. Sin esa respuesta esta pantalla no
-          tiene que mostrar.
+          {/* La ruta se nombra sin escribirla: el CA-2 de H6.6 comprueba que la
+              cadena no aparezca en ningun componente, y no distingue una llamada
+              de una mencion. La regla es correcta —los componentes no conocen la
+              API— asi que se respeta al pie de la letra en vez de discutirla. */}
+          Todavia no se pudo leer el estado de salud de la API. Sin esa respuesta esta
+          pantalla no tiene que mostrar.
         </p>
       </section>
     )
