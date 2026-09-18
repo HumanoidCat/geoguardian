@@ -30,7 +30,7 @@ import { dibujarSuperficie, limitesDeColeccion, puntosDeOrigen } from '../datos/
  * Medido sobre las geometrias del SNIT, con verificar_recorte_calor.py:
  *
  *     caja                    pintado fuera    canton sin pintar
- *     centroides + 0,03            23,4 %            20,6 %
+ *     centroides + 0,03            23,8 %            20,7 %
  *     poligonos                    40,5 %             0,0 %
  *     poligonos + recorte           0,0 %             0,0 %
  *
@@ -84,21 +84,55 @@ export default function CapaMapaCalor({ coleccion, centroides, riesgos, exponent
 
     const grupo = L.layerGroup().addTo(mapa)
 
+    // ENCIMA DE LA COROPLETA, EN SU PROPIO PANEL.
+    //
+    // Hasta el 2026-09-10 este `imageOverlay` no declaraba z. Sin declararlo cae
+    // en `overlayPane` junto a los poligonos de riesgo y **queda debajo**, porque
+    // los poligonos se dibujan despues. Con la coropleta al 85 % de opacidad el
+    // resultado es que **la capa se enciende y no se ve**: quien la prende cree
+    // que hizo algo mal.
+    //
+    // Lo señalo el profesor el 2026-08-27 y lo repitio el 2026-09-10. La correccion
+    // se habia aplicado a la capa de indices -ver el comentario de `CapaIndice`- y
+    // esta quedo pendiente dos semanas.
+    //
+    // POR QUE UN PANEL Y NO UN zIndex SUELTO
+    //
+    // Subir el z de la imagen dentro de `overlayPane` la pondria tambien encima de
+    // **sus propios puntos de origen**, que son `circleMarker` y viven en ese mismo
+    // panel. Y dibujar los puntos encima de la superficie no es decoracion: con
+    // ocho puntos, la superficie parece un analisis fino y no lo es.
+    //
+    // Con paneles se ordenan las tres cosas sin que ninguna pise a la otra:
+    //
+    //     overlayPane   400   los poligonos de riesgo
+    //     calor         450   esta superficie
+    //     markerPane    600   los puntos de origen
+    if (!mapa.getPane('calor')) {
+      mapa.createPane('calor')
+      mapa.getPane('calor').style.zIndex = 450
+      // El panel no recibe eventos: la superficie no es interactiva y dejarlo
+      // activo taparia el clic sobre los distritos, que es como se abre la ficha.
+      mapa.getPane('calor').style.pointerEvents = 'none'
+    }
+
     L.imageOverlay(
       lienzo.toDataURL(),
       [
         [limites.sur, limites.oeste],
         [limites.norte, limites.este],
       ],
-      { interactive: false, className: 'superficie-calor' },
+      { interactive: false, className: 'superficie-calor', pane: 'calor' },
     ).addTo(grupo)
 
-    // Los puntos de origen, encima de la superficie.
+    // Los puntos de origen, encima de la superficie. Van en `markerPane` para que
+    // sigan estandolo ahora que la superficie subio de panel.
     for (const punto of puntos) {
       L.circleMarker([punto.lat, punto.lon], {
         radius: 4,
         className: 'punto-origen',
         interactive: true,
+        pane: 'markerPane',
       })
         .bindTooltip(`${punto.nombre}: probabilidad ${Math.round(punto.valor * 100)} %`, {
           direction: 'top',

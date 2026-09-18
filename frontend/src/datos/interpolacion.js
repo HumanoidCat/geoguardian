@@ -133,7 +133,7 @@ export function colorDeValor(valor) {
  * Medido sobre las geometrias del SNIT (verificar_recorte_calor.py):
  *
  *     caja de centroides + 0,03      caja de los poligonos
- *     20,6 % del canton sin pintar   0,0 % sin pintar
+ *     20,7 % del canton sin pintar   0,0 % sin pintar
  *     Tronadora cubierta al 54,5 %   todos los distritos al 100 %
  *     Arenal al 68,3 %
  *
