@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
+from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 
@@ -169,3 +170,65 @@ def ultima_ingesta_de(repositorio: Repositorio) -> datetime | None:
     if isinstance(repositorio, RepositorioSimulado):
         return None
     return repositorio.ultima_ingesta()
+
+
+@dataclass(frozen=True)
+class EstadoDeLaBase:
+    """
+    Los dos campos de /salud que hablan de la base, **juntos porque no son
+    independientes**.
+
+    Viajaban sueltos y cada uno era correcto. Lo que fallaba era ponerlos en la
+    misma respuesta: ver `estado_de` e I-61.
+    """
+
+    conectada: bool
+    ultima_ingesta: datetime | None
+
+
+def estado_de(repositorio: Repositorio) -> EstadoDeLaBase:
+    """
+    Los dos campos de la base, preguntados **en orden**. Arregla I-61.
+
+    EL DEFECTO QUE ESTO CIERRA
+
+    `esta_viva()` atrapa y devuelve False -«/salud tiene que poder decir que
+    no»-. `ultima_ingesta()` propaga, a proposito, porque devolver None ante un
+    error diria «nunca corrio», que es la mentira de I-41. **Las dos decisiones
+    son correctas.** Llamadas dentro del mismo `Salud(...)`, la que propaga mata
+    la respuesta entera antes de que la que atrapa llegue a servir de algo, y con
+    la base caida /salud devolvia 500: justo el unico caso para el que ese
+    endpoint existe.
+
+    Decision del PM del 2026-09-17, y **no toca el contrato**: si no hay base, no
+    se pregunta por la ingesta. El par de campos ya desambigua sin inventar nada:
+
+        conectada=True   + una fecha  -> la ultima ingesta exitosa
+        conectada=True   + None       -> nunca corrio una ingesta
+        conectada=False  + None       -> no se pudo saber: no hay base
+
+    POR QUE ACA Y NO EN `rutas.py`
+
+    Porque el defecto **es** la composicion, y una regla de orden escrita en el
+    llamador la vuelve a romper el proximo llamador. Aca no hay orden que
+    recordar: hay una funcion que devuelve las dos cosas.
+
+    LO QUE NO SE HACE, Y ESTA DECIDIDO
+
+    No se atrapa la excepcion de `ultima_ingesta()` cuando la base SI contesta.
+    `repositorio_postgres.py` ya explica por que: un `permission denied` sobre
+    `control.bitacora_etl` reportado como «base no conectada» seria una respuesta
+    falsa distinta de la que se esta arreglando. Si la base contesta y la consulta
+    falla, eso es un defecto y tiene que verse.
+
+    **Ventana declarada:** si la base muere entre las dos llamadas, /salud vuelve
+    a dar 500. Es una carrera estrecha, y se declara en vez de taparla con un
+    `except` ancho que se tragaria lo de arriba.
+    """
+    conectada = base_conectada(repositorio)
+    if not conectada:
+        # No se pregunta por la ingesta: sin base, la respuesta honesta a «cuando
+        # fue la ultima» es que no se puede saber, y eso es `None` con
+        # `conectada` en False. No es lo mismo que «nunca corrio».
+        return EstadoDeLaBase(conectada=False, ultima_ingesta=None)
+    return EstadoDeLaBase(conectada=True, ultima_ingesta=ultima_ingesta_de(repositorio))

@@ -27,10 +27,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from backend.api.dependencias import (
-    base_conectada,
+    estado_de,
     modo_de,
     obtener_repositorio,
-    ultima_ingesta_de,
 )
 from backend.api.errores import Error
 from contratos import VERSION_CONTRATOS
@@ -73,12 +72,19 @@ def salud(repositorio: Repo) -> Salud:
     # conexion, y ciertas entonces. H6.2 las volvio falsas y sobrevivieron nueve
     # dias porque ningun criterio preguntaba por ellas con el repositorio real.
     # Ver I-41 y el criterio CA-7 de verificar_h61.py, que ahora si pregunta.
+    #
+    # LOS DOS CAMPOS DE LA BASE LLEGAN JUNTOS, Y ESO ES I-61. Se preguntaban por
+    # separado, y como `ultima_ingesta()` propaga -a proposito, por I-41- con la
+    # base caida esta respuesta era un 500: el unico caso para el que /salud
+    # existe. `estado_de` los resuelve en orden. La capa de rutas ya no puede
+    # componerlos mal porque ya no los importa sueltos.
+    estado = estado_de(repositorio)
     return Salud(
         version_api=VERSION_API,
         version_contratos=VERSION_CONTRATOS,
         modo=modo_de(repositorio),
-        base_datos_conectada=base_conectada(repositorio),
-        ultima_ingesta=ultima_ingesta_de(repositorio),
+        base_datos_conectada=estado.conectada,
+        ultima_ingesta=estado.ultima_ingesta,
     )
 
 
