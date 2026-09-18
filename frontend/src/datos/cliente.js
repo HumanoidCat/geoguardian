@@ -83,6 +83,35 @@ export async function obtenerIndices() {
   }
 }
 
+/**
+ * Lo que el arbol construido espera de la API, para que H12.2 pueda contrastarlo.
+ *
+ * Lo genera `frontend/herramientas/generar_esperado.py` desde
+ * `contratos/__init__.py`, y queda versionado en `public/` igual que los indices.
+ * **No pasa por la API**: preguntarle a la API que version espera el arbol seria
+ * preguntarle al examinado por su propia nota.
+ *
+ * VIVE ACA Y NO EN EL COMPONENTE, Y ESA ES LA LECCION
+ *
+ * La primera version hacia este `fetch` dentro de `PanelMonitoreo.jsx`, y el
+ * verificador de **H6.6** lo rechazo con dos criterios: «los componentes siguen
+ * sin saber de la API» y «ningun componente hace su propio fetch». Tenia razon: si
+ * cada pantalla busca lo suyo, el dia que cambie de donde sale el dato hay que
+ * tocar todas. El acceso a datos vive en este archivo, sin excepciones.
+ *
+ * Si el archivo no esta, se devuelve `null` y la pantalla lo declara. No es un
+ * error: quien no corrio el guion no lo tiene.
+ */
+export async function obtenerEsperado() {
+  try {
+    const respuesta = await fetch(`${BASE}estado/esperado.json`)
+    if (!respuesta.ok) return null
+    return await respuesta.json()
+  } catch {
+    return null
+  }
+}
+
 const RESPALDO = {
   salud: `${BASE}simulados/salud.json`,
   distritos: `${BASE}simulados/distritos.geojson`,

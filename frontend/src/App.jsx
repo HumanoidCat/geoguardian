@@ -14,6 +14,7 @@ import {
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
+  obtenerEsperado,
 } from './datos/cliente'
 import SelectorFecha from './componentes/SelectorFecha'
 import { puntoEnSuperficie } from './datos/geometria'
@@ -24,6 +25,7 @@ import LeyendaMapaCalor from './componentes/LeyendaMapaCalor'
 import LeyendaIndice from './componentes/LeyendaIndice'
 import LogoGeoGuardian from './componentes/LogoGeoGuardian'
 import EstadoDatos from './componentes/EstadoDatos'
+import PanelMonitoreo from './componentes/PanelMonitoreo'
 import HoyEnTuDistrito from './componentes/HoyEnTuDistrito'
 import HistorialEventos from './componentes/HistorialEventos'
 import { obtenerHistorial } from './datos/historial'
@@ -128,6 +130,9 @@ export default function App() {
   // fecha del selector, porque son de la fecha de la escena de satelite.
   const [indices, setIndices] = useState(null)
   const [historial, setHistorial] = useState(null)
+  // Arranca `undefined` y no `null`: son estados distintos y el panel los muestra
+  // distinto. `undefined` es «todavia no llego»; `null`, «el archivo no esta».
+  const [esperado, setEsperado] = useState()
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -162,6 +167,21 @@ export default function App() {
     let vigente = true
     obtenerIndices().then((paquete) => {
       if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // Lo que el arbol construido espera de la API, para el contraste de H12.2.
+  //
+  // Se pide una sola vez y aparte, por lo mismo que el historial: es un archivo
+  // estatico que no cambia con el evento ni con la fecha. Si no esta, el panel lo
+  // declara en pantalla en vez de suponer que las versiones coinciden.
+  useEffect(() => {
+    let vigente = true
+    obtenerEsperado().then((paquete) => {
+      if (vigente) setEsperado(paquete)
     })
     return () => {
       vigente = false
@@ -386,6 +406,17 @@ export default function App() {
         <HistorialEventos historial={historial} alVerMapa={() => setVista('mapa')} />
       )}
 
+      {/* El monitoreo no depende de `coleccion`: si los distritos no cargaron,
+          esta es justamente la pantalla que dice por que. Condicionarla a que
+          haya datos la apagaria en el unico momento en que hace falta. */}
+      {!cargando && vista === 'monitoreo' && (
+        <PanelMonitoreo
+          salud={salud}
+          esperado={esperado}
+          alVerMapa={() => setVista('mapa')}
+        />
+      )}
+
       {!cargando && coleccion && vista === 'mapa' && (
         <>
           {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
@@ -416,6 +447,19 @@ export default function App() {
                 {`Ver los ${historial.eventos.length} eventos documentados del canton`}
               </button>
             )}
+            {/* El estado del sistema, tercera salida del mapa. H12.2.
+
+                El boton aparece siempre, tambien cuando algo fallo: es la unica
+                de las tres entradas que sirve mas cuando el sistema esta mal que
+                cuando esta bien. Esconderla al fallar seria apagarla justo el dia
+                que hace falta. */}
+            <button
+              type="button"
+              className="boton-ir-a-hoy"
+              onClick={() => setVista('monitoreo')}
+            >
+              Ver el estado del sistema
+            </button>
           </div>
 
           <TitularRiesgo

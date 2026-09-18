@@ -1094,6 +1094,197 @@ body {
    `clip-path`: la mascara tiene que aplicarse a la imagen antes de que Leaflet
    la coloque, porque `clip-path` sobre el elemento ya colocado se expresaria en
    pixeles de pantalla y habria que recalcularlo en cada zoom. Ver I-14. */
+/* -------------------------------------------------------------------------- *
+ * Pantalla de monitoreo. Historia H12.2.
+ *
+ * Ningun estado se distingue SOLO por color: la fila que pide atencion lleva
+ * ademas un borde izquierdo, y cada valor va acompanado de su lectura en texto.
+ * Es CA-6, y es la misma razon por la que la ausencia de dato del mapa se
+ * distingue por trama y no solo por tono.
+ *
+ * El rojo no se usa aca. Esta reservado para riesgo alto en la rampa: pintar de
+ * rojo un campo de estado lo pondria al mismo nivel visual que un distrito en
+ * peligro. Lo que pide atencion va en ambar, como el resto de los avisos sobre
+ * procedencia del dato (H5.9).
+ * -------------------------------------------------------------------------- */
+
+.monitoreo {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--espacio-4);
+  display: grid;
+  gap: var(--espacio-6);
+}
+
+.monitoreo-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+}
+
+.monitoreo-titulo {
+  font-size: var(--texto-xl);
+  margin: 0;
+}
+
+.monitoreo-subtitulo {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  max-width: 48rem;
+}
+
+.monitoreo-vacio {
+  padding: var(--espacio-6);
+  color: var(--texto-suave);
+}
+
+/* El entorno. Los tres estados se distinguen por texto y por borde, no por
+   color solo: `nombre` ya dice cual es. */
+.monitoreo-entorno {
+  display: grid;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie-alterna);
+}
+
+.monitoreo-entorno-publicado {
+  border-left-color: var(--foco);
+}
+
+.monitoreo-entorno-local {
+  border-left-color: var(--borde-fuerte);
+}
+
+.monitoreo-entorno-respaldo {
+  border-left-color: var(--riesgo-medio);
+  background: var(--aviso-fondo);
+}
+
+.monitoreo-entorno-nombre {
+  font-weight: 700;
+  font-size: var(--texto-lg);
+}
+
+.monitoreo-entorno-detalle {
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.monitoreo-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+}
+
+.monitoreo-caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  padding-bottom: var(--espacio-2);
+}
+
+.monitoreo-tabla th,
+.monitoreo-tabla td {
+  border: 1px solid var(--borde);
+  padding: var(--espacio-2) var(--espacio-3);
+  text-align: left;
+  vertical-align: top;
+}
+
+.monitoreo-tabla thead th {
+  background: var(--superficie-alterna);
+}
+
+.monitoreo-tabla tbody th {
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Pide atencion: ambar y borde grueso a la izquierda. Dos senales, no una. */
+.monitoreo-fila-atencion td,
+.monitoreo-fila-atencion th {
+  background: var(--aviso-fondo);
+}
+
+.monitoreo-fila-atencion th:first-child {
+  border-left: 4px solid var(--riesgo-medio);
+}
+
+.monitoreo-esperado {
+  color: var(--texto-suave);
+}
+
+/* La ausencia se declara con palabras, no con un guion ni un vacio. D-07. */
+.monitoreo-ausente {
+  color: var(--texto-sobre-sin-dato);
+  font-style: italic;
+}
+
+.monitoreo-antiguedad {
+  color: var(--texto-suave);
+}
+
+.monitoreo-nota {
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4);
+  background: var(--aviso-fondo);
+  border-left: 4px solid var(--riesgo-medio);
+  border-radius: var(--radio);
+  font-size: var(--texto-sm);
+}
+
+.monitoreo-huecos {
+  border-top: 1px solid var(--borde);
+  padding-top: var(--espacio-4);
+}
+
+.monitoreo-huecos-titulo {
+  font-size: var(--texto-lg);
+  margin: 0 0 var(--espacio-2);
+}
+
+.monitoreo-huecos-intro {
+  margin: 0 0 var(--espacio-4);
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  max-width: 48rem;
+}
+
+.monitoreo-huecos-lista {
+  margin: 0;
+  display: grid;
+  gap: var(--espacio-4);
+}
+
+.monitoreo-huecos-lista dt {
+  font-weight: 700;
+}
+
+.monitoreo-huecos-lista dd {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+}
+
+/* A 390 px la tabla de cuatro columnas no cabe. Se desplaza DENTRO de su propio
+   contenedor y no arrastra la pagina, que es lo que pide CA-7. */
+@media (max-width: 40rem) {
+  .monitoreo-tabla-envoltura {
+    overflow-x: auto;
+  }
+
+  .monitoreo-tabla {
+    min-width: 34rem;
+  }
+}
+
 .superficie-calor {
   pointer-events: none;
 }
