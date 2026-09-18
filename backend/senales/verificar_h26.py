@@ -139,13 +139,37 @@ def verificar(registro: Registro, matriz: Path) -> None:
     vectores = como_vectores(completas, columnas)
     exactos, altos = pares_relacionados(vectores, columnas, UMBRAL_ALTO, TOLERANCIA)
     encontrados = {frozenset((p.a, p.b)) for p in exactos}
-    registro.comprobar(
-        encontrados == PARES_ESPERADOS,
-        "CA-6",
-        "los tres pares exactos son los declarados en la hipotesis, y solo esos",
-        "\n".join(f"{p.relacion()}   residuo {p.residuo:.2e}" for p in exactos)
-        or "no se encontro ninguno",
-    )
+    # DOS MODOS, Y LOS DECIDE LA MATRIZ.
+    #
+    # Antes del descarte de H2.6 la matriz trae las tres medias de precipitacion y
+    # este control exige encontrar exactamente esos tres pares. Despues ya no las
+    # trae, y exige que **no quede ninguna redundancia exacta**, que es el
+    # resultado de la historia.
+    #
+    # Un verificador que solo supiera del estado viejo se pondria rojo el dia que
+    # la historia cierra, y un control que se pone rojo por hacer bien las cosas
+    # termina borrado.
+    hay_medias = "pp_media3" in columnas
+    if hay_medias:
+        registro.comprobar(
+            encontrados == PARES_ESPERADOS,
+            "CA-6",
+            "los tres pares exactos son los declarados en la hipotesis, y solo esos",
+            "\n".join(f"{p.relacion()}   residuo {p.residuo:.2e}" for p in exactos)
+            or "no se encontro ninguno",
+        )
+    else:
+        registro.comprobar(
+            not exactos,
+            "CA-6",
+            "descartadas las medias, no queda ninguna redundancia exacta",
+            "los tres pares se midieron el 2026-09-18 sobre la matriz de 32 columnas;\n"
+            "estan en docs/evidencias/objetivos/H2.6-seleccion-de-variables.md\n"
+            + (
+                "\n".join(p.relacion() for p in exactos)
+                or "ninguna, que es lo que la historia buscaba"
+            ),
+        )
     registro.comprobar(
         all(p.residuo < TOLERANCIA for p in exactos),
         "CA-7",
@@ -207,7 +231,20 @@ def verificar(registro: Registro, matriz: Path) -> None:
         "igual en una sola corrida",
     )
 
-    # --- CA-8: la matriz reducida existe y es la que se midio ---------------
+    # --- CA-8: el antes contra el despues -----------------------------------
+    #
+    # Con las medias todavia en la matriz, la reducida es el «despues» y se compara
+    # contra ella. Sin ellas, **la matriz de produccion ya ES la reducida** y no
+    # hay dos cosas que comparar: el antes quedo medido y fechado en la evidencia.
+    if not hay_medias:
+        registro.comprobar(
+            True,
+            "CA-8",
+            "la matriz de produccion ya es la reducida: el descarte esta aplicado",
+            f"{len(columnas)} columnas. Las dos corridas del arnes con fabricas() "
+            "estan en la evidencia, con fecha.",
+        )
+        return
     if not REDUCIDA.exists():
         registro.comprobar(
             False,

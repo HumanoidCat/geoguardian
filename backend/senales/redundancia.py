@@ -58,9 +58,10 @@ Por lo mismo que `caracteristicas.py`: el resto de `backend/senales` no depende
 de pandas, y agregarlo obligaria a una solicitud de cambio sobre
 `requirements.txt`, que es archivo compartido.
 
-No hace falta. Las 496 parejas de 32 columnas se calculan con sumas acumuladas en
-una pasada por columna, y los productos cruzados con `map(operator.mul, ...)`,
-que corre en C. Sobre la matriz completa son segundos.
+No hace falta. Las parejas de la matriz -unos cientos, porque son unas decenas de
+columnas- se calculan centrando cada columna en una sola pasada y multiplicando
+los vectores con `map(operator.mul, ...)`, que corre en C. Sobre la matriz
+completa son segundos.
 
 Uso:
     python -m backend.senales.redundancia
@@ -546,7 +547,10 @@ def main() -> int:
     print(f"  distritos          {len(distritos)}")
     print(f"  rango              {min(fechas)} a {max(fechas)}")
     if not completas:
-        print("\n  Ninguna fila tiene las 32 columnas: no hay nada que correlacionar.")
+        print(
+            f"\n  Ninguna fila tiene las {len(columnas)} columnas: "
+            "no hay nada que correlacionar."
+        )
         print("  El estimador tampoco podria entrenar con esta matriz.\n")
         return 1
     print(f"  filas COMPLETAS    {len(completas)}  ({100.0 * len(completas) / len(filas):.1f} %)")

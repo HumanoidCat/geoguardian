@@ -124,9 +124,36 @@
     fallaron de verdad: la issue #284 se abrio, deduplico y se cerro sola.
   - **Troubleshoot deja de estar en cero.**
 
-- [ ] **H2.6** · Documentar seleccion de variables y descartar redundantes
+- [x] **H2.6** · Documentar seleccion de variables y descartar redundantes (2026-09-18)
   - `E2` · 5 pts · 7.8 h · rubrica: OE2 · depende de: H2.5
-  - **Diferida el 2026-09-03 por D-38.**
+  - horas: estimada 8.0 . real 6.0
+  - Evidencia: `docs/evidencias/objetivos/H2.6-seleccion-de-variables.md`, contra los
+    catorce criterios escritos el 2026-09-17 antes del codigo.
+  - **Diferida el 2026-09-03 por D-38**, retomada el 2026-09-17.
+  - **El hallazgo grande no era el que la historia buscaba.** La hipotesis declarada
+    antes de medir -que `pp_acum{n}` y `pp_media{n}` son la misma columna dividida entre
+    n- se confirmo con `r = 1.0000000000` en los tres pares. Pero la medicion de CA-5
+    dio algo mayor: **la frase que justifica el descarte de `temp_min_c` es falsa**.
+    Decia que las tres temperaturas estan «casi perfectamente correlacionadas»; medido
+    sobre 12 784 dias, la maxima contra la minima da **0,048**. No estan correlacionadas.
+    Para `temp_media_c` el argumento si se sostiene, con 0,876. De los dos descartes que
+    esa sola frase justificaba, uno tenia el dato en contra desde el principio.
+  - **Lo que estaba medido hace un mes y no estaba escrito donde importa.** H1.5 midio
+    el 2026-08-30 que `tmax`, `hr` y `viento` tienen 0,00 % de variacion espacial por
+    I-05. Llevado a esta matriz: 19 de las 32 columnas eran identicas entre los ocho
+    distritos. No es candidato a descarte -se perderia senal temporal- pero la seleccion
+    de variables no lo mencionaba. Entro al docstring del generador, por condicion del PM.
+  - **La prediccion escrita antes de medir se equivoco, y esta escrita.** El CA-8 decia
+    que se moverian dos de tres estimadores y nombraba a la regresion logistica. No se
+    movio ni un decimal; el que se movio fue el random forest, que estaba dado por inmune.
+    El bosque sortea columnas en cada nodo, asi que una columna duplicada entra al sorteo
+    con dos boletos: se sobre-representa a si misma. No lo habia considerado.
+  - **Y el barrido de cifras encontro tres mias, del mismo dia.** La condicion 4 del
+    permiso pedia listar donde dice «32 columnas»; tres de esas lineas eran mias y el
+    descarte acababa de volverlas falsas. Se corrigieron sin numero fijo. Es el mismo
+    defecto que la historia encontro en el comentario de las temperaturas.
+  - **La estimacion se corrigio en la direccion correcta.** H8.3 fue 3.0 estimadas contra
+    8.0 reales; aca 8.0 contra 6.0. El backlog decia 7.8 las dos veces.
 
 - [x] **H3.7** · Versionar modelos con metricas y fecha asociadas (2026-09-07)
   - `E3` · 3 pts · 2.9 h · rubrica: Arq · depende de: H3.6
