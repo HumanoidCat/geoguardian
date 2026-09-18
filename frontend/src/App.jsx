@@ -14,6 +14,7 @@ import {
   obtenerRiesgos,
   obtenerRiesgosDeVariosEventos,
   obtenerSalud,
+  obtenerIncidentes,
 } from './datos/cliente'
 import SelectorFecha from './componentes/SelectorFecha'
 import { puntoEnSuperficie } from './datos/geometria'
@@ -26,6 +27,7 @@ import LogoGeoGuardian from './componentes/LogoGeoGuardian'
 import EstadoDatos from './componentes/EstadoDatos'
 import HoyEnTuDistrito from './componentes/HoyEnTuDistrito'
 import HistorialEventos from './componentes/HistorialEventos'
+import HistorialIncidentes from './componentes/HistorialIncidentes'
 import { obtenerHistorial } from './datos/historial'
 import TitularRiesgo from './componentes/TitularRiesgo'
 import { resumirPaquetes } from './datos/resumen'
@@ -128,6 +130,10 @@ export default function App() {
   // fecha del selector, porque son de la fecha de la escena de satelite.
   const [indices, setIndices] = useState(null)
   const [historial, setHistorial] = useState(null)
+  // Arranca `undefined` y no `null`: son estados distintos y la pantalla los
+  // muestra distinto. `undefined` es «todavia no llego»; `null`, «falta el
+  // archivo», que no es lo mismo que «no hay incidencias».
+  const [incidentes, setIncidentes] = useState()
 
   // Carga inicial: lo que no cambia al cambiar de evento.
   useEffect(() => {
@@ -162,6 +168,18 @@ export default function App() {
     let vigente = true
     obtenerIndices().then((paquete) => {
       if (vigente) setIndices(paquete)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  // El historico de incidencias del proyecto, para H12.5. Archivo estatico y una
+  // sola vez, por lo mismo que el historial de eventos.
+  useEffect(() => {
+    let vigente = true
+    obtenerIncidentes().then((paquete) => {
+      if (vigente) setIncidentes(paquete)
     })
     return () => {
       vigente = false
@@ -386,6 +404,14 @@ export default function App() {
         <HistorialEventos historial={historial} alVerMapa={() => setVista('mapa')} />
       )}
 
+      {/* El historico de incidencias no depende de `coleccion` ni de la API: sale
+          de un archivo del repositorio. Si los datos del mapa fallaron, esta
+          pantalla sigue sirviendo — y probablemente sea el momento en que mas
+          sirve, porque explica errores anteriores del propio sistema. */}
+      {!cargando && vista === 'incidentes' && (
+        <HistorialIncidentes paquete={incidentes} alVerMapa={() => setVista('mapa')} />
+      )}
+
       {!cargando && coleccion && vista === 'mapa' && (
         <>
           {/* La entrada a «Hoy en tu distrito», arriba del mapa y no al pie.
@@ -416,6 +442,20 @@ export default function App() {
                 {`Ver los ${historial.eventos.length} eventos documentados del canton`}
               </button>
             )}
+            {/* El historico de incidencias del propio proyecto. H12.5.
+
+                Va junto a las otras salidas y no escondido: es documentacion del
+                sistema, no un anexo. El boton no dice cuantas hay porque el
+                numero vive en el archivo generado y no en este componente —
+                escribirlo aca seria la clase de dato duplicado que este
+                proyecto ya arreglo tres veces. */}
+            <button
+              type="button"
+              className="boton-ir-a-hoy"
+              onClick={() => setVista('incidentes')}
+            >
+              Ver el historico de incidencias
+            </button>
           </div>
 
           <TitularRiesgo

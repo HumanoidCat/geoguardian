@@ -83,6 +83,31 @@ export async function obtenerIndices() {
   }
 }
 
+/**
+ * El historico de incidencias del proyecto, para H12.5.
+ *
+ * Lo genera `frontend/herramientas/generar_incidentes.py` desde
+ * `docs/04-bitacora-incidencias.md`, el documento que el equipo escribe a mano y
+ * revisa en Pull Request. **No pasa por la API porque no hay API que lo sirva**,
+ * igual que el historial de eventos de H7.3.
+ *
+ * Vive aca y no en el componente por **CA-2 de H6.6**: los componentes no buscan
+ * datos, los reciben. El acceso a datos vive en este archivo sin excepciones, y
+ * por eso el dia que cambie de donde sale un dato se toca un archivo y no diez.
+ *
+ * Si no esta, se devuelve `null` y la pantalla lo declara — con la distincion
+ * escrita, porque no es lo mismo «no hay incidencias» que «falta el archivo».
+ */
+export async function obtenerIncidentes() {
+  try {
+    const respuesta = await fetch(`${BASE}incidentes/incidentes.json`)
+    if (!respuesta.ok) return null
+    return await respuesta.json()
+  } catch {
+    return null
+  }
+}
+
 const RESPALDO = {
   salud: `${BASE}simulados/salud.json`,
   distritos: `${BASE}simulados/distritos.geojson`,
