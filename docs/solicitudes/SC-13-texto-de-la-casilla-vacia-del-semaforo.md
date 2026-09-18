@@ -1,4 +1,4 @@
-# SC-11 · Excepción acotada sobre `TableroSemaforo.jsx` para el texto de la casilla vacía
+# SC-13 · Excepción acotada sobre `TableroSemaforo.jsx` para el texto de la casilla vacía
 
 | | |
 |---|---|
@@ -7,7 +7,7 @@
 | **Responde** | Alejandro, como PM · y Avril, como dueña de la carpeta |
 | **Historia que la origina** | **H9.4** · Incorporar un cambio derivado de la retroalimentación |
 | **Estado** | **Propuesta. Nada tocado hasta que esté respondida.** |
-| **Numeración** | SC-08 la reservó Luna (contrato de bitácora); SC-09 se consumió en la colisión del 2026-09-02; SC-10 fue de César |
+| **Numeración** | Se escribió como SC-11 el 2026-09-17 y **se renumeró el mismo día**: SC-11 y SC-12 ya estaban tomadas en `dev`, de un `git pull` posterior a haberla escrito. Es la segunda colisión de numeración del proyecto —la primera fue la del 2026-09-02, que consumió SC-09— y se detectó antes del PR, no después |
 
 ## El problema, en una frase
 
@@ -82,7 +82,7 @@ texto: la sequía dice que **no se mide**, el resto dice **sin estimación**.
 > el fallo.** El participante no se confundió porque el texto fuera inconsistente:
 > se confundió porque nada le decía que la ausencia era deliberada.
 
-**Si a nueve días de la feria preferís acotar el riesgo, se hace B** y se anota en
+**Si a siete días de la feria preferís acotar el riesgo, se hace B** y se anota en
 la evidencia que el hallazgo queda parcialmente sin atender, con la parte que
 falta descrita. Eso es preferible a hacer A sin permiso.
 
