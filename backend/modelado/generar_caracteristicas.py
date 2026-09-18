@@ -29,14 +29,68 @@ relacion con los eventos que se estiman, no por estar disponibles:
     humedad_relativa_pct   la variable de combustible fino mas directa que hay
     viento_ms              propagacion; entra con rezagos cortos nada mas
 
-Quedan fuera `temp_min_c` y `temp_media_c` **a proposito**: las tres temperaturas
-de un mismo dia estan casi perfectamente correlacionadas, y meter las tres no
-agrega senal, agrega colinealidad. En una regresion logistica eso no empeora la
-prediccion pero **arruina la interpretacion de los coeficientes**, que es lo que
-H4.1 va a necesitar.
+Quedan fuera `temp_min_c` y `temp_media_c`. **H2.6 midio esa decision el
+2026-09-18**, sobre los 12 784 dias de `crudo.medicion_diaria`:
+
+    temp_max_c   temp_min_c     r = +0.047908
+    temp_max_c   temp_media_c   r = +0.875530
+    temp_min_c   temp_media_c   r = +0.485901
+
+Este comentario decia que **las tres** estaban «casi perfectamente
+correlacionadas». Para `temp_media_c` el argumento se sostiene -0.876 es alta,
+aunque «casi perfectamente» la exagera-: meterla agrega colinealidad, que en una
+regresion logistica no empeora la prediccion pero **arruina la interpretacion de
+los coeficientes**, que es lo que H4.1 necesita.
+
+**Para `temp_min_c` el dato dice lo contrario.** 0.048 no es colinealidad: es
+informacion que el modelo no tiene. A esta latitud la oscilacion estacional es
+minima, asi que lo que queda es tiempo atmosferico, y ahi la maxima y la minima se
+desacoplan -un dia nublado baja una y sube la otra-.
+
+**El descarte no se revierte aqui**, porque agregar una columna exige medir con el
+arnes y eso es alcance de otra historia. `temp_min_c` queda **anotada como
+candidata**; lo que no podia quedarse es una justificacion que el dato no sostiene.
+
+La medicion se reproduce con:
+
+    python -m backend.senales.redundancia --temperaturas
 
 Un modelo con menos entradas que se puede explicar vale mas aca que uno con todas
 que no.
+
+===========================================================================
+LO QUE ESTAS VARIABLES NO PUEDEN HACER, Y HAY QUE SABERLO AL ELEGIRLAS
+===========================================================================
+
+**Tres de las cuatro no distinguen un distrito de otro.** Lo midio H1.5 el
+2026-08-30 sobre las variables crudas, y H2.6 lo confirmo el 2026-09-18 sobre las
+columnas derivadas, que es donde el modelo las consume:
+
+    precipitacion_mm       CHIRPS, 0.05 grados   distingue el 61,62 % de los dias
+    temp_max_c             POWER                 0,00 %
+    humedad_relativa_pct   POWER                 0,00 %
+    viento_ms              POWER                 0,00 %
+
+Los ocho distritos caen en la misma celda de NASA POWER, la (-85,0 - 10,5). Es
+**I-05**. Llevado a esta matriz: **diecinueve columnas son identicas entre los
+ocho distritos, todos los dias, durante treinta y cinco anios** -las seis de
+`tmax`, las siete de `hr`, las tres de `viento` y las dos del calendario-. El
+ancho total de la matriz cambia cuando alguien agrega o quita una columna, asi
+que no se escribe aca: lo imprime este guion en cada corrida.
+
+**No es motivo para descartarlas.** El modelo se entrena juntando los ocho
+distritos, y ahi esas columnas si aportan. Lo que no aportan es **resolucion
+espacial**, que es justo lo que el sistema promete estimar: toda la capacidad de
+distinguir distritos descansa sobre la precipitacion y sobre los tres estaticos de
+H3.9.
+
+Se escribe aca, donde se eligen las variables, y no solo en la evidencia: quien
+agregue o quite una columna tiene que leer esto antes de hacerlo.
+
+Un efecto que no se buscaba y sale de la misma medicion: **acumular aumenta la
+resolucion espacial**. `pp_rez1` distingue el 61,62 % de los dias y `pp_acum30` el
+99,78 %, porque con treinta dias acumulados es casi imposible que los ocho
+coincidan.
 
 ===========================================================================
 EL VALOR IMPUTADO NO ES UNA OBSERVACION
@@ -134,17 +188,37 @@ REZAGOS_POR_PREFIJO: dict[str, tuple[int, ...]] = {
     "viento": (1, 2),
 }
 
-#: SOLO LA PRECIPITACION SE ACUMULA, Y ESTO NO ES UN DETALLE.
+#: DE CADA PAR ACUMULADO/MEDIA SOBREVIVE EXACTAMENTE UNO. H2.6.
 #:
-#: `acumulado` y `media_movil` sobre la misma ventana son **el mismo numero
-#: multiplicado por n** cuando la ventana esta completa. Para la lluvia las dos
-#: tienen sentido por separado -«llovieron 120 mm en 7 dias» es la magnitud que
-#: define el evento- pero para la temperatura, la humedad y el viento la suma no
-#: significa nada: sumar porcentajes de humedad no da un porcentaje.
+#: `acumulado(n)` y `media_movil(n)` sobre la misma ventana son **el mismo numero
+#: dividido entre n** cuando la ventana esta completa, y bajo la regla estricta de
+#: H2.5 toda ventana que sobrevive esta completa. El par es una sola columna
+#: escrita dos veces.
 #:
-#: Dejarlas todas metia pares **perfectamente colineales** en el modelo, que es
-#: exactamente lo que se evito al descartar `temp_min_c` y `temp_media_c`.
-#: Se detecto midiendo la matriz, no leyendo el codigo.
+#: Este conjunto decide cual de las dos se queda:
+#:
+#:     prefijo en SE_ACUMULAN   -> se queda el acumulado, se cae la media
+#:     prefijo fuera            -> se queda la media,     se cae el acumulado
+#:
+#: La precipitacion acumula porque **D-08 define la lluvia intensa como un umbral
+#: sobre el acumulado de 72 h**: se conserva la columna sobre la que esta escrita
+#: la regla de etiquetado, y ademas «llovieron 120 mm en 7 dias» es la magnitud que
+#: describe el evento. Para la temperatura, la humedad y el viento la suma no
+#: significa nada -sumar porcentajes de humedad no da un porcentaje- asi que ahi
+#: se queda la media.
+#:
+#: HASTA H2.6 LA PRECIPITACION CONSERVABA LAS DOS, y este comentario explicaba el
+#: mecanismo sin aplicarselo a si mismo. Medido el 2026-09-18 sobre las 102 040
+#: filas completas de la matriz:
+#:
+#:     pp_media30 = 0.0333333 * pp_acum30   r = 1.0000000000   residuo 6.84e-06
+#:     pp_media7  = 0.142857  * pp_acum7    r = 1.0000000000   residuo 8.13e-06
+#:     pp_media3  = 0.333332  * pp_acum3    r = 1.0000000000   residuo 8.62e-06
+#:
+#: Tres pares perfectamente colineales. Quitarlos, medido con el arnes de H3.6 y
+#: `fabricas()`, **no cambia ningun escritor**: los dos veredictos siguen siendo
+#: empate tecnico. La eleccion de cual sobrevive es de legibilidad, no de
+#: desempenio. Ver docs/evidencias/objetivos/H2.6-seleccion-de-variables.md.
 SE_ACUMULAN = frozenset({"pp"})
 
 # ===========================================================================
@@ -271,7 +345,9 @@ def _util(columna: str, prefijo: str) -> bool:
 
     Se descartan dos familias:
 
-    **Los acumulados de lo que no se acumula.** Ver `SE_ACUMULAN`.
+    **La mitad redundante de cada par acumulado/media.** Ver `SE_ACUMULAN`: las
+    dos son la misma columna dividida entre `n`, asi que sobrevive una sola y
+    cual depende de que signifique algo para esa variable.
 
     **Los contadores `_observados` de las ventanas estrictas.** H2.5 los emite a
     proposito -«el modelo tiene derecho a saber que la ventana venia
@@ -283,7 +359,12 @@ def _util(columna: str, prefijo: str) -> bool:
     """
     if columna.endswith("_observados"):
         return False  # se re-agregan abajo si la ventana esta relajada
-    return not ("_acum" in columna and prefijo not in SE_ACUMULAN)
+    acumula = prefijo in SE_ACUMULAN
+    if "_acum" in columna:
+        return acumula
+    if "_media" in columna:
+        return not acumula
+    return True
 
 
 def construir(
@@ -328,7 +409,17 @@ def construir(
                         {
                             c: v
                             for c, v in caracteristicas.items()
-                            if _util(c, prefijo) or (relajada and c.endswith("_observados"))
+                            # CON LA VENTANA RELAJADA EL PAR DEJA DE SER EL MISMO
+                            # NUMERO. `media_movil` divide entre los dias
+                            # OBSERVADOS, que bajo la regla estricta es siempre n
+                            # -de ahi la colinealidad que H2.6 midio- pero con
+                            # `--minimo-observado` varia fila a fila. Ahi las dos
+                            # columnas dicen cosas distintas y la media vuelve.
+                            # El descarte de H2.6 se midio sobre la matriz
+                            # estricta, que es la de produccion; extenderlo a la
+                            # relajada seria afirmar algo que nadie midio.
+                            if _util(c, prefijo)
+                            or (relajada and (c.endswith("_observados") or "_media" in c))
                         }
                     )
 

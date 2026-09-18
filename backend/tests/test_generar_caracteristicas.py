@@ -64,13 +64,50 @@ def test_solo_la_precipitacion_se_acumula():
             ), f"{prefijo} no deberia acumularse"
 
 
-def test_la_media_y_el_acumulado_de_la_lluvia_no_son_la_misma_columna():
-    """Para la lluvia las dos tienen sentido, y se comprueba que no coincidan."""
+def test_de_la_lluvia_queda_el_acumulado_y_no_la_media():
+    """H2.6. Esta prueba se llamaba `..._no_son_la_misma_columna` y comprobaba otra cosa.
+
+    Comprobaba que los dos **valores** fueran distintos:
+
+        assert fila["pp_acum7"] != pytest.approx(fila["pp_media7"])
+
+    Y lo eran siempre, porque uno es siete veces el otro. Pero **distinto no es
+    independiente**: bajo la regla estricta de H2.5 toda ventana que sobrevive
+    esta completa, asi que `media_movil` divide siempre entre `n` y las dos
+    columnas son la misma informacion escrita dos veces. Medido en H2.6 sobre
+    102 040 filas: `r = 1.0000000000`, con la relacion afin verificada fila por
+    fila.
+
+    La prueba estuvo en verde todo el tiempo dando por comprobado lo contrario de
+    lo que pasaba. Es la misma familia de **I-58**: un control que no ejercita lo
+    que su nombre dice cubrir. Se deja escrito porque el nombre viejo es lo unico
+    que ensenia algo aca.
+
+    Y habia una segunda linea, que es la que convierte esto en un hallazgo:
+
+        assert fila["pp_acum7"] == pytest.approx(fila["pp_media7"] * 7)
+
+    **La prueba verificaba la relacion exacta.** Que el acumulado de siete dias es
+    la media por siete, comprobado en cada corrida del CI desde H3.3. La
+    colinealidad nunca estuvo escondida: estaba **afirmada en una prueba**, debajo
+    de un nombre que decia lo contrario.
+
+    Nadie lo leyo asi porque las dos frases son ciertas a la vez -«no son la misma
+    columna» y «una es siete veces la otra»- y hay que ponerlas juntas para ver que
+    significan lo que H2.6 midio. Estuvieron juntas, en esta funcion, todo el
+    tiempo.
+
+    Lo que si es comprobable ahora: de cada par sobrevive uno, y para la lluvia es
+    el acumulado, porque **D-08 define el evento como un umbral sobre el
+    acumulado de 72 h**. Ver `SE_ACUMULAN` en `generar_caracteristicas.py`.
+    """
     matriz = construir({"50801": serie(60)}, None)
     fila = matriz[("50801", INICIO + timedelta(days=40))]
     assert fila["pp_acum7"] is not None
-    assert fila["pp_acum7"] != pytest.approx(fila["pp_media7"])
-    assert fila["pp_acum7"] == pytest.approx(fila["pp_media7"] * 7)
+    assert "pp_media7" not in fila
+    # Y al reves para las que no acumulan: ahi sobrevive la media.
+    assert "tmax_media7" in fila
+    assert "tmax_acum7" not in fila
 
 
 # --------------------------------------------------------------------------- #
