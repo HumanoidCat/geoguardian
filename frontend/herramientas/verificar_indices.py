@@ -94,9 +94,7 @@ def leer_png(ruta: Path) -> tuple[int, int, bytearray]:
         posicion += 12 + largo  # 4 largo + 4 etiqueta + cuerpo + 4 CRC
 
         if etiqueta == b"IHDR":
-            ancho, alto, profundidad, tipo, _, _, entrelazado = struct.unpack(
-                ">IIBBBBB", cuerpo
-            )
+            ancho, alto, profundidad, tipo, _, _, entrelazado = struct.unpack(">IIBBBBB", cuerpo)
         elif etiqueta == b"IDAT":
             comprimido += cuerpo
         elif etiqueta == b"IEND":
